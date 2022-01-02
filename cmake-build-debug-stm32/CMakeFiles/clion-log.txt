@@ -1,5 +1,0 @@
-"C:\Users\Ben Fang\AppData\Local\JetBrains\Toolbox\apps\CLion\ch-0\213.6461.46\bin\cmake\win\bin\cmake.exe" -DCMAKE_BUILD_TYPE=Debug "-DCMAKE_MAKE_PROGRAM=C:/Users/Ben Fang/AppData/Local/JetBrains/Toolbox/apps/CLion/ch-0/213.6461.46/bin/ninja/win/ninja.exe" "-DCMAKE_C_COMPILER=C:/Program Files (x86)/GNU Arm Embedded Toolchain/10 2021.07/bin/arm-none-eabi-gcc.exe" "-DCMAKE_CXX_COMPILER=C:/Program Files (x86)/GNU Arm Embedded Toolchain/10 2021.07/bin/arm-none-eabi-g++.exe" -G Ninja C:\STM32-Project\standardRobotBasicCode
--- Minimal optimization, debug info included
--- Configuring done
--- Generating done
--- Build files have been written to: C:/STM32-Project/standardRobotBasicCode/cmake-build-debug-stm32
