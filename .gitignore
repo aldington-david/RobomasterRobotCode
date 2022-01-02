@@ -1,8 +1,8 @@
 *.obj
+*.log
 /.idea
 /cmake-build-debug-stm32/CMakeFiles
 /cmake-build-debug-stm32/.cmake
-*.log
 /cmake-build-debug-stm32/Testing
 /cmake-build-debug-stm32/.ninja_deps
 /cmake-build-debug-stm32/.ninja_log
