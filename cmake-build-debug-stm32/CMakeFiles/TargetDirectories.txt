@@ -1,0 +1,3 @@
+C:/STM32-Project/standardRobotBasicCode/cmake-build-debug-stm32/CMakeFiles/edit_cache.dir
+C:/STM32-Project/standardRobotBasicCode/cmake-build-debug-stm32/CMakeFiles/standardRobotBasicCode.elf.dir
+C:/STM32-Project/standardRobotBasicCode/cmake-build-debug-stm32/CMakeFiles/rebuild_cache.dir

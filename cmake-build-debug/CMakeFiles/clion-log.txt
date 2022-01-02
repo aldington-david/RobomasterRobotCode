@@ -1,0 +1,45 @@
+C:\windows\system32\wsl.exe --distribution Ubuntu-20.04 --exec /bin/zsh -c "export CLION_IDE=TRUE && export JETBRAINS_IDE=TRUE && cd /mnt/c/STM32-Project/standardRobotBasicCode/cmake-build-debug && /usr/bin/cmake -DCMAKE_BUILD_TYPE=Debug -G 'CodeBlocks - Unix Makefiles' /mnt/c/STM32-Project/standardRobotBasicCode"
+-- The C compiler identification is unknown
+-- The CXX compiler identification is unknown
+-- The ASM compiler identification is unknown
+-- Found assembler: arm-none-eabi-gcc
+CMake Error at CMakeLists.txt:17 (project):
+  The CMAKE_C_COMPILER:
+
+    arm-none-eabi-gcc
+
+  is not a full path and was not found in the PATH.
+
+  Tell CMake where to find the compiler by setting either the environment
+  variable "CC" or the CMake cache entry CMAKE_C_COMPILER to the full path to
+  the compiler, or to the compiler name if it is in the PATH.
+
+
+CMake Error at CMakeLists.txt:17 (project):
+  The CMAKE_CXX_COMPILER:
+
+    arm-none-eabi-g++
+
+  is not a full path and was not found in the PATH.
+
+  Tell CMake where to find the compiler by setting either the environment
+  variable "CXX" or the CMake cache entry CMAKE_CXX_COMPILER to the full path
+  to the compiler, or to the compiler name if it is in the PATH.
+
+
+CMake Error at CMakeLists.txt:17 (project):
+  The CMAKE_ASM_COMPILER:
+
+    arm-none-eabi-gcc
+
+  is not a full path and was not found in the PATH.
+
+  Tell CMake where to find the compiler by setting either the environment
+  variable "ASM" or the CMake cache entry CMAKE_ASM_COMPILER to the full path
+  to the compiler, or to the compiler name if it is in the PATH.
+
+
+-- Warning: Did not find file Compiler/-ASM
+-- Configuring incomplete, errors occurred!
+See also "/mnt/c/STM32-Project/standardRobotBasicCode/cmake-build-debug/CMakeFiles/CMakeOutput.log".
+See also "/mnt/c/STM32-Project/standardRobotBasicCode/cmake-build-debug/CMakeFiles/CMakeError.log".
