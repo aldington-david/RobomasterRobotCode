@@ -99,6 +99,7 @@
 #ifndef CALIBRATE_TASK_H
 #define CALIBRATE_TASK_H
 
+#include <stdint-gcc.h>
 #include "struct_typedef.h"
 
 //when imu is calibrating ,buzzer set frequency and strength. 当imu在校准,蜂鸣器的设置频率和强度
@@ -175,7 +176,8 @@ typedef enum
 } cali_id_e;
 
 
-typedef __packed struct
+typedef struct __attribute__((packed))
+
 {
     uint8_t name[3];                                    //device name
     uint8_t cali_done;                                  //0x55 means has been calibrated
@@ -186,7 +188,7 @@ typedef __packed struct
 } cali_sensor_t;
 
 //header device
-typedef __packed struct
+typedef struct __attribute__((packed))
 {
     uint8_t self_id;            // the "SELF_ID"
     uint16_t firmware_version;  // set to the "FIRMWARE_VERSION"

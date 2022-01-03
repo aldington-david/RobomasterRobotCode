@@ -1,5 +1,7 @@
 #ifndef BSP_FLASH_H
 #define BSP_FLASH_H
+
+#include <stdint-gcc.h>
 #include "struct_typedef.h"
 
 /* Base address of the Flash sectors */
@@ -109,7 +111,7 @@ extern void flash_read(uint32_t address, uint32_t *buf, uint32_t len);
   * @param[in]      address: flash 地址
   * @retval         sector号
   */
-extern uint32_t ger_sector(uint32_t address);
+static uint32_t ger_sector(uint32_t address);
 /**
   * @brief          get the next page flash address
   * @param[in]      address: flash address

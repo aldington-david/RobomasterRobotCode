@@ -77,7 +77,7 @@ static void chassis_set_mode(chassis_move_t *chassis_move_mode);
   * @param[out]     chassis_move_transit:"chassis_move"变量指针.
   * @retval         none
   */
-void chassis_mode_change_control_transit(chassis_move_t *chassis_move_transit);
+static void chassis_mode_change_control_transit(chassis_move_t *chassis_move_transit);
 /**
   * @brief          chassis some measure data updata, such as motor speed, euler angle， robot speed
   * @param[out]     chassis_move_update: "chassis_move" valiable point

@@ -33,6 +33,7 @@
 #include "ist8310driver.h"
 #include "pid.h"
 #include "ahrs.h"
+#include "AHRS.h"
 
 #include "calibrate_task.h"
 #include "detect_task.h"

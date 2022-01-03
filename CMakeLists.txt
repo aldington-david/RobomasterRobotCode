@@ -5,8 +5,8 @@ cmake_minimum_required(VERSION 3.16)
 
 # specify cross compilers and tools
 set(CMAKE_C_COMPILER arm-none-eabi-gcc)
-set(CMAKE_CXX_COMPILER arm-none-eabi-g++)
 set(CMAKE_ASM_COMPILER  arm-none-eabi-gcc)
+set(CMAKE_ASM_FLAGS -c)
 set(CMAKE_AR arm-none-eabi-ar)
 set(CMAKE_OBJCOPY arm-none-eabi-objcopy)
 set(CMAKE_OBJDUMP arm-none-eabi-objdump)
@@ -14,9 +14,8 @@ set(SIZE arm-none-eabi-size)
 set(CMAKE_TRY_COMPILE_TARGET_TYPE STATIC_LIBRARY)
 
 # project settings
-project(standardRobotBasicCode C CXX ASM)
-set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_C_STANDARD 11)
+project(standardRobotBasicCode C ASM)
+set(CMAKE_C_FLAGS "-std=c11 -mcpu=Cortex-M4.fp.sp -g -O0")
 
 #Uncomment for hardware floating point
 add_compile_definitions(ARM_MATH_CM4;ARM_MATH_MATRIX_CHECK;ARM_MATH_ROUNDING)
@@ -51,7 +50,7 @@ endif ()
 
 include_directories(Core/Inc Drivers/STM32F4xx_HAL_Driver/Inc Drivers/STM32F4xx_HAL_Driver/Inc/Legacy Drivers/CMSIS/Device/ST/STM32F4xx/Include Drivers/CMSIS/Include USB_DEVICE/App USB_DEVICE/Target Middlewares/Third_Party/FreeRTOS/Source/include Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F Middlewares/ST/STM32_USB_Device_Library/Core/Inc Middlewares/ST/STM32_USB_Device_Library/Class/CDC/Inc USB_DEVICE/App USB_DEVICE/Target "Core/BSP/Boards" Core/Components/algorithm/Include Core/Application Core/Components/controller Core/Components/algorithm Core/Components/devices Core/Components/support Core/Application/protocol Core/Application)
 
-add_definitions(-DUSE_HAL_DRIVER -DSTM32F407xx)
+add_definitions(-DUSE_HAL_DRIVER -DSTM32F407xx -DUSE_STDPERIPH_DRIVER -D__FPU_PRESENT -D__GNUC__ -D__GNUC_STDC_INLINE__)
 
 file(GLOB_RECURSE SOURCES "Middlewares/*.*" "USB_DEVICE/*.*" "startup/*.*" "Drivers/*.*" "Core/*.*" "Core/Application/*.*" "Core/BSP/Boards/*.*" "Core/Components/algorithm/*.*" "Core/Components/controller" "Core/Components/devices" "Core/Components/support")
 

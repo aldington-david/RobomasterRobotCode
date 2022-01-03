@@ -52,6 +52,8 @@
   
 #ifndef DETECT_TASK_H
 #define DETECT_TASK_H
+
+#include <stdint-gcc.h>
 #include "struct_typedef.h"
 
 
@@ -78,7 +80,7 @@ enum errorList
     ERROR_LIST_LENGHT,
 };
 
-typedef __packed struct
+typedef struct __attribute__((packed))
 {
     uint32_t new_time;
     uint32_t last_time;
