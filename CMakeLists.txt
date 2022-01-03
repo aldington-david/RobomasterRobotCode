@@ -52,13 +52,15 @@ include_directories(Core/Inc Drivers/STM32F4xx_HAL_Driver/Inc Drivers/STM32F4xx_
 
 add_definitions(-DUSE_HAL_DRIVER -DSTM32F407xx -DUSE_STDPERIPH_DRIVER -D__FPU_PRESENT -D__GNUC__ -D__GNUC_STDC_INLINE__)
 
-file(GLOB_RECURSE SOURCES "Middlewares/*.*" "USB_DEVICE/*.*" "startup/*.*" "Drivers/*.*" "Core/*.*" "Core/Application/*.*" "Core/BSP/Boards/*.*" "Core/Components/algorithm/*.*" "Core/Components/controller" "Core/Components/devices" "Core/Components/support")
+file(GLOB_RECURSE SOURCES "Middlewares/*.*" "USB_DEVICE/*.*" "startup/*.*" "Drivers/*.*" "Core/*.*" "Core/Application/*.*" "Core/BSP/Boards/*.*" "Core/Components/algorithm/*.*" "Core/Components/controller/*.*" "Core/Components/devices/*.*" "Core/Components/support/*.*")
 
 set(LINKER_SCRIPT ${CMAKE_SOURCE_DIR}/STM32F407IGHx_FLASH.ld)
 
 add_link_options(-Wl,-gc-sections,--print-memory-usage,-Map=${PROJECT_BINARY_DIR}/${PROJECT_NAME}.map)
 add_link_options(-mcpu=cortex-m4 -mthumb -mthumb-interwork)
 add_link_options(-T ${LINKER_SCRIPT})
+link_libraries(${PROJECT_BINARY_DIR}/../Core/Components/algorithm/AHRS.lib)
+link_libraries(${PROJECT_BINARY_DIR}/../Core/Components/algorithm/libarm_cortexM4lf_math.a)
 
 add_executable(${PROJECT_NAME}.elf ${SOURCES} ${LINKER_SCRIPT})
 
