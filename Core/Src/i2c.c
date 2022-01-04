@@ -186,7 +186,7 @@ void HAL_I2C_MspInit(I2C_HandleTypeDef* i2cHandle)
     __HAL_LINKDMA(i2cHandle,hdmatx,hdma_i2c2_tx);
 
   /* USER CODE BEGIN I2C2_MspInit 1 */
-
+    SET_BIT(hi2c2.Instance->CR2, I2C_CR2_DMAEN);
   /* USER CODE END I2C2_MspInit 1 */
   }
   else if(i2cHandle->Instance==I2C3)
