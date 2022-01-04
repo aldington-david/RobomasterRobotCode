@@ -176,7 +176,7 @@ void MX_FREERTOS_Init(void) {
     referee_usart_task_handle = osThreadCreate(osThread(REFEREE), NULL);
 
 
-    osThreadDef(USBTask, usb_task, osPriorityNormal, 0, 128);
+    osThreadDef(USBTask, usb_task, osPriorityNormal, 0, 256);
     usb_task_handle = osThreadCreate(osThread(USBTask), NULL);
 
     osThreadDef(BATTERY_VOLTAGE, battery_voltage_task, osPriorityNormal, 0, 128);
