@@ -5,8 +5,9 @@ cmake_minimum_required(VERSION 3.16)
 
 # specify cross compilers and tools
 set(CMAKE_C_COMPILER arm-none-eabi-gcc)
-set(CMAKE_ASM_COMPILER  arm-none-eabi-gcc)
-set(CMAKE_ASM_FLAGS -c)
+set(CMAKE_CXX_COMPILER arm-none-eabi-g++)
+set(CMAKE_ASM_COMPILER arm-none-eabi-gcc)
+#set(CMAKE_ASM_FLAGS -c)
 set(CMAKE_AR arm-none-eabi-ar)
 set(CMAKE_OBJCOPY arm-none-eabi-objcopy)
 set(CMAKE_OBJDUMP arm-none-eabi-objdump)
@@ -14,8 +15,9 @@ set(SIZE arm-none-eabi-size)
 set(CMAKE_TRY_COMPILE_TARGET_TYPE STATIC_LIBRARY)
 
 # project settings
-project(standardRobotBasicCode C ASM)
-set(CMAKE_C_FLAGS "-std=c11 -mcpu=Cortex-M4.fp.sp -g -O0")
+project(standardRobotBasicCode C CXX ASM)
+set(CMAKE_C_FLAGS "-std=c17 -mcpu=Cortex-M4.fp.sp -g -O0")
+set(CMAKE_CXX_FLAGS "-std=c17 -mcpu=Cortex-M4.fp.sp -g -O0")
 
 #Uncomment for hardware floating point
 add_compile_definitions(ARM_MATH_CM4;ARM_MATH_MATRIX_CHECK;ARM_MATH_ROUNDING)
@@ -50,16 +52,16 @@ endif ()
 
 include_directories(Core/Inc Drivers/STM32F4xx_HAL_Driver/Inc Drivers/STM32F4xx_HAL_Driver/Inc/Legacy Drivers/CMSIS/Device/ST/STM32F4xx/Include Drivers/CMSIS/Include USB_DEVICE/App USB_DEVICE/Target Middlewares/Third_Party/FreeRTOS/Source/include Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F Middlewares/ST/STM32_USB_Device_Library/Core/Inc Middlewares/ST/STM32_USB_Device_Library/Class/CDC/Inc USB_DEVICE/App USB_DEVICE/Target "Core/BSP/Boards" Core/Components/algorithm/Include Core/Application Core/Components/controller Core/Components/algorithm Core/Components/devices Core/Components/support Core/Application/protocol Core/Application)
 
-add_definitions(-DUSE_HAL_DRIVER -DSTM32F407xx -D__FPU_PRESENT)
+add_definitions(-DUSE_HAL_DRIVER -DSTM32F407xx -D__FPU_PRESENT=1U -D__FPU_USED=1U -D__TARGET_FPU_VFP)
 
 file(GLOB_RECURSE SOURCES "Middlewares/*.*" "USB_DEVICE/*.*" "startup/*.*" "Drivers/*.*" "Core/*.*" "Core/Application/*.*" "Core/BSP/Boards/*.*" "Core/Components/algorithm/*.*" "Core/Components/controller/*.*" "Core/Components/devices/*.*" "Core/Components/support/*.*")
 
 set(LINKER_SCRIPT ${CMAKE_SOURCE_DIR}/STM32F407IGHx_FLASH.ld)
 
-add_link_options(-Wl,-gc-sections,--print-memory-usage,-Map=${PROJECT_BINARY_DIR}/${PROJECT_NAME}.map)
+add_link_options(-lm -Wl,-gc-sections,--print-memory-usage,-Map=${PROJECT_BINARY_DIR}/${PROJECT_NAME}.map,--cref,--no-warn-mismatch)
 add_link_options(-mcpu=cortex-m4 -mthumb -mthumb-interwork)
 add_link_options(-T ${LINKER_SCRIPT})
-link_libraries(${PROJECT_BINARY_DIR}/../Core/Components/algorithm/AHRS.lib)
+link_libraries(${PROJECT_BINARY_DIR}/../Core/Components/algorithm/libahrs.a)
 link_libraries(${PROJECT_BINARY_DIR}/../Core/Components/algorithm/libarm_cortexM4lf_math.a)
 
 add_executable(${PROJECT_NAME}.elf ${SOURCES} ${LINKER_SCRIPT})
