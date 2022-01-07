@@ -50,7 +50,7 @@ osThreadId gimbalTaskHandle;
 osThreadId imuTaskHandle;
 osThreadId led_RGB_flow_handle;
 osThreadId oled_handle;
-//osThreadId referee_usart_task_handle;
+//osThreadId referee_task_handle;
 osThreadId print_task_handle;
 osThreadId battery_voltage_handle;
 osThreadId servo_task_handle;
