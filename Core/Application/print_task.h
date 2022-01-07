@@ -1,6 +1,6 @@
 /**
   ****************************(C) COPYRIGHT 2019 DJI****************************
-  * @file       usb_task.c/h
+  * @file       print_task.c/h
   * @brief      no action.
   * @note       
   * @history
@@ -14,13 +14,12 @@
   @endverbatim
   ****************************(C) COPYRIGHT 2019 DJI****************************
   */
-#ifndef USB_TASK_H
-#define USB_TASK_H
+#ifndef PRINT_TASK_H
+#define PRINT_TASK_H
+
 #include "struct_typedef.h"
 
 
-
-
-extern void usb_task(void const * argument);
+extern void print_task(void const *argument);
 
 #endif

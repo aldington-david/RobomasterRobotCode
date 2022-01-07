@@ -68,7 +68,7 @@ void test_task(void const * argument)
         //有错误
         if(error)
         {
-            buzzer_warn_error(error_num+1);
+//            buzzer_warn_error(error_num+1);
         }
 
         last_error = error;

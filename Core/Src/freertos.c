@@ -35,7 +35,7 @@
 #include "led_flow_task.h"
 #include "oled_task.h"
 #include "referee_usart_task.h"
-#include "usb_task.h"
+#include "print_task.h"
 #include "voltage_task.h"
 #include "servo_task.h"
 /* USER CODE END Includes */
@@ -51,7 +51,7 @@ osThreadId imuTaskHandle;
 osThreadId led_RGB_flow_handle;
 osThreadId oled_handle;
 osThreadId referee_usart_task_handle;
-osThreadId usb_task_handle;
+osThreadId print_task_handle;
 osThreadId battery_voltage_handle;
 osThreadId servo_task_handle;
 
@@ -176,8 +176,8 @@ void MX_FREERTOS_Init(void) {
     referee_usart_task_handle = osThreadCreate(osThread(REFEREE), NULL);
 
 
-    osThreadDef(USBTask, usb_task, osPriorityNormal, 0, 256);
-    usb_task_handle = osThreadCreate(osThread(USBTask), NULL);
+    osThreadDef(printTask, print_task, osPriorityNormal, 0, 256);
+    print_task_handle = osThreadCreate(osThread(printTask), NULL);
 
     osThreadDef(BATTERY_VOLTAGE, battery_voltage_task, osPriorityNormal, 0, 128);
     battery_voltage_handle = osThreadCreate(osThread(BATTERY_VOLTAGE), NULL);
@@ -187,7 +187,7 @@ void MX_FREERTOS_Init(void) {
 
 
 
-  /* USER CODE END RTOS_THREADS */
+    /* USER CODE END RTOS_THREADS */
 
 }
 
