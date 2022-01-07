@@ -134,20 +134,20 @@ void MX_FREERTOS_Init(void) {
     /* add semaphores, ... */
   /* USER CODE END RTOS_SEMAPHORES */
 
-  /* USER CODE BEGIN RTOS_TIMERS */
+    /* USER CODE BEGIN RTOS_TIMERS */
     /* start timers, add new ones, ... */
-  /* USER CODE END RTOS_TIMERS */
+    /* USER CODE END RTOS_TIMERS */
 
-  /* USER CODE BEGIN RTOS_QUEUES */
+    /* USER CODE BEGIN RTOS_QUEUES */
     /* add queues, ... */
-  /* USER CODE END RTOS_QUEUES */
+    /* USER CODE END RTOS_QUEUES */
 
-  /* Create the thread(s) */
-  /* definition and creation of test */
-  osThreadDef(test, test_task, osPriorityNormal, 0, 128);
-  testHandle = osThreadCreate(osThread(test), NULL);
+    /* Create the thread(s) */
+    /* definition and creation of test */
+    osThreadDef(test, test_task, osPriorityNormal, 0, 256);
+    testHandle = osThreadCreate(osThread(test), NULL);
 
-  /* USER CODE BEGIN RTOS_THREADS */
+    /* USER CODE BEGIN RTOS_THREADS */
     /* add threads, ... */
     osThreadDef(cali, calibrate_task, osPriorityNormal, 0, 512);
     calibrate_tast_handle = osThreadCreate(osThread(cali), NULL);
@@ -172,17 +172,17 @@ void MX_FREERTOS_Init(void) {
     oled_handle = osThreadCreate(osThread(OLED), NULL);
 
 
-    osThreadDef(REFEREE, referee_usart_task, osPriorityNormal, 0, 128);
+    osThreadDef(REFEREE, referee_usart_task, osPriorityNormal, 0, 256);
     referee_usart_task_handle = osThreadCreate(osThread(REFEREE), NULL);
 
 
     osThreadDef(printTask, print_task, osPriorityNormal, 0, 256);
     print_task_handle = osThreadCreate(osThread(printTask), NULL);
 
-    osThreadDef(BATTERY_VOLTAGE, battery_voltage_task, osPriorityNormal, 0, 128);
+    osThreadDef(BATTERY_VOLTAGE, battery_voltage_task, osPriorityNormal, 0, 256);
     battery_voltage_handle = osThreadCreate(osThread(BATTERY_VOLTAGE), NULL);
 
-    osThreadDef(SERVO, servo_task, osPriorityNormal, 0, 128);
+    osThreadDef(SERVO, servo_task, osPriorityNormal, 0, 256);
     servo_task_handle = osThreadCreate(osThread(SERVO), NULL);
 
 

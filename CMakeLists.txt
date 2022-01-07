@@ -18,7 +18,7 @@ set(CMAKE_TRY_COMPILE_TARGET_TYPE STATIC_LIBRARY)
 project(standardRobotBasicCode C CXX ASM)
 set(CMAKE_C_FLAGS "-std=c17 -mcpu=Cortex-M4.fp.sp -g -O0")
 set(CMAKE_CXX_FLAGS "-std=c17 -mcpu=Cortex-M4.fp.sp -g -O0")
-
+set(COMMON_FLAGS "-specs=nosys.specs -specs=nano.specs -u _printf_float -u _scanf_float")
 #Uncomment for hardware floating point
 add_compile_definitions(ARM_MATH_CM4;ARM_MATH_MATRIX_CHECK;ARM_MATH_ROUNDING)
 add_compile_options(-mfloat-abi=hard -mfpu=fpv4-sp-d16 -ffunction-sections -fdata-sections)
@@ -50,11 +50,11 @@ else ()
     add_compile_options(-Og -g)
 endif ()
 
-include_directories(Core/Inc Drivers/STM32F4xx_HAL_Driver/Inc Drivers/STM32F4xx_HAL_Driver/Inc/Legacy Drivers/CMSIS/Device/ST/STM32F4xx/Include Drivers/CMSIS/Include USB_DEVICE/App USB_DEVICE/Target Middlewares/Third_Party/FreeRTOS/Source/include Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F Middlewares/ST/STM32_USB_Device_Library/Core/Inc Middlewares/ST/STM32_USB_Device_Library/Class/CDC/Inc USB_DEVICE/App USB_DEVICE/Target "Core/BSP/Boards" Core/Components/algorithm/Include Core/Application Core/Components/controller Core/Components/algorithm Core/Components/devices Core/Components/support Core/Application/protocol Core/Application)
+include_directories(Core/Inc Drivers/STM32F4xx_HAL_Driver/Inc Drivers/STM32F4xx_HAL_Driver/Inc/Legacy Drivers/CMSIS/Device/ST/STM32F4xx/Include Drivers/CMSIS/Include USB_DEVICE/App USB_DEVICE/Target Middlewares/Third_Party/FreeRTOS/Source/include Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F Middlewares/ST/STM32_USB_Device_Library/Core/Inc Middlewares/ST/STM32_USB_Device_Library/Class/CDC/Inc USB_DEVICE/App USB_DEVICE/Target "Core/BSP/Boards" Core/Components/algorithm/Include Core/Application Core/Components/controller Core/Components/algorithm Core/Components/devices Core/Components/support Core/Application/protocol Core/Application RTT)
 
 add_definitions(-DUSE_HAL_DRIVER -DSTM32F407xx -D__FPU_PRESENT=1U -D__FPU_USED=1U -D__TARGET_FPU_VFP)
 
-file(GLOB_RECURSE SOURCES "Middlewares/*.*" "USB_DEVICE/*.*" "startup/*.*" "Drivers/*.*" "Core/*.*" "Core/Application/*.*" "Core/BSP/Boards/*.*" "Core/Components/algorithm/*.*" "Core/Components/controller/*.*" "Core/Components/devices/*.*" "Core/Components/support/*.*")
+file(GLOB_RECURSE SOURCES "Middlewares/*.*" "USB_DEVICE/*.*" "startup/*.*" "Drivers/*.*" "Core/*.*" "Core/Application/*.*" "Core/BSP/Boards/*.*" "Core/Components/algorithm/*.*" "Core/Components/controller/*.*" "Core/Components/devices/*.*" "Core/Components/support/*.*" "RTT/*.*")
 
 set(LINKER_SCRIPT ${CMAKE_SOURCE_DIR}/STM32F407IGHx_FLASH.ld)
 

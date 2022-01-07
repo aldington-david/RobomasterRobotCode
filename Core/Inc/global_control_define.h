@@ -10,9 +10,9 @@
 
 /************ Choose Print Mode Start*******************/
 #define USB_MODE 0
-#define USART_MODE 1
+#define RTT_MODE 1
 //#define PRINTF_MODE 0 //print from usb
-#define PRINTF_MODE 1 //print from usart_dma
+#define PRINTF_MODE 1 //print from RTT terminal
 /************ Choose Print Mode End*******************/
 
 

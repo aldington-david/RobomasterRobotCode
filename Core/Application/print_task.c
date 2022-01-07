@@ -20,6 +20,13 @@
 #include "bsp_usart.h"
 #include "usb_device.h"
 #include "usbd_cdc_if.h"
+#include "SEGGER_RTT.h"
+
+#if PRINTF_MODE == RTT_MODE
+#define LOG(format, args...)  SEGGER_RTT_printf(0, "[%s:%d] "format, __FILE__, __LINE__, ##args)
+#define printf(format, args...)  SEGGER_RTT_printf(0, format, ##args)
+#endif
+
 #include <stdio.h>
 #include <stdarg.h>
 #include "string.h"
@@ -77,14 +84,14 @@ referee usart:%s\r\n\
 
         }
     }
-    if (PRINTF_MODE == USART_MODE) {
+    if (PRINTF_MODE == RTT_MODE) {
         MX_USB_DEVICE_Init();
         error_list_print_local = get_error_list_point();
 
 
         while (1) {
             osDelay(1000);
-            usart_printf(
+            printf(
                     "******************************\r\n\
 voltage percentage:%d%% \r\n\
 DBUS:%s\r\n\
@@ -131,18 +138,4 @@ static void usb_printf(const char *fmt, ...) {
 
 
     CDC_Transmit_FS(print_buf, len);
-}
-
-static void usart_printf(const char *fmt, ...) {
-    static va_list ap;
-    static uint16_t len = 0;
-
-    va_start(ap, fmt);
-
-    len = vsprintf((char *) print_buf, fmt, ap);
-
-    va_end(ap);
-
-
-    usart1_tx_dma_enable(print_buf, len);
 }
