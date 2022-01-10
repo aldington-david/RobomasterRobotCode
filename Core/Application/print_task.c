@@ -37,9 +37,13 @@
 
 static void usb_printf(const char *fmt, ...);
 
-static void usart_printf(const char *fmt, ...);
+static void Print_RTT_ReadBuffer(void);
+
+static void Use_RTT_SetConfig(void *const variable);
 
 static uint8_t print_buf[256];
+static uint8_t read_buf[256];
+static int test = 0;
 static const char status[2][7] = {"OK", "ERROR!"};
 const error_t *error_list_print_local;
 
@@ -106,6 +110,7 @@ gyro sensor:%s\r\n\
 accel sensor:%s\r\n\
 mag sensor:%s\r\n\
 referee usart:%s\r\n\
+test:%d\r\n\
 ******************************\r\n",
                     get_battery_percentage(),
                     status[error_list_print_local[DBUS_TOE].error_exist],
@@ -119,7 +124,8 @@ referee usart:%s\r\n\
                     status[error_list_print_local[BOARD_GYRO_TOE].error_exist],
                     status[error_list_print_local[BOARD_ACCEL_TOE].error_exist],
                     status[error_list_print_local[BOARD_MAG_TOE].error_exist],
-                    status[error_list_print_local[REFEREE_TOE].error_exist]);
+                    status[error_list_print_local[REFEREE_TOE].error_exist],
+                    test);
 
         }
     }
@@ -138,4 +144,25 @@ static void usb_printf(const char *fmt, ...) {
 
 
     CDC_Transmit_FS(print_buf, len);
+}
+
+static void Print_RTT_ReadBuffer(void) {
+    unsigned NumBytes = sizeof(read_buf);
+    NumBytes = SEGGER_RTT_Read(0, &read_buf[0], NumBytes);
+    if (NumBytes) {
+        int i;
+        for (i = 0; i < NumBytes; i++)
+            printf("%c", read_buf[i]);
+        printf("\n");
+    }
+}
+
+static void Use_RTT_SetConfig(void *const variable) {
+    unsigned NumBytes = sizeof(read_buf);
+    NumBytes = SEGGER_RTT_Read(0, &read_buf[0], NumBytes);
+    if (NumBytes) {
+        char *rest;
+        int32_t var = strtol(&read_buf[0], &rest, 10);
+        memcpy(variable, &var, sizeof(var));
+    }
 }

@@ -39,7 +39,7 @@
 #include "bsp_delay.h"
 #include "bsp_usart.h"
 #include "remote_control.h"
-
+#include "FreeRTOS.h"
 #include "calibrate_task.h"
 #include "chassis_task.h"
 #include "detect_task.h"
@@ -88,10 +88,9 @@ void MX_FREERTOS_Init(void);
   * @brief  The application entry point.
   * @retval int
   */
-int main(void)
-{
+int main(void) {
     /* USER CODE BEGIN 1 */
-
+    taskDISABLE_INTERRUPTS();
     /* USER CODE END 1 */
 
     /* MCU Configuration--------------------------------------------------------*/
