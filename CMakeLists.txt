@@ -56,7 +56,7 @@ add_definitions(-DUSE_HAL_DRIVER -DSTM32F407xx -D__FPU_PRESENT=1U -D__FPU_USED=1
 
 file(GLOB_RECURSE SOURCES "Middlewares/*.*" "USB_DEVICE/*.*" "startup/*.*" "Drivers/*.*" "Core/*.*" "Core/Application/*.*" "Core/BSP/Boards/*.*" "Core/Components/algorithm/*.*" "Core/Components/controller/*.*" "Core/Components/devices/*.*" "Core/Components/support/*.*" "RTT/*.*")
 
-set(LINKER_SCRIPT ${CMAKE_SOURCE_DIR}/STM32F407IGHx_FLASH.ld)
+set(LINKER_SCRIPT ${CMAKE_SOURCE_DIR}/STM32F407IGHx_FLASH.ld Core/Application/referee_task.c Core/Application/referee_task.h)
 
 add_link_options(-lm -Wl,-gc-sections,--print-memory-usage,-Map=${PROJECT_BINARY_DIR}/${PROJECT_NAME}.map,--cref,--no-warn-mismatch)
 add_link_options(-mcpu=cortex-m4 -mthumb -mthumb-interwork)

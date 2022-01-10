@@ -1,0 +1,625 @@
+#ifndef REFEREE_TASK_H
+#define REFEREE_TASK_H
+
+#include <stdbool.h>
+#include <stdint-gcc.h>
+#include "struct_typedef.h"
+
+/**
+ * @name std_frame_header_t
+ * @brief 裁判系统自定义帧头
+ */
+typedef struct __attribute__((packed)) {
+    uint8_t SOF;
+    uint16_t data_length;
+    uint8_t SEQ;
+    uint8_t CRC8;
+} std_frame_header_t;
+
+/**
+ * @name Judge_Frame_Offset_t
+ * @brief 帧字节偏移
+ */
+typedef enum {
+    FRAME_HEADER    = 0,
+    CMD_ID          = 5,
+    DATA_SEG        = 7
+} Judge_Frame_Offset_t;
+
+/**
+ * @name Judge_Frame_Header_Offset_t
+ * @brief 帧头字节偏移
+ */
+typedef enum {
+    J_SOF           = 0,
+    DATA_LENGTH     = 1,
+    SEQ             = 3,
+    J_CRC8          = 4
+} Judge_Frame_Header_Offset_t;
+
+/**
+ * @name Judge_Cmd_ID_t
+ * @brief 裁判系统命令码ID
+ */
+typedef enum {
+    ID_GAME_STATUS = 0x0001, //!< 比赛状态数据
+    ID_GAME_RESULT = 0x0002, //!< 比赛结果数据
+    ID_GAME_ROBOT_HP = 0x0003, //!< 比赛机器人血量数据
+    ID_DART_STATUS = 0x0004, //!< 飞镖发射状态
+    ID_ICRA_BUFF_DEBUFF_ZONE_STATUS = 0x0005, //!< 人工智能挑战赛加成与惩罚区状态
+
+    ID_EVENT_DATA = 0x0101,                 //!< 场地事件数据
+    ID_SUPPLY_PROJECTILE_ACTION = 0x0102,   //!< 场地补给站动作标识数据
+    ID_REFEREE_WARNING = 0x0104,                //!< 裁判警告数据
+    ID_DART_REMAINING_TIME = 0x0105,         //!< 飞镖发射口倒计时
+
+    ID_GAME_ROBOT_STATUS = 0x0201,       //!< 机器人状态数据
+    ID_POWER_HEAT_DATA = 0x0202,        //!< 实时功率热量数据
+    ID_GAME_ROBOT_POS = 0x0203,         //!< 机器人位置数据
+    ID_BUFF = 0x0204,              //!< 机器人增益数据
+    ID_AERIAL_ROBOT_ENERGY = 0x0205,    //!< 空中机器人能量状态数据
+    ID_ROBOT_HURT = 0x0206,             //!< 伤害状态数据
+    ID_SHOOT_DATA = 0x0207,             //!< 实时射击数据
+    ID_BULLET_REMAINING = 0x0208,       //!< 弹丸剩余发射数
+    ID_RFID_STATUS = 0x0209,            //!< 机器人RFID状态
+
+    ID_COMMUNICATION = 0x0301,      //!< 机器人间交互数据
+    ID_COMMAND = 0x0303,        //!< 客户端小地图交互数据
+} CmdID;
+
+/**
+ * @name Judge_Data_Length_t
+ * @brief 裁判系统数据段长度
+ */
+typedef enum {
+    LEN_FRAME_HEAD = 5,     //!< 帧头长度
+    LEN_CMD_ID = 2,         //!< 命令码长度
+    LEN_FRAME_TAIL = 2,     //!< 帧尾CRC16
+
+    LEN_GAME_STATUS = 3,                      //!< 0x0001 比赛状态数据
+    LEN_GAME_RESULT = 1,                      //!< 0x0002 比赛结果数据
+    LEN_GAME_ROBOT_HP = 32,                   //!< 0x0003 比赛机器人血量数据
+    LEN_DART_STATUS = 3,                      //!< 0x0004 飞镖发射状态
+    LEN_ICRA_BUFF_DEBUFF_ZONE_STATUS = 3,     //!< 0x0005 人工智能挑战赛加成与惩罚区状态
+
+    LEN_EVENT_DATA = 4,                     //!< 0x0101 场地事件数据
+    LEN_SUPPLY_PROJECTILE_ACTION = 4,       //!< 0x0102 场地补给站动作标识数据
+    LEN_REFEREE_WARNING = 2,                //!< 0x0104 裁判警告数据
+    LEN_DART_REMAINING_TIME = 1,            //!< 0x0105 飞镖发射口倒计时
+
+    LEN_AERAL_DATA = 8,
+    LEN_GAME_ROBOT_STATUS = 18,      //!< 0x0201 机器人状态数据
+    LEN_POWER_HEAT_DATA = 16,       //!< 0x0202 实时功率热量数据
+    LEN_GAME_ROBOT_POS = 16,        //!< 0x0203 机器人位置数据
+    LEN_BUFF = 1,              //!< 0x0204 机器人增益数据
+    LEN_AERIAL_ROBOT_ENERGY = 3,    //!< 0x0205 空中机器人能量状态数据
+    LEN_ROBOT_HURT = 1,             //!< 0x0206 伤害状态数据
+    LEN_SHOOT_DATA = 6,             //!< 0x0207 实时射击数据
+    LEN_BULLET_REMAINING = 2,       //!< 0x0208 弹丸剩余发射数
+
+    LEN_RFID_STATUS = 4,            //!< 0x0209 机器人RFID状态
+} Judge_Data_Length_t;
+
+
+/**
+ * @name ext_game_status_t
+ * @brief 比赛状态数据：0x0001 发送频率：1Hz 发送范围：所有机器人
+ * @param
+ */
+typedef struct __attribute__((packed)) {
+    uint8_t game_type: 4;        //!< 比赛类型
+    uint8_t game_progress: 4;    //!< 当前比赛阶段
+    uint16_t stage_remain_time;   //!< 当前阶段剩余时间 单位s
+} ext_game_status_t;
+
+/**
+ * @name ext_game_result_t
+ * @brief 比赛结果数据：0x0002 发送频率：比赛结束后发送 发送范围：所有机器人
+ */
+typedef struct __attribute__((packed)) {
+    uint8_t winner;     //!< 0 平局 1 红方胜利 2 蓝方胜利
+} ext_game_result_t;
+
+/**
+ * @name ext_game_robot_HP_t
+ * @brief 机器人血量数据：0x0003 发送频率：1Hz 发送范围：所有机器人
+ */
+typedef struct __attribute__((packed)) {
+    uint16_t red_1_robot_HP;    //!< 红1英雄机器人血量 未上场以及罚下血量为0
+    uint16_t red_2_robot_HP;    //!< 红2工程机器人血量
+    uint16_t red_3_robot_HP;    //!< 红3步兵机器人血量
+    uint16_t red_4_robot_HP;    //!< 红4步兵机器人血量
+    uint16_t red_5_robot_HP;    //!< 红5步兵机器人血量
+    uint16_t red_7_robot_HP;    //!< 红7哨兵机器人血量
+    uint16_t red_outpost_HP;    //!< 红方前哨站血量
+    uint16_t red_base_HP;       //!< 红方基地血量
+    uint16_t blue_1_robot_HP;   //!< 蓝1英雄机器人血量
+    uint16_t blue_2_robot_HP;   //!< 蓝2工程机器人血量
+    uint16_t blue_3_robot_HP;   //!< 蓝3步兵机器人血量
+    uint16_t blue_4_robot_HP;   //!< 蓝4步兵机器人血量
+    uint16_t blue_5_robot_HP;   //!< 蓝5步兵机器人血量
+    uint16_t blue_7_robot_HP;   //!< 蓝7哨兵机器人血量
+    uint16_t blue_outpost_HP;   //!< 蓝方前哨站血量
+    uint16_t blue_base_HP;      //!< 蓝方基地血量
+} ext_game_robot_HP_t;
+
+/**
+ * @name ext_dart_status_t
+ * @brief 飞镖发射状态：0x0004 发送频率：飞镖发射后发送 发送范围：所有机器人
+ */
+typedef struct __attribute__((packed)) {
+    uint8_t dart_belong;                //!< 发射飞镖的队伍 1：红方飞镖 2：蓝方飞镖
+    uint16_t stage_remaining_time;      //!< 发射时的剩余比赛时间 单位s
+} ext_dart_status_t;
+
+/**
+ * @name ext_ICRA_buff_debuff_zone_status_t
+ * @brief 人工智能挑战赛加成与惩罚区状态：0x0005 发送频率：1Hz周期发送 发送范围：所有机器人
+ */
+typedef struct __attribute__((packed)) {
+    uint8_t F1_zone_status: 1;
+    uint8_t F1_zone_buff_debuff_status: 3;
+    uint8_t F2_zone_status: 1;
+    uint8_t F2_zone_buff_debuff_status: 3;
+    uint8_t F3_zone_status: 1;
+    uint8_t F3_zone_buff_debuff_status: 3;
+    uint8_t F4_zone_status: 1;
+    uint8_t F4_zone_buff_debuff_status: 3;
+    uint8_t F5_zone_status: 1;
+    uint8_t F5_zone_buff_debuff_status: 3;
+    uint8_t F6_zone_status: 1;
+    uint8_t F6_zone_buff_debuff_status: 3;
+} ext_ICRA_buff_debuff_zone_status_t;
+
+/**
+ * @name ext_event_data_t
+ * @brief 场地事件数据：0x0101 发送频率：1Hz周期发送 发送范围：己方机器人
+ */
+typedef struct __attribute__((packed)) {
+    uint32_t event_type;     //!< bit 0-1:己方停机坪占领状态  bit 2-3:己方能量机关状态  bit 4:己方基地虚拟护盾状态  bit 5 -31:保留
+} ext_event_data_t;
+
+/**
+ * @name ext_supply_projectile_action_t
+ * @brief 补给站动作标识：0x0102 发送频率：动作触发后发送 发送范围：己方机器人
+ */
+typedef struct __attribute__((packed)) {
+    uint8_t supply_projectile_id; //!< 补给站口ID
+    uint8_t supply_robot_id; //!< 补弹机器人ID
+    uint8_t supply_projectile_step; //!< 出弹口开闭状态
+    uint8_t supply_projectile_num; //!< 补弹数量
+} ext_supply_projectile_action_t;
+
+/**
+ * @name ext_referee_warning_t
+ * @brief 裁判警告信息：0x0104 发送频率：警告发生后发送 发送范围：己方机器人
+ */
+typedef struct __attribute__((packed)) {
+    uint8_t level; //!< 警告等级
+    uint8_t foul_robot_id; //!< 犯规机器人ID
+} ext_referee_warning_t;
+
+/**
+ * @name ext_dart_remaining_time_t
+ * @brief 飞镖发射口倒计时：0x0105 发送频率：1Hz周期发送 发送范围：己方机器人
+ */
+typedef struct __attribute__((packed)) {
+    uint8_t dart_remaining_time; //!< 15s 倒计时
+} ext_dart_remaining_time_t;
+
+/**
+ * @name ext_game_robot_status_t
+ * @brief 比赛机器人状态：0x0201 发送频率：10Hz 发送范围：单一机器人
+ */
+typedef struct __attribute__((packed)) {
+    uint8_t robot_id;                           //!< 机器人ID
+    uint8_t robot_level;                        //!< 机器人等级
+    uint16_t remain_HP;                         //!< 机器人剩余血量
+    uint16_t max_HP;                            //!< 机器人上限血量
+    uint16_t shooter_heat0_cooling_rate;        //!< 机器人17mm枪口每秒冷却值
+    uint16_t shooter_heat0_cooling_limit;       //!< 机器人17mm枪口热量上限
+    uint16_t shooter_heat1_cooling_rate;        //!< 机器人42mm枪口每秒冷却值
+    uint16_t shooter_heat1_cooling_limit;       //!< 机器人42mm枪口热量上限
+    uint8_t shooter_heat0_speed_limit;          //!< 机器人17mm 枪口上限速度 单位 m/s
+    uint8_t shooter_heat1_speed_limit;          //!< 机器人 42mm 枪口上限速度 单位 m/s
+    uint8_t max_chassis_power;                  //!< 机器人最大底盘功率 单位 W
+    uint8_t mains_power_gimbal_output: 1;       //!< 主控电源 gimbal 口输出情况
+    uint8_t mains_power_chassis_output: 1;      //!< 主控电源 chassis 口输出情况
+    uint8_t mains_power_shooter_output: 1;      //!< 主控电源 shooter 口输出情况
+} ext_game_robot_status_t;
+
+/**
+ * @name ext_power_heat_data_t
+ * @brief 实时功率热量数据 0x0202 发送频率：50Hz 发送范围：单一机器人
+ */
+typedef struct __attribute__((packed)) {
+    uint16_t chassis_volt;                //!< 底盘输出电压 单位 mV
+    uint16_t chassis_current;             //!< 底盘输出电流 单位 mA
+    float chassis_power;                  //!< 底盘输出功率 单位 W
+    uint16_t chassis_power_buffer;        //!< 底盘功率缓冲 单位 J
+    uint16_t shooter_heat0;               //!< 17mm 枪口热量
+    uint16_t shooter_heat1;               //!< 42mm 枪口热量
+    uint16_t mobile_shooter_heat2;        //!< 机动17 mm 枪口热量
+} ext_power_heat_data_t;
+
+/**
+ * @name ext_game_robot_pos_t
+ * @brief 机器人位置：0x0203 发送频率：10Hz 发送范围：单一机器人
+ */
+typedef struct __attribute__((packed)) {
+    float x;         //!< 位置x坐标 单位m
+    float y;         //!< 位置y坐标 单位m
+    float z;         //!< 位置z坐标 单位m
+    float yaw;       //!< 位置枪口 单位度
+} ext_game_robot_pos_t;
+
+/**
+ * @name ext_buff_t
+ * @brief 机器人增益：0x0204 发送频率：1Hz周期发送 发送范围：单一机器人
+ */
+typedef struct __attribute__((packed)) {
+    uint8_t power_rune_buff; //!< bit 0:机器人血量补血状态  bit 1:枪口热量冷却加速  bit 2:机器人防御加成  bit 3:机器人攻击加成
+} ext_buff_t;
+
+/**
+ * @name ext_aerial_robot_energy_t
+ * @brief 空中机器人能量状态：0x0205 发送频率：10Hz 发送范围：单一机器人
+ */
+typedef struct __attribute__((packed)) {
+    uint16_t energy_point; //!< 积累的能量点
+    uint8_t attack_time; //!< 可攻击时间 单位 s  30s递减至0
+} ext_aerial_robot_energy_t;
+
+/**
+ * @name ext_robot_hurt_t
+ * @brief 伤害状态：0x0206 发送频率：伤害发生后发送 发送范围：单一机器人
+ */
+typedef struct __attribute__((packed)) {
+    uint8_t armor_id: 4;        //!< 当血量变化类型为装甲伤害，代表装甲ID，其中数值为0-4号代表机器人的五个装甲片，其他血量变化类型，该变量数值为0
+    uint8_t hurt_type: 4;       //!< 0x0 装甲伤害扣血  0x1 模块掉线扣血  0x2 超射速扣血  0x3 超枪口热量扣血  0x4 超底盘功率扣血  0x5 装甲撞击扣血
+} ext_robot_hurt_t;
+
+/**
+ * @name ext_shoot_data_t
+ * @brief 实时射击信息：0x0207 发送频率：射击后发送 发送范围：单一机器人
+ */
+typedef struct __attribute__((packed)) {
+    uint8_t bullet_type;     //!< 子弹类型： 1：17mm弹丸；2：42mm弹丸
+    uint8_t bullet_freq;     //!< 子弹射频 单位 Hz
+    float bullet_speed;      //!< 子弹射速 单位 m/s
+} ext_shoot_data_t;
+
+/**
+ * @name ext_bullet_remaining_t
+ * @brief 子弹剩余发射数：0x0208 发送频率：1Hz周期发送，空中机器人，哨兵机器人以及ICRA机器人主控发送 发送范围：单一机器人
+ */
+typedef struct __attribute__((packed)) {
+    uint16_t bullet_remaining_num; //!< 子弹剩余发射数目
+} ext_bullet_remaining_t;
+
+/**
+ * @name ext_RFID_status_t
+ * @brief 机器人RFID状态：0x0209 发送频率：1Hz 发送范围：单一机器人
+ */
+typedef struct __attribute__((packed)) {
+    uint32_t RFID_status; //!< bit 0:基地增益点RFID状态  bit 1:高地增益点RFID状态  bit 2:能量机关激活点RFID状态  bit 3:飞坡增益点RFID状态  bit 4:前哨岗增益点RFID状态  bit 5:资源岛增益点RFID状态  bit 6:补血点增益点RFID状态  bit 7:工程机器人补血卡RFID状态  bit 8-25:保留  bit 26-31:人工智能挑战赛F1-F6 RFID状态
+} ext_RFID_status_t;
+
+/**
+ * @name ext_dart_client_cmd_t
+ * @brief 飞镖机器人客户端指令数据：0x020A 发送频率：10Hz 发送范围：单一机器人
+ */
+typedef struct __attribute__((packed)) {
+    uint8_t dart_launch_opening_status;         //!< 当前飞镖发射口的状态 0：关闭  1：正在开启或者关闭中  2：已经开启
+    uint8_t dart_attack_target;                 //!< 飞镖的打击目标，默认为前哨站  1：前哨站  2：基地
+    uint8_t target_change_time;                 //!< 切换打击目标时的比赛剩余时间 单位秒 从未切换默认为0
+    uint8_t first_dart_speed;                   //!< 检测到的第一枚飞镖速度 单位 0.1m/s/LSB 未检测是为0
+    uint8_t second_dart_speed;                  //!< 检测到的第二枚飞镖速度 单位 0.1m/s/LSB 未检测是为0
+    uint8_t third_dart_speed;                   //!< 检测到的第三枚飞镖速度 单位 0.1m/s/LSB 未检测是为0
+    uint8_t fourth_dart_speed;                  //!< 检测到的第四枚飞镖速度 单位 0.1m/s/LSB 未检测是为0
+    uint16_t last_dart_launch_time;             //!< 最近一次的发射飞镖的比赛剩余时间 单位秒 初始值为0
+    uint16_t operate_launch_cmd_time;           //!< 最近一次操作手确定发射指令时的比赛剩余时间 单位秒 初始值为0
+} ext_dart_client_cmd_t;
+
+/**
+ * @name ext_student_interactive_header_data_t
+ * @brief 机器人间通信 交互数据接收信息：0x0301
+ */
+typedef struct __attribute__((packed)) {
+    uint16_t data_CMD_ID;         //!< 数据段的内容ID
+    uint16_t sender_ID;           //!< 发送者的ID 需要校验发送者的ID正确性
+    uint16_t receiver_ID;         //!< 接收者的ID 需要校验接收者的ID正确性
+} ext_student_interactive_header_data_t;
+
+/**
+ * @name ext_aerial_data_t
+ * @brief 云台手交互：0x0301
+ */
+typedef struct __attribute__((packed)) {
+    uint16_t cmd_id;
+    uint16_t send_id;
+    uint16_t receive_id;
+
+    enum cmd_t {
+        stop_fire = 0x1,
+        back_scan = 0x2,
+        escape = 0x4,
+        check_road = 0x8,
+        control_aerial = 0x10,
+    } cmd;
+    int8_t control_dir;
+} ext_aerial_data_t;
+
+/**
+ * @name ext_robot_command_t
+ * @brief 0x0303
+ */
+typedef struct __attribute__((packed)) {
+    float target_x;
+    float target_y;
+    float target_z;
+    uint8_t command_keyboard;
+    uint16_t target_ID;
+} ext_robot_command_t;
+
+/**
+ * @name referee_robot_ID
+ * @brief 裁判系统机器人ID定义
+ */
+typedef enum {
+    hero_red            = 1,
+    engineer_red        = 2,
+    infantry3_red       = 3,
+    infantry4_red       = 4,
+    infantry5_red       = 5,
+    plane_red           = 6,
+
+    hero_blue           = 101,
+    engineer_blue       = 102,
+    infantry3_blue      = 103,
+    infantry4_blue      = 104,
+    infantry5_blue      = 105,
+    plane_blue          = 106,
+} referee_robot_ID;
+
+/**
+ * @name ext_interact_id_t
+ * @brief 裁判系统机器人交互ID
+ */
+typedef struct {
+    uint16_t teammate_hero;
+    uint16_t teammate_engineer;
+    uint16_t teammate_infantry3;
+    uint16_t teammate_infantry4;
+    uint16_t teammate_infantry5;
+    uint16_t teammate_plane;
+    uint16_t teammate_sentry;
+
+    uint16_t client_hero;
+    uint16_t client_engineer;
+    uint16_t client_infantry3;
+    uint16_t client_infantry4;
+    uint16_t client_infantry5;
+    uint16_t client_plane;
+} ext_interact_id_t;
+
+/**
+ * @name robot_interactive_data_t
+ * @brief 机器人间通信 交互数据数据段：0x0301
+ */
+typedef struct __attribute__((packed)){
+    uint8_t data[113];
+} robot_interactive_data_t;
+
+/**
+ * @name ext_client_custom_graphic_delete_t
+ * @brief 客户端删除图形 机器人间通信：0x0301
+ */
+typedef struct __attribute__((packed)) {
+    uint8_t operate_type;         //!< 图形操作 0: 空操作  1: 删除图层  2: 删除所有
+    uint8_t layer;                //!< 图层数 : 0 - 9
+} ext_client_custom_graphic_delete_t;
+
+/**
+ * @name graphic_data_struct_t
+ * @brief 图形数据 机器人间通信 0x0301
+ */
+typedef struct __attribute__((packed)) {
+    uint8_t graphic_name[3];         //!< 图形名 : 在删除，修改等操作中，作为客户端的索引
+    uint32_t operate_type : 3;       //!< 图形操作
+    uint32_t graphic_type : 3;       //!< 图形类型
+    uint32_t layer : 4;              //!< 图层数 : 0 - 9
+    uint32_t color : 4;              //!< 颜色
+    uint32_t start_angle : 9;        //!< 起始角度 单位：° 范围[0,360]
+    uint32_t end_angle : 9;          //!< 终止角度 单位：° 范围[0,360]
+    uint32_t width : 10;             //!< 线宽
+    uint32_t start_x : 11;           //!< 起点x坐标
+    uint32_t start_y : 11;           //!< 起点y坐标
+    uint32_t radius : 10;            //!< 字体大小或者半径
+    uint32_t end_x : 11;             //!< 终点x坐标
+    uint32_t end_y : 11;             //!< 终点y坐标
+} graphic_data_struct_t;
+
+/**
+ * @name graphic_type_enum_t
+ * @brief 图形配置 图形类型定义
+ */
+typedef enum {
+    graphic_type_line       = 0, //!< 直线 @details start_angle : 空<br>end_angle : 空<br>width : 线条宽度<br>start_x : 起点x坐标<br>start_y : 起点y坐标<br>radius : 空<br>end_x : 终点x坐标<br>end_y : 终点y坐标
+    graphic_type_rectangle  = 1, //!< 矩形 @details start_angle : 空<br>end_angle : 空<br>width : 线条宽度<br>start_x : 起点x坐标<br>start_y : 起点y坐标<br>radius : 空<br>end_x : 对角顶点x坐标<br>end_y : 对角顶点y坐标
+    graphic_type_circle     = 2, //!< 正圆 @details start_angle : 空<br>end_angle : 空<br>width : 线条宽度<br>start_x : 圆心x坐标<br>start_y : 圆心y坐标<br>radius : 半径<br>end_x : 空<br>end_y : 空
+    graphic_type_ellipse    = 3, //!< 椭圆 @details start_angle : 空<br>end_angle : 空<br>width : 线条宽度<br>start_x : 圆心x坐标<br>start_y : 圆心y坐标<br>radius : 空<br>end_x : x半轴长度<br>end_y : y半轴长度
+    graphic_type_arc        = 4, //!< 圆弧 @details start_angle : 起始角度<br>end_angle : 终止角度<br>width : 线条宽度<br>start_x : 圆心x坐标<br>start_y : 圆心y坐标<br>radius : 空<br>end_x : x半轴长度<br>end_y : y半轴长度
+    graphic_type_float      = 5, //!< 浮点数 @details start_angle : 字体大小<br>end_angle : 小数位有效个数<br>width : 线条宽度<br>start_x : 起点x坐标<br>start_y : 起点y坐标<br>radius, end_x, end_y : 32位浮点数，float
+    graphic_type_int        = 6, //!< 浮点数 @details start_angle : 字体大小<br>end_angle : 空<br>width : 线条宽度<br>start_x : 起点x坐标<br>start_y : 起点y坐标<br>radius, end_x, end_y : 32位整型数，int32_t
+    graphic_type_char       = 7  //!< 字符 @details start_angle : 字体大小<br>end_angle : 字符长度<br>width : 线条宽度start_x : 起点x坐标<br>start_y : 起点y坐标<br>radius, end_x, end_y : 空
+} graphic_type_enum_t;
+
+/**
+ * @name graphic_color_enum_t
+ * @brief 图形配置 图形颜色定义
+ */
+typedef enum {
+    graphic_color_main      = 0, //!< 红蓝主色
+    graphic_color_yellow    = 1, //!< 黄色
+    graphic_color_green     = 2, //!< 绿色
+    graphic_color_orange    = 3, //!< 橙色
+    graphic_color_fuchsia   = 4, //!< 紫红色
+    graphic_color_pink      = 5, //!< 粉色
+    graphic_color_cyan      = 6, //!< 青色
+    graphic_color_black     = 7, //!< 黑色
+    graphic_color_white     = 8  //!< 白色
+} graphic_color_enum_t;
+
+/**
+ * @name ext_client_custom_graphic_single_t
+ * @brief 客户端绘制一个图形 机器人间通信：0x0301
+ */
+typedef struct __attribute__((packed)) {
+    graphic_data_struct_t graphic_data_struct;
+} ext_client_custom_graphic_single_t;
+
+/**
+ * @name ext_client_custom_graphic_double_t
+ * @brief 客户端绘制二个图形 机器人间通信：0x0301
+ */
+typedef struct __attribute__((packed)) {
+    graphic_data_struct_t graphic_data_struct[2];
+} ext_client_custom_graphic_double_t;
+
+/**
+ * @name ext_client_custom_graphic_five_t
+ * @brief 客户端绘制五个图形 机器人间通信：0x0301
+ */
+typedef struct __attribute__((packed)) {
+    graphic_data_struct_t graphic_data_struct[5];
+} ext_client_custom_graphic_five_t;
+
+/**
+ * @name ext_client_custom_graphic_seven_t
+ * @brief 客户端绘制七个图形 机器人间通信：0x0301
+ */
+typedef struct __attribute__((packed)) {
+    graphic_data_struct_t graphic_data_struct[7];
+} ext_client_custom_graphic_seven_t;
+
+/**
+ * @name ext_client_custom_character_t
+ * @brief 客户端绘制字符 机器人间通信：0x0301
+ */
+typedef struct __attribute__((packed)) {
+    graphic_data_struct_t graphic_data_struct;
+    uint8_t data[30];
+} ext_client_custom_character_t;
+
+typedef struct {
+    uint16_t frame_length;            //!< 帧长度
+    uint16_t cmd_id;                  //!< 命令码
+    uint16_t err_cnt;                 //!< 错帧数
+    bool data_valid;                  //!< 数据有效性
+    uint16_t self_client_id;          //!< 发送者机器人对应的客户端ID
+    bool power_heat_update;           //!< 功率热量数据更新
+    bool shoot_update;                //!< 射击数据更新
+    bool hurt_data_update;            //!< 伤害数据更新
+    bool dart_data_update;            //!< 飞镖数据更新
+    bool supply_data_update;          //!< 补给站数据更新
+    bool command_data_update;         //!< 小地图数据更新
+    bool communication_data_update;   //!< 云台手数据更新
+
+    std_frame_header_t FrameHeader;       //!< 帧头信息
+    ext_game_status_t GameStatus;         //!< 0x0001
+    ext_game_result_t GameResult;         //!< 0x0002
+    ext_game_robot_HP_t GameRobotHP;      //!< 0x0003
+    ext_dart_status_t DartStatus;         //!< 0x0004
+
+    ext_event_data_t EventData; //!< 0x0101
+    ext_supply_projectile_action_t  SupplyProjectileAction; //!< 0x0102
+    ext_referee_warning_t RefereeWarning; //!< 0x0104
+    ext_dart_remaining_time_t DartRemainingTime; //!< 0x0105
+
+    ext_game_robot_status_t GameRobotStatus; //!< 0x0201
+    ext_power_heat_data_t PowerHeatData; //!< 0x0202
+    ext_game_robot_pos_t GameRobotPos; //!< 0x0203
+    ext_buff_t Buff; //!< 0x0204
+    ext_aerial_robot_energy_t AerialRobotEnergy; //!< 0x0205
+    ext_robot_hurt_t RobotHurt; //!< 0x0206
+    ext_shoot_data_t ShootData; //!< 0x0207
+    ext_bullet_remaining_t BulletRemaining; //!< 0x0208
+    ext_RFID_status_t RFIDStatus; //!< 0x0209
+
+    ext_aerial_data_t AerialData;
+
+    ext_robot_command_t command;
+    int16_t offline_cnt;
+    int16_t offline_max_cnt;
+} judge_info_t;
+
+/**
+ * @name drv_type_t
+ * @brief 驱动类型
+ */
+typedef enum drv_type{
+    DRV_UART1 = 1,
+    DRV_UART6 = 2,
+} drv_type_t;
+
+/**
+ * @name dev_work_state_t
+ * @brief 设备工作状态
+ */
+typedef enum {
+    DEV_ONLINE,
+    DEV_OFFLINE
+} dev_work_state_t;
+
+/**
+ * @name dev_errno_t
+ * @brief 错误代码
+ */
+typedef enum {
+    NONE_ERR, //!< 正常（无错误）
+    DEV_ID_ERR, //!< 设备ID错误
+    DEV_INIT_ERR, //!< 设备初始化错误
+    DEV_DATA_ERR //!< 设备数据错误
+} dev_errno_t;
+
+/**
+ * @name dev_id_t
+ * @brief 设备id列表
+ */
+typedef enum {
+    DEV_ID_RC = 0,
+    DEV_ID_IMU = 1,
+    DEV_ID_CHASSIS = 2,
+    DEV_ID_DIAL = 3,
+    DEV_ID_GIMBAL_PITCH = 4,
+    DEV_ID_GIMBAL_YAW = 5,
+    DEV_ID_ENCODER_AND_TOUCH = 6,
+    DEV_ID_VISION = 7,
+    DEV_ID_JUDGE = 8,
+    DEV_ID_CNT = 9
+} dev_id_t;
+/**
+ * @name drv_uart_t
+ * @brief uart 驱动
+ */
+typedef struct drv_uart {
+   enum drv_type type;
+   void (*tx_type)(struct drv_uart *self, uint8_t *byte, uint16_t size);
+} drv_uart_t;
+
+typedef struct judge_sensor_struct {
+    judge_info_t *info;
+    drv_uart_t *driver;
+    void (*init)(struct judge_sensor_struct *self);
+    void (*update)(uint8_t *rxBuf);
+    void (*check)(struct judge_sensor_struct *self);
+    void (*heart_beat)(struct judge_sensor_struct *self);
+    dev_work_state_t work_state;
+    dev_errno_t errno;
+    dev_id_t id;
+} judge_sensor_t;
+
+void judge_init(judge_sensor_t *judge);
+void judge_update(uint8_t *rxBuf);
+#endif
