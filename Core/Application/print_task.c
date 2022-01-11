@@ -21,6 +21,7 @@
 #include "usb_device.h"
 #include "usbd_cdc_if.h"
 #include "SEGGER_RTT.h"
+#include "referee_task.h"
 
 #if PRINTF_MODE == RTT_MODE
 #define LOG(format, args...)  SEGGER_RTT_printf(0, "[%s:%d] "format, __FILE__, __LINE__, ##args)
@@ -34,7 +35,7 @@
 #include "detect_task.h"
 #include "voltage_task.h"
 
-
+extern int *watch_hand;
 static void usb_printf(const char *fmt, ...);
 
 static void Print_RTT_ReadBuffer(void);
@@ -110,7 +111,7 @@ gyro sensor:%s\r\n\
 accel sensor:%s\r\n\
 mag sensor:%s\r\n\
 referee usart:%s\r\n\
-test:%d\r\n\
+usart6messege:%s\r\n\
 ******************************\r\n",
                     get_battery_percentage(),
                     status[error_list_print_local[DBUS_TOE].error_exist],
@@ -125,7 +126,7 @@ test:%d\r\n\
                     status[error_list_print_local[BOARD_ACCEL_TOE].error_exist],
                     status[error_list_print_local[BOARD_MAG_TOE].error_exist],
                     status[error_list_print_local[REFEREE_TOE].error_exist],
-                    test);
+                    watch_hand);
 
         }
     }

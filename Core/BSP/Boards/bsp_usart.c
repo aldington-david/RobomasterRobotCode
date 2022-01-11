@@ -2,6 +2,7 @@
 #include "main.h"
 #include "memory.h"
 #include "detect_task.h"
+#include "SEGGER_RTT.h"
 
 #define USART6_RX_BUF_LEN            200
 
@@ -14,6 +15,8 @@ extern DMA_HandleTypeDef hdma_usart6_tx;
 extern void usart6_rxDataHandler(uint8_t *rxBuf);
 
 uint8_t usart6_dma_rx_buf[USART6_RX_BUF_LEN];
+
+extern char *watch_hand = &usart6_dma_rx_buf[USART6_RX_BUF_LEN];
 
 static HAL_StatusTypeDef
 DMA_Start(DMA_HandleTypeDef *hdma, uint32_t SrcAddress, uint32_t DstAddress, uint32_t DataLength) {

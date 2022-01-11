@@ -173,6 +173,7 @@ static void judge_heart_beat(judge_sensor_t *judge_sen) {
 extern void usart6_rxDataHandler(uint8_t *rxBuf) {
     judge_sensor.update(rxBuf);
     judge_sensor.check(&judge_sensor);
+    detect_hook(REFEREE_TOE);
 }
 
 void get_chassis_power_and_buffer(fp32 *power, fp32 *buffer) {
