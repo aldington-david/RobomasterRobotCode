@@ -47,9 +47,10 @@
 #include "INS_task.h"
 #include "led_flow_task.h"
 #include "oled_task.h"
-#include "referee_usart_task.h"
+//#include "referee_usart_task.h"
 #include "print_task.h"
 #include "voltage_task.h"
+#include "referee_task.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -88,7 +89,8 @@ void MX_FREERTOS_Init(void);
   * @brief  The application entry point.
   * @retval int
   */
-int main(void) {
+int main(void)
+{
     /* USER CODE BEGIN 1 */
     taskDISABLE_INTERRUPTS();
     /* USER CODE END 1 */
@@ -139,6 +141,11 @@ int main(void) {
     cali_param_init();
     remote_control_init();
     usart1_tx_dma_init();
+    usart6_init();
+    dev_list_t dev_list = {
+            .judge_sen = &judge_sensor,
+    };
+    dev_list.judge_sen->init(dev_list.judge_sen);
     /* USER CODE END 2 */
 
     /* Call init function for freertos objects (in freertos.c) */

@@ -20,7 +20,7 @@
   ****************************(C) COPYRIGHT 2019 DJI****************************
   */
 #include "chassis_power_control.h"
-#include "referee.h"
+#include "referee_task.h"
 #include "arm_math.h"
 #include "detect_task.h"
 
@@ -49,21 +49,15 @@ void chassis_power_control(chassis_move_t *chassis_power_control)
     fp32 total_current_limit = 0.0f;
     fp32 total_current = 0.0f;
     uint8_t robot_id = get_robot_id();
-    if(toe_is_error(REFEREE_TOE))
-    {
+    if (toe_is_error(REFEREE_TOE)) {
         total_current_limit = NO_JUDGE_TOTAL_CURRENT_LIMIT;
-    }
-    else if(robot_id == RED_ENGINEER || robot_id == BLUE_ENGINEER || robot_id == 0)
-    {
+    } else if (robot_id == 2 || robot_id == 12 || robot_id == 0) {
         total_current_limit = NO_JUDGE_TOTAL_CURRENT_LIMIT;
-    }
-    else
-    {
+    } else {
         get_chassis_power_and_buffer(&chassis_power, &chassis_power_buffer);
         // power > 80w and buffer < 60j, because buffer < 60 means power has been more than 80w
         //功率超过80w 和缓冲能量小于60j,因为缓冲能量小于60意味着功率超过80w
-        if(chassis_power_buffer < WARNING_POWER_BUFF)
-        {
+        if (chassis_power_buffer < WARNING_POWER_BUFF) {
             fp32 power_scale;
             if(chassis_power_buffer > 5.0f)
             {

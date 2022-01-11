@@ -611,15 +611,33 @@ typedef struct drv_uart {
 typedef struct judge_sensor_struct {
     judge_info_t *info;
     drv_uart_t *driver;
+
     void (*init)(struct judge_sensor_struct *self);
+
     void (*update)(uint8_t *rxBuf);
+
     void (*check)(struct judge_sensor_struct *self);
+
     void (*heart_beat)(struct judge_sensor_struct *self);
+
     dev_work_state_t work_state;
     dev_errno_t errno;
     dev_id_t id;
 } judge_sensor_t;
+extern judge_sensor_t judge_sensor;
+
+typedef struct dev_list_struct {
+    judge_sensor_t *judge_sen;
+} dev_list_t;
 
 void judge_init(judge_sensor_t *judge);
+
 void judge_update(uint8_t *rxBuf);
+
 #endif
+
+extern uint8_t get_robot_id(void);
+
+extern void get_chassis_power_and_buffer(fp32 *power, fp32 *buffer);
+
+extern void get_shoot_heat0_limit_and_heat0(uint16_t *heat0_limit, uint16_t *heat0);

@@ -1,13 +1,17 @@
 #include "bsp_usart.h"
 #include "main.h"
+#include "memory.h"
+#include "detect_task.h"
 
-#define USART6_RX_BUF_LEN			200
+#define USART6_RX_BUF_LEN            200
 
 extern UART_HandleTypeDef huart1;
 extern DMA_HandleTypeDef hdma_usart1_tx;
 extern UART_HandleTypeDef huart6;
 extern DMA_HandleTypeDef hdma_usart6_rx;
 extern DMA_HandleTypeDef hdma_usart6_tx;
+
+extern void usart6_rxDataHandler(uint8_t *rxBuf);
 
 uint8_t usart6_dma_rx_buf[USART6_RX_BUF_LEN];
 
@@ -114,4 +118,18 @@ void usart_SendData(drv_uart_t *drv, uint8_t *txData, uint16_t size) {
 
 __WEAK void usart6_rxDataHandler(uint8_t *rxBuf) {
 
+}
+
+
+void USART6_IRQHandler(void) {
+    /* clear idle it flag avoid idle interrupt all the time */
+    __HAL_UART_CLEAR_IDLEFLAG(&huart6);
+    /* clear DMA transfer complete flag */
+    __HAL_DMA_DISABLE(&hdma_usart6_rx);
+    /* handle dbus data dbus_buf from DMA */
+    usart6_rxDataHandler(usart6_dma_rx_buf);
+    memset(usart6_dma_rx_buf, 0, USART6_RX_BUF_LEN);
+    /* restart dma transmission */
+    __HAL_DMA_ENABLE(&hdma_usart6_rx);
+    detect_hook(REFEREE_TOE);
 }

@@ -1,9 +1,9 @@
 #include <memory.h>
 #include "referee_task.h"
-#include "stm32f4xx_hal_uart.h"
 #include "CRC8_CRC16.h"
 #include "usart.h"
 #include "bsp_usart.h"
+#include "detect_task.h"
 
 drv_uart_t judge_sensor_driver = {
         .type = DRV_UART6,
@@ -170,8 +170,23 @@ static void judge_heart_beat(judge_sensor_t *judge_sen) {
     }
 }
 
-void usart6_rxDataHandler(uint8_t *rxBuf) {
+extern void usart6_rxDataHandler(uint8_t *rxBuf) {
     judge_sensor.update(rxBuf);
     judge_sensor.check(&judge_sensor);
+}
 
+void get_chassis_power_and_buffer(fp32 *power, fp32 *buffer) {
+    *power = judge_sensor.info->PowerHeatData.chassis_power;
+    *buffer = judge_sensor.info->PowerHeatData.chassis_power_buffer;
+
+}
+
+
+uint8_t get_robot_id(void) {
+    return judge_sensor.info->GameRobotStatus.robot_id;
+}
+
+void get_shoot_heat0_limit_and_heat0(uint16_t *heat0_limit, uint16_t *heat0) {
+    *heat0_limit = judge_sensor.info->GameRobotStatus.shooter_heat0_cooling_limit;;
+    *heat0 = judge_sensor.info->PowerHeatData.shooter_heat0;
 }

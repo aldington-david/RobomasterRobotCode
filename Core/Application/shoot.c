@@ -24,7 +24,7 @@
 #include "bsp_fric.h"
 #include "arm_math.h"
 #include "user_lib.h"
-#include "referee.h"
+#include "referee_task.h"
 
 #include "CAN_receive.h"
 #include "gimbal_behaviour.h"
