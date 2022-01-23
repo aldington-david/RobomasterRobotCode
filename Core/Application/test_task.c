@@ -49,10 +49,8 @@ void test_task(void const * argument)
 
         //find error
         //发现错误
-        for(error_num = 0; error_num < REFEREE_TOE; error_num++)
-        {
-            if(error_list_test_local[error_num].error_exist)
-            {
+        for (error_num = 0; error_num < REFEREE_RX_TOE; error_num++) {
+            if (error_list_test_local[error_num].error_exist) {
                 error = 1;
                 break;
             }

@@ -110,8 +110,7 @@ void oled_task(void const * argument)
                     OLED_show_graphic(show_col + 12, show_row, &check_box[error_list_local[i].error_exist]);
                 }
 
-                for(i = BOARD_GYRO_TOE; i < REFEREE_TOE + 1; i++)
-                {
+                for (i = BOARD_GYRO_TOE; i < REFEREE_RX_TOE + 1; i++) {
                     show_col = (i * 32) % 128;
                     show_row = 15 + i / 4 * 12;
                     OLED_show_string(show_col, show_row, other_toe_name[i - BOARD_GYRO_TOE]);

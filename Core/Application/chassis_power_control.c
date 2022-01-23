@@ -49,7 +49,7 @@ void chassis_power_control(chassis_move_t *chassis_power_control)
     fp32 total_current_limit = 0.0f;
     fp32 total_current = 0.0f;
     uint8_t robot_id = get_robot_id();
-    if (toe_is_error(REFEREE_TOE)) {
+    if (toe_is_error(REFEREE_RX_TOE)) {
         total_current_limit = NO_JUDGE_TOTAL_CURRENT_LIMIT;
     } else if (robot_id == 2 || robot_id == 12 || robot_id == 0) {
         total_current_limit = NO_JUDGE_TOTAL_CURRENT_LIMIT;
@@ -59,7 +59,7 @@ void chassis_power_control(chassis_move_t *chassis_power_control)
         //功率超过80w 和缓冲能量小于60j,因为缓冲能量小于60意味着功率超过80w
         if (chassis_power_buffer < WARNING_POWER_BUFF) {
             fp32 power_scale;
-            if(chassis_power_buffer > 5.0f)
+            if (chassis_power_buffer > 5.0f)
             {
                 //scale down WARNING_POWER_BUFF
                 //缩小WARNING_POWER_BUFF

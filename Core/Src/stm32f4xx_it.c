@@ -24,6 +24,7 @@
 #include "cmsis_os.h"
 #include "FreeRTOS.h"
 #include "task.h"
+#include "SEGGER_RTT.h"
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 /* USER CODE END Includes */
@@ -64,6 +65,7 @@ extern CAN_HandleTypeDef hcan1;
 extern CAN_HandleTypeDef hcan2;
 //extern DMA_HandleTypeDef hdma_spi1_rx;
 //extern DMA_HandleTypeDef hdma_spi1_tx;
+extern TIM_HandleTypeDef htim2;
 extern DMA_HandleTypeDef hdma_usart1_tx;
 extern DMA_HandleTypeDef hdma_usart6_rx;
 extern DMA_HandleTypeDef hdma_usart6_tx;
@@ -77,8 +79,7 @@ extern DMA_HandleTypeDef hdma_usart6_tx;
 /**
   * @brief This function handles Non maskable interrupt.
   */
-void NMI_Handler(void)
-{
+void NMI_Handler(void) {
     /* USER CODE BEGIN NonMaskableInt_IRQn 0 */
 
     /* USER CODE END NonMaskableInt_IRQn 0 */
@@ -90,13 +91,11 @@ void NMI_Handler(void)
 /**
   * @brief This function handles Hard fault interrupt.
   */
-void HardFault_Handler(void)
-{
+void HardFault_Handler(void) {
     /* USER CODE BEGIN HardFault_IRQn 0 */
 
     /* USER CODE END HardFault_IRQn 0 */
-    while (1)
-    {
+    while (1) {
         /* USER CODE BEGIN W1_HardFault_IRQn 0 */
         /* USER CODE END W1_HardFault_IRQn 0 */
     }
@@ -105,13 +104,11 @@ void HardFault_Handler(void)
 /**
   * @brief This function handles Memory management fault.
   */
-void MemManage_Handler(void)
-{
+void MemManage_Handler(void) {
     /* USER CODE BEGIN MemoryManagement_IRQn 0 */
 
     /* USER CODE END MemoryManagement_IRQn 0 */
-    while (1)
-    {
+    while (1) {
         /* USER CODE BEGIN W1_MemoryManagement_IRQn 0 */
         /* USER CODE END W1_MemoryManagement_IRQn 0 */
     }
@@ -120,13 +117,11 @@ void MemManage_Handler(void)
 /**
   * @brief This function handles Pre-fetch fault, memory access fault.
   */
-void BusFault_Handler(void)
-{
+void BusFault_Handler(void) {
     /* USER CODE BEGIN BusFault_IRQn 0 */
 
     /* USER CODE END BusFault_IRQn 0 */
-    while (1)
-    {
+    while (1) {
         /* USER CODE BEGIN W1_BusFault_IRQn 0 */
         /* USER CODE END W1_BusFault_IRQn 0 */
     }
@@ -135,13 +130,11 @@ void BusFault_Handler(void)
 /**
   * @brief This function handles Undefined instruction or illegal state.
   */
-void UsageFault_Handler(void)
-{
+void UsageFault_Handler(void) {
     /* USER CODE BEGIN UsageFault_IRQn 0 */
 
     /* USER CODE END UsageFault_IRQn 0 */
-    while (1)
-    {
+    while (1) {
         /* USER CODE BEGIN W1_UsageFault_IRQn 0 */
         /* USER CODE END W1_UsageFault_IRQn 0 */
     }
@@ -150,8 +143,7 @@ void UsageFault_Handler(void)
 /**
   * @brief This function handles Debug monitor.
   */
-void DebugMon_Handler(void)
-{
+void DebugMon_Handler(void) {
     /* USER CODE BEGIN DebugMonitor_IRQn 0 */
 
     /* USER CODE END DebugMonitor_IRQn 0 */
@@ -163,8 +155,7 @@ void DebugMon_Handler(void)
 /**
   * @brief This function handles System tick timer.
   */
-void SysTick_Handler(void)
-{
+void SysTick_Handler(void) {
     /* USER CODE BEGIN SysTick_IRQn 0 */
 
     /* USER CODE END SysTick_IRQn 0 */
@@ -192,8 +183,7 @@ void SysTick_Handler(void)
 /**
   * @brief This function handles EXTI line0 interrupt.
   */
-void EXTI0_IRQHandler(void)
-{
+void EXTI0_IRQHandler(void) {
     /* USER CODE BEGIN EXTI0_IRQn 0 */
 
     /* USER CODE END EXTI0_IRQn 0 */
@@ -206,8 +196,7 @@ void EXTI0_IRQHandler(void)
 /**
   * @brief This function handles EXTI line3 interrupt.
   */
-void EXTI3_IRQHandler(void)
-{
+void EXTI3_IRQHandler(void) {
     /* USER CODE BEGIN EXTI3_IRQn 0 */
 
     /* USER CODE END EXTI3_IRQn 0 */
@@ -220,8 +209,7 @@ void EXTI3_IRQHandler(void)
 /**
   * @brief This function handles EXTI line4 interrupt.
   */
-void EXTI4_IRQHandler(void)
-{
+void EXTI4_IRQHandler(void) {
     /* USER CODE BEGIN EXTI4_IRQn 0 */
 
     /* USER CODE END EXTI4_IRQn 0 */
@@ -234,8 +222,7 @@ void EXTI4_IRQHandler(void)
 /**
   * @brief This function handles CAN1 RX0 interrupts.
   */
-void CAN1_RX0_IRQHandler(void)
-{
+void CAN1_RX0_IRQHandler(void) {
     /* USER CODE BEGIN CAN1_RX0_IRQn 0 */
 
     /* USER CODE END CAN1_RX0_IRQn 0 */
@@ -248,8 +235,7 @@ void CAN1_RX0_IRQHandler(void)
 /**
   * @brief This function handles EXTI line[9:5] interrupts.
   */
-void EXTI9_5_IRQHandler(void)
-{
+void EXTI9_5_IRQHandler(void) {
     /* USER CODE BEGIN EXTI9_5_IRQn 0 */
 
     /* USER CODE END EXTI9_5_IRQn 0 */
@@ -260,10 +246,21 @@ void EXTI9_5_IRQHandler(void)
 }
 
 /**
+  * @brief This function handles TIM2 global interrupt.
+  */
+void TIM2_IRQHandler(void) {
+    /* USER CODE BEGIN TIM2_IRQn 0 */
+    /* USER CODE END TIM2_IRQn 0 */
+    HAL_TIM_IRQHandler(&htim2);
+    /* USER CODE BEGIN TIM2_IRQn 1 */
+//    __HAL_TIM_CLEAR_IT(&htim2,TIM_IT_UPDATE);
+    /* USER CODE END TIM2_IRQn 1 */
+}
+
+/**
   * @brief This function handles DMA2 stream1 global interrupt.
   */
-void DMA2_Stream1_IRQHandler(void)
-{
+void DMA2_Stream1_IRQHandler(void) {
     /* USER CODE BEGIN DMA2_Stream1_IRQn 0 */
 
     /* USER CODE END DMA2_Stream1_IRQn 0 */
@@ -304,8 +301,7 @@ void DMA2_Stream1_IRQHandler(void)
 /**
   * @brief This function handles CAN2 RX0 interrupts.
   */
-void CAN2_RX0_IRQHandler(void)
-{
+void CAN2_RX0_IRQHandler(void) {
     /* USER CODE BEGIN CAN2_RX0_IRQn 0 */
 
     /* USER CODE END CAN2_RX0_IRQn 0 */
@@ -318,8 +314,7 @@ void CAN2_RX0_IRQHandler(void)
 /**
   * @brief This function handles USB On The Go FS global interrupt.
   */
-void OTG_FS_IRQHandler(void)
-{
+void OTG_FS_IRQHandler(void) {
     /* USER CODE BEGIN OTG_FS_IRQn 0 */
 
     /* USER CODE END OTG_FS_IRQn 0 */
@@ -332,8 +327,7 @@ void OTG_FS_IRQHandler(void)
 /**
   * @brief This function handles DMA2 stream6 global interrupt.
   */
-void DMA2_Stream6_IRQHandler(void)
-{
+void DMA2_Stream6_IRQHandler(void) {
     /* USER CODE BEGIN DMA2_Stream6_IRQn 0 */
 
     /* USER CODE END DMA2_Stream6_IRQn 0 */
@@ -346,8 +340,7 @@ void DMA2_Stream6_IRQHandler(void)
 /**
   * @brief This function handles DMA2 stream7 global interrupt.
   */
-void DMA2_Stream7_IRQHandler(void)
-{
+void DMA2_Stream7_IRQHandler(void) {
     /* USER CODE BEGIN DMA2_Stream7_IRQn 0 */
 
     /* USER CODE END DMA2_Stream7_IRQn 0 */

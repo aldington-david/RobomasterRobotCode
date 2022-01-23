@@ -10,8 +10,10 @@
 
 #define printf(format, args...)  SEGGER_RTT_printf(0, format, ##args)
 fifo_s_t referee_rx_fifo;
+fifo_s_t referee_tx_cnt_fifo;
 fifo_s_t referee_tx_fifo;
 uint8_t referee_fifo_rx_buf[REFEREE_FIFO_BUF_LENGTH];
+uint8_t referee_fifo_tx_cnt_buf[REFEREE_FIFO_BUF_LENGTH];
 uint8_t referee_fifo_tx_buf[REFEREE_FIFO_BUF_LENGTH];
 unpack_data_t referee_unpack_obj;
 judge_info_t global_judge_info;
@@ -314,25 +316,25 @@ void USART6_IRQHandler(void) {
             }
         }
 
-        if (__HAL_DMA_GET_FLAG(huart6.hdmatx, __HAL_DMA_GET_TC_FLAG_INDEX(huart6.hdmatx)) != RESET) {
-            if ((huart6.hdmatx->Instance->CR & DMA_SxCR_CT) == RESET) {
-                __HAL_DMA_DISABLE(huart6.hdmatx);
-                this_time_tx_len = USART_TX_BUF_LENGHT - __HAL_DMA_GET_COUNTER(huart6.hdmatx);
-                __HAL_DMA_SET_COUNTER(huart6.hdmatx, USART_TX_BUF_LENGHT);
-                huart6.hdmarx->Instance->CR |= DMA_SxCR_CT;
-//            __HAL_DMA_ENABLE(huart6.hdmarx);
-//            fifo_s_puts(&referee_rx_fifo, (char*)usart6_rx_buf[0], this_time_rx_len);
-//            detect_hook(REFEREE_TX_TOE);
-            } else {
-                __HAL_DMA_DISABLE(huart6.hdmarx);
-                this_time_rx_len = USART_TX_BUF_LENGHT - __HAL_DMA_GET_COUNTER(huart6.hdmatx);
-                __HAL_DMA_SET_COUNTER(huart6.hdmatx, USART_TX_BUF_LENGHT);
-                huart6.hdmarx->Instance->CR &= ~(DMA_SxCR_CT);
-//            __HAL_DMA_ENABLE(huart6.hdmarx);
-//            fifo_s_puts(&referee_rx_fifo, (char*)usart6_rx_buf[1], this_time_rx_len);
-//            detect_hook(REFEREE_TX_TOE);
-            }
-        }
+//        if (__HAL_DMA_GET_FLAG(huart6.hdmatx, __HAL_DMA_GET_TC_FLAG_INDEX(huart6.hdmatx)) != RESET) {
+//            if ((huart6.hdmatx->Instance->CR & DMA_SxCR_CT) == RESET) {
+//                __HAL_DMA_DISABLE(huart6.hdmatx);
+//                this_time_tx_len = USART_TX_BUF_LENGHT - __HAL_DMA_GET_COUNTER(huart6.hdmatx);
+//                __HAL_DMA_SET_COUNTER(huart6.hdmatx, USART_TX_BUF_LENGHT);
+//                huart6.hdmarx->Instance->CR |= DMA_SxCR_CT;
+////            __HAL_DMA_ENABLE(huart6.hdmarx);
+////            fifo_s_puts(&referee_rx_fifo, (char*)usart6_rx_buf[0], this_time_rx_len);
+////            detect_hook(REFEREE_TX_TOE);
+//            } else {
+//                __HAL_DMA_DISABLE(huart6.hdmarx);
+//                this_time_rx_len = USART_TX_BUF_LENGHT - __HAL_DMA_GET_COUNTER(huart6.hdmatx);
+//                __HAL_DMA_SET_COUNTER(huart6.hdmatx, USART_TX_BUF_LENGHT);
+//                huart6.hdmarx->Instance->CR &= ~(DMA_SxCR_CT);
+////            __HAL_DMA_ENABLE(huart6.hdmarx);
+////            fifo_s_puts(&referee_rx_fifo, (char*)usart6_rx_buf[1], this_time_rx_len);
+////            detect_hook(REFEREE_TX_TOE);
+//            }
+//        }
 
     }
 }
@@ -367,154 +369,183 @@ void get_shoot_heat0_limit_and_heat0(uint16_t *heat0_limit, uint16_t *heat0) {
   * @retval         none
   */
 void referee_tx_task(void const *argument) {
+    fifo_s_init(&referee_tx_cnt_fifo, referee_fifo_tx_cnt_buf, REFEREE_FIFO_BUF_LENGTH);
     fifo_s_init(&referee_tx_fifo, referee_fifo_tx_buf, REFEREE_FIFO_BUF_LENGTH);
-    static TickType_t _xPreviousWakeTime;
+    while (1) {
 
-    //起始绘制时的绘制次数。若服务器丢包率较高，该值可适当给大
-    static uint8_t enable_cnt = 20;
-
-    //下坠UI标尺的水平刻度线长度、距离、颜色；垂直线总长度由为各水平刻度线距离之和
-    uint16_t line_distance[6] = {10, 30, 30, 35/*哨兵*/, 30, 50};
-    uint16_t line_length[6] = {120, 80, 70, 60, 20, 20};
-    graphic_color_enum_t ruler_color[7] = {graphic_color_white, graphic_color_white, graphic_color_white,
-                                           graphic_color_white, graphic_color_yellow, graphic_color_yellow,
-                                           graphic_color_white};     //最后一个为垂直线颜色
-
-    //雷达站策略集坐标
-    uint16_t cpos_x[4] = {100, 160, 220, 260};                                                //全局UI推荐坐标
-    uint16_t cpos_y[4] = {730, 730, 730, 730};
-    uint16_t frame_x[2] = {100, 100};
-    uint16_t frame_y[2] = {800, 670};
-
-    uint16_t spos_x[3] = {100, 200, 80};                                                    //专用UI推荐坐标
-    uint16_t spos_y[3] = {610, 610, 560};
-
-    //图传稳定需要一段时间的延时
-    vTaskDelay(500);
-    Referee.clean_all();
-
-    vTaskDelay(2000);
-
-    for (;;) {
-        if (auto_infantry.write_state2[4] == 1) {
-            enable_cnt = 20;
-            auto_infantry.write_state2[4] = false;
-        }
-        //刚开始时多次绘制图形，确保能在动态UI刚开启时顺利绘制图形
-        if (enable_cnt) {
-            //车界线、下坠标尺绘制
-            Referee.Draw_Robot_Limit(180, 80, 961, 3, YELLOW, ADD_PICTURE);
-            Referee.Hero_UI_ruler(5, 961, 538, line_distance, line_length, ruler_color, ADD_PICTURE);
-
-            //绘制电容剩余能量
-            Referee.Draw_Cap_Energy(SourceManage.capObj.Voltage, 24, 17, enable_cnt, 420, 800);
-
-            //雷达站策略集部分
-            Referee.Radar_Strategy_Frame(frame_x, frame_y);
-
-            enable_cnt--;
-        } else {
-            Referee.Draw_Cap_Energy(SourceManage.capObj.Voltage, 24, 17, enable_cnt, 420, 800);    //绘制电容剩余能量
-            Referee.Draw_Boost(auto_infantry.write_state2[1], 1600, 740, 10, PINK);                    //绘制超级电容状态
-            Referee.Draw_Spin(auto_infantry.write_state2[2], 1400, 740, 10, BLUE);                    //绘制小陀螺开启状态
-            Referee.Draw_Bullet(auto_infantry.write_state2[3], 1800, 740, 8, GREEN);                    //绘制弹仓开启状态
-            Referee.Draw_Auto_Lock(1 - auto_infantry.write_state2[5], 1400, 680, 8,
-                                   WHITE);                    //绘制自瞄开启状态
-//						Referee.Draw_No_Bullet(Chassis.bulletNum, 861, 738, ORANGE);						//绘制空弹提示
-
-            //Radar
-            Referee.Radar_CStrategy_Update(0, 0, Referee.robot_rec_data[RADAR].data[0], cpos_x,
-                                           cpos_y);        //雷达站通用策略集
-            Referee.Radar_SStrategy_Update(Referee.robot_rec_data[RADAR].data[1], spos_x,
-                                           spos_y);                //雷达站专用策略集
-        }
+        osDelay(10);
     }
+//    static TickType_t _xPreviousWakeTime;
+//
+//    //起始绘制时的绘制次数。若服务器丢包率较高，该值可适当给大
+//    static uint8_t enable_cnt = 20;
+//
+//    //下坠UI标尺的水平刻度线长度、距离、颜色；垂直线总长度由为各水平刻度线距离之和
+//    uint16_t line_distance[6] = {10, 30, 30, 35/*哨兵*/, 30, 50};
+//    uint16_t line_length[6] = {120, 80, 70, 60, 20, 20};
+//    graphic_color_enum_t ruler_color[7] = {graphic_color_white, graphic_color_white, graphic_color_white,
+//                                           graphic_color_white, graphic_color_yellow, graphic_color_yellow,
+//                                           graphic_color_white};     //最后一个为垂直线颜色
+//
+//    //雷达站策略集坐标
+//    uint16_t cpos_x[4] = {100, 160, 220, 260};                                                //全局UI推荐坐标
+//    uint16_t cpos_y[4] = {730, 730, 730, 730};
+//    uint16_t frame_x[2] = {100, 100};
+//    uint16_t frame_y[2] = {800, 670};
+//
+//    uint16_t spos_x[3] = {100, 200, 80};                                                    //专用UI推荐坐标
+//    uint16_t spos_y[3] = {610, 610, 560};
+//
+//    //图传稳定需要一段时间的延时
+//    vTaskDelay(500);
+//    Referee.clean_all();
+//
+//    vTaskDelay(2000);
+//
+//    for (;;) {
+//        if (auto_infantry.write_state2[4] == 1) {
+//            enable_cnt = 20;
+//            auto_infantry.write_state2[4] = false;
+//        }
+//        //刚开始时多次绘制图形，确保能在动态UI刚开启时顺利绘制图形
+//        if (enable_cnt) {
+//            //车界线、下坠标尺绘制
+//            Referee.Draw_Robot_Limit(180, 80, 961, 3, YELLOW, ADD_PICTURE);
+//            Referee.Hero_UI_ruler(5, 961, 538, line_distance, line_length, ruler_color, ADD_PICTURE);
+//
+//            //绘制电容剩余能量
+//            Referee.Draw_Cap_Energy(SourceManage.capObj.Voltage, 24, 17, enable_cnt, 420, 800);
+//
+//            //雷达站策略集部分
+//            Referee.Radar_Strategy_Frame(frame_x, frame_y);
+//
+//            enable_cnt--;
+//        } else {
+//            Referee.Draw_Cap_Energy(SourceManage.capObj.Voltage, 24, 17, enable_cnt, 420, 800);    //绘制电容剩余能量
+//            Referee.Draw_Boost(auto_infantry.write_state2[1], 1600, 740, 10, PINK);                    //绘制超级电容状态
+//            Referee.Draw_Spin(auto_infantry.write_state2[2], 1400, 740, 10, BLUE);                    //绘制小陀螺开启状态
+//            Referee.Draw_Bullet(auto_infantry.write_state2[3], 1800, 740, 8, GREEN);                    //绘制弹仓开启状态
+//            Referee.Draw_Auto_Lock(1 - auto_infantry.write_state2[5], 1400, 680, 8,
+//                                   WHITE);                    //绘制自瞄开启状态
+////						Referee.Draw_No_Bullet(Chassis.bulletNum, 861, 738, ORANGE);						//绘制空弹提示
+//
+//            //Radar
+//            Referee.Radar_CStrategy_Update(0, 0, Referee.robot_rec_data[RADAR].data[0], cpos_x,
+//                                           cpos_y);        //雷达站通用策略集
+//            Referee.Radar_SStrategy_Update(Referee.robot_rec_data[RADAR].data[1], spos_x,
+//                                           spos_y);                //雷达站专用策略集
+//        }
+//    }
 }
 
-/**
- * @brief 打包机器人之间的交互数据，以及UI数据下发到底层发送
- * @param _data_cmd_id: 数据段ID
- * 		  _receiver_ID: 接收方ID，可以是机器人对应客户端、或者己方其他机器人
- * 		  _data: 数据段段首指针
- * 		  _data_len: 数据段长度
- * @retval None
- */
-void pack_send_robotData(uint16_t _data_cmd_id, uint16_t _receiver_ID, uint8_t *_data, uint16_t _data_len) {
-    ext_student_interactive_header_data_t data_header;                                                                //定义数据段段首并设置
-    data_header.data_CMD_ID = _data_cmd_id;
-    data_header.sender_ID = global_judge_info.GameRobotStatus.robot_id;                                        //设置发送者ID
-    data_header.receiver_ID = _receiver_ID;
-
-    uint8_t header_len = sizeof(data_header);
-    memcpy((void *) (transmit_pack + 7), &data_header, header_len);                        //将数据帧的数据段进行封装（封装段首）
-    memcpy((void *) (transmit_pack + 7 + header_len), _data, _data_len);                    //将数据帧的数据段进行封装（封装数据）
-
-    if (data_header.receiver_ID == robot_client_ID.client)                                //若UI绘制，即正好发送给自身的裁判系统客户端
-        send_toReferee(StudentInteractiveHeaderData_ID, header_len + _data_len, UI_Client);
-    else                                                                                //交互数据送给其他机器人
-        send_toReferee(StudentInteractiveHeaderData_ID, header_len + _data_len, CV_OtherRobot);
-}
-
-/**
- * @brief 底层发送函数。负责发送数据包，以及对发送速率做控制
- * @param _cmd_id，
- * @param _data，
- * @param data_len，
- * @param _receive_type，判断车间通信 or 雷达站 or UI，决定数据需不需要发多次（客户端数据经常丢包，所以需要发多次），以及发送频率
- */
-void send_toReferee(uint16_t _cmd_id, uint16_t _data_len, receive_Type_e _receive_type) {
-    static uint8_t seq = 0;
-    static uint32_t next_send_time = 0;                                                                                        //用于控制发送速率
-    FrameHeader send_frame_header;                                                                                            //交互数据帧帧头设置
-
-    send_frame_header.SOF = START_ID;
-    send_frame_header.DataLength = _data_len;
-    send_frame_header.Seq = seq++;
-    send_frame_header.CRC8 = Get_CRC8_Check_Sum((uint8_t *) &send_frame_header, 4, 0xff);
-    send_frame_header.CmdID = _cmd_id;
-
-    uint8_t header_len = sizeof(send_frame_header);
-
-    memcpy((void *) transmit_pack, &send_frame_header,
-           header_len);                                                            //将帧头装入缓存区																		//将数据段转入缓存区
-
-    *(__packed short *) (&transmit_pack[header_len + _data_len]) = Get_CRC16_Check_Sum(transmit_pack,
-                                                                                       header_len + _data_len,
-                                                                                       0xffff);    //获取整帧的CRC16校验码，并直接填入缓存区
-
-    uint8_t send_cnt = 3;                                                                                                    //传输次数，多次传输时用
-    uint16_t total_len = header_len + _data_len +
-                         2;                                                                        //header_len + _data_len + CRC16_len
-
-    while (send_cnt != 0) {
-        uint32_t now_time = Get_SystemTick() /
-                            1000;                                                                        //获取当前时间戳，转化为ms
-        if (now_time > next_send_time) {
-            while (HAL_UART_Transmit_DMA(refereeUart, transmit_pack, total_len) !=
-                   HAL_OK);                                    //延时已到，则发送
-            next_send_time = now_time +
-            float(total_len) / 5000 *
-                               1000;                                                        //计算下一次允许传输的时间，2021赛季官方约定传输速率为5000bps
-
-            switch (_receive_type) {
-                case CV_OtherRobot:                                //车间通信，发一次
-                    send_cnt = 0;
-                    vTaskDelay(
-                            35);                                                                                                //每发完一个包非阻塞延时一段时间
-                    break;
-                case UI_Client:                                    //UI绘制，发三次
-                    send_cnt--;
-                    vTaskDelay(35);
-                    break;
-                case MiniMap_Client:                            //小地图交互，发一次
-                    send_cnt = 0;
-                    vTaskDelay(100);
-                default:
-                    break;
+//
+///**
+// * @brief 打包机器人之间的交互数据，以及UI数据下发到底层发送
+// * @param _data_cmd_id: 数据段ID
+// * 		  _receiver_ID: 接收方ID，可以是机器人对应客户端、或者己方其他机器人
+// * 		  _data: 数据段段首指针
+// * 		  _data_len: 数据段长度
+// * @retval None
+// */
+//void pack_send_robotData(uint16_t _data_cmd_id, uint16_t _receiver_ID, uint8_t *_data, uint16_t _data_len) {
+//    ext_student_interactive_header_data_t data_header;                                                                //定义数据段段首并设置
+//    data_header.data_CMD_ID = _data_cmd_id;
+//    data_header.sender_ID = global_judge_info.GameRobotStatus.robot_id;                                        //设置发送者ID
+//    data_header.receiver_ID = _receiver_ID;
+//
+//    uint8_t header_len = sizeof(data_header);
+//    memcpy((void *) (transmit_pack + 7), &data_header, header_len);                        //将数据帧的数据段进行封装（封装段首）
+//    memcpy((void *) (transmit_pack + 7 + header_len), _data, _data_len);                    //将数据帧的数据段进行封装（封装数据）
+//
+//    if (data_header.receiver_ID == robot_client_ID.client)                                //若UI绘制，即正好发送给自身的裁判系统客户端
+//        send_toReferee(StudentInteractiveHeaderData_ID, header_len + _data_len, UI_Client);
+//    else                                                                                //交互数据送给其他机器人
+//        send_toReferee(StudentInteractiveHeaderData_ID, header_len + _data_len, CV_OtherRobot);
+//}
+//
+///**
+// * @brief 底层发送函数。负责发送数据包，以及对发送速率做控制
+// * @param _cmd_id，
+// * @param _data，
+// * @param data_len，
+// * @param _receive_type，判断车间通信 or 雷达站 or UI，决定数据需不需要发多次（客户端数据经常丢包，所以需要发多次），以及发送频率
+// */
+//void send_toReferee(uint16_t _cmd_id, uint16_t _data_len, receive_Type_e _receive_type) {
+//    static uint8_t seq = 0;
+//    static uint32_t next_send_time = 0;                                                                                        //用于控制发送速率
+//    FrameHeader send_frame_header;                                                                                            //交互数据帧帧头设置
+//
+//    send_frame_header.SOF = START_ID;
+//    send_frame_header.DataLength = _data_len;
+//    send_frame_header.Seq = seq++;
+//    send_frame_header.CRC8 = Get_CRC8_Check_Sum((uint8_t *) &send_frame_header, 4, 0xff);
+//    send_frame_header.CmdID = _cmd_id;
+//
+//    uint8_t header_len = sizeof(send_frame_header);
+//
+//    memcpy((void *) transmit_pack, &send_frame_header,
+//           header_len);                                                            //将帧头装入缓存区																		//将数据段转入缓存区
+//
+//    *(__packed short *) (&transmit_pack[header_len + _data_len]) = Get_CRC16_Check_Sum(transmit_pack,
+//                                                                                       header_len + _data_len,
+//                                                                                       0xffff);    //获取整帧的CRC16校验码，并直接填入缓存区
+//
+//    uint8_t send_cnt = 3;                                                                                                    //传输次数，多次传输时用
+//    uint16_t total_len = header_len + _data_len +
+//                         2;                                                                        //header_len + _data_len + CRC16_len
+//
+//    while (send_cnt != 0) {
+//        uint32_t now_time = Get_SystemTick() /
+//                            1000;                                                                        //获取当前时间戳，转化为ms
+//        if (now_time > next_send_time) {
+//            while (HAL_UART_Transmit_DMA(refereeUart, transmit_pack, total_len) !=
+//                   HAL_OK);                                    //延时已到，则发送
+//            next_send_time = now_time +
+//            float(total_len) / 5000 *
+//                               1000;                                                        //计算下一次允许传输的时间，2021赛季官方约定传输速率为5000bps
+//
+//            switch (_receive_type) {
+//                case CV_OtherRobot:                                //车间通信，发一次
+//                    send_cnt = 0;
+//                    vTaskDelay(
+//                            35);                                                                                                //每发完一个包非阻塞延时一段时间
+//                    break;
+//                case UI_Client:                                    //UI绘制，发三次
+//                    send_cnt--;
+//                    vTaskDelay(35);
+//                    break;
+//                case MiniMap_Client:                            //小地图交互，发一次
+//                    send_cnt = 0;
+//                    vTaskDelay(100);
+//                default:
+//                    break;
+//            }
+//        }
+//    }
+//
+//}
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
+    uint8_t dma_send_data_len = 0;
+    if (fifo_s_used(&referee_tx_fifo)) {
+        if (fifo_s_used(&referee_tx_cnt_fifo)) {
+            if (__HAL_DMA_GET_FLAG(huart6.hdmatx, __HAL_DMA_GET_TC_FLAG_INDEX(huart6.hdmatx)) != RESET) {
+                dma_send_data_len = fifo_s_get(&referee_tx_cnt_fifo);
+                __HAL_DMA_DISABLE(huart6.hdmatx);
+                __HAL_DMA_SET_COUNTER(huart6.hdmatx, dma_send_data_len);
+                if ((huart6.hdmatx->Instance->CR & DMA_SxCR_CT) == RESET) {
+                    fifo_s_gets(&referee_tx_fifo, (char *) usart6_tx_buf[1], dma_send_data_len);
+                    huart6.hdmarx->Instance->CR |= DMA_SxCR_CT;
+                    __HAL_DMA_ENABLE(huart6.hdmarx);
+                } else {
+                    fifo_s_gets(&referee_tx_fifo, (char *) usart6_tx_buf[0], dma_send_data_len);
+                    huart6.hdmarx->Instance->CR &= ~(DMA_SxCR_CT);
+                    __HAL_DMA_ENABLE(huart6.hdmarx);
+                }
             }
-        }
-    }
 
+        }
+
+    }
 }
 /************裁判系统UI绘图功能函数******************/
 /**
@@ -523,8 +554,8 @@ void send_toReferee(uint16_t _cmd_id, uint16_t _data_len, receive_Type_e _receiv
  * @param
  * @retval
  */
-void UI_clean_all(void)                                                                                    //清除所有自定义图案
-{
-    cleaning.operate_tpye = CLEAR_ALL;
-    pack_send_robotData(Drawing_Clean_ID, robot_client_ID.client, (uint8_t *) &cleaning, sizeof(cleaning));
-}
+//void UI_clean_all(void)                                                                                    //清除所有自定义图案
+//{
+//    cleaning.operate_tpye = CLEAR_ALL;
+//    pack_send_robotData(Drawing_Clean_ID, robot_client_ID.client, (uint8_t *) &cleaning, sizeof(cleaning));
+//}

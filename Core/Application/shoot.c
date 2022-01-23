@@ -282,11 +282,9 @@ static void shoot_set_mode(void)
     }
 
     get_shoot_heat0_limit_and_heat0(&shoot_control.heat_limit, &shoot_control.heat);
-    if(!toe_is_error(REFEREE_TOE) && (shoot_control.heat + SHOOT_HEAT_REMAIN_VALUE > shoot_control.heat_limit))
-    {
-        if(shoot_control.shoot_mode == SHOOT_BULLET || shoot_control.shoot_mode == SHOOT_CONTINUE_BULLET)
-        {
-            shoot_control.shoot_mode =SHOOT_READY_BULLET;
+    if (!toe_is_error(REFEREE_RX_TOE) && (shoot_control.heat + SHOOT_HEAT_REMAIN_VALUE > shoot_control.heat_limit)) {
+        if (shoot_control.shoot_mode == SHOOT_BULLET || shoot_control.shoot_mode == SHOOT_CONTINUE_BULLET) {
+            shoot_control.shoot_mode = SHOOT_READY_BULLET;
         }
     }
     //如果云台状态是 无力状态，就关闭射击

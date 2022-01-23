@@ -628,6 +628,8 @@ extern void get_shoot_heat0_limit_and_heat0(uint16_t *heat0_limit, uint16_t *hea
 extern void init_referee_struct_data(void);
 
 extern void referee_rx_task(void const *argument);
+
+extern void referee_tx_task(void const *argument);
 //TX Declare
 /***************function and variable declare end*******************/
 #endif
