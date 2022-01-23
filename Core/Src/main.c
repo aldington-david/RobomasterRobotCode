@@ -141,11 +141,6 @@ int main(void)
     cali_param_init();
     remote_control_init();
     usart1_tx_dma_init();
-    usart6_init();
-    dev_list_t dev_list = {
-            .judge_sen = &judge_sensor,
-    };
-    dev_list.judge_sen->init(dev_list.judge_sen);
     /* USER CODE END 2 */
 
     /* Call init function for freertos objects (in freertos.c) */

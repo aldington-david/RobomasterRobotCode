@@ -34,7 +34,7 @@
 #include "INS_task.h"
 #include "led_flow_task.h"
 #include "oled_task.h"
-//#include "referee_usart_task.h"
+#include "referee_task.h"
 #include "print_task.h"
 #include "voltage_task.h"
 #include "servo_task.h"
@@ -50,7 +50,8 @@ osThreadId gimbalTaskHandle;
 osThreadId imuTaskHandle;
 osThreadId led_RGB_flow_handle;
 osThreadId oled_handle;
-//osThreadId referee_task_handle;
+osThreadId referee_rx_task_handle;
+osThreadId referee_tx_task_handle;
 osThreadId print_task_handle;
 osThreadId battery_voltage_handle;
 osThreadId servo_task_handle;
@@ -172,8 +173,11 @@ void MX_FREERTOS_Init(void) {
     oled_handle = osThreadCreate(osThread(OLED), NULL);
 
 
-//    osThreadDef(REFEREE, referee_task, osPriorityNormal, 0, 128);
-//    referee_task_handle = osThreadCreate(osThread(REFEREE), NULL);
+    osThreadDef(REFEREE_RX, referee_rx_task, osPriorityNormal, 0, 256);
+    referee_rx_task_handle = osThreadCreate(osThread(REFEREE_RX), NULL);
+
+    osThreadDef(REFEREE_TX, referee_tx_task, osPriorityNormal, 0, 256);
+    referee_tx_task_handle = osThreadCreate(osThread(REFEREE_TX), NULL);
 
 
     osThreadDef(printTask, print_task, osPriorityNormal, 0, 256);

@@ -35,7 +35,6 @@
 #include "detect_task.h"
 #include "voltage_task.h"
 
-extern int *watch_hand;
 static void usb_printf(const char *fmt, ...);
 
 static void Print_RTT_ReadBuffer(void);
@@ -85,7 +84,7 @@ referee usart:%s\r\n\
                     status[error_list_print_local[BOARD_GYRO_TOE].error_exist],
                     status[error_list_print_local[BOARD_ACCEL_TOE].error_exist],
                     status[error_list_print_local[BOARD_MAG_TOE].error_exist],
-                    status[error_list_print_local[REFEREE_TOE].error_exist]);
+                    status[error_list_print_local[REFEREE_RX_TOE].error_exist]);
 
         }
     }
@@ -110,9 +109,11 @@ trigger motor:%s\r\n\
 gyro sensor:%s\r\n\
 accel sensor:%s\r\n\
 mag sensor:%s\r\n\
-referee usart:%s\r\n\
-usart6messege:%s\r\n\
-******************************\r\n",
+referee rx usart:%s\r\n\
+******************************\r\n\
+*******Variable Start*********\r\n\
+$param:Current=%d;\r\n\
+*******Variable End***********\r\n",
                     get_battery_percentage(),
                     status[error_list_print_local[DBUS_TOE].error_exist],
                     status[error_list_print_local[CHASSIS_MOTOR1_TOE].error_exist],
@@ -125,8 +126,8 @@ usart6messege:%s\r\n\
                     status[error_list_print_local[BOARD_GYRO_TOE].error_exist],
                     status[error_list_print_local[BOARD_ACCEL_TOE].error_exist],
                     status[error_list_print_local[BOARD_MAG_TOE].error_exist],
-                    status[error_list_print_local[REFEREE_TOE].error_exist],
-                    watch_hand);
+                    status[error_list_print_local[REFEREE_RX_TOE].error_exist],
+                    global_judge_info.PowerHeatData.chassis_current);
 
         }
     }
