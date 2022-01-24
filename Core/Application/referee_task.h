@@ -631,5 +631,32 @@ extern void referee_rx_task(void const *argument);
 
 extern void referee_tx_task(void const *argument);
 //TX Declare
+//#define DRAWING_PACK	15
+/* UI绘制数据包 */
+//uint8_t data_pack[DRAWING_PACK*7] = {0};
+/**
+ * @name FrameHeader
+ * @brief 裁判系统自定义发送帧头+cmdid
+ */
+typedef struct __attribute__((packed)) {
+    uint8_t SOF;
+    uint16_t data_length;
+    uint8_t SEQ;
+    uint8_t CRC8;
+    uint16_t CmdID;
+} FrameHeader;
+#pragma pack(push, 1)
+typedef enum {
+    NULL_OPERATION = 0U,
+    ADD_PICTURE = 1U,
+    MODIFY_PICTURE = 2U,
+    CLEAR_ONE_PICTURE = 3U,
+} drawOperate_e;
+#pragma pack(pop)
+
+static void send_toReferee(uint16_t _cmd_id, uint16_t _data_len);
+
+static void line_drawing(uint8_t _layer, drawOperate_e _operate_type, uint16_t startx, uint16_t starty, uint16_t endx,
+                         uint16_t endy, uint16_t line_width, graphic_color_enum_t vcolor, uint8_t name[]);
 /***************function and variable declare end*******************/
 #endif

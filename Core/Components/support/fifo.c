@@ -101,6 +101,7 @@ void fifo_s_destroy(fifo_s_t *p_fifo)
 //! \param  [in] p_base_addr is the base address of pre-allocate memory, such as array.
 //! \param  [in] uint_cnt is count of fifo elements.
 //! \retval 0 if initialize successfully, otherwise return -1.
+
 //
 //******************************************************************************************
 int fifo_s_init(fifo_s_t *p_fifo, void *p_base_addr, int uint_cnt)
