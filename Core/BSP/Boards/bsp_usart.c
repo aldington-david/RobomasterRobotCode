@@ -64,6 +64,7 @@ void usart6_init(uint8_t *rx1_buf, uint8_t *rx2_buf, uint16_t dma_rx_buf_num, ui
     //enalbe idle interrupt
     //使能空闲中断
     __HAL_UART_ENABLE_IT(&huart6, UART_IT_IDLE);
+    __HAL_DMA_ENABLE_IT(huart6.hdmatx, DMA_IT_TC);
 
 
 

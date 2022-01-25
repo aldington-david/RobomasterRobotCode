@@ -25,6 +25,8 @@
 #include "FreeRTOS.h"
 #include "task.h"
 #include "SEGGER_RTT.h"
+#include "usart.h"
+#include "referee_task.h"
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 /* USER CODE END Includes */
@@ -329,9 +331,12 @@ void OTG_FS_IRQHandler(void) {
   */
 void DMA2_Stream6_IRQHandler(void) {
     /* USER CODE BEGIN DMA2_Stream6_IRQn 0 */
+    if (__HAL_DMA_GET_FLAG(huart6.hdmatx, DMA_HISR_TCIF6) != RESET) {
+        MY_USART_DMA_Stream6_TX_IRQHandler();
+    }
 
     /* USER CODE END DMA2_Stream6_IRQn 0 */
-    HAL_DMA_IRQHandler(&hdma_usart6_tx);
+//    HAL_DMA_IRQHandler(&hdma_usart6_tx);
     /* USER CODE BEGIN DMA2_Stream6_IRQn 1 */
 
     /* USER CODE END DMA2_Stream6_IRQn 1 */

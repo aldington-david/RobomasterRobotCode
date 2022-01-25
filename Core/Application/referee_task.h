@@ -653,8 +653,11 @@ typedef enum {
     CLEAR_ONE_PICTURE = 3U,
 } drawOperate_e;
 #pragma pack(pop)
+static uint8_t DMA_Stream6_Tx_Status;
 
 static void send_toReferee(uint16_t _cmd_id, uint16_t _data_len);
+
+extern void MY_USART_DMA_Stream6_TX_IRQHandler(void);
 
 static void line_drawing(uint8_t _layer, drawOperate_e _operate_type, uint16_t startx, uint16_t starty, uint16_t endx,
                          uint16_t endy, uint16_t line_width, graphic_color_enum_t vcolor, uint8_t name[]);
