@@ -376,7 +376,7 @@ void referee_tx_task(void const *argument) {
     static int draw_cnt = 0;//辅助命名图形
     static uint8_t name[3] = "xx";
     osDelay(1000);
-    line_drawing(0, ADD_PICTURE, 200, 200, 400, 400, 100, graphic_color_yellow, name);
+//    line_drawing(0, ADD_PICTURE, 200, 200, 400, 400, 100, graphic_color_yellow, name);
     while (1) {
         SEGGER_RTT_WriteString(0, "referee_task_loop_on");
 //        draw_cnt++;
@@ -425,7 +425,7 @@ void send_toReferee(uint16_t _cmd_id, uint16_t _data_len) {
 
     send_frame_header.SOF = HEADER_SOF;
     send_frame_header.data_length = _data_len;
-    send_frame_header.SEQ = seq++;
+    send_frame_header.SEQ = 7;
 //    printf("/r/n seq=%d",send_frame_header.SEQ);
     send_frame_header.CRC8 = get_CRC8_check_sum((uint8_t *) &send_frame_header, 4, 0xff);
     send_frame_header.CmdID = _cmd_id;
