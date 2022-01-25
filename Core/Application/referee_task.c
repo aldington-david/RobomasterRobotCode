@@ -298,7 +298,7 @@ void USART6_IRQHandler(void) {
         __HAL_UART_CLEAR_PEFLAG(&huart6);
         __HAL_DMA_DISABLE(huart6.hdmatx);
         static uint16_t this_time_rx_len = 0;
-        if (__HAL_DMA_GET_FLAG(huart6.hdmarx, __HAL_DMA_GET_TC_FLAG_INDEX(huart6.hdmarx)) != RESET) {
+//        if (__HAL_DMA_GET_FLAG(huart6.hdmarx, __HAL_DMA_GET_TC_FLAG_INDEX(huart6.hdmarx)) != RESET) {
             if ((huart6.hdmarx->Instance->CR & DMA_SxCR_CT) == RESET) {
                 __HAL_DMA_DISABLE(huart6.hdmarx);
                 this_time_rx_len = USART_RX_BUF_LENGHT - __HAL_DMA_GET_COUNTER(huart6.hdmarx);
@@ -316,7 +316,7 @@ void USART6_IRQHandler(void) {
                 fifo_s_puts(&referee_rx_fifo, (char *) usart6_rx_buf[1], this_time_rx_len);
                 detect_hook(REFEREE_RX_TOE);
             }
-        }
+//        }
 
 //        if (__HAL_DMA_GET_FLAG(huart6.hdmatx, __HAL_DMA_GET_TC_FLAG_INDEX(huart6.hdmatx)) != RESET) {
 //            if ((huart6.hdmatx->Instance->CR & DMA_SxCR_CT) == RESET) {
@@ -378,13 +378,16 @@ void referee_tx_task(void const *argument) {
     osDelay(1000);
     line_drawing(0, ADD_PICTURE, 200, 200, 400, 400, 100, graphic_color_yellow, name);
     while (1) {
-//        SEGGER_RTT_WriteString(0,"referee_task_loop_on");
-        draw_cnt++;
-        name[0] = draw_cnt / 255;
-        name[1] = draw_cnt % 255;
-//        line_drawing(0,ADD_PICTURE,200,200,400,400,100,graphic_color_yellow,name);
-//        line_drawing(0,MODIFY_PICTURE,200,200,400,400,100,graphic_color_yellow,name);
+        SEGGER_RTT_WriteString(0, "referee_task_loop_on");
+//        draw_cnt++;
+//        name[0] = draw_cnt / 255;
+//        name[1] = draw_cnt % 255;
+
+        line_drawing(0, ADD_PICTURE, 200, 200, 400, 400, 100, graphic_color_yellow, name);
+
         osDelay(1000);
+//        line_drawing(0,MODIFY_PICTURE,200,200,400,400,100,graphic_color_yellow,name);
+//        vTaskDelay(50000);
     }
 }
 
@@ -443,16 +446,16 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
     if (fifo_s_used(&referee_tx_fifo)) {
         SEGGER_RTT_WriteString(0, "DMA_SENDED");
         if (fifo_s_used(&referee_tx_len_fifo)) {
-            if (__HAL_DMA_GET_FLAG(huart6.hdmatx, __HAL_DMA_GET_TC_FLAG_INDEX(huart6.hdmatx)) != RESET) {
-//                __HAL_UART_CLEAR_PEFLAG(&huart6);
-                __HAL_DMA_CLEAR_FLAG (huart6.hdmatx, __HAL_DMA_GET_TC_FLAG_INDEX(huart6.hdmatx));
-                __HAL_DMA_CLEAR_FLAG (huart6.hdmatx, __HAL_DMA_GET_HT_FLAG_INDEX(huart6.hdmatx));
-                __HAL_DMA_CLEAR_FLAG (huart6.hdmatx, __HAL_DMA_GET_TE_FLAG_INDEX(huart6.hdmatx));
-                __HAL_DMA_CLEAR_FLAG (huart6.hdmatx, __HAL_DMA_GET_DME_FLAG_INDEX(huart6.hdmatx));
-                __HAL_DMA_CLEAR_FLAG (huart6.hdmatx, __HAL_DMA_GET_FE_FLAG_INDEX(huart6.hdmatx));
-                dma_send_data_len = fifo_s_get(&referee_tx_len_fifo);
-                if ((huart6.hdmatx->Instance->CR & DMA_SxCR_CT) == RESET) {
-                    fifo_s_gets(&referee_tx_fifo, (char *) usart6_tx_buf[1], dma_send_data_len);
+//            if (__HAL_DMA_GET_FLAG(huart6.hdmatx, __HAL_DMA_GET_TC_FLAG_INDEX(huart6.hdmatx)) != RESET) {
+//                __HAL_DMA_CLEAR_FLAG(huart6.hdmatx, DMA_HISR_TCIF6);
+//                __HAL_DMA_CLEAR_FLAG (huart6.hdmatx, __HAL_DMA_GET_HT_FLAG_INDEX(huart6.hdmatx));
+//                __HAL_DMA_CLEAR_FLAG (huart6.hdmatx, __HAL_DMA_GET_TE_FLAG_INDEX(huart6.hdmatx));
+//                __HAL_DMA_CLEAR_FLAG (huart6.hdmatx, __HAL_DMA_GET_DME_FLAG_INDEX(huart6.hdmatx));
+//                __HAL_DMA_CLEAR_FLAG (huart6.hdmatx, __HAL_DMA_GET_FE_FLAG_INDEX(huart6.hdmatx));
+            dma_send_data_len = fifo_s_get(&referee_tx_len_fifo);
+            if ((huart6.hdmatx->Instance->CR & DMA_SxCR_CT) == RESET) {
+                fifo_s_gets(&referee_tx_fifo, (char *) usart6_tx_buf[1], dma_send_data_len);
+                if (__HAL_DMA_GET_FLAG(huart6.hdmatx, __HAL_DMA_GET_TC_FLAG_INDEX(huart6.hdmatx)) != RESET) {
                     while (huart6.hdmatx->Instance->CR & DMA_SxCR_EN) {
                         __HAL_DMA_DISABLE(huart6.hdmatx);
                     }
@@ -460,8 +463,10 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
                     __HAL_DMA_SET_COUNTER(huart6.hdmatx, dma_send_data_len);
 //                    SEGGER_RTT_WriteString(0,"DMA_1");
                     __HAL_DMA_ENABLE(huart6.hdmatx);
-                } else {
-                    fifo_s_gets(&referee_tx_fifo, (char *) usart6_tx_buf[0], dma_send_data_len);
+                }
+            } else {
+                fifo_s_gets(&referee_tx_fifo, (char *) usart6_tx_buf[0], dma_send_data_len);
+                if (__HAL_DMA_GET_FLAG(huart6.hdmatx, __HAL_DMA_GET_TC_FLAG_INDEX(huart6.hdmatx)) != RESET) {
                     while (huart6.hdmatx->Instance->CR & DMA_SxCR_EN) {
                         __HAL_DMA_DISABLE(huart6.hdmatx);
                     }
@@ -471,11 +476,11 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
                     __HAL_DMA_ENABLE(huart6.hdmatx);
                 }
             }
+            }
 
         }
 
     }
-}
 /************裁判系统UI绘图功能函数******************/
 /**
  * @brief 清除所有UI绘制图形
