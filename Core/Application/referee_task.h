@@ -654,9 +654,12 @@ typedef enum {
 } drawOperate_e;
 #pragma pack(pop)
 static uint8_t DMA_Stream6_Tx_Status;
-static uint8_t No_DMA_IRQHandler = 0;
+static uint8_t No_DMA_IRQHandler = 1;
+static uint8_t dma_send_data_len;
 
 static void send_toReferee(uint16_t _cmd_id, uint16_t _data_len);
+
+static void test_function(void);
 
 extern void MY_USART_DMA_Stream6_TX_IRQHandler(void);
 
