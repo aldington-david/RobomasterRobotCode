@@ -440,12 +440,12 @@ typedef struct __attribute__((packed)) {
     uint8_t operate_type;         //!< 图形操作 0: 空操作  1: 删除图层  2: 删除所有
     uint8_t layer;                //!< 图层数 : 0 - 9
 } ext_client_custom_graphic_delete_t;
-
+#pragma pack(push, 1)
 /**
  * @name graphic_data_struct_t
  * @brief 图形数据 机器人间通信 0x0301
  */
-typedef struct __attribute__((packed)) {
+typedef struct {
     uint8_t graphic_name[3];         //!< 图形名 : 在删除，修改等操作中，作为客户端的索引
     uint32_t operate_type: 3;       //!< 图形操作
     uint32_t graphic_type: 3;       //!< 图形类型
@@ -460,7 +460,7 @@ typedef struct __attribute__((packed)) {
     uint32_t end_x: 11;             //!< 终点x坐标
     uint32_t end_y: 11;             //!< 终点y坐标
 } graphic_data_struct_t;
-
+#pragma pack(pop)
 /**
  * @name graphic_type_enum_t
  * @brief 图形配置 图形类型定义
@@ -653,17 +653,175 @@ typedef enum {
     CLEAR_ONE_PICTURE = 3U,
 } drawOperate_e;
 #pragma pack(pop)
+#define Robot_ID 4
+#define Cilent_ID 0x0104        //机器人角色设置
+#define DRAWING_PACK    15
 static uint8_t DMA_Stream6_Tx_Status;
 static uint8_t No_DMA_IRQHandler = 1;
 static uint8_t dma_send_data_len;
+static uint8_t data_pack[DRAWING_PACK * 7] = {0};
+static ext_client_custom_graphic_delete_t cleaning;
 
 static void send_toReferee(uint16_t _cmd_id, uint16_t _data_len);
 
+static void UI_clean_all(void);
+
 static void test_function(void);
+
+static void
+Hero_UI_ruler(uint8_t _layer, uint16_t start_x, uint16_t start_y, uint16_t *line_distance, uint16_t *line_length,
+              graphic_color_enum_t *_color, drawOperate_e _operate_type);
 
 extern void MY_USART_DMA_Stream6_TX_IRQHandler(void);
 
-static void line_drawing(uint8_t _layer, drawOperate_e _operate_type, uint16_t startx, uint16_t starty, uint16_t endx,
-                         uint16_t endy, uint16_t line_width, graphic_color_enum_t vcolor, uint8_t name[]);
+static graphic_data_struct_t *
+line_drawing(uint8_t _layer, drawOperate_e _operate_type, uint16_t startx, uint16_t starty, uint16_t endx,
+             uint16_t endy, uint16_t line_width, graphic_color_enum_t vcolor, uint8_t name[]);
 /***************function and variable declare end*******************/
+
+/****************************开始标志*********************/
+#define UI_SOF 0xA5
+/****************************CMD_ID数据********************/
+#define UI_CMD_Robo_Exchange 0x0301
+/****************************内容ID数据********************/
+#define UI_Data_ID_Del 0x100
+#define UI_Data_ID_Draw1 0x101
+#define UI_Data_ID_Draw2 0x102
+#define UI_Data_ID_Draw5 0x103
+#define UI_Data_ID_Draw7 0x104
+#define UI_Data_ID_DrawChar 0x110
+/****************************红方机器人ID********************/
+#define UI_Data_RobotID_RHero 1
+#define UI_Data_RobotID_REngineer 2
+#define UI_Data_RobotID_RStandard1 3
+#define UI_Data_RobotID_RStandard2 4
+#define UI_Data_RobotID_RStandard3 5
+#define UI_Data_RobotID_RAerial 6
+#define UI_Data_RobotID_RSentry 7
+#define UI_Data_RobotID_RRadar 9
+/****************************蓝方机器人ID********************/
+#define UI_Data_RobotID_BHero 101
+#define UI_Data_RobotID_BEngineer 102
+#define UI_Data_RobotID_BStandard1 103
+#define UI_Data_RobotID_BStandard2 104
+#define UI_Data_RobotID_BStandard3 105
+#define UI_Data_RobotID_BAerial 106
+#define UI_Data_RobotID_BSentry 107
+#define UI_Data_RobotID_BRadar 109
+/**************************红方操作手ID************************/
+#define UI_Data_CilentID_RHero 0x0101
+#define UI_Data_CilentID_REngineer 0x0102
+#define UI_Data_CilentID_RStandard1 0x0103
+#define UI_Data_CilentID_RStandard2 0x0104
+#define UI_Data_CilentID_RStandard3 0x0105
+#define UI_Data_CilentID_RAerial 0x0106
+/***************************蓝方操作手ID***********************/
+#define UI_Data_CilentID_BHero 0x0165
+#define UI_Data_CilentID_BEngineer 0x0166
+#define UI_Data_CilentID_BStandard1 0x0167
+#define UI_Data_CilentID_BStandard2 0x0168
+#define UI_Data_CilentID_BStandard3 0x0169
+#define UI_Data_CilentID_BAerial 0x016A
+/***************************删除操作***************************/
+#define UI_Data_Del_NoOperate 0
+#define UI_Data_Del_Layer 1
+#define UI_Data_Del_ALL 2
+/***************************图形配置参数__图形操作********************/
+#define UI_Graph_ADD 1
+#define UI_Graph_Change 2
+#define UI_Graph_Del 3
+/***************************图形配置参数__图形类型********************/
+#define UI_Graph_Line 0         //直线
+#define UI_Graph_Rectangle 1    //矩形
+#define UI_Graph_Circle 2       //整圆
+#define UI_Graph_Ellipse 3      //椭圆
+#define UI_Graph_Arc 4          //圆弧
+#define UI_Graph_Float 5        //浮点型
+#define UI_Graph_Int 6          //整形
+#define UI_Graph_Char 7         //字符型
+/***************************图形配置参数__图形颜色********************/
+#define UI_Color_Main 0         //红蓝主色
+#define UI_Color_Yellow 1
+#define UI_Color_Green 2
+#define UI_Color_Orange 3
+#define UI_Color_Purplish_red 4 //紫红色
+#define UI_Color_Pink 5
+#define UI_Color_Cyan 6         //青色
+#define UI_Color_Black 7
+#define UI_Color_White 8
+
+#pragma pack(push, 1)
+typedef struct {
+    uint8_t SOF;                    //起始字节,固定0xA5
+    uint16_t Data_Length;           //帧数据长度
+    uint8_t Seq;                    //包序号
+    uint8_t CRC8;                   //CRC8校验值
+    uint16_t CMD_ID;                //命令ID
+} UI_Packhead;             //帧头
+
+typedef struct {
+    uint16_t Data_ID;               //内容ID
+    uint16_t Sender_ID;             //发送者ID
+    uint16_t Receiver_ID;           //接收者ID
+} UI_Data_Operate;         //操作定义帧
+
+typedef struct {
+    uint8_t Delete_Operate;         //删除操作
+    uint8_t Layer;                  //删除图层
+} UI_Data_Delete;          //删除图层帧
+
+
+typedef struct {
+    uint8_t graphic_name[3];
+    uint32_t operate_type: 3;
+    uint32_t graphic_type: 3;
+    uint32_t layer: 4;
+    uint32_t color: 4;
+    uint32_t start_angle: 9;
+    uint32_t end_angle: 9;
+    uint32_t width: 10;
+    uint32_t start_x: 11;
+    uint32_t start_y: 11;
+    float graph_Float;              //浮点数据
+} Float_Data;
+
+
+typedef struct {
+    graphic_data_struct_t Graph_Control;
+    uint8_t show_Data[30];
+} String_Data;                  //打印字符串数据
+
+#pragma pack(pop)
+
+void UI_Delete(uint8_t Del_Operate, uint8_t Del_Layer);
+
+void Line_Draw(graphic_data_struct_t *image, char imagename[3], uint32_t Graph_Operate, uint32_t Graph_Layer,
+               uint32_t Graph_Color, uint32_t Graph_Width, uint32_t Start_x, uint32_t Start_y, uint32_t End_x,
+               uint32_t End_y);
+
+int UI_ReFresh(int cnt, ...);
+
+void Circle_Draw(graphic_data_struct_t *image, char imagename[3], uint32_t Graph_Operate, uint32_t Graph_Layer,
+                 uint32_t Graph_Color, uint32_t Graph_Width, uint32_t Start_x, uint32_t Start_y, uint32_t Graph_Radius);
+
+void Rectangle_Draw(graphic_data_struct_t *image, char imagename[3], uint32_t Graph_Operate, uint32_t Graph_Layer,
+                    uint32_t Graph_Color, uint32_t Graph_Width, uint32_t Start_x, uint32_t Start_y, uint32_t End_x,
+                    uint32_t End_y);
+
+void
+Float_Draw(Float_Data *image, char imagename[3], uint32_t Graph_Operate, uint32_t Graph_Layer, uint32_t Graph_Color,
+           uint32_t Graph_Size, uint32_t Graph_Digit, uint32_t Graph_Width, uint32_t Start_x, uint32_t Start_y,
+           float Graph_Float);
+
+void
+Char_Draw(String_Data *image, char imagename[3], uint32_t Graph_Operate, uint32_t Graph_Layer, uint32_t Graph_Color,
+          uint32_t Graph_Size, uint32_t Graph_Digit, uint32_t Graph_Width, uint32_t Start_x, uint32_t Start_y,
+          char *Char_Data);
+
+int Char_ReFresh(String_Data string_Data);
+
+void Arc_Draw(graphic_data_struct_t *image, char imagename[3], uint32_t Graph_Operate, uint32_t Graph_Layer,
+              uint32_t Graph_Color, uint32_t Graph_StartAngle, uint32_t Graph_EndAngle, uint32_t Graph_Width,
+              uint32_t Start_x, uint32_t Start_y, uint32_t x_Length, uint32_t y_Length);
+
 #endif

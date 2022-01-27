@@ -112,7 +112,7 @@ void judge_update(uint8_t *rxBuf) {
                     case ID_GAME_ROBOT_STATUS://!< 0x0201 机器人状态数据
                         memcpy(&judge_info->GameRobotStatus, (rxBuf + DATA_SEG), LEN_GAME_ROBOT_STATUS);
                         judge_info->self_client_id = judge_info->GameRobotStatus.robot_id + 0x0100;
-//                        printf("/r/n judge_client_id=%d",judge_info->self_client_id);
+                        printf("/r/n judge_client_id=%d", judge_info->self_client_id);
                         break;
 
                     case ID_POWER_HEAT_DATA://!< 0x0202 实时功率热量数据
@@ -351,8 +351,17 @@ void referee_tx_task(void const *argument) {
     fifo_s_init(&referee_tx_len_fifo, referee_fifo_tx_len_buf, REFEREE_FIFO_BUF_LENGTH);
     fifo_s_init(&referee_tx_fifo, referee_fifo_tx_buf, REFEREE_FIFO_BUF_LENGTH);
     static int draw_cnt = 0;//辅助命名图形
-    static uint8_t name[3] = "xx";
-    osDelay(1000);
+    static uint8_t name[3] = "13";
+    //下坠UI标尺的水平刻度线长度、距离、颜色；垂直线总长度由为各水平刻度线距离之和
+    uint16_t line_distance[6] = {10, 30, 30, 35/*哨兵*/, 30, 50};
+    uint16_t line_length[6] = {120, 80, 70, 60, 20, 20};
+    graphic_color_enum_t ruler_color[7] = {graphic_color_white, graphic_color_white, graphic_color_white,
+                                           graphic_color_white, graphic_color_white, graphic_color_white,
+                                           graphic_color_white};
+    graphic_data_struct_t G1;
+    memset(&G1, 0, sizeof(G1));
+    osDelay(5000);
+//    UI_clean_all();
 //    line_drawing(0, ADD_PICTURE, 200, 200, 400, 400, 100, graphic_color_yellow, name);
     while (1) {
 
@@ -360,10 +369,11 @@ void referee_tx_task(void const *argument) {
 //        draw_cnt++;
 //        name[0] = draw_cnt / 255;
 //        name[1] = draw_cnt % 255;
-        line_drawing(0, ADD_PICTURE, 200, 200, 400, 400, 100, graphic_color_yellow, name);
-        line_drawing(0, MODIFY_PICTURE, 150, 200, 700, 400, 100, graphic_color_yellow, name);
-        line_drawing(0, MODIFY_PICTURE, 150, 200, 700, 400, 100, graphic_color_yellow, name);
-        osDelay(1000);
+//        Line_Draw(&G1,"091",UI_Graph_ADD,9,UI_Color_Purplish_red,1,960,330,960,620);
+//        UI_ReFresh(1,G1);
+        printf("%d", fifo_s_used(&referee_tx_fifo));
+        Hero_UI_ruler(5, 961, 538, line_distance, line_length, ruler_color, ADD_PICTURE);
+        osDelay(500);
 //        vTaskDelay(50000);
     }
 }
@@ -398,7 +408,7 @@ void pack_send_robotData(uint16_t _data_cmd_id, uint8_t *_data, uint16_t _data_l
  */
 void send_toReferee(uint16_t _cmd_id, uint16_t _data_len) {
     static uint8_t seq = 0;
-    FrameHeader send_frame_header;                                                                                            //交互数据帧帧头设置
+    std_frame_header_t send_frame_header;                                                                                            //交互数据帧帧头设置
     send_frame_header.SOF = HEADER_SOF;
     send_frame_header.data_length = _data_len;
     if (seq == 255) {
@@ -407,24 +417,25 @@ void send_toReferee(uint16_t _cmd_id, uint16_t _data_len) {
     send_frame_header.SEQ = seq++;
 //    printf("/r/n seq=%d", send_frame_header.SEQ);
     send_frame_header.CRC8 = get_CRC8_check_sum((uint8_t *) &send_frame_header, 4, 0xff);
-    send_frame_header.CmdID = _cmd_id;
+    uint16_t CmdID = _cmd_id;
 
     uint8_t header_len = sizeof(send_frame_header);
 
-    memcpy((void *) transmit_pack, &send_frame_header,
-           header_len);                                                            //将帧头装入缓存区																		//将数据段转入缓存区
+    memcpy((void *) transmit_pack, &send_frame_header, header_len);//将帧头装入缓存区
+    memcpy((void *) (transmit_pack + 5), &CmdID,
+           2);                                                                    //将数据段转入缓存区
     append_CRC16_check_sum((uint8_t *) &transmit_pack, header_len + _data_len + 2);
     fifo_s_put(&referee_tx_len_fifo, header_len + _data_len + 2);
     fifo_s_puts(&referee_tx_fifo, (char *) &transmit_pack, header_len + _data_len + 2);
 }
 
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
-//    printf("%d", fifo_s_used(&referee_tx_fifo));
+    printf("%d", fifo_s_used(&referee_tx_fifo));
     if (No_DMA_IRQHandler) {
         if (fifo_s_used(&referee_tx_fifo)) {
             if (fifo_s_used(&referee_tx_len_fifo)) {
                 if ((huart6.hdmatx->Instance->CR & DMA_SxCR_CT) == RESET) {
-//                    SEGGER_RTT_WriteString(0, "ST0DMA_1");
+                    SEGGER_RTT_WriteString(0, "ST0DMA_1");
                     __HAL_DMA_DISABLE(huart6.hdmatx);
                     dma_send_data_len = fifo_s_get(&referee_tx_len_fifo);
                     memset(&usart6_tx_buf[1], 0, USART_TX_BUF_LENGHT);
@@ -446,7 +457,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
                         memset(&usart6_tx_buf[0], 0, USART_TX_BUF_LENGHT);
                     }
                 } else {
-//                    SEGGER_RTT_WriteString(0, "ST0DMA_0");
+                    SEGGER_RTT_WriteString(0, "ST0DMA_0");
                     __HAL_DMA_DISABLE(huart6.hdmatx);
                     dma_send_data_len = fifo_s_get(&referee_tx_len_fifo);
                     memset(&usart6_tx_buf[0], 0, USART_TX_BUF_LENGHT);
@@ -474,41 +485,6 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
     }
 }
 
-
-/************裁判系统UI绘图功能函数******************/
-/**
- * @brief 清除所有UI绘制图形
- * @note Referee.clean_all();
- * @param
- * @retval
- */
-//void UI_clean_all(void)                                                                                    //清除所有自定义图案
-//{
-//    cleaning.operate_tpye = CLEAR_ALL;
-//    pack_send_robotData(Drawing_Clean_ID, robot_client_ID.client, (uint8_t *) &cleaning, sizeof(cleaning));
-//}
-/**
- * @brief 直线绘制数据包
- * @param line_width 线宽
- * @retval
- */
-void line_drawing(uint8_t _layer, drawOperate_e _operate_type, uint16_t startx, uint16_t starty, uint16_t endx,
-                  uint16_t endy, uint16_t line_width, graphic_color_enum_t vcolor, uint8_t *name) {
-    static graphic_data_struct_t drawing;
-//    SEGGER_RTT_WriteString(0,"line_drawing_on");
-    memcpy(drawing.graphic_name, name, 3);    //图案名称，3位
-    drawing.operate_type = _operate_type;
-    drawing.graphic_type = 0U;
-    drawing.layer = _layer;
-    drawing.color = vcolor;
-    drawing.width = line_width;
-    drawing.start_x = startx;
-    drawing.start_y = starty;
-    drawing.end_x = endx;
-    drawing.end_y = endy;
-    pack_send_robotData(0x0101, (uint8_t *) &drawing, sizeof(drawing));
-}
-
 void MY_USART_DMA_Stream6_TX_IRQHandler(void) {
     __HAL_DMA_DISABLE(huart6.hdmatx);
     __HAL_DMA_CLEAR_FLAG(huart6.hdmatx, DMA_HISR_TCIF6);
@@ -521,7 +497,7 @@ void MY_USART_DMA_Stream6_TX_IRQHandler(void) {
             __HAL_DMA_DISABLE(huart6.hdmatx);
             __HAL_DMA_CLEAR_FLAG(huart6.hdmatx, DMA_HISR_TCIF6);
             __HAL_DMA_SET_COUNTER(huart6.hdmatx, dma_send_data_len);
-//            SEGGER_RTT_WriteString(0, "ST1DMA_0");
+            SEGGER_RTT_WriteString(0, "ST1DMA_0");
             __HAL_DMA_ENABLE(huart6.hdmatx);
             detect_hook(REFEREE_TX_TOE);
             if (fifo_s_used(&referee_tx_fifo)) {
@@ -539,7 +515,7 @@ void MY_USART_DMA_Stream6_TX_IRQHandler(void) {
             __HAL_DMA_DISABLE(huart6.hdmatx);
             __HAL_DMA_CLEAR_FLAG(huart6.hdmatx, DMA_HISR_TCIF6);
             __HAL_DMA_SET_COUNTER(huart6.hdmatx, dma_send_data_len);
-//            SEGGER_RTT_WriteString(0, "ST1DMA_1");
+            SEGGER_RTT_WriteString(0, "ST1DMA_1");
             __HAL_DMA_ENABLE(huart6.hdmatx);
             detect_hook(REFEREE_TX_TOE);
             if (fifo_s_used(&referee_tx_fifo)) {
@@ -554,5 +530,487 @@ void MY_USART_DMA_Stream6_TX_IRQHandler(void) {
                 memset(&usart6_tx_buf[0], 0, USART_TX_BUF_LENGHT);
             }
         }
+    } else {
+        if ((huart6.hdmatx->Instance->CR & DMA_SxCR_CT) == RESET) {
+            memset(&usart6_tx_buf[1], 0, USART_TX_BUF_LENGHT);
+        } else {
+            memset(&usart6_tx_buf[0], 0, USART_TX_BUF_LENGHT);
+        }
     }
+}
+
+/************裁判系统UI绘图功能函数******************/
+/**
+ * @brief 清除所有UI绘制图形
+ * @note Referee.clean_all();
+ * @param
+ * @retval
+ */
+void UI_clean_all(void)                                                                                    //清除所有自定义图案
+{
+    cleaning.operate_type = 2;
+    pack_send_robotData(0x0100, (uint8_t *) &cleaning, sizeof(cleaning));
+}
+
+void Hero_UI_ruler(uint8_t _layer, uint16_t start_x, uint16_t start_y, uint16_t *line_distance, uint16_t *line_length,
+                   graphic_color_enum_t *_color, drawOperate_e _operate_type) {
+    uint16_t total_distance = 0;
+    static uint8_t line_name[] = "he0";
+
+    //绘制初始准星横线
+    line_name[2] = '6';
+    memcpy(&data_pack[DRAWING_PACK * 6],
+           (uint8_t *) line_drawing(_layer, ADD_PICTURE, start_x - line_length[0] / 2, start_y,
+                                    start_x + line_length[0] / 2, start_y, 3, _color[0], line_name), DRAWING_PACK);
+    total_distance += line_distance[0];
+
+    //封装好榴弹准星小横线，第2到6条
+    for (uint8_t i = 1; i < 6; i++) {
+        line_name[2] = '0' + i;
+        memcpy(&data_pack[DRAWING_PACK * i],
+               (uint8_t *) line_drawing(_layer, ADD_PICTURE, start_x - line_length[i] / 2, start_y - total_distance,
+                                        start_x + line_length[i] / 2, start_y - total_distance, 3, _color[i],
+                                        line_name), DRAWING_PACK);
+
+        total_distance += line_distance[i];                //计算竖直线总长度
+    }
+
+    //封装好竖直线
+    line_name[2] = '0';
+    memcpy(data_pack,
+           (uint8_t *) line_drawing(_layer, ADD_PICTURE, start_x, start_y, start_x, start_y - total_distance, 3,
+                                    _color[6], line_name), DRAWING_PACK);
+
+    pack_send_robotData(0x0104, (uint8_t *) data_pack, DRAWING_PACK * 7);
+    static uint8_t data_pack[DRAWING_PACK * 7] = {0};
+}
+
+/**
+ * @brief 直线绘制数据包
+ * @param line_width 线宽
+ * @retval
+ */
+graphic_data_struct_t *
+line_drawing(uint8_t _layer, drawOperate_e _operate_type, uint16_t startx, uint16_t starty, uint16_t endx,
+             uint16_t endy, uint16_t line_width, graphic_color_enum_t vcolor, uint8_t *name) {
+    static graphic_data_struct_t drawing;
+//    SEGGER_RTT_WriteString(0,"line_drawing_on");
+    memcpy(drawing.graphic_name, name, 3);    //图案名称，3位
+    drawing.operate_type = _operate_type;
+    drawing.graphic_type = 0U;
+    drawing.layer = _layer;
+    drawing.color = vcolor;
+    drawing.width = line_width;
+    drawing.start_x = startx;
+    drawing.start_y = starty;
+    drawing.end_x = endx;
+    drawing.end_y = endy;
+    return &drawing;
+}
+
+/*************************************************/
+unsigned char UI_Seq;                      //包序号
+
+/****************************************串口驱动映射************************************/
+void UI_SendByte(char ch) {
+    fifo_s_put(&referee_tx_len_fifo, 1);
+    fifo_s_puts(&referee_tx_fifo, &ch, 1);
+}
+
+/********************************************删除操作*************************************
+**参数：Del_Operate  对应头文件删除操作
+        Del_Layer    要删除的层 取值0-9
+*****************************************************************************************/
+
+void UI_Delete(uint8_t Del_Operate, uint8_t Del_Layer) {
+
+    unsigned char *framepoint;                      //读写指针
+    uint16_t frametail = 0xFFFF;                        //CRC16校验值
+    int loop_control;                       //For函数循环控制
+
+    UI_Packhead framehead;
+    UI_Data_Operate datahead;
+    UI_Data_Delete del;
+
+    framepoint = (unsigned char *) &framehead;
+
+    framehead.SOF = UI_SOF;
+    framehead.Data_Length = 8;
+    framehead.Seq = UI_Seq;
+    framehead.CRC8 = get_CRC8_check_sum(framepoint, 4, 0xFF);
+    framehead.CMD_ID = UI_CMD_Robo_Exchange;                   //填充包头数据
+
+    datahead.Data_ID = UI_Data_ID_Del;
+    datahead.Sender_ID = Robot_ID;
+    datahead.Receiver_ID = Cilent_ID;                          //填充操作数据
+
+    del.Delete_Operate = Del_Operate;
+    del.Layer = Del_Layer;                                     //控制信息
+
+    frametail = get_CRC16_check_sum(framepoint, sizeof(framehead), frametail);
+    framepoint = (unsigned char *) &datahead;
+    frametail = get_CRC16_check_sum(framepoint, sizeof(datahead), frametail);
+    framepoint = (unsigned char *) &del;
+    frametail = get_CRC16_check_sum(framepoint, sizeof(del), frametail);  //CRC16校验值计算
+
+    framepoint = (unsigned char *) &framehead;
+    for (loop_control = 0; loop_control < sizeof(framehead); loop_control++) {
+        UI_SendByte(*framepoint);
+        framepoint++;
+    }
+    framepoint = (unsigned char *) &datahead;
+    for (loop_control = 0; loop_control < sizeof(datahead); loop_control++) {
+        UI_SendByte(*framepoint);
+        framepoint++;
+    }
+    framepoint = (unsigned char *) &del;
+    for (loop_control = 0; loop_control < sizeof(del); loop_control++) {
+        UI_SendByte(*framepoint);
+        framepoint++;
+    }                                                                 //发送所有帧
+    framepoint = (unsigned char *) &frametail;
+    for (loop_control = 0; loop_control < sizeof(frametail); loop_control++) {
+        UI_SendByte(*framepoint);
+        framepoint++;                                                  //发送CRC16校验值
+    }
+
+    UI_Seq++;                                                         //包序号+1
+}
+
+/************************************************绘制直线*************************************************
+**参数：*image graphic_data_struct_t类型变量指针，用于存放图形数据
+        imagename[3]   图片名称，用于标识更改
+        Graph_Operate   图片操作，见头文件
+        Graph_Layer    图层0-9
+        Graph_Color    图形颜色
+        Graph_Width    图形线宽
+        Start_x、Start_x    开始坐标
+        End_x、End_y   结束坐标
+**********************************************************************************************************/
+
+void Line_Draw(graphic_data_struct_t *image, char imagename[3], uint32_t Graph_Operate, uint32_t Graph_Layer,
+               uint32_t Graph_Color, uint32_t Graph_Width, uint32_t Start_x, uint32_t Start_y, uint32_t End_x,
+               uint32_t End_y) {
+    int i;
+    for (i = 0; i < 3 && imagename[i] != '\0'; i++)
+        image->graphic_name[2 - i] = imagename[i];
+    image->operate_type = Graph_Operate;
+    image->layer = Graph_Layer;
+    image->color = Graph_Color;
+    image->width = Graph_Width;
+    image->start_x = Start_x;
+    image->start_y = Start_y;
+    image->end_x = End_x;
+    image->end_y = End_y;
+}
+
+/************************************************绘制矩形*************************************************
+**参数：*image graphic_data_struct_t类型变量指针，用于存放图形数据
+        imagename[3]   图片名称，用于标识更改
+        Graph_Operate   图片操作，见头文件
+        Graph_Layer    图层0-9
+        Graph_Color    图形颜色
+        Graph_Width    图形线宽
+        Start_x、Start_x    开始坐标
+        End_x、End_y   结束坐标（对顶角坐标）
+**********************************************************************************************************/
+
+void Rectangle_Draw(graphic_data_struct_t *image, char imagename[3], uint32_t Graph_Operate, uint32_t Graph_Layer,
+                    uint32_t Graph_Color, uint32_t Graph_Width, uint32_t Start_x, uint32_t Start_y, uint32_t End_x,
+                    uint32_t End_y) {
+    int i;
+    for (i = 0; i < 3 && imagename[i] != '\0'; i++)
+        image->graphic_name[2 - i] = imagename[i];
+    image->graphic_type = UI_Graph_Rectangle;
+    image->operate_type = Graph_Operate;
+    image->layer = Graph_Layer;
+    image->color = Graph_Color;
+    image->width = Graph_Width;
+    image->start_x = Start_x;
+    image->start_y = Start_y;
+    image->end_x = End_x;
+    image->end_y = End_y;
+}
+
+/************************************************绘制整圆*************************************************
+**参数：*image graphic_data_struct_t类型变量指针，用于存放图形数据
+        imagename[3]   图片名称，用于标识更改
+        Graph_Operate   图片操作，见头文件
+        Graph_Layer    图层0-9
+        Graph_Color    图形颜色
+        Graph_Width    图形线宽
+        Start_x、Start_x    圆心坐标
+        Graph_Radius  图形半径
+**********************************************************************************************************/
+
+void Circle_Draw(graphic_data_struct_t *image, char imagename[3], uint32_t Graph_Operate, uint32_t Graph_Layer,
+                 uint32_t Graph_Color, uint32_t Graph_Width, uint32_t Start_x, uint32_t Start_y,
+                 uint32_t Graph_Radius) {
+    int i;
+    for (i = 0; i < 3 && imagename[i] != '\0'; i++)
+        image->graphic_name[2 - i] = imagename[i];
+    image->graphic_type = UI_Graph_Circle;
+    image->operate_type = Graph_Operate;
+    image->layer = Graph_Layer;
+    image->color = Graph_Color;
+    image->width = Graph_Width;
+    image->start_x = Start_x;
+    image->start_y = Start_y;
+    image->radius = Graph_Radius;
+}
+
+/************************************************绘制圆弧*************************************************
+**参数：*image graphic_data_struct_t类型变量指针，用于存放图形数据
+        imagename[3]   图片名称，用于标识更改
+        Graph_Operate   图片操作，见头文件
+        Graph_Layer    图层0-9
+        Graph_Color    图形颜色
+        Graph_Width    图形线宽
+        Graph_StartAngle,Graph_EndAngle    开始，终止角度
+        Start_y,Start_y    圆心坐标
+        x_Length,y_Length   x,y方向上轴长，参考椭圆
+**********************************************************************************************************/
+
+void Arc_Draw(graphic_data_struct_t *image, char imagename[3], uint32_t Graph_Operate, uint32_t Graph_Layer,
+              uint32_t Graph_Color, uint32_t Graph_StartAngle, uint32_t Graph_EndAngle, uint32_t Graph_Width,
+              uint32_t Start_x, uint32_t Start_y, uint32_t x_Length, uint32_t y_Length) {
+    int i;
+
+    for (i = 0; i < 3 && imagename[i] != '\0'; i++)
+        image->graphic_name[2 - i] = imagename[i];
+    image->graphic_type = UI_Graph_Arc;
+    image->operate_type = Graph_Operate;
+    image->layer = Graph_Layer;
+    image->color = Graph_Color;
+    image->width = Graph_Width;
+    image->start_x = Start_x;
+    image->start_y = Start_y;
+    image->start_angle = Graph_StartAngle;
+    image->end_angle = Graph_EndAngle;
+    image->end_x = x_Length;
+    image->end_y = y_Length;
+}
+
+
+/************************************************绘制浮点型数据*************************************************
+**参数：*image graphic_data_struct_t类型变量指针，用于存放图形数据
+        imagename[3]   图片名称，用于标识更改
+        Graph_Operate   图片操作，见头文件
+        Graph_Layer    图层0-9
+        Graph_Color    图形颜色
+        Graph_Width    图形线宽
+        Graph_Size     字号
+        Graph_Digit    小数位数
+        Start_x、Start_x    开始坐标
+        Graph_Float   要显示的变量
+**********************************************************************************************************/
+
+void
+Float_Draw(Float_Data *image, char imagename[3], uint32_t Graph_Operate, uint32_t Graph_Layer, uint32_t Graph_Color,
+           uint32_t Graph_Size, uint32_t Graph_Digit, uint32_t Graph_Width, uint32_t Start_x, uint32_t Start_y,
+           float Graph_Float) {
+    int i;
+
+    for (i = 0; i < 3 && imagename[i] != '\0'; i++)
+        image->graphic_name[2 - i] = imagename[i];
+    image->graphic_type = UI_Graph_Float;
+    image->operate_type = Graph_Operate;
+    image->layer = Graph_Layer;
+    image->color = Graph_Color;
+    image->width = Graph_Width;
+    image->start_x = Start_x;
+    image->start_y = Start_y;
+    image->start_angle = Graph_Size;
+    image->end_angle = Graph_Digit;
+    image->graph_Float = Graph_Float;
+}
+
+
+/************************************************绘制字符型数据*************************************************
+**参数：*image graphic_data_struct_t类型变量指针，用于存放图形数据
+        imagename[3]   图片名称，用于标识更改
+        Graph_Operate   图片操作，见头文件
+        Graph_Layer    图层0-9
+        Graph_Color    图形颜色
+        Graph_Width    图形线宽
+        Graph_Size     字号
+        Graph_Digit    字符个数
+        Start_x、Start_x    开始坐标
+        *Char_Data          待发送字符串开始地址
+**********************************************************************************************************/
+
+void
+Char_Draw(String_Data *image, char imagename[3], uint32_t Graph_Operate, uint32_t Graph_Layer, uint32_t Graph_Color,
+          uint32_t Graph_Size, uint32_t Graph_Digit, uint32_t Graph_Width, uint32_t Start_x, uint32_t Start_y,
+          char *Char_Data) {
+    int i;
+
+    for (i = 0; i < 3 && imagename[i] != '\0'; i++)
+        image->Graph_Control.graphic_name[2 - i] = imagename[i];
+    image->Graph_Control.graphic_type = UI_Graph_Char;
+    image->Graph_Control.operate_type = Graph_Operate;
+    image->Graph_Control.layer = Graph_Layer;
+    image->Graph_Control.color = Graph_Color;
+    image->Graph_Control.width = Graph_Width;
+    image->Graph_Control.start_x = Start_x;
+    image->Graph_Control.start_y = Start_y;
+    image->Graph_Control.start_angle = Graph_Size;
+    image->Graph_Control.end_angle = Graph_Digit;
+
+    for (i = 0; i < Graph_Digit; i++) {
+        image->show_Data[i] = *Char_Data;
+        Char_Data++;
+    }
+}
+
+/************************************************UI推送函数（使更改生效）*********************************
+**参数： cnt   图形个数
+         ...   图形变量参数
+
+
+Tips：：该函数只能推送1，2，5，7个图形，其他数目协议未涉及
+**********************************************************************************************************/
+int UI_ReFresh(int cnt, ...) {
+    int i, n;
+    graphic_data_struct_t imageData;
+    unsigned char *framepoint;                      //读写指针
+    uint16_t frametail = 0xFFFF;                        //CRC16校验值
+
+    UI_Packhead framehead;
+    UI_Data_Operate datahead;
+
+    va_list ap;
+    va_start(ap, cnt);
+
+    framepoint = (unsigned char *) &framehead;
+    framehead.SOF = UI_SOF;
+    framehead.Data_Length = 6 + cnt * 15;
+    framehead.Seq = UI_Seq;
+    framehead.CRC8 = get_CRC8_check_sum(framepoint, 4, 0xFF);
+    framehead.CMD_ID = UI_CMD_Robo_Exchange;                   //填充包头数据
+
+    switch (cnt) {
+        case 1:
+            datahead.Data_ID = UI_Data_ID_Draw1;
+            break;
+        case 2:
+            datahead.Data_ID = UI_Data_ID_Draw2;
+            break;
+        case 5:
+            datahead.Data_ID = UI_Data_ID_Draw5;
+            break;
+        case 7:
+            datahead.Data_ID = UI_Data_ID_Draw7;
+            break;
+        default:
+            return (-1);
+    }
+    datahead.Sender_ID = Robot_ID;
+    datahead.Receiver_ID = Cilent_ID;                          //填充操作数据
+
+    framepoint = (unsigned char *) &framehead;
+    frametail = get_CRC16_check_sum(framepoint, sizeof(framehead), frametail);
+    framepoint = (unsigned char *) &datahead;
+    frametail = get_CRC16_check_sum(framepoint, sizeof(datahead), frametail);          //CRC16校验值计算（部分）
+
+    framepoint = (unsigned char *) &framehead;
+    for (i = 0; i < sizeof(framehead); i++) {
+        UI_SendByte(*framepoint);
+        framepoint++;
+    }
+    framepoint = (unsigned char *) &datahead;
+    for (i = 0; i < sizeof(datahead); i++) {
+        UI_SendByte(*framepoint);
+        framepoint++;
+    }
+
+    for (i = 0; i < cnt; i++) {
+        imageData = va_arg(ap, graphic_data_struct_t);
+
+        framepoint = (unsigned char *) &imageData;
+        frametail = get_CRC16_check_sum(framepoint, sizeof(imageData), frametail);             //CRC16校验
+
+        for (n = 0; n < sizeof(imageData); n++) {
+            UI_SendByte(*framepoint);
+            framepoint++;
+        }                                               //发送图片帧
+    }
+    framepoint = (unsigned char *) &frametail;
+    for (i = 0; i < sizeof(frametail); i++) {
+        UI_SendByte(*framepoint);
+        framepoint++;                                                  //发送CRC16校验值
+    }
+
+    va_end(ap);
+
+    UI_Seq++;                                                         //包序号+1
+    return 0;
+}
+
+
+/************************************************UI推送字符（使更改生效）*********************************
+**参数： cnt   图形个数
+         ...   图形变量参数
+
+
+Tips：：该函数只能推送1，2，5，7个图形，其他数目协议未涉及
+**********************************************************************************************************/
+int Char_ReFresh(String_Data string_Data) {
+    int i;
+    String_Data imageData;
+    unsigned char *framepoint;                      //读写指针
+    uint16_t frametail = 0xFFFF;                        //CRC16校验值
+
+    UI_Packhead framehead;
+    UI_Data_Operate datahead;
+    imageData = string_Data;
+
+
+    framepoint = (unsigned char *) &framehead;
+    framehead.SOF = UI_SOF;
+    framehead.Data_Length = 6 + 45;
+    framehead.Seq = UI_Seq;
+    framehead.CRC8 = get_CRC8_check_sum(framepoint, 4, 0xFF);
+    framehead.CMD_ID = UI_CMD_Robo_Exchange;                   //填充包头数据
+
+
+    datahead.Data_ID = UI_Data_ID_Draw1;
+
+    datahead.Sender_ID = Robot_ID;
+    datahead.Receiver_ID = Cilent_ID;                          //填充操作数据
+
+    framepoint = (unsigned char *) &framehead;
+    frametail = get_CRC16_check_sum(framepoint, sizeof(framehead), frametail);
+    framepoint = (unsigned char *) &datahead;
+    frametail = get_CRC16_check_sum(framepoint, sizeof(datahead), frametail);
+    framepoint = (unsigned char *) &imageData;
+    frametail = get_CRC16_check_sum(framepoint, sizeof(imageData), frametail);             //CRC16校验   //CRC16校验值计算（部分）
+
+    framepoint = (unsigned char *) &framehead;
+    for (i = 0; i < sizeof(framehead); i++) {
+        UI_SendByte(*framepoint);
+        framepoint++;
+    }
+    framepoint = (unsigned char *) &datahead;
+    for (i = 0; i < sizeof(datahead); i++) {
+        UI_SendByte(*framepoint);
+        framepoint++;
+    }                                                   //发送操作数据
+    framepoint = (unsigned char *) &imageData;
+    for (i = 0; i < sizeof(imageData); i++) {
+        UI_SendByte(*framepoint);
+        framepoint++;
+    }                                               //发送图片帧
+
+
+
+    framepoint = (unsigned char *) &frametail;
+    for (i = 0; i < sizeof(frametail); i++) {
+        UI_SendByte(*framepoint);
+        framepoint++;                                                  //发送CRC16校验值
+    }
+
+
+    UI_Seq++;                                                         //包序号+1
+    return 0;
 }
