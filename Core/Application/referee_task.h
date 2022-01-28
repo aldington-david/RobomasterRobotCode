@@ -8,12 +8,12 @@
 #define USART_RX_BUF_LENGHT     512
 #define USART_TX_BUF_LENGHT     128
 #define REFEREE_FIFO_BUF_LENGTH 1024
-
+#pragma pack(push, 1)
 /**
  * @name std_frame_header_t
  * @brief 裁判系统自定义帧头
  */
-typedef struct __attribute__((packed)) {
+typedef struct {
     uint8_t SOF;
     uint16_t data_length;
     uint8_t SEQ;
@@ -119,7 +119,7 @@ typedef enum {
  * @brief 比赛状态数据：0x0001 发送频率：1Hz 发送范围：所有机器人
  * @param
  */
-typedef struct __attribute__((packed)) {
+typedef struct {
     uint8_t game_type: 4;        //!< 比赛类型
     uint8_t game_progress: 4;    //!< 当前比赛阶段
     uint16_t stage_remain_time;   //!< 当前阶段剩余时间 单位s
@@ -130,7 +130,7 @@ typedef struct __attribute__((packed)) {
  * @name ext_game_result_t
  * @brief 比赛结果数据：0x0002 发送频率：比赛结束后发送 发送范围：所有机器人
  */
-typedef struct __attribute__((packed)) {
+typedef struct {
     uint8_t winner;     //!< 0 平局 1 红方胜利 2 蓝方胜利
 } ext_game_result_t;
 
@@ -138,7 +138,7 @@ typedef struct __attribute__((packed)) {
  * @name ext_game_robot_HP_t
  * @brief 机器人血量数据：0x0003 发送频率：1Hz 发送范围：所有机器人
  */
-typedef struct __attribute__((packed)) {
+typedef struct {
     uint16_t red_1_robot_HP;    //!< 红1英雄机器人血量 未上场以及罚下血量为0
     uint16_t red_2_robot_HP;    //!< 红2工程机器人血量
     uint16_t red_3_robot_HP;    //!< 红3步兵机器人血量
@@ -161,7 +161,7 @@ typedef struct __attribute__((packed)) {
  * @name ext_ICRA_buff_debuff_zone_status_t
  * @brief 人工智能挑战赛加成与惩罚区状态：0x0005 发送频率：1Hz周期发送 发送范围：所有机器人
  */
-typedef struct __attribute__((packed)) {
+typedef struct {
     uint8_t F1_zone_status: 1;
     uint8_t F1_zone_buff_debuff_status: 3;
     uint8_t F2_zone_status: 1;
@@ -184,7 +184,7 @@ typedef struct __attribute__((packed)) {
  * @name ext_event_data_t
  * @brief 场地事件数据：0x0101 发送频率：1Hz周期发送 发送范围：己方机器人
  */
-typedef struct __attribute__((packed)) {
+typedef struct {
     uint32_t event_type;     //!< bit 0-1:己方停机坪占领状态  bit 2-3:己方能量机关状态  bit 4:己方基地虚拟护盾状态  bit 5 -31:保留
 } ext_event_data_t;
 
@@ -192,7 +192,7 @@ typedef struct __attribute__((packed)) {
  * @name ext_supply_projectile_action_t
  * @brief 补给站动作标识：0x0102 发送频率：动作触发后发送 发送范围：己方机器人
  */
-typedef struct __attribute__((packed)) {
+typedef struct {
     uint8_t supply_projectile_id; //!< 补给站口ID
     uint8_t supply_robot_id; //!< 补弹机器人ID
     uint8_t supply_projectile_step; //!< 出弹口开闭状态
@@ -203,7 +203,7 @@ typedef struct __attribute__((packed)) {
  * @name ext_referee_warning_t
  * @brief 裁判警告信息：0x0104 发送频率：警告发生后发送 发送范围：己方机器人
  */
-typedef struct __attribute__((packed)) {
+typedef struct {
     uint8_t level; //!< 警告等级
     uint8_t foul_robot_id; //!< 犯规机器人ID
 } ext_referee_warning_t;
@@ -212,7 +212,7 @@ typedef struct __attribute__((packed)) {
  * @name ext_dart_remaining_time_t
  * @brief 飞镖发射口倒计时：0x0105 发送频率：1Hz周期发送 发送范围：己方机器人
  */
-typedef struct __attribute__((packed)) {
+typedef struct {
     uint8_t dart_remaining_time; //!< 15s 倒计时
 } ext_dart_remaining_time_t;
 
@@ -220,7 +220,7 @@ typedef struct __attribute__((packed)) {
  * @name ext_game_robot_status_t
  * @brief 比赛机器人状态：0x0201 发送频率：10Hz 发送范围：单一机器人
  */
-typedef struct __attribute__((packed)) {
+typedef struct {
     uint8_t robot_id;                           //!< 机器人ID
     uint8_t robot_level;                        //!< 机器人等级
     uint16_t remain_HP;                         //!< 机器人剩余血量
@@ -271,7 +271,7 @@ typedef enum {
  * @name ext_power_heat_data_t
  * @brief 实时功率热量数据 0x0202 发送频率：50Hz 发送范围：单一机器人
  */
-typedef struct __attribute__((packed)) {
+typedef struct {
     uint16_t chassis_volt;        //!< 底盘输出电压，单位：mV
     uint16_t chassis_current;        //!< 底盘输出电流，单位：mA
     float chassis_power;            //!< 瞬时功率，单位：W
@@ -285,7 +285,7 @@ typedef struct __attribute__((packed)) {
  * @name ext_game_robot_pos_t
  * @brief 机器人位置：0x0203 发送频率：10Hz 发送范围：单一机器人
  */
-typedef struct __attribute__((packed)) {
+typedef struct {
     float target_x;         //!< 位置x坐标 单位m
     float target_y;         //!< 位置y坐标 单位m
     float target_z;         //!< 位置z坐标 单位m
@@ -297,7 +297,7 @@ typedef struct __attribute__((packed)) {
  * @name ext_buff_t
  * @brief 机器人增益：0x0204 发送频率：1Hz周期发送 发送范围：单一机器人
  */
-typedef struct __attribute__((packed)) {
+typedef struct {
     uint8_t power_rune_buff; //!< bit 0:机器人血量补血状态  bit 1:枪口热量冷却加速  bit 2:机器人防御加成  bit 3:机器人攻击加成
 } ext_buff_t;
 
@@ -305,7 +305,7 @@ typedef struct __attribute__((packed)) {
  * @name ext_aerial_robot_energy_t
  * @brief 空中机器人能量状态：0x0205 发送频率：10Hz 发送范围：单一机器人
  */
-typedef struct __attribute__((packed)) {
+typedef struct {
     uint8_t attack_time; //!< 可攻击时间 单位 s  30s递减至0
 } ext_aerial_robot_energy_t;
 
@@ -313,7 +313,7 @@ typedef struct __attribute__((packed)) {
  * @name ext_robot_hurt_t
  * @brief 伤害状态：0x0206 发送频率：伤害发生后发送 发送范围：单一机器人
  */
-typedef struct __attribute__((packed)) {
+typedef struct {
     uint8_t armor_id: 4;        //!< 当血量变化类型为装甲伤害，代表装甲ID，其中数值为0-4号代表机器人的五个装甲片，其他血量变化类型，该变量数值为0
     uint8_t hurt_type: 4;       //!< 0x0 装甲伤害扣血  0x1 模块掉线扣血  0x2 超射速扣血  0x3 超枪口热量扣血  0x4 超底盘功率扣血  0x5 装甲撞击扣血
 } ext_robot_hurt_t;
@@ -322,7 +322,7 @@ typedef struct __attribute__((packed)) {
  * @name ext_shoot_data_t
  * @brief 实时射击信息：0x0207 发送频率：射击后发送 发送范围：单一机器人
  */
-typedef struct __attribute__((packed)) {
+typedef struct {
     uint8_t bullet_type;     //!< 子弹类型： 1：17mm弹丸；2：42mm弹丸
     uint8_t shooter_id;      //!< 发射机构ID 1: 1 号 17mm 发射机构 2： 2 号 17mm 发射机构 3： 42mm 发射机构
     uint8_t bullet_freq;     //!< 子弹射频 单位 Hz
@@ -333,7 +333,7 @@ typedef struct __attribute__((packed)) {
  * @name ext_bullet_remaining_t
  * @brief 子弹剩余发射数：0x0208 发送频率：1Hz周期发送，空中机器人，哨兵机器人以及ICRA机器人主控发送 发送范围：单一机器人
  */
-typedef struct __attribute__((packed)) {
+typedef struct {
     uint16_t bullet_remaining_num_17mm;     //!< 17mm子弹剩余发射数目
     uint16_t bullet_remaining_num_42mm;     //!< 42mm子弹剩余发射数目
     uint16_t coin_remaining_num;     //!< 剩余金市数量
@@ -343,7 +343,7 @@ typedef struct __attribute__((packed)) {
  * @name ext_RFID_status_t
  * @brief 机器人RFID状态：0x0209 发送频率：1Hz 发送范围：单一机器人
  */
-typedef struct __attribute__((packed)) {
+typedef struct {
     uint32_t RFID_status; //!< bit 0:基地增益点RFID状态  bit 1:高地增益点RFID状态  bit 2:能量机关激活点RFID状态  bit 3:飞坡增益点RFID状态  bit 4:前哨岗增益点RFID状态  bit 6:补血点增益点RFID状态  bit 7:工程机器人补血卡RFID状态  bit 8-25:保留  bit 26-31:人工智能挑战赛F1-F6 RFID状态
 } ext_RFID_status_t;
 
@@ -351,7 +351,7 @@ typedef struct __attribute__((packed)) {
  * @name ext_dart_client_cmd_t
  * @brief 飞镖机器人客户端指令数据：0x020A 发送频率：10Hz 发送范围：单一机器人
  */
-typedef struct __attribute__((packed)) {
+typedef struct {
     uint8_t dart_launch_opening_status;         //!< 当前飞镖发射口的状态 0：关闭  1：正在开启或者关闭中  2：已经开启
     uint8_t dart_attack_target;                 //!< 飞镖的打击目标，默认为前哨站  1：前哨站  2：基地
     uint16_t target_change_time;                 //!< 切换打击目标时的比赛剩余时间 单位秒 从未切换默认为0
@@ -362,7 +362,7 @@ typedef struct __attribute__((packed)) {
  * @name ext_student_interactive_header_data_t
  * @brief 机器人间通信 交互数据接收信息：0x0301
  */
-typedef struct __attribute__((packed)) {
+typedef struct {
     uint16_t data_CMD_ID;         //!< 数据段的内容ID
     uint16_t sender_ID;           //!< 发送者的ID 需要校验发送者的ID正确性
     uint16_t receiver_ID;         //!< 接收者的ID 需要校验接收者的ID正确性
@@ -372,7 +372,7 @@ typedef struct __attribute__((packed)) {
  * @name ext_aerial_data_t
  * @brief 云台手交互：0x0301
  */
-typedef struct __attribute__((packed)) {
+typedef struct {
     uint16_t cmd_id;
     uint16_t send_id;
     uint16_t receive_id;
@@ -391,7 +391,7 @@ typedef struct __attribute__((packed)) {
  * @name ext_aerial_data_t
  * @brief 交互数据接收信息：0x0302 发送频率：上限30Hz
  */
-typedef struct __attribute__((packed)) {
+typedef struct {
     uint8_t data[30];
 } robot_interactive_data_t;
 
@@ -399,7 +399,7 @@ typedef struct __attribute__((packed)) {
  * @name ext_robot_command_t
  * @brief 0x0303 客户端小地图交互数据
  */
-typedef struct __attribute__((packed)) {
+typedef struct {
     float target_x;         //!< 目标ⅹ位置坐标,单位m,当发送目标机器人ID时,该项为0
     float target_y;         //!< 目标y位置坐标,单位m,当发送目标机器人ID时,该项为0
     float target_z;         //!< 目标z位置坐标,单位m,当发送目标机器人ID时,该项为0
@@ -411,7 +411,7 @@ typedef struct __attribute__((packed)) {
  * @name ext_control_uart_t
  * @brief 0x0304 图传遥控信息
  */
-typedef struct __attribute__((packed)) {
+typedef struct {
     int16_t mouse_x;         //!< 鼠标X轴信息
     int16_t mouse_y;         //!< 鼠标Y轴信
     int16_t mouse_z;         //!< 鼠标滚轮信息
@@ -425,7 +425,7 @@ typedef struct __attribute__((packed)) {
  * @name ext_client_map_command_t
  * @brief 0x0305 小地图接收信息
  */
-typedef struct __attribute__((packed)) {
+typedef struct {
     uint16_t target_robot_ID;
     float target_position_x;
     float target_position_y;
@@ -436,11 +436,11 @@ typedef struct __attribute__((packed)) {
  * @name ext_client_custom_graphic_delete_t
  * @brief 客户端删除图形 机器人间通信：0x0301
  */
-typedef struct __attribute__((packed)) {
+typedef struct {
     uint8_t operate_type;         //!< 图形操作 0: 空操作  1: 删除图层  2: 删除所有
     uint8_t layer;                //!< 图层数 : 0 - 9
 } ext_client_custom_graphic_delete_t;
-#pragma pack(push, 1)
+
 /**
  * @name graphic_data_struct_t
  * @brief 图形数据 机器人间通信 0x0301
@@ -460,7 +460,7 @@ typedef struct {
     uint32_t end_x: 11;             //!< 终点x坐标
     uint32_t end_y: 11;             //!< 终点y坐标
 } graphic_data_struct_t;
-#pragma pack(pop)
+
 /**
  * @name graphic_type_enum_t
  * @brief 图形配置 图形类型定义
@@ -496,7 +496,7 @@ typedef enum {
  * @name ext_client_custom_graphic_single_t
  * @brief 客户端绘制一个图形 机器人间通信：0x0301
  */
-typedef struct __attribute__((packed)) {
+typedef struct {
     graphic_data_struct_t graphic_data_struct;
 } ext_client_custom_graphic_single_t;
 
@@ -504,7 +504,7 @@ typedef struct __attribute__((packed)) {
  * @name ext_client_custom_graphic_double_t
  * @brief 客户端绘制二个图形 机器人间通信：0x0301
  */
-typedef struct __attribute__((packed)) {
+typedef struct {
     graphic_data_struct_t graphic_data_struct[2];
 } ext_client_custom_graphic_double_t;
 
@@ -512,7 +512,7 @@ typedef struct __attribute__((packed)) {
  * @name ext_client_custom_graphic_five_t
  * @brief 客户端绘制五个图形 机器人间通信：0x0301
  */
-typedef struct __attribute__((packed)) {
+typedef struct {
     graphic_data_struct_t graphic_data_struct[5];
 } ext_client_custom_graphic_five_t;
 
@@ -520,7 +520,7 @@ typedef struct __attribute__((packed)) {
  * @name ext_client_custom_graphic_seven_t
  * @brief 客户端绘制七个图形 机器人间通信：0x0301
  */
-typedef struct __attribute__((packed)) {
+typedef struct {
     graphic_data_struct_t graphic_data_struct[7];
 } ext_client_custom_graphic_seven_t;
 
@@ -528,7 +528,7 @@ typedef struct __attribute__((packed)) {
  * @name ext_client_custom_character_t
  * @brief 客户端绘制字符 机器人间通信：0x0301
  */
-typedef struct __attribute__((packed)) {
+typedef struct {
     graphic_data_struct_t graphic_data_struct;
     uint8_t data[30];
 } ext_client_custom_character_t;
@@ -591,7 +591,7 @@ typedef struct {
 #define REF_HEADER_CRC_CMDID_LEN            (REF_PROTOCOL_HEADER_SIZE + REF_PROTOCOL_CRC16_SIZE + REF_PROTOCOL_CMD_SIZE)
 #define REF_HEADER_CMDID_LEN                (REF_PROTOCOL_HEADER_SIZE + REF_PROTOCOL_CMD_SIZE)
 
-#pragma pack(push, 1)
+
 typedef enum {
     STEP_HEADER_SOF = 0,
     STEP_LENGTH_LOW = 1,
@@ -630,6 +630,8 @@ extern void init_referee_struct_data(void);
 extern void referee_rx_task(void const *argument);
 
 extern void referee_tx_task(void const *argument);
+
+#pragma pack(push, 1)
 //TX Declare
 //#define DRAWING_PACK	15
 /* UI绘制数据包 */
@@ -638,14 +640,14 @@ extern void referee_tx_task(void const *argument);
  * @name FrameHeader
  * @brief 裁判系统自定义发送帧头+cmdid
  */
-typedef struct __attribute__((packed)) {
+typedef struct {
     uint8_t SOF;
     uint16_t data_length;
     uint8_t SEQ;
     uint8_t CRC8;
     uint16_t CmdID;
 } FrameHeader;
-#pragma pack(push, 1)
+
 typedef enum {
     NULL_OPERATION = 0U,
     ADD_PICTURE = 1U,
@@ -653,8 +655,6 @@ typedef enum {
     CLEAR_ONE_PICTURE = 3U,
 } drawOperate_e;
 #pragma pack(pop)
-#define Robot_ID 4
-#define Cilent_ID 0x0104        //机器人角色设置
 #define DRAWING_PACK    15
 static uint8_t DMA_Stream6_Tx_Status;
 static uint8_t No_DMA_IRQHandler = 1;
@@ -677,151 +677,8 @@ extern void MY_USART_DMA_Stream6_TX_IRQHandler(void);
 static graphic_data_struct_t *
 line_drawing(uint8_t _layer, drawOperate_e _operate_type, uint16_t startx, uint16_t starty, uint16_t endx,
              uint16_t endy, uint16_t line_width, graphic_color_enum_t vcolor, uint8_t name[]);
+//void line_drawing(uint8_t *name, drawOperate_e _operate_type, uint8_t _layer, graphic_color_enum_t vcolor, uint16_t line_width,uint16_t startx, uint16_t starty, uint16_t endx,
+//                  uint16_t endy );
 /***************function and variable declare end*******************/
-
-/****************************开始标志*********************/
-#define UI_SOF 0xA5
-/****************************CMD_ID数据********************/
-#define UI_CMD_Robo_Exchange 0x0301
-/****************************内容ID数据********************/
-#define UI_Data_ID_Del 0x100
-#define UI_Data_ID_Draw1 0x101
-#define UI_Data_ID_Draw2 0x102
-#define UI_Data_ID_Draw5 0x103
-#define UI_Data_ID_Draw7 0x104
-#define UI_Data_ID_DrawChar 0x110
-/****************************红方机器人ID********************/
-#define UI_Data_RobotID_RHero 1
-#define UI_Data_RobotID_REngineer 2
-#define UI_Data_RobotID_RStandard1 3
-#define UI_Data_RobotID_RStandard2 4
-#define UI_Data_RobotID_RStandard3 5
-#define UI_Data_RobotID_RAerial 6
-#define UI_Data_RobotID_RSentry 7
-#define UI_Data_RobotID_RRadar 9
-/****************************蓝方机器人ID********************/
-#define UI_Data_RobotID_BHero 101
-#define UI_Data_RobotID_BEngineer 102
-#define UI_Data_RobotID_BStandard1 103
-#define UI_Data_RobotID_BStandard2 104
-#define UI_Data_RobotID_BStandard3 105
-#define UI_Data_RobotID_BAerial 106
-#define UI_Data_RobotID_BSentry 107
-#define UI_Data_RobotID_BRadar 109
-/**************************红方操作手ID************************/
-#define UI_Data_CilentID_RHero 0x0101
-#define UI_Data_CilentID_REngineer 0x0102
-#define UI_Data_CilentID_RStandard1 0x0103
-#define UI_Data_CilentID_RStandard2 0x0104
-#define UI_Data_CilentID_RStandard3 0x0105
-#define UI_Data_CilentID_RAerial 0x0106
-/***************************蓝方操作手ID***********************/
-#define UI_Data_CilentID_BHero 0x0165
-#define UI_Data_CilentID_BEngineer 0x0166
-#define UI_Data_CilentID_BStandard1 0x0167
-#define UI_Data_CilentID_BStandard2 0x0168
-#define UI_Data_CilentID_BStandard3 0x0169
-#define UI_Data_CilentID_BAerial 0x016A
-/***************************删除操作***************************/
-#define UI_Data_Del_NoOperate 0
-#define UI_Data_Del_Layer 1
-#define UI_Data_Del_ALL 2
-/***************************图形配置参数__图形操作********************/
-#define UI_Graph_ADD 1
-#define UI_Graph_Change 2
-#define UI_Graph_Del 3
-/***************************图形配置参数__图形类型********************/
-#define UI_Graph_Line 0         //直线
-#define UI_Graph_Rectangle 1    //矩形
-#define UI_Graph_Circle 2       //整圆
-#define UI_Graph_Ellipse 3      //椭圆
-#define UI_Graph_Arc 4          //圆弧
-#define UI_Graph_Float 5        //浮点型
-#define UI_Graph_Int 6          //整形
-#define UI_Graph_Char 7         //字符型
-/***************************图形配置参数__图形颜色********************/
-#define UI_Color_Main 0         //红蓝主色
-#define UI_Color_Yellow 1
-#define UI_Color_Green 2
-#define UI_Color_Orange 3
-#define UI_Color_Purplish_red 4 //紫红色
-#define UI_Color_Pink 5
-#define UI_Color_Cyan 6         //青色
-#define UI_Color_Black 7
-#define UI_Color_White 8
-
-#pragma pack(push, 1)
-typedef struct {
-    uint8_t SOF;                    //起始字节,固定0xA5
-    uint16_t Data_Length;           //帧数据长度
-    uint8_t Seq;                    //包序号
-    uint8_t CRC8;                   //CRC8校验值
-    uint16_t CMD_ID;                //命令ID
-} UI_Packhead;             //帧头
-
-typedef struct {
-    uint16_t Data_ID;               //内容ID
-    uint16_t Sender_ID;             //发送者ID
-    uint16_t Receiver_ID;           //接收者ID
-} UI_Data_Operate;         //操作定义帧
-
-typedef struct {
-    uint8_t Delete_Operate;         //删除操作
-    uint8_t Layer;                  //删除图层
-} UI_Data_Delete;          //删除图层帧
-
-
-typedef struct {
-    uint8_t graphic_name[3];
-    uint32_t operate_type: 3;
-    uint32_t graphic_type: 3;
-    uint32_t layer: 4;
-    uint32_t color: 4;
-    uint32_t start_angle: 9;
-    uint32_t end_angle: 9;
-    uint32_t width: 10;
-    uint32_t start_x: 11;
-    uint32_t start_y: 11;
-    float graph_Float;              //浮点数据
-} Float_Data;
-
-
-typedef struct {
-    graphic_data_struct_t Graph_Control;
-    uint8_t show_Data[30];
-} String_Data;                  //打印字符串数据
-
-#pragma pack(pop)
-
-void UI_Delete(uint8_t Del_Operate, uint8_t Del_Layer);
-
-void Line_Draw(graphic_data_struct_t *image, char imagename[3], uint32_t Graph_Operate, uint32_t Graph_Layer,
-               uint32_t Graph_Color, uint32_t Graph_Width, uint32_t Start_x, uint32_t Start_y, uint32_t End_x,
-               uint32_t End_y);
-
-int UI_ReFresh(int cnt, ...);
-
-void Circle_Draw(graphic_data_struct_t *image, char imagename[3], uint32_t Graph_Operate, uint32_t Graph_Layer,
-                 uint32_t Graph_Color, uint32_t Graph_Width, uint32_t Start_x, uint32_t Start_y, uint32_t Graph_Radius);
-
-void Rectangle_Draw(graphic_data_struct_t *image, char imagename[3], uint32_t Graph_Operate, uint32_t Graph_Layer,
-                    uint32_t Graph_Color, uint32_t Graph_Width, uint32_t Start_x, uint32_t Start_y, uint32_t End_x,
-                    uint32_t End_y);
-
-void
-Float_Draw(Float_Data *image, char imagename[3], uint32_t Graph_Operate, uint32_t Graph_Layer, uint32_t Graph_Color,
-           uint32_t Graph_Size, uint32_t Graph_Digit, uint32_t Graph_Width, uint32_t Start_x, uint32_t Start_y,
-           float Graph_Float);
-
-void
-Char_Draw(String_Data *image, char imagename[3], uint32_t Graph_Operate, uint32_t Graph_Layer, uint32_t Graph_Color,
-          uint32_t Graph_Size, uint32_t Graph_Digit, uint32_t Graph_Width, uint32_t Start_x, uint32_t Start_y,
-          char *Char_Data);
-
-int Char_ReFresh(String_Data string_Data);
-
-void Arc_Draw(graphic_data_struct_t *image, char imagename[3], uint32_t Graph_Operate, uint32_t Graph_Layer,
-              uint32_t Graph_Color, uint32_t Graph_StartAngle, uint32_t Graph_EndAngle, uint32_t Graph_Width,
-              uint32_t Start_x, uint32_t Start_y, uint32_t x_Length, uint32_t y_Length);
 
 #endif
