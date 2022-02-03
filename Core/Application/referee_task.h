@@ -613,7 +613,7 @@ typedef struct {
 /***************define for fifo end*******************/
 /***************function and variable declare start*******************/
 //RX Declare
-extern judge_info_t global_judge_info;
+extern volatile judge_info_t global_judge_info;
 
 void judge_update(uint8_t *rxBuf);
 
@@ -656,9 +656,8 @@ typedef enum {
 } drawOperate_e;
 #pragma pack(pop)
 #define DRAWING_PACK    15
-static uint8_t DMA_Stream6_Tx_Status;
-static uint8_t No_DMA_IRQHandler = 1;
-static uint8_t dma_send_data_len;
+static volatile uint8_t No_DMA_IRQHandler = 1;
+static volatile uint8_t dma_send_data_len = 0;
 static uint8_t data_pack[DRAWING_PACK * 7] = {0};
 static ext_client_custom_graphic_delete_t cleaning;
 
@@ -666,7 +665,6 @@ static void send_toReferee(uint16_t _cmd_id, uint16_t _data_len);
 
 static void UI_clean_all(void);
 
-static void test_function(void);
 
 static void
 Hero_UI_ruler(uint8_t _layer, uint16_t start_x, uint16_t start_y, uint16_t *line_distance, uint16_t *line_length,
@@ -680,5 +678,5 @@ line_drawing(uint8_t _layer, drawOperate_e _operate_type, uint16_t startx, uint1
 //void line_drawing(uint8_t *name, drawOperate_e _operate_type, uint8_t _layer, graphic_color_enum_t vcolor, uint16_t line_width,uint16_t startx, uint16_t starty, uint16_t endx,
 //                  uint16_t endy );
 /***************function and variable declare end*******************/
-
+unsigned char *out_float(double value, unsigned char decimal_digit, unsigned char *output_length);
 #endif

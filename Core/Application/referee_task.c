@@ -8,6 +8,7 @@
 #include "cmsis_os.h"
 #include "SEGGER_RTT.h"
 #include "global_control_define.h"
+#include "math.h"
 
 #define printf(format, args...)  SEGGER_RTT_printf(0, format, ##args)
 fifo_s_t referee_rx_fifo;
@@ -17,12 +18,10 @@ uint8_t referee_fifo_rx_buf[REFEREE_FIFO_BUF_LENGTH];
 uint8_t referee_fifo_tx_len_buf[REFEREE_FIFO_BUF_LENGTH];
 uint8_t referee_fifo_tx_buf[REFEREE_FIFO_BUF_LENGTH];
 unpack_data_t referee_unpack_obj;
-judge_info_t global_judge_info;
 uint8_t usart6_rx_buf[2][USART_RX_BUF_LENGHT];
 uint8_t usart6_tx_buf[2][USART_TX_BUF_LENGHT];
 /* 发送数据包缓存区，最大128字节 */
 uint8_t transmit_pack[128] = {0};
-static uint8_t dma_send_data_len;
 /*****************裁判系统接收功能 Start**********************/
 /**
   * @brief  裁判系统数据内存空间初始化
@@ -641,3 +640,87 @@ line_drawing(uint8_t _layer, drawOperate_e _operate_type, uint16_t startx, uint1
 }
 
 /*************************************************/
+/*!
+ * @brief 浮点数转字符串
+ * @param value 想要打印的数据
+ * @param decimal_digit 数字小数部分的位数
+ * @param output_length 输出字符串的长度
+ * @return
+ */
+unsigned char *out_float(double value, unsigned char decimal_digit, unsigned char *output_length) {
+    unsigned char _output[20];
+    unsigned long integer;
+    unsigned long decimal;
+    unsigned char _output_length = 0;
+    unsigned char _length_buff = 0;
+    static unsigned char *return_pointer;
+    unsigned char signal_flag;
+    if (value < 0)
+        signal_flag = 1;
+    else
+        signal_flag = 0;
+    value = fabs(value);
+    integer = (unsigned long) value;
+    decimal = (unsigned long) ((value - integer) * pow(10, decimal_digit));
+
+    unsigned long integer_buff = integer;
+    unsigned long decimal_buff = decimal;
+
+    while (1) {
+        if (integer / 10 != 0)
+            _length_buff++;
+        else {
+            _length_buff++;
+            break;
+        }
+        integer = integer / 10;
+    }
+    for (int i = 0; i < _length_buff; i++) {
+        if (i == _length_buff - 1)
+            _output[_output_length] = integer_buff % 10 + 0x30;
+        else {
+            //_output[_output_length] = integer_buff / 10 % 10 + 0x30;
+            _output[_output_length] = integer_buff / (unsigned long) pow(10, _length_buff - i - 1) % 10 + 0x30;
+            integer_buff = integer_buff % (unsigned long) pow(10, _length_buff - i - 1);
+            //integer_buff = integer_buff % 10;
+        }
+        _output_length++;
+    }
+    _output[_output_length] = '.';
+    _output_length++;
+    _length_buff = 0;
+    while (1) {
+        if (decimal / 10 != 0)
+            _length_buff++;
+        else {
+            _length_buff++;
+            break;
+        }
+        decimal = decimal / 10;
+    }
+    for (int i = 0; i < _length_buff; i++) {
+        if (i == _length_buff - 1)
+            _output[_output_length] = decimal_buff % 10 + 0x30;
+        else {
+            _output[_output_length] = decimal_buff / (unsigned long) pow(10, _length_buff - i - 1) % 10 + 0x30;
+            decimal_buff = decimal_buff % (unsigned long) pow(10, _length_buff - i - 1);
+        }
+
+        _output_length++;
+    }
+    _output[_output_length] = 0x00;
+    _output_length++;
+    return_pointer = (unsigned char *) realloc(return_pointer, _output_length);
+
+    *output_length = _output_length - 1;
+    if (return_pointer == 0)
+        return 0;
+    else {
+        if (signal_flag == 1) {
+            return_pointer[0] = '-';
+            memcpy(return_pointer + 1, _output, _output_length);
+        } else
+            memcpy(return_pointer, _output, _output_length);
+    }
+    return return_pointer;
+}

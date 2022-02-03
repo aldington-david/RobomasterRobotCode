@@ -189,9 +189,12 @@ void MX_FREERTOS_Init(void) {
     osThreadDef(SERVO, servo_task, osPriorityNormal, 0, 256);
     servo_task_handle = osThreadCreate(osThread(SERVO), NULL);
 
+    osThreadDef(PC_receiveTask, servo_task, osPriorityNormal, 0, 256);
+    servo_task_handle = osThreadCreate(osThread(PC_receiveTask), NULL);
 
 
-  /* USER CODE END RTOS_THREADS */
+
+    /* USER CODE END RTOS_THREADS */
 
 }
 
