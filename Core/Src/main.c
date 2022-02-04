@@ -51,6 +51,7 @@
 #include "print_task.h"
 #include "voltage_task.h"
 #include "referee_task.h"
+#include "SEGGER_RTT.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -82,7 +83,7 @@ void MX_FREERTOS_Init(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-
+uint16_t abDataOut[128];
 /* USER CODE END 0 */
 
 /**
@@ -136,6 +137,8 @@ int main(void)
     MX_CRC_Init();
     MX_RNG_Init();
     MX_TIM2_Init();
+    SEGGER_RTT_ConfigUpBuffer(1, "DataOut", &abDataOut[0], sizeof(abDataOut),
+                              SEGGER_RTT_MODE_NO_BLOCK_TRIM);
     /* USER CODE BEGIN 2 */
     can_filter_init();
     delay_init();

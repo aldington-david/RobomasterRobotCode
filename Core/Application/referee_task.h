@@ -533,7 +533,7 @@ typedef struct {
     uint8_t data[30];
 } ext_client_custom_character_t;
 
-typedef struct {
+typedef volatile struct {
     uint16_t frame_length;            //!< 帧长度(调试时使用)
     uint16_t cmd_id;                  //!< 命令码(调试时使用)
     uint16_t err_cnt;                 //!< 错帧数(调试时使用)
@@ -613,7 +613,7 @@ typedef struct {
 /***************define for fifo end*******************/
 /***************function and variable declare start*******************/
 //RX Declare
-extern volatile judge_info_t global_judge_info;
+extern judge_info_t global_judge_info;
 
 void judge_update(uint8_t *rxBuf);
 

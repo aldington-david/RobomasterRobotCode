@@ -11,6 +11,7 @@
 #include "math.h"
 
 #define printf(format, args...)  SEGGER_RTT_printf(0, format, ##args)
+judge_info_t global_judge_info;
 fifo_s_t referee_rx_fifo;
 fifo_s_t referee_tx_len_fifo;
 fifo_s_t referee_tx_fifo;

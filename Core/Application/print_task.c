@@ -94,6 +94,9 @@ referee usart:%s\r\n\
 
 
         while (1) {
+            SEGGER_RTT_printf(0, "RedText \r\n", RTT_CTRL_TEXT_BRIGHT_RED);
+            SEGGER_RTT_WriteString(0, "中文测试. \r\n ");
+//            SEGGER_RTT_TerminalOut(1, "ERROR: Buffer overflow.\r\n");
             osDelay(1000);
             printf(
                     "******************************\r\n\
@@ -130,7 +133,6 @@ $param:Power=%f;\r\n\
                     status[error_list_print_local[REFEREE_RX_TOE].error_exist],
                     global_judge_info.PowerHeatData.chassis_current,
                     global_judge_info.PowerHeatData.chassis_power);
-
         }
     }
 
