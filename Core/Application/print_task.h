@@ -22,4 +22,8 @@
 
 extern void print_task(void const *argument);
 
+extern uint8_t test_var;
+extern uint8_t test_var1;
+extern float test_var2;
+extern float test_var3;
 #endif

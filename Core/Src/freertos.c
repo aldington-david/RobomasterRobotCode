@@ -38,6 +38,7 @@
 #include "print_task.h"
 #include "voltage_task.h"
 #include "servo_task.h"
+#include "PC_receive_task.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -189,7 +190,7 @@ void MX_FREERTOS_Init(void) {
     osThreadDef(SERVO, servo_task, osPriorityNormal, 0, 256);
     servo_task_handle = osThreadCreate(osThread(SERVO), NULL);
 
-    osThreadDef(PC_receiveTask, servo_task, osPriorityNormal, 0, 256);
+    osThreadDef(PC_receiveTask, PC_receive_task, osPriorityNormal, 0, 512);
     servo_task_handle = osThreadCreate(osThread(PC_receiveTask), NULL);
 
 

@@ -43,8 +43,7 @@ typedef enum
 } can_msg_id_e;
 
 //rm motor data
-typedef struct
-{
+typedef struct {
     uint16_t ecd;
     int16_t speed_rpm;
     int16_t given_current;
