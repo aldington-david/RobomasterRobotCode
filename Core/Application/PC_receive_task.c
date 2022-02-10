@@ -34,7 +34,7 @@ void PC_receive_task(void const *argument) {
             uint16_t Char_Buffer_len = sizeof(Char_Receive_Buffer);
             uint16_t NumBytes = SEGGER_RTT_Read(0, &Char_Receive_Buffer[0], Char_Buffer_len);
             if ((NumBytes < Char_Buffer_len)) {
-                taskENTER_CRITICAL();
+//                taskENTER_CRITICAL();
                 for (p = &Char_Receive_Buffer[0]; p != NULL; p = strstr(p, "$param")) {
                     i++;
                     sscanf(p, "$param%5d[^=]", &param_num);

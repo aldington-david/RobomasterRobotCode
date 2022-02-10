@@ -181,7 +181,7 @@ void MX_FREERTOS_Init(void) {
     referee_tx_task_handle = osThreadCreate(osThread(REFEREE_TX), NULL);
 
 
-    osThreadDef(printTask, print_task, osPriorityNormal, 0, 256);
+    osThreadDef(printTask, print_task, osPriorityNormal, 0, 512);
     print_task_handle = osThreadCreate(osThread(printTask), NULL);
 
     osThreadDef(BATTERY_VOLTAGE, battery_voltage_task, osPriorityNormal, 0, 256);

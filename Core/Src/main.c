@@ -137,8 +137,8 @@ int main(void)
     MX_CRC_Init();
     MX_RNG_Init();
     MX_TIM2_Init();
-    SEGGER_RTT_ConfigUpBuffer(1, "DataOut", &abDataOut[0], sizeof(abDataOut),
-                              SEGGER_RTT_MODE_NO_BLOCK_TRIM);
+//    SEGGER_RTT_ConfigUpBuffer(1, "DataOut", &abDataOut[0], sizeof(abDataOut),
+//                              SEGGER_RTT_MODE_NO_BLOCK_TRIM);
     /* USER CODE BEGIN 2 */
     can_filter_init();
     delay_init();

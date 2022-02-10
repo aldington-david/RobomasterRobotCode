@@ -22,6 +22,14 @@
 
 extern void print_task(void const *argument);
 
+static void usb_printf(const char *fmt, ...);
+
+static void Print_RTT_ReadBuffer(void);
+
+static void Use_RTT_SetConfig(void *const variable);
+
+static void RTT_PrintWave(void);
+
 extern uint8_t test_var;
 extern uint8_t test_var1;
 extern float test_var2;
