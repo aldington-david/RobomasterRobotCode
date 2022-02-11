@@ -23,7 +23,7 @@
 #include "SEGGER_RTT.h"
 #include "referee_task.h"
 #include "remote_control.h"
-#include "stdio.h"
+#include "printf.h"
 
 #if PRINTF_MODE == RTT_MODE
 #define LOG(format, args...)  SEGGER_RTT_printf(0, "[%s:%d] "format, __FILE__, __LINE__, ##args)
@@ -39,7 +39,6 @@
 
 static uint8_t print_buf[256];
 static uint8_t read_buf[256];
-static char buf[128] = "0";
 uint8_t test_var = 0;
 uint8_t test_var1 = 0;
 float test_var2 = 0.0;
@@ -209,6 +208,8 @@ static void Use_RTT_SetConfig(void *const variable) {
 
 
 static void RTT_PrintWave(void) {
-    sprintf(buf, "%f\r\n", global_judge_info.PowerHeatData.chassis_power);
+    char buf[256];
+    sprintf(buf, "%d,%f\r\n", global_judge_info.PowerHeatData.chassis_current,
+            global_judge_info.PowerHeatData.chassis_power);
     SEGGER_RTT_WriteString(0, buf);
 }
