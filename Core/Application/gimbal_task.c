@@ -40,7 +40,8 @@
 #include "INS_task.h"
 #include "shoot.h"
 #include "pid.h"
-
+#include "print_task.h"
+#include "SEGGER_RTT.h"
 
 //motor enconde value format, range[0-8191]
 //电机编码值规整 0—8191
@@ -639,7 +640,7 @@ const gimbal_motor_t *get_pitch_motor_point(void)
 static void gimbal_init(gimbal_control_t *init)
 {
 
-    static const fp32 Pitch_speed_pid[3] = {PITCH_SPEED_PID_KP, PITCH_SPEED_PID_KI, PITCH_SPEED_PID_KD};
+    static const fp32 Pitch_speed_pid[3] = {1, 0, 0};
     static const fp32 Yaw_speed_pid[3] = {YAW_SPEED_PID_KP, YAW_SPEED_PID_KI, YAW_SPEED_PID_KD};
     //电机数据指针获取
     init->gimbal_yaw_motor.gimbal_motor_measure = get_yaw_gimbal_motor_measure_point();
@@ -879,24 +880,21 @@ static void gimbal_set_control(gimbal_control_t *set_control)
   * @param[out]     gimbal_motor:yaw电机或者pitch电机
   * @retval         none
   */
-static void gimbal_absolute_angle_limit(gimbal_motor_t *gimbal_motor, fp32 add)
-{
+static void gimbal_absolute_angle_limit(gimbal_motor_t *gimbal_motor, fp32 add) {
     static fp32 bias_angle;
     static fp32 angle_set;
-    if (gimbal_motor == NULL)
-    {
+    if (gimbal_motor == NULL) {
         return;
     }
     //now angle error
     //当前控制误差角度
     bias_angle = rad_format(gimbal_motor->absolute_angle_set - gimbal_motor->absolute_angle);
+    bias_angle_test = bias_angle; //for_test
     //relative angle + angle error + add_angle > max_relative angle
     //云台相对角度+ 误差角度 + 新增角度 如果大于 最大机械角度
-    if (gimbal_motor->relative_angle + bias_angle + add > gimbal_motor->max_relative_angle)
-    {
+    if (gimbal_motor->relative_angle + bias_angle + add > gimbal_motor->max_relative_angle) {
         //如果是往最大机械角度控制方向
-        if (add > 0.0f)
-        {
+        if (add > 0.0f) {
             //calculate max add_angle
             //计算出一个最大的添加角度，
             add = gimbal_motor->max_relative_angle - gimbal_motor->relative_angle - bias_angle;
@@ -911,6 +909,7 @@ static void gimbal_absolute_angle_limit(gimbal_motor_t *gimbal_motor, fp32 add)
     }
     angle_set = gimbal_motor->absolute_angle_set;
     gimbal_motor->absolute_angle_set = rad_format(angle_set + add);
+    add_angle_test = add;
 }
 /**
   * @brief          gimbal control mode :GIMBAL_MOTOR_ENCONDE, use the encode relative angle  to control. 
@@ -1007,6 +1006,7 @@ static void gimbal_motor_absolute_angle_control(gimbal_motor_t *gimbal_motor)
     gimbal_motor->current_set = PID_calc(&gimbal_motor->gimbal_motor_gyro_pid, gimbal_motor->motor_gyro, gimbal_motor->motor_gyro_set);
     //控制值赋值
     gimbal_motor->given_current = (int16_t)(gimbal_motor->current_set);
+//    RTT_PrintWave(&gimbal_motor->absolute_angle_set,&gimbal_motor->absolute_angle,&gimbal_motor->motor_gyro_set,&gimbal_motor->motor_gyro);
 }
 /**
   * @brief          gimbal control mode :GIMBAL_MOTOR_ENCONDE, use the encode relative angle  to control. 
@@ -1030,6 +1030,7 @@ static void gimbal_motor_relative_angle_control(gimbal_motor_t *gimbal_motor)
     gimbal_motor->current_set = PID_calc(&gimbal_motor->gimbal_motor_gyro_pid, gimbal_motor->motor_gyro, gimbal_motor->motor_gyro_set);
     //控制值赋值
     gimbal_motor->given_current = (int16_t)(gimbal_motor->current_set);
+//    RTT_PrintWave(&gimbal_motor->relative_angle_set,&gimbal_motor->relative_angle,&gimbal_motor->motor_gyro_set,&gimbal_motor->motor_gyro);
 }
 
 /**

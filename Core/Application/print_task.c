@@ -24,6 +24,8 @@
 #include "referee_task.h"
 #include "remote_control.h"
 #include "printf.h"
+#include "gimbal_task.h"
+#include "remote_control.h"
 
 #if PRINTF_MODE == RTT_MODE
 #define LOG(format, args...)  SEGGER_RTT_printf(0, "[%s:%d] "format, __FILE__, __LINE__, ##args)
@@ -39,13 +41,10 @@
 
 static uint8_t print_buf[256];
 static uint8_t read_buf[256];
-uint8_t test_var = 0;
-uint8_t test_var1 = 0;
-float test_var2 = 0.0;
-float test_var3 = 0.0;
 static const char status[2][7] = {"OK", "ERROR!"};
 const error_t *error_list_print_local;
-
+fp32 bias_angle_test = 0.0;
+fp32 add_angle_test = 0.0;
 
 void print_task(void const *argument) {
     if (PRINTF_MODE == USB_MODE) {
@@ -93,17 +92,35 @@ referee usart:%s\r\n\
 
 
         while (1) {
-//            printf("%f",global_judge_info.PowerHeatData.chassis_power);
-            RTT_PrintWave();
-//            SEGGER_RTT_printf(0, "test_var=%d \r\n",test_var);
-//            SEGGER_RTT_printf(0, "test_var1=%d \r\n",test_var1);
-//            SEGGER_RTT_printf(0, "test_var2=%f \r\n",test_var2);
-//            SEGGER_RTT_printf(0, "test_var3=%f \r\n",test_var3);
+            osDelay(50);
+            RTT_PrintWave(&gimbal_control.gimbal_pitch_motor.absolute_angle_set,
+                          &gimbal_control.gimbal_pitch_motor.absolute_angle,
+                          &gimbal_control.gimbal_pitch_motor.motor_gyro_set,
+                          &gimbal_control.gimbal_pitch_motor.motor_gyro);
+            SEGGER_RTT_SetTerminal(2);
+//            sprintf(print_buf, "setmousey=%d,rfmousey=%d\r\n",rc_ctrl.mouse.y,gimbal_control.gimbal_rc_ctrl->mouse.y);
+//            SEGGER_RTT_WriteString(0, print_buf);
+            sprintf(print_buf, "abkp=%f\r\nabki=%f\r\nabkd=%f\r\n",
+                    gimbal_control.gimbal_pitch_motor.gimbal_motor_absolute_angle_pid.kp,
+                    gimbal_control.gimbal_pitch_motor.gimbal_motor_absolute_angle_pid.ki,
+                    gimbal_control.gimbal_pitch_motor.gimbal_motor_absolute_angle_pid.kd);
+            SEGGER_RTT_WriteString(0, print_buf);
+//            sprintf(print_buf, "rekp=%f\r\nreki=%f\r\nrekd=%f\r\n", gimbal_control.gimbal_pitch_motor.gimbal_motor_relative_angle_pid.kp,
+//                    gimbal_control.gimbal_pitch_motor.gimbal_motor_relative_angle_pid.ki,gimbal_control.gimbal_pitch_motor.gimbal_motor_relative_angle_pid.kd);
+//            SEGGER_RTT_WriteString(0, print_buf);
+            sprintf(print_buf, "spkp=%f\r\nspki=%f\r\nspkd=%f\r\n",
+                    gimbal_control.gimbal_pitch_motor.gimbal_motor_gyro_pid.Kp,
+                    gimbal_control.gimbal_pitch_motor.gimbal_motor_gyro_pid.Ki,
+                    gimbal_control.gimbal_pitch_motor.gimbal_motor_gyro_pid.Kd);
+            SEGGER_RTT_WriteString(0, print_buf);
+            SEGGER_RTT_SetTerminal(1);
+            sprintf(print_buf, "bias_angle=%f,add_angle=%f\r\n", bias_angle_test, add_angle_test);
+            SEGGER_RTT_WriteString(0, print_buf);
 //            SEGGER_RTT_printf(0, "RedText \r\n", RTT_CTRL_TEXT_BRIGHT_RED);
 //            SEGGER_RTT_WriteString(0, "中文测试. \r\n ");
 //            SEGGER_RTT_WriteString(0, "adsf");
 //            SEGGER_RTT_TerminalOut(1, "ERROR: Buffer overflow.\r\n");
-            osDelay(10);
+//            SEGGER_RTT_SetTerminal(1);
 //            printf(
 //                    "******************************\r\n\
 //voltage percentage:%d%% \r\n\
@@ -119,11 +136,7 @@ referee usart:%s\r\n\
 //accel sensor:%s\r\n\
 //mag sensor:%s\r\n\
 //referee rx usart:%s\r\n\
-//******************************\r\n\
-//*******Variable Start*********\r\n\
-//$param:Current=%d;\r\n\
-//$param:Power=%f;\r\n\
-//*******Variable End***********\r\n",
+//******************************\r\n",
 //                    get_battery_percentage(),
 //                    status[error_list_print_local[DBUS_TOE].error_exist],
 //                    status[error_list_print_local[CHASSIS_MOTOR1_TOE].error_exist],
@@ -136,9 +149,7 @@ referee usart:%s\r\n\
 //                    status[error_list_print_local[BOARD_GYRO_TOE].error_exist],
 //                    status[error_list_print_local[BOARD_ACCEL_TOE].error_exist],
 //                    status[error_list_print_local[BOARD_MAG_TOE].error_exist],
-//                    status[error_list_print_local[REFEREE_RX_TOE].error_exist],
-//                    global_judge_info.PowerHeatData.chassis_current,
-//                    global_judge_info.PowerHeatData.chassis_power);
+//                    status[error_list_print_local[REFEREE_RX_TOE].error_exist]);
 ////            printf(
 ////                    "*******Variable Start*********\r\n\
 ////$param:Channal1=%d;\r\n\
@@ -207,9 +218,10 @@ static void Use_RTT_SetConfig(void *const variable) {
 }
 
 
-static void RTT_PrintWave(void) {
+void RTT_PrintWave(fp32 *paramin, fp32 *paramrf, fp32 *paramout, fp32 *param3) {
+    SEGGER_RTT_SetTerminal(0);
     char buf[256];
-    sprintf(buf, "%d,%f\r\n", global_judge_info.PowerHeatData.chassis_current,
-            global_judge_info.PowerHeatData.chassis_power);
+    sprintf(buf, "%f,%f,%f,%f\r\n", *(float *) paramin, *(float *) paramrf,
+            *(float *) paramout, *(float *) param3);
     SEGGER_RTT_WriteString(0, buf);
 }

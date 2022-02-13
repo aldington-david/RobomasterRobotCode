@@ -198,8 +198,7 @@ typedef struct __attribute__((packed))
     fp32 latitude;              // latitude
 } head_cali_t;
 //gimbal device
-typedef struct
-{
+typedef struct __attribute__((packed)) {
     uint16_t yaw_offset;
     uint16_t pitch_offset;
     fp32 yaw_max_angle;
@@ -208,8 +207,7 @@ typedef struct
     fp32 pitch_min_angle;
 } gimbal_cali_t;
 //gyro, accel, mag device
-typedef struct
-{
+typedef struct __attribute__((packed)) {
     fp32 offset[3]; //x,y,z
     fp32 scale[3];  //x,y,z
 } imu_cali_t;
