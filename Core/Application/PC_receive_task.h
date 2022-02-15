@@ -10,10 +10,17 @@
 #include "struct_typedef.h"
 
 enum {
-    param0 = 0,
-    param1,
-    param2,
-    param3,
+    param0 = 0,//re/abangle-kp
+    param1,//re/abangle-ki
+    param2,//re/abangle-kd
+    param3,//gimspeed-kp
+    param4,//gimspeed-ki
+    param5,//gimspeed-kd
+    param6,//re/abangle-maxiout
+    param7,//re/abangle-maxout
+    param8,//max_relative_angle
+    param9,//min_relative_angle
+    param10,//relative_angle_set
 };
 
 typedef union {
@@ -26,7 +33,7 @@ typedef union {
     float *varFloat;
 } DebugVarTrans;
 
-extern void *PC_receive_data[4];
+extern void *PC_receive_data[11];
 
 extern void PC_receive_task(void const *argument);
 

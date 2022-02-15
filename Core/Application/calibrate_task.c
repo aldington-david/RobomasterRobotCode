@@ -107,6 +107,7 @@
 #include "remote_control.h"
 #include "INS_task.h"
 #include "gimbal_task.h"
+#include "print_task.h"
 
 
 //include head,gimbal,gyro,accel,mag. gyro,accel and mag have the same data struct. total 5(CALI_LIST_LENGHT) devices, need data lenght + 5 * 4 bytes(name[3]+cali)
@@ -408,6 +409,7 @@ static void RC_cmd_to_calibrate(void)
         {
             head_cali.temperature = (int8_t)(GYRO_CONST_MAX_TEMP);
         }
+//        imu_temp = head_cali.temperature; //for_test
         cali_buzzer_off();
     }
     else if (rc_action_flag == CHASSIS_FLAG && rc_cmd_time > RC_CMD_LONG_TIME)

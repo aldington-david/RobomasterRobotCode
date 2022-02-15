@@ -27,10 +27,13 @@
 
 #ifndef GIMBAL_TASK_H
 #define GIMBAL_TASK_H
+
 #include "struct_typedef.h"
 #include "CAN_receive.h"
-#include "pid.h"
 #include "remote_control.h"
+#include "kalman_filter.h"
+#include "pid.h"
+
 //pitch speed close-loop PID params, max out and max iout
 //pitch 速度环 PID参数以及 PID最大输出，积分输出
 #define PITCH_SPEED_PID_KP        2900.0f
@@ -102,8 +105,8 @@
 #define RC_DEADBAND   10
 
 
-#define YAW_RC_SEN    -0.000005f
-#define PITCH_RC_SEN  -0.000006f //0.005
+#define YAW_RC_SEN    0.000005f
+#define PITCH_RC_SEN  0.000005f //0.005
 
 #define YAW_MOUSE_SEN   0.00005f
 #define PITCH_MOUSE_SEN 0.00015f
@@ -182,6 +185,13 @@ typedef struct
     fp32 Dout;
 
     fp32 out;
+
+    float kal_Q;
+    float kal_R;
+    fp32 error_last;
+    fp32 Integral_Separation;
+    fp32 ekDeadZone;
+
 } gimbal_PID_t;
 
 typedef struct
@@ -206,6 +216,8 @@ typedef struct
     fp32 raw_cmd_current;
     fp32 current_set;
     int16_t given_current;
+
+    float LpfFactor;
 
 } gimbal_motor_t;
 
@@ -313,6 +325,14 @@ extern bool_t cmd_cali_gimbal_hook(uint16_t *yaw_offset, uint16_t *pitch_offset,
   * @retval         返回空
   * @waring         这个函数使用到gimbal_control 静态变量导致函数不适用以上通用指针复用
   */
-extern void set_cali_gimbal_hook(const uint16_t yaw_offset, const uint16_t pitch_offset, const fp32 max_yaw, const fp32 min_yaw, const fp32 max_pitch, const fp32 min_pitch);
+extern void
+set_cali_gimbal_hook(const uint16_t yaw_offset, const uint16_t pitch_offset, const fp32 max_yaw, const fp32 min_yaw,
+                     const fp32 max_pitch, const fp32 min_pitch);
+
+extern fp32 Cloud_PITCHOPID(gimbal_PID_t *pid, fp32 set, fp32 get);
+
+extern fp32 Cloud_PITCHIPID(pid_type_def *pid, fp32 ref, fp32 set);
+
 extern gimbal_control_t gimbal_control;
+extern extKalman_t Cloud_PitchMotorAngle_Error_Kalman;
 #endif

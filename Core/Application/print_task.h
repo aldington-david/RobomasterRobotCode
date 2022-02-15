@@ -32,4 +32,5 @@ extern void RTT_PrintWave(fp32 *paramin, fp32 *paramrf, fp32 *paramout, fp32 *pa
 
 extern fp32 bias_angle_test;
 extern fp32 add_angle_test;
+extern int8_t imu_temp;
 #endif

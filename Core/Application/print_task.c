@@ -26,6 +26,8 @@
 #include "printf.h"
 #include "gimbal_task.h"
 #include "remote_control.h"
+#include "INS_task.h"
+#include "BMI088driver.h"
 
 #if PRINTF_MODE == RTT_MODE
 #define LOG(format, args...)  SEGGER_RTT_printf(0, "[%s:%d] "format, __FILE__, __LINE__, ##args)
@@ -45,6 +47,7 @@ static const char status[2][7] = {"OK", "ERROR!"};
 const error_t *error_list_print_local;
 fp32 bias_angle_test = 0.0;
 fp32 add_angle_test = 0.0;
+int8_t imu_temp = 0;
 
 void print_task(void const *argument) {
     if (PRINTF_MODE == USB_MODE) {
@@ -93,29 +96,137 @@ referee usart:%s\r\n\
 
         while (1) {
             osDelay(50);
-            RTT_PrintWave(&gimbal_control.gimbal_pitch_motor.absolute_angle_set,
-                          &gimbal_control.gimbal_pitch_motor.absolute_angle,
-                          &gimbal_control.gimbal_pitch_motor.motor_gyro_set,
-                          &gimbal_control.gimbal_pitch_motor.motor_gyro);
+            /***********************电机校准打印数据 Start *****************************/
+            //relative_mode
             SEGGER_RTT_SetTerminal(2);
-//            sprintf(print_buf, "setmousey=%d,rfmousey=%d\r\n",rc_ctrl.mouse.y,gimbal_control.gimbal_rc_ctrl->mouse.y);
-//            SEGGER_RTT_WriteString(0, print_buf);
-            sprintf(print_buf, "abkp=%f\r\nabki=%f\r\nabkd=%f\r\n",
-                    gimbal_control.gimbal_pitch_motor.gimbal_motor_absolute_angle_pid.kp,
-                    gimbal_control.gimbal_pitch_motor.gimbal_motor_absolute_angle_pid.ki,
-                    gimbal_control.gimbal_pitch_motor.gimbal_motor_absolute_angle_pid.kd);
-            SEGGER_RTT_WriteString(0, print_buf);
-//            sprintf(print_buf, "rekp=%f\r\nreki=%f\r\nrekd=%f\r\n", gimbal_control.gimbal_pitch_motor.gimbal_motor_relative_angle_pid.kp,
-//                    gimbal_control.gimbal_pitch_motor.gimbal_motor_relative_angle_pid.ki,gimbal_control.gimbal_pitch_motor.gimbal_motor_relative_angle_pid.kd);
-//            SEGGER_RTT_WriteString(0, print_buf);
-            sprintf(print_buf, "spkp=%f\r\nspki=%f\r\nspkd=%f\r\n",
+            //pid
+            sprintf(print_buf, "rekp=%f,reki=%f,rekd=%f,spkp=%f,spki=%f,spkd=%f,maxiout=%f,maxout=%f\r\n",
+                    gimbal_control.gimbal_pitch_motor.gimbal_motor_relative_angle_pid.kp,
+                    gimbal_control.gimbal_pitch_motor.gimbal_motor_relative_angle_pid.ki,
+                    gimbal_control.gimbal_pitch_motor.gimbal_motor_relative_angle_pid.kd,
                     gimbal_control.gimbal_pitch_motor.gimbal_motor_gyro_pid.Kp,
                     gimbal_control.gimbal_pitch_motor.gimbal_motor_gyro_pid.Ki,
-                    gimbal_control.gimbal_pitch_motor.gimbal_motor_gyro_pid.Kd);
+                    gimbal_control.gimbal_pitch_motor.gimbal_motor_gyro_pid.Kd,
+                    gimbal_control.gimbal_pitch_motor.gimbal_motor_relative_angle_pid.max_iout,
+                    gimbal_control.gimbal_pitch_motor.gimbal_motor_relative_angle_pid.max_out);
             SEGGER_RTT_WriteString(0, print_buf);
-            SEGGER_RTT_SetTerminal(1);
-            sprintf(print_buf, "bias_angle=%f,add_angle=%f\r\n", bias_angle_test, add_angle_test);
+            //卡尔曼系数
+            SEGGER_RTT_SetTerminal(3);
+            sprintf(print_buf,
+                    "err_kalman_MR=%f,err_kalman_SQ=%f,rekd=%f,spkp=%f,spki=%f,spkd=%f,maxiout=%f,maxout=%f\r\n",
+                    gimbal_control.gimbal_pitch_motor.gimbal_motor_relative_angle_pid.kp,
+                    gimbal_control.gimbal_pitch_motor.gimbal_motor_relative_angle_pid.ki,
+                    gimbal_control.gimbal_pitch_motor.gimbal_motor_relative_angle_pid.kd,
+                    gimbal_control.gimbal_pitch_motor.gimbal_motor_gyro_pid.Kp,
+                    gimbal_control.gimbal_pitch_motor.gimbal_motor_gyro_pid.Ki,
+                    gimbal_control.gimbal_pitch_motor.gimbal_motor_gyro_pid.Kd,
+                    gimbal_control.gimbal_pitch_motor.gimbal_motor_relative_angle_pid.max_iout,
+                    gimbal_control.gimbal_pitch_motor.gimbal_motor_relative_angle_pid.max_out);
             SEGGER_RTT_WriteString(0, print_buf);
+//            //rad角度数据
+//            SEGGER_RTT_SetTerminal(4);
+//            sprintf(print_buf, "setangle=%f,maxangle=%f,nowangle=%f,minangle=%f\r\n",
+//                    gimbal_control.gimbal_pitch_motor.relative_angle_set,
+//                    gimbal_control.gimbal_pitch_motor.max_relative_angle,
+//                    gimbal_control.gimbal_pitch_motor.relative_angle,
+//                    gimbal_control.gimbal_pitch_motor.min_relative_angle);
+//            SEGGER_RTT_WriteString(0, print_buf);
+            //电流数据
+            SEGGER_RTT_SetTerminal(5);
+            sprintf(print_buf, "current=%f,motor_gyro_set=%f,given_current=%d\r\n",
+                    gimbal_control.gimbal_pitch_motor.current_set,
+                    gimbal_control.gimbal_pitch_motor.motor_gyro_set,
+                    gimbal_control.gimbal_pitch_motor.given_current);
+            SEGGER_RTT_WriteString(0, print_buf);
+            //波形显示
+            RTT_PrintWave(&gimbal_control.gimbal_pitch_motor.relative_angle_set,
+                          &gimbal_control.gimbal_pitch_motor.relative_angle,
+                          &gimbal_control.gimbal_pitch_motor.motor_gyro_set,
+                          &gimbal_control.gimbal_pitch_motor.motor_gyro);
+            //abosolute_mode
+            //angle_data
+//            SEGGER_RTT_SetTerminal(1);
+//            sprintf(print_buf, "bias_angle=%f,add_angle=%f\r\n", bias_angle_test, add_angle_test);
+//            SEGGER_RTT_WriteString(0, print_buf);
+//            //pid
+//            SEGGER_RTT_SetTerminal(2);
+//            sprintf(print_buf, "rekp=%f,reki=%f,rekd=%f,spkp=%f,spki=%f,spkd=%f\r\n",
+//                    gimbal_control.gimbal_pitch_motor.gimbal_motor_absolute_angle_pid.kp,
+//                    gimbal_control.gimbal_pitch_motor.gimbal_motor_absolute_angle_pid.ki,
+//                    gimbal_control.gimbal_pitch_motor.gimbal_motor_absolute_angle_pid.kd,
+//                    gimbal_control.gimbal_pitch_motor.gimbal_motor_gyro_pid.Kp,
+//                    gimbal_control.gimbal_pitch_motor.gimbal_motor_gyro_pid.Ki,
+//                    gimbal_control.gimbal_pitch_motor.gimbal_motor_gyro_pid.Kd);
+//            SEGGER_RTT_WriteString(0, print_buf);
+//            //rad角度数据
+//            SEGGER_RTT_SetTerminal(3);
+//            sprintf(print_buf, "ab_setangle=%f,now_ab_angle=%f,maxangle=%f,now_rel_angle=%f,minangle=%f\r\n",
+//                    gimbal_control.gimbal_pitch_motor.absolute_angle_set,
+//                    gimbal_control.gimbal_pitch_motor.absolute_angle,
+//                    gimbal_control.gimbal_pitch_motor.max_relative_angle,
+//                    gimbal_control.gimbal_pitch_motor.relative_angle,
+//                    gimbal_control.gimbal_pitch_motor.min_relative_angle);
+//            SEGGER_RTT_WriteString(0, print_buf);
+//            //电流数据
+//            SEGGER_RTT_SetTerminal(4);
+//            sprintf(print_buf, "current=%f,motor_gyro_set=%f,given_current=%d\r\n",
+//                    gimbal_control.gimbal_pitch_motor.current_set,
+//                    gimbal_control.gimbal_pitch_motor.motor_gyro_set,
+//                    gimbal_control.gimbal_pitch_motor.given_current);
+//            SEGGER_RTT_WriteString(0, print_buf);
+//            //IMU数据
+//            SEGGER_RTT_SetTerminal(5);
+//            sprintf(print_buf, "imu_tmp=%f,YAW=%f,PITCH=%f,ROLL=%f\r\n",
+//                    bmi088_real_data.temp,
+//                    INS_angle[0],
+//                    INS_angle[1],
+//                    INS_angle[2]);
+//            SEGGER_RTT_WriteString(0, print_buf);
+            //波形显示
+//            RTT_PrintWave(&gimbal_control.gimbal_pitch_motor.absolute_angle_set,
+//                          &gimbal_control.gimbal_pitch_motor.absolute_angle,
+//                          &gimbal_control.gimbal_pitch_motor.motor_gyro_set,
+//                          &gimbal_control.gimbal_pitch_motor.motor_gyro);
+            /***********************电机校准打印数据 End *****************************/
+
+
+
+//            sprintf(print_buf, "setmousey=%d,rfmousey=%d\r\n",rc_ctrl.mouse.y,gimbal_control.gimbal_rc_ctrl->mouse.y);
+//            SEGGER_RTT_WriteString(0, print_buf);
+
+//            sprintf(print_buf, "abkp=%f\r\nabki=%f\r\nabkd=%f\r\n",
+//                    gimbal_control.gimbal_pitch_motor.gimbal_motor_absolute_angle_pid.kp,
+//                    gimbal_control.gimbal_pitch_motor.gimbal_motor_absolute_angle_pid.ki,
+//                    gimbal_control.gimbal_pitch_motor.gimbal_motor_absolute_angle_pid.kd);
+//            SEGGER_RTT_WriteString(0, print_buf);
+
+
+//            sprintf(print_buf, "spkp=%f\r\nspki=%f\r\nspkd=%f\r\n",
+//                    gimbal_control.gimbal_pitch_motor.gimbal_motor_gyro_pid.Kp,
+//                    gimbal_control.gimbal_pitch_motor.gimbal_motor_gyro_pid.Ki,
+//                    gimbal_control.gimbal_pitch_motor.gimbal_motor_gyro_pid.Kd);
+//            SEGGER_RTT_WriteString(0, print_buf);
+
+//            SEGGER_RTT_SetTerminal(1);
+//            sprintf(print_buf, "bias_angle=%f,add_angle=%f\r\n", bias_angle_test, add_angle_test);
+//            SEGGER_RTT_WriteString(0, print_buf);
+
+//            SEGGER_RTT_SetTerminal(3);
+//            sprintf(print_buf, "midecd=%d,nowecd%d\r\nmaxangle=%f,nowangle=%f,minangle=%f\r\n",gimbal_control.gimbal_pitch_motor.offset_ecd,gimbal_control.gimbal_pitch_motor.gimbal_motor_measure->ecd,gimbal_control.gimbal_pitch_motor.max_relative_angle,gimbal_control.gimbal_pitch_motor.relative_angle,gimbal_control.gimbal_pitch_motor.min_relative_angle);
+//            SEGGER_RTT_WriteString(0, print_buf);
+
+
+
+
+
+//            sprintf(print_buf, "ch1=%d,ch2=%d,ch3=%d,ch4=%d,ch5=%d\r\n",
+//                    rc_ctrl.rc.ch[0],
+//                    rc_ctrl.rc.ch[1],
+//                    rc_ctrl.rc.ch[2],
+//                    rc_ctrl.rc.ch[3]
+//                    ,rc_ctrl.rc.ch[4]);
+//            SEGGER_RTT_WriteString(0, print_buf);
+
 //            SEGGER_RTT_printf(0, "RedText \r\n", RTT_CTRL_TEXT_BRIGHT_RED);
 //            SEGGER_RTT_WriteString(0, "中文测试. \r\n ");
 //            SEGGER_RTT_WriteString(0, "adsf");
