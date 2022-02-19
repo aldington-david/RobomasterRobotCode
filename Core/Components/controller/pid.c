@@ -18,6 +18,7 @@
 #include "pid.h"
 #include "main.h"
 #include "gimbal_task.h"
+#include "print_task.h"
 
 #define abs(x) ((x) > 0 ? (x) : (-x))
 #define LimitMax(input, max)   \
@@ -52,10 +53,9 @@
   * @param[in]      max_iout: pid最大积分输出
   * @retval         none
   */
-void PID_init(pid_type_def *pid, uint8_t mode, const fp32 PID[3], fp32 max_out, fp32 max_iout)
-{
-    if (pid == NULL || PID == NULL)
-    {
+void PID_init(pid_type_def *pid, uint8_t mode, const fp32 PID[3], fp32 max_out, fp32 max_iout, fp32 Integral,
+              bool Variable_I_Switch, fp32 Variable_I_Down, fp32 Variable_I_UP, bool D_First, fp32 D_Filter_Ratio) {
+    if (pid == NULL || PID == NULL) {
         return;
     }
     pid->mode = mode;
@@ -64,8 +64,17 @@ void PID_init(pid_type_def *pid, uint8_t mode, const fp32 PID[3], fp32 max_out, 
     pid->Kd = PID[2];
     pid->max_out = max_out;
     pid->max_iout = max_iout;
+    pid->Integral_Separation = Integral;
     pid->Dbuf[0] = pid->Dbuf[1] = pid->Dbuf[2] = 0.0f;
-    pid->error[0] = pid->error[1] = pid->error[2] = pid->Pout = pid->Iout = pid->Dout = pid->out = 0.0f;
+    pid->last_fdb = pid->D1 = pid->D2 = pid->D3 = pid->error[0] = pid->error[1] = pid->error[2] = pid->Pout = pid->Iout = pid->Dout = pid->out = 0.0f;
+
+    pid->Variable_I = Variable_I_Switch;
+    pid->Variable_I_Down = Variable_I_Down;
+    pid->Variable_I_Down = Variable_I_UP;
+
+    pid->D_First = D_First;
+    pid->D_Filter_Ratio = D_Filter_Ratio;
+
 }
 
 /**
@@ -82,10 +91,8 @@ void PID_init(pid_type_def *pid, uint8_t mode, const fp32 PID[3], fp32 max_out, 
   * @param[in]      set: 设定值
   * @retval         pid输出
   */
-fp32 PID_calc(pid_type_def *pid, fp32 ref, fp32 set)
-{
-    if (pid == NULL)
-    {
+fp32 PID_calc(pid_type_def *pid, fp32 ref, fp32 set) {
+    if (pid == NULL) {
         return 0.0f;
     }
 
@@ -94,8 +101,7 @@ fp32 PID_calc(pid_type_def *pid, fp32 ref, fp32 set)
     pid->set = set;
     pid->fdb = ref;
     pid->error[0] = set - ref;
-    if (pid->mode == PID_POSITION)
-    {
+    if (pid->mode == PID_POSITION) {
         pid->Pout = pid->Kp * pid->error[0];
         pid->Iout += pid->Ki * pid->error[0];
         pid->Dbuf[2] = pid->Dbuf[1];
@@ -105,9 +111,7 @@ fp32 PID_calc(pid_type_def *pid, fp32 ref, fp32 set)
         LimitMax(pid->Iout, pid->max_iout);
         pid->out = pid->Pout + pid->Iout + pid->Dout;
         LimitMax(pid->out, pid->max_out);
-    }
-    else if (pid->mode == PID_DELTA)
-    {
+    } else if (pid->mode == PID_DELTA) {
         pid->Pout = pid->Kp * (pid->error[0] - pid->error[1]);
         pid->Iout = pid->Ki * pid->error[0];
         pid->Dbuf[2] = pid->Dbuf[1];
@@ -130,8 +134,7 @@ fp32 PID_calc(pid_type_def *pid, fp32 ref, fp32 set)
   * @param[out]     pid: PID结构数据指针
   * @retval         none
   */
-void PID_clear(pid_type_def *pid)
-{
+void PID_clear(pid_type_def *pid) {
     if (pid == NULL) {
         return;
     }
@@ -143,8 +146,6 @@ void PID_clear(pid_type_def *pid)
 }
 
 /************ Move pid *************/
-extKalman_t Cloud_YAWODKalman;
-extKalman_t Cloud_PITCHODKalman;
 
 
 float Incremental_PID(incrementalpid_t *pid_t, float target, float measured) {
@@ -578,13 +579,13 @@ float Cloud_YAWIPID(positionpid_t *pid_t, float target, float measured) {
 }
 
 /**
- * @brief 云台PITCH轴外环PID
+ * @brief 云台外环PID
  *
  * @param pid_t
  * @param target
  * @param measured
  */
-fp32 Cloud_PITCHOPID(gimbal_PID_t *pid, fp32 set, fp32 get) {
+fp32 Cloud_OPID(gimbal_PID_t *pid, fp32 set, fp32 get) {
     fp32 err;
     if (pid == NULL) {
         return 0.0f;
@@ -596,8 +597,16 @@ fp32 Cloud_PITCHOPID(gimbal_PID_t *pid, fp32 set, fp32 get) {
     pid->err = rad_format(err);
     pid->Pout = pid->kp * pid->err;
     pid->Iout += pid->ki * pid->err;
-    pid->Dout = pid->kd * (pid->err - pid->error_last);
-    pid->Dout = KalmanFilter(&Cloud_PITCHODKalman, pid->Dout);
+    if (pid->D_First) {
+        fp32 D_temp = pid->D_Filter_Ratio * pid->kd + pid->kp;
+        pid->D3 = pid->kd / D_temp;
+        pid->D2 = (pid->kd + pid->kp) / D_temp;
+        pid->D1 = pid->D_Filter_Ratio * pid->D3;
+        pid->Dout = pid->D1 * pid->Dout + pid->D2 * pid->get + pid->D3 * pid->last_get;
+    } else {
+        pid->Dout = pid->kd * (pid->err - pid->error_last);
+    }
+    pid->Dout = KalmanFilter(&pid->Cloud_OCKalman, pid->Dout);
     //积分限幅
     abs_limit(&pid->Iout, pid->max_iout); //取消积分输出的限幅。
 
@@ -605,43 +614,73 @@ fp32 Cloud_PITCHOPID(gimbal_PID_t *pid, fp32 set, fp32 get) {
 
     //输出限幅
     abs_limit(&pid->out, pid->max_out);
-
+    pid->last_get = pid->get;
     pid->error_last = err;
     return pid->out;
 }
 
 /**
- * @brief 云台PITCH轴内环PID
+ * @brief 云台内环PID
  *
  * @param pid_t
  * @param target
  * @param measured
  */
-float Cloud_PITCHIPID(pid_type_def *pid, fp32 ref, fp32 set) {
+float Cloud_IPID(pid_type_def *pid, fp32 ref, fp32 set) {
     if (pid == NULL) {
         return 0.0f;
     }
     pid->set = set;
     pid->fdb = ref;
     pid->error[0] = set - ref;
+    err_test = pid->error[0];
 
     pid->Pout = pid->Kp * pid->error[0];
-    pid->Iout += pid->Ki * pid->error[0];
-    pid->Dbuf[0] = (pid->error[0] - pid->error[1]);
-    pid->Dbuf[2] = pid->Dbuf[1];
-    pid->Dbuf[1] = pid->Dbuf[0];
-    pid->Dout = pid->Kd * pid->Dbuf[0];
+    if (pid->Variable_I) {
+        if ((pid->Variable_I_Down != 0.0 || pid->Variable_I_UP != 0.0) &&
+            (pid->Variable_I_UP - pid->Variable_I_Down > 0)) {
+            if (fabs(pid->error[0]) < pid->Variable_I_Down) {
+                pid->I_ratio = 1.0;
+            } else if (pid->Variable_I_Down <= fabs(pid->error[0]) <= pid->Variable_I_UP) {
+                pid->I_ratio = (pid->Variable_I_UP - fabs(pid->error[0])) / (pid->Variable_I_UP - pid->Variable_I_Down);
+            } else {
+                pid->I_ratio = 0.0;
+            }
+        } else {
+            pid->Iout += pid->Ki * pid->error[0];
+        }
+        pid->Iout += pid->I_ratio * pid->Ki * pid->error[0];
+    } else {
+        pid->Iout += pid->Ki * pid->error[0];
+    }
+
+    if (pid->D_First) {
+        fp32 D_temp = pid->D_Filter_Ratio * pid->Kd + pid->Kp;
+        pid->D3 = pid->Kd / D_temp;
+        pid->D2 = (pid->Kd + pid->Kp) / D_temp;
+        pid->D1 = pid->D_Filter_Ratio * pid->D3;
+        pid->Dout = pid->D1 * pid->Dout + pid->D2 * pid->fdb + pid->D3 * pid->last_fdb;
+    } else {
+        pid->Dbuf[0] = (pid->error[0] - pid->error[1]);
+        pid->Dbuf[2] = pid->Dbuf[1];
+        pid->Dbuf[1] = pid->Dbuf[0];
+        pid->Dout = pid->Kd * pid->Dbuf[0];
+    }
     //积分限幅
     LimitMax(pid->Iout, pid->max_iout); //取消积分输出的限幅。
 
-    if (abs(pid->error[0]) >= pid->Integral_Separation) {
+    if (fabs(pid->error[0]) >= pid->Integral_Separation) {
+        pid->Iout = 0;
         pid->out = (pid->Pout + pid->Dout);
     } else {
         pid->out = (pid->Pout + pid->Iout + pid->Dout);
     }
 
+
     //输出限幅
     LimitMax(pid->out, pid->max_out);
+
+    pid->last_fdb = pid->fdb;
 
     pid->error[2] = pid->error[1];
     pid->error[1] = pid->error[0];

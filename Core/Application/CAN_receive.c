@@ -38,6 +38,15 @@ extern CAN_HandleTypeDef hcan2;
         (ptr)->speed_rpm = (uint16_t)((data)[2] << 8 | (data)[3]);      \
         (ptr)->given_current = (uint16_t)((data)[4] << 8 | (data)[5]);  \
         (ptr)->temperate = (data)[6];                                   \
+        if ((ptr)->ecd - (ptr)->last_ecd < -6500)                       \
+        {                                                               \
+            (ptr)->turnCount++;                                         \
+        }                                                               \
+        if ((ptr)->last_ecd - (ptr)->ecd < -6500)                       \
+        {                                                               \
+            (ptr)->turnCount--;                                         \
+        }                                                               \
+        (ptr)->total_ecd = (ptr)->ecd+(8192 * (ptr)->turnCount);        \
     }
 /*
 motor data,  0:chassis motor1 3508;1:chassis motor3 3508;2:chassis motor3 3508;3:chassis motor4 3508;

@@ -21,7 +21,7 @@
 #ifndef CAN_RECEIVE_H
 #define CAN_RECEIVE_H
 
-#include "struct_typedef.h"
+#include <stdint-gcc.h>
 
 #define CHASSIS_CAN hcan1
 #define GIMBAL_CAN hcan2
@@ -49,6 +49,8 @@ typedef struct {
     int16_t given_current;
     uint8_t temperate;
     int16_t last_ecd;
+    int16_t turnCount;
+    int32_t total_ecd;
 } motor_measure_t;
 
 

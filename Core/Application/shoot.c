@@ -90,7 +90,8 @@ void shoot_init(void)
     //电机指针
     shoot_control.shoot_motor_measure = get_trigger_motor_measure_point();
     //初始化PID
-    PID_init(&shoot_control.trigger_motor_pid, PID_POSITION, Trigger_speed_pid, TRIGGER_READY_PID_MAX_OUT, TRIGGER_READY_PID_MAX_IOUT);
+    PID_init(&shoot_control.trigger_motor_pid, PID_POSITION, Trigger_speed_pid, TRIGGER_READY_PID_MAX_OUT,
+             TRIGGER_READY_PID_MAX_IOUT, 0, 0, 0, 0, 0, 0);
     //更新数据
     shoot_feedback_update();
     ramp_init(&shoot_control.fric1_ramp, SHOOT_CONTROL_TIME * 0.001f, FRIC_DOWN, FRIC_OFF);

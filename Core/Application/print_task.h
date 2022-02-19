@@ -28,9 +28,10 @@ static void Print_RTT_ReadBuffer(void);
 
 static void Use_RTT_SetConfig(void *const variable);
 
-extern void RTT_PrintWave(fp32 *paramin, fp32 *paramrf, fp32 *paramout, fp32 *param3);
+extern void RTT_PrintWave(fp32 *param1, fp32 *param2, fp32 *param3, fp32 *param4, fp32 *param5, fp32 *param6);
 
 extern fp32 bias_angle_test;
 extern fp32 add_angle_test;
 extern int8_t imu_temp;
+extern fp32 err_test;
 #endif

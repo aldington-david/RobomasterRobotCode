@@ -22,23 +22,56 @@ int param_num;
 char param_value[16];
 int32_t param_value_int;
 double param_value_float;
-void *PC_receive_data[11];
+void *PC_receive_data[24];
 
 //$param0=12;$param1=13;$param2=12.32;$param3=11.21;
 void PC_receive_task(void const *argument) {
 //    PC_receive_data[param0] = (void *) &gimbal_control.gimbal_pitch_motor.gimbal_motor_absolute_angle_pid.kp;
 //    PC_receive_data[param1] = (void *) &gimbal_control.gimbal_pitch_motor.gimbal_motor_absolute_angle_pid.ki;
-    PC_receive_data[param0] = (void *) &gimbal_control.gimbal_pitch_motor.gimbal_motor_relative_angle_pid.kp;
-    PC_receive_data[param1] = (void *) &gimbal_control.gimbal_pitch_motor.gimbal_motor_relative_angle_pid.ki;
-    PC_receive_data[param2] = (void *) &gimbal_control.gimbal_pitch_motor.gimbal_motor_relative_angle_pid.kd;
-    PC_receive_data[param3] = (void *) &gimbal_control.gimbal_pitch_motor.gimbal_motor_gyro_pid.Kp;
-    PC_receive_data[param4] = (void *) &gimbal_control.gimbal_pitch_motor.gimbal_motor_gyro_pid.Ki;
-    PC_receive_data[param5] = (void *) &gimbal_control.gimbal_pitch_motor.gimbal_motor_gyro_pid.Kd;
-    PC_receive_data[param6] = (void *) &gimbal_control.gimbal_pitch_motor.gimbal_motor_relative_angle_pid.max_iout;
-    PC_receive_data[param7] = (void *) &gimbal_control.gimbal_pitch_motor.gimbal_motor_relative_angle_pid.max_out;
-    PC_receive_data[param8] = (void *) &gimbal_control.gimbal_pitch_motor.max_relative_angle;
-    PC_receive_data[param9] = (void *) &gimbal_control.gimbal_pitch_motor.min_relative_angle;
-    PC_receive_data[param10] = (void *) &gimbal_control.gimbal_pitch_motor.relative_angle_set;
+
+//    PC_receive_data[param0] = (void *) &gimbal_control.gimbal_pitch_motor.gimbal_motor_relative_angle_pid.kp;
+//    PC_receive_data[param1] = (void *) &gimbal_control.gimbal_pitch_motor.gimbal_motor_relative_angle_pid.ki;
+//    PC_receive_data[param2] = (void *) &gimbal_control.gimbal_pitch_motor.gimbal_motor_relative_angle_pid.kd;
+//    PC_receive_data[param3] = (void *) &gimbal_control.gimbal_pitch_motor.gimbal_motor_gyro_pid.Kp;
+//    PC_receive_data[param4] = (void *) &gimbal_control.gimbal_pitch_motor.gimbal_motor_gyro_pid.Ki;
+//    PC_receive_data[param5] = (void *) &gimbal_control.gimbal_pitch_motor.gimbal_motor_gyro_pid.Kd;
+//    PC_receive_data[param6] = (void *) &gimbal_control.gimbal_pitch_motor.gimbal_motor_gyro_pid.Integral_Separation;
+//    PC_receive_data[param7] = (void *) &gimbal_control.gimbal_pitch_motor.gimbal_motor_relative_angle_pid.max_iout;
+//    PC_receive_data[param8] = (void *) &gimbal_control.gimbal_pitch_motor.gimbal_motor_relative_angle_pid.max_out;
+//    PC_receive_data[param9] = (void *) &gimbal_control.gimbal_pitch_motor.max_relative_angle;
+//    PC_receive_data[param10] = (void *) &gimbal_control.gimbal_pitch_motor.min_relative_angle;
+//    PC_receive_data[param11] = (void *) &gimbal_control.gimbal_pitch_motor.relative_angle_set;
+//    PC_receive_data[param12] = (void *) &gimbal_control.gimbal_pitch_motor.Cloud_MotorAngle_Error_Kalman.R;
+//    PC_receive_data[param13] = (void *) &gimbal_control.gimbal_pitch_motor.Cloud_MotorAngle_Error_Kalman.Q;
+//    PC_receive_data[param14] = (void *) &gimbal_control.gimbal_pitch_motor.gimbal_motor_relative_angle_pid.Cloud_OCKalman.R;
+//    PC_receive_data[param15] = (void *) &gimbal_control.gimbal_pitch_motor.gimbal_motor_relative_angle_pid.Cloud_OCKalman.Q;
+//    PC_receive_data[param16] = (void *) &gimbal_control.gimbal_pitch_motor.LpfFactor;
+
+    PC_receive_data[param0] = (void *) &gimbal_control.gimbal_yaw_motor.gimbal_motor_relative_angle_pid.kp;
+    PC_receive_data[param1] = (void *) &gimbal_control.gimbal_yaw_motor.gimbal_motor_relative_angle_pid.ki;
+    PC_receive_data[param2] = (void *) &gimbal_control.gimbal_yaw_motor.gimbal_motor_relative_angle_pid.kd;
+    PC_receive_data[param3] = (void *) &gimbal_control.gimbal_yaw_motor.gimbal_motor_gyro_pid.Kp;
+    PC_receive_data[param4] = (void *) &gimbal_control.gimbal_yaw_motor.gimbal_motor_gyro_pid.Ki;
+    PC_receive_data[param5] = (void *) &gimbal_control.gimbal_yaw_motor.gimbal_motor_gyro_pid.Kd;
+    PC_receive_data[param6] = (void *) &gimbal_control.gimbal_yaw_motor.gimbal_motor_gyro_pid.Integral_Separation;
+    PC_receive_data[param7] = (void *) &gimbal_control.gimbal_yaw_motor.gimbal_motor_relative_angle_pid.max_iout;
+    PC_receive_data[param8] = (void *) &gimbal_control.gimbal_yaw_motor.gimbal_motor_relative_angle_pid.max_out;
+    PC_receive_data[param9] = (void *) &gimbal_control.gimbal_yaw_motor.max_relative_angle;
+    PC_receive_data[param10] = (void *) &gimbal_control.gimbal_yaw_motor.min_relative_angle;
+    PC_receive_data[param11] = (void *) &gimbal_control.gimbal_yaw_motor.relative_angle_set;
+    PC_receive_data[param12] = (void *) &gimbal_control.gimbal_yaw_motor.Cloud_MotorAngle_Error_Kalman.R;
+    PC_receive_data[param13] = (void *) &gimbal_control.gimbal_yaw_motor.Cloud_MotorAngle_Error_Kalman.Q;
+    PC_receive_data[param14] = (void *) &gimbal_control.gimbal_yaw_motor.gimbal_motor_relative_angle_pid.Cloud_OCKalman.R;
+    PC_receive_data[param15] = (void *) &gimbal_control.gimbal_yaw_motor.gimbal_motor_relative_angle_pid.Cloud_OCKalman.Q;
+    PC_receive_data[param16] = (void *) &gimbal_control.gimbal_yaw_motor.LpfFactor;
+    PC_receive_data[param17] = (void *) &gimbal_control.gimbal_yaw_motor.gimbal_motor_gyro_pid.Variable_I;
+    PC_receive_data[param18] = (void *) &gimbal_control.gimbal_yaw_motor.gimbal_motor_gyro_pid.Variable_I_Down;
+    PC_receive_data[param19] = (void *) &gimbal_control.gimbal_yaw_motor.gimbal_motor_gyro_pid.Variable_I_UP;
+    PC_receive_data[param20] = (void *) &gimbal_control.gimbal_yaw_motor.gimbal_motor_relative_angle_pid.D_First;
+    PC_receive_data[param21] = (void *) &gimbal_control.gimbal_yaw_motor.gimbal_motor_relative_angle_pid.D_Filter_Ratio;
+    PC_receive_data[param22] = (void *) &gimbal_control.gimbal_yaw_motor.gimbal_motor_gyro_pid.D_First;
+    PC_receive_data[param23] = (void *) &gimbal_control.gimbal_yaw_motor.gimbal_motor_gyro_pid.D_Filter_Ratio;
+
     while (1) {
 //        SEGGER_RTT_printf(0,"%d",i);
         if (SEGGER_RTT_HasKey()) {
@@ -63,7 +96,7 @@ void PC_receive_task(void const *argument) {
                     } else {
                         param_value_float = strtod(param_value, NULL);
                         float *tmp = (float *) PC_receive_data[param_num];
-                        if (param_num == 10) {
+                        if (param_num == 11) {
                             *(tmp) = fp32_constrain(param_value_float,
                                                     gimbal_control.gimbal_pitch_motor.min_relative_angle,
                                                     gimbal_control.gimbal_pitch_motor.max_relative_angle);;

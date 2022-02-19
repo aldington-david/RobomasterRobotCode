@@ -40,15 +40,15 @@
 #define PITCH_SPEED_PID_KI        60.0f
 #define PITCH_SPEED_PID_KD        0.0f
 #define PITCH_SPEED_PID_MAX_OUT   30000.0f
-#define PITCH_SPEED_PID_MAX_IOUT  10000.0f
+#define PITCH_SPEED_PID_MAX_IOUT  30000.0f
 
 //yaw speed close-loop PID params, max out and max iout
 //yaw 速度环 PID参数以及 PID最大输出，积分输出
 #define YAW_SPEED_PID_KP        3600.0f
 #define YAW_SPEED_PID_KI        20.0f
 #define YAW_SPEED_PID_KD        0.0f
-#define YAW_SPEED_PID_MAX_OUT   30000.0f
-#define YAW_SPEED_PID_MAX_IOUT  5000.0f
+#define YAW_SPEED_PID_MAX_OUT   10000.0f
+#define YAW_SPEED_PID_MAX_IOUT  15000.0f
 
 //pitch gyro angle close-loop PID params, max out and max iout
 //pitch 角度环 角度由陀螺仪解算 PID参数以及 PID最大输出，积分输出
@@ -64,14 +64,15 @@
 #define YAW_GYRO_ABSOLUTE_PID_KP        26.0f
 #define YAW_GYRO_ABSOLUTE_PID_KI        0.0f
 #define YAW_GYRO_ABSOLUTE_PID_KD        0.3f
+
 #define YAW_GYRO_ABSOLUTE_PID_MAX_OUT   10.0f
 #define YAW_GYRO_ABSOLUTE_PID_MAX_IOUT  0.0f
 
 //pitch encode angle close-loop PID params, max out and max iout
 //pitch 角度环 角度由编码器 PID参数以及 PID最大输出，积分输出
-#define PITCH_ENCODE_RELATIVE_PID_KP 15.0f
+#define PITCH_ENCODE_RELATIVE_PID_KP 380.0f
 #define PITCH_ENCODE_RELATIVE_PID_KI 0.00f
-#define PITCH_ENCODE_RELATIVE_PID_KD 0.0f
+#define PITCH_ENCODE_RELATIVE_PID_KD 50.0f
 
 #define PITCH_ENCODE_RELATIVE_PID_MAX_OUT 10.0f
 #define PITCH_ENCODE_RELATIVE_PID_MAX_IOUT 0.0f
@@ -132,8 +133,8 @@
 #define GIMBAL_INIT_TIME            6000
 #define GIMBAL_CALI_REDUNDANT_ANGLE 0.1f
 //云台初始化回中值的速度以及控制到的角度
-#define GIMBAL_INIT_PITCH_SPEED     0.004f
-#define GIMBAL_INIT_YAW_SPEED       0.005f
+#define GIMBAL_INIT_PITCH_SPEED     0.001f
+#define GIMBAL_INIT_YAW_SPEED       0.001f
 
 #define INIT_YAW_SET    0.0f
 #define INIT_PITCH_SET  0.0f
@@ -186,11 +187,22 @@ typedef struct
 
     fp32 out;
 
-    float kal_Q;
-    float kal_R;
+    float err_kal_Q;
+    float err_kal_R;
+    float out_kal_Q;
+    float out_kal_R;
     fp32 error_last;
     fp32 Integral_Separation;
     fp32 ekDeadZone;
+
+    extKalman_t Cloud_OCKalman;
+
+    bool D_First;
+    fp32 D_Filter_Ratio;
+    fp32 last_get;
+    fp32 D3;
+    fp32 D2;
+    fp32 D1;
 
 } gimbal_PID_t;
 
@@ -218,6 +230,8 @@ typedef struct
     int16_t given_current;
 
     float LpfFactor;
+
+    extKalman_t Cloud_MotorAngle_Error_Kalman;
 
 } gimbal_motor_t;
 
@@ -329,10 +343,11 @@ extern void
 set_cali_gimbal_hook(const uint16_t yaw_offset, const uint16_t pitch_offset, const fp32 max_yaw, const fp32 min_yaw,
                      const fp32 max_pitch, const fp32 min_pitch);
 
-extern fp32 Cloud_PITCHOPID(gimbal_PID_t *pid, fp32 set, fp32 get);
+extern fp32 Cloud_OPID(gimbal_PID_t *pid, fp32 set, fp32 get);
 
-extern fp32 Cloud_PITCHIPID(pid_type_def *pid, fp32 ref, fp32 set);
+extern fp32 Cloud_IPID(pid_type_def *pid, fp32 ref, fp32 set);
 
 extern gimbal_control_t gimbal_control;
 extern extKalman_t Cloud_PitchMotorAngle_Error_Kalman;
+extern extKalman_t Cloud_YawMotorAngle_Error_Kalman;
 #endif

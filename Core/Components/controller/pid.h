@@ -50,6 +50,19 @@ typedef struct {
     fp32 Integral_Separation;
     fp32 ekDeadZone;
 
+    bool Variable_I;
+    fp32 I_ratio;
+    fp32 Variable_I_UP;
+    fp32 Variable_I_Down;
+
+    bool D_First;
+    fp32 D_Filter_Ratio;
+    fp32 last_fdb;
+    fp32 D3;
+    fp32 D2;
+    fp32 D1;
+
+
 } pid_type_def;
 
 /**
@@ -72,7 +85,9 @@ typedef struct {
   * @param[in]      max_iout: pid最大积分输出
   * @retval         none
   */
-extern void PID_init(pid_type_def *pid, uint8_t mode, const fp32 PID[3], fp32 max_out, fp32 max_iout);
+extern void PID_init(pid_type_def *pid, uint8_t mode, const fp32 PID[3], fp32 max_out, fp32 max_iout, fp32 Integral,
+                     bool Variable_I_Switch, fp32 Variable_I_Down, fp32 Variable_I_UP, bool D_First,
+                     fp32 D_Filter_Ratio);
 
 /**
   * @brief          pid calculate 
