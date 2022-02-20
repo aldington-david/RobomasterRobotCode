@@ -55,9 +55,9 @@ void ramp_calc(ramp_function_source_t *ramp_source_type, fp32 input) {
   * @param[in]      滤波参数
   * @retval         返回空
   */
-void first_order_filter_init(first_order_filter_type_t *first_order_filter_type, fp32 frame_period, const fp32 num[1]) {
+void first_order_filter_init(first_order_filter_type_t *first_order_filter_type, fp32 frame_period, fp32 num) {
     first_order_filter_type->frame_period = frame_period;
-    first_order_filter_type->num[0] = num[0];
+    first_order_filter_type->num = num;
     first_order_filter_type->input = 0.0f;
     first_order_filter_type->out = 0.0f;
 }
@@ -72,10 +72,10 @@ void first_order_filter_init(first_order_filter_type_t *first_order_filter_type,
 void first_order_filter_cali(first_order_filter_type_t *first_order_filter_type, fp32 input) {
     first_order_filter_type->input = input;
     first_order_filter_type->out =
-            first_order_filter_type->num[0] /
-            (first_order_filter_type->num[0] + first_order_filter_type->frame_period) * first_order_filter_type->out +
+            first_order_filter_type->num /
+            (first_order_filter_type->num + first_order_filter_type->frame_period) * first_order_filter_type->out +
             first_order_filter_type->frame_period /
-            (first_order_filter_type->num[0] + first_order_filter_type->frame_period) * first_order_filter_type->input;
+            (first_order_filter_type->num + first_order_filter_type->frame_period) * first_order_filter_type->input;
 }
 
 //绝对限制

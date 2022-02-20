@@ -62,6 +62,8 @@ typedef struct {
     fp32 D2;
     fp32 D1;
 
+    bool D_Low_Pass;
+    first_order_filter_type_t D_Low_Pass_Filter;
 
 } pid_type_def;
 
@@ -87,7 +89,7 @@ typedef struct {
   */
 extern void PID_init(pid_type_def *pid, uint8_t mode, const fp32 PID[3], fp32 max_out, fp32 max_iout, fp32 Integral,
                      bool Variable_I_Switch, fp32 Variable_I_Down, fp32 Variable_I_UP, bool D_First,
-                     fp32 D_Filter_Ratio);
+                     fp32 D_Filter_Ratio, bool D_Low_Pass);
 
 /**
   * @brief          pid calculate 

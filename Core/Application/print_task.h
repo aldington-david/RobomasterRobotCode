@@ -34,4 +34,6 @@ extern fp32 bias_angle_test;
 extern fp32 add_angle_test;
 extern int8_t imu_temp;
 extern fp32 err_test;
+extern char switch_test;
+
 #endif

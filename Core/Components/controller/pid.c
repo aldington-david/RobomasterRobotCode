@@ -54,7 +54,8 @@
   * @retval         none
   */
 void PID_init(pid_type_def *pid, uint8_t mode, const fp32 PID[3], fp32 max_out, fp32 max_iout, fp32 Integral,
-              bool Variable_I_Switch, fp32 Variable_I_Down, fp32 Variable_I_UP, bool D_First, fp32 D_Filter_Ratio) {
+              bool Variable_I_Switch, fp32 Variable_I_Down, fp32 Variable_I_UP, bool D_First, fp32 D_Filter_Ratio,
+              bool D_Low_Pass) {
     if (pid == NULL || PID == NULL) {
         return;
     }
@@ -70,10 +71,12 @@ void PID_init(pid_type_def *pid, uint8_t mode, const fp32 PID[3], fp32 max_out, 
 
     pid->Variable_I = Variable_I_Switch;
     pid->Variable_I_Down = Variable_I_Down;
-    pid->Variable_I_Down = Variable_I_UP;
+    pid->Variable_I_UP = Variable_I_UP;
 
     pid->D_First = D_First;
     pid->D_Filter_Ratio = D_Filter_Ratio;
+
+    pid->D_Low_Pass = D_Low_Pass;
 
 }
 
@@ -142,7 +145,8 @@ void PID_clear(pid_type_def *pid) {
     pid->error[0] = pid->error[1] = pid->error[2] = 0.0f;
     pid->Dbuf[0] = pid->Dbuf[1] = pid->Dbuf[2] = 0.0f;
     pid->out = pid->Pout = pid->Iout = pid->Dout = 0.0f;
-    pid->fdb = pid->set = 0.0f;
+    pid->last_fdb = pid->fdb = pid->set = 0.0f;
+    pid->I_ratio = pid->D_Low_Pass_Filter.out = 0.0f;
 }
 
 /************ Move pid *************/
@@ -606,7 +610,7 @@ fp32 Cloud_OPID(gimbal_PID_t *pid, fp32 set, fp32 get) {
     } else {
         pid->Dout = pid->kd * (pid->err - pid->error_last);
     }
-    pid->Dout = KalmanFilter(&pid->Cloud_OCKalman, pid->Dout);
+//    pid->Dout = KalmanFilter(&pid->Cloud_OCKalman, pid->Dout);
     //积分限幅
     abs_limit(&pid->Iout, pid->max_iout); //取消积分输出的限幅。
 
@@ -617,6 +621,8 @@ fp32 Cloud_OPID(gimbal_PID_t *pid, fp32 set, fp32 get) {
     pid->last_get = pid->get;
     pid->error_last = err;
     return pid->out;
+
+
 }
 
 /**
@@ -639,12 +645,13 @@ float Cloud_IPID(pid_type_def *pid, fp32 ref, fp32 set) {
     if (pid->Variable_I) {
         if ((pid->Variable_I_Down != 0.0 || pid->Variable_I_UP != 0.0) &&
             (pid->Variable_I_UP - pid->Variable_I_Down > 0)) {
-            if (fabs(pid->error[0]) < pid->Variable_I_Down) {
+            if (fabs(1000.0 * pid->error[0]) < (1000.0 * pid->Variable_I_Down)) {
                 pid->I_ratio = 1.0;
-            } else if (pid->Variable_I_Down <= fabs(pid->error[0]) <= pid->Variable_I_UP) {
-                pid->I_ratio = (pid->Variable_I_UP - fabs(pid->error[0])) / (pid->Variable_I_UP - pid->Variable_I_Down);
-            } else {
+            } else if (fabs(pid->error[0]) > pid->Variable_I_UP) {
                 pid->I_ratio = 0.0;
+            } else {
+                pid->I_ratio = ((1000.0 * pid->Variable_I_UP) - fabs(1000.0 * pid->error[0])) /
+                               ((1000.0 * pid->Variable_I_UP) - (1000.0 * pid->Variable_I_Down));
             }
         } else {
             pid->Iout += pid->Ki * pid->error[0];
@@ -653,15 +660,29 @@ float Cloud_IPID(pid_type_def *pid, fp32 ref, fp32 set) {
     } else {
         pid->Iout += pid->Ki * pid->error[0];
     }
-
+    fp32 D_temp_in;
     if (pid->D_First) {
+        if (pid->D_Low_Pass) {
+            first_order_filter_cali(&pid->D_Low_Pass_Filter, pid->fdb);
+            D_temp_in = pid->D_Low_Pass_Filter.out;
+        } else {
+            D_temp_in = pid->fdb;
+        }
+
         fp32 D_temp = pid->D_Filter_Ratio * pid->Kd + pid->Kp;
         pid->D3 = pid->Kd / D_temp;
         pid->D2 = (pid->Kd + pid->Kp) / D_temp;
         pid->D1 = pid->D_Filter_Ratio * pid->D3;
-        pid->Dout = pid->D1 * pid->Dout + pid->D2 * pid->fdb + pid->D3 * pid->last_fdb;
+        pid->Dout = pid->D1 * pid->Dout + pid->D2 * D_temp_in + pid->D3 * pid->last_fdb;
     } else {
-        pid->Dbuf[0] = (pid->error[0] - pid->error[1]);
+        if (pid->D_Low_Pass) {
+            first_order_filter_cali(&pid->D_Low_Pass_Filter, pid->error[0]);
+            D_temp_in = pid->D_Low_Pass_Filter.out;
+        } else {
+            D_temp_in = pid->error[0];
+        }
+
+        pid->Dbuf[0] = (D_temp_in - pid->error[1]);
         pid->Dbuf[2] = pid->Dbuf[1];
         pid->Dbuf[1] = pid->Dbuf[0];
         pid->Dout = pid->Kd * pid->Dbuf[0];
@@ -680,10 +701,10 @@ float Cloud_IPID(pid_type_def *pid, fp32 ref, fp32 set) {
     //输出限幅
     LimitMax(pid->out, pid->max_out);
 
-    pid->last_fdb = pid->fdb;
+    pid->last_fdb = D_temp_in;
 
     pid->error[2] = pid->error[1];
-    pid->error[1] = pid->error[0];
+    pid->error[1] = D_temp_in;
     return pid->out;
 }
 /***********************************************************************/

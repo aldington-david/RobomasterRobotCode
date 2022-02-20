@@ -180,8 +180,8 @@ void chassis_task(void const *pvParameters)
             {
                 //send control current
                 //发送控制电流
-//                CAN_cmd_chassis(chassis_move.motor_chassis[0].give_current, chassis_move.motor_chassis[1].give_current,
-//                                chassis_move.motor_chassis[2].give_current, chassis_move.motor_chassis[3].give_current);
+                CAN_cmd_chassis(chassis_move.motor_chassis[0].give_current, chassis_move.motor_chassis[1].give_current,
+                                chassis_move.motor_chassis[2].give_current, chassis_move.motor_chassis[3].give_current);
             }
         }
         //os delay
@@ -214,14 +214,16 @@ static void chassis_init(chassis_move_t *chassis_move_init)
 
     //chassis motor speed PID
     //底盘速度环pid值
-    const static fp32 motor_speed_pid[3] = {M3505_MOTOR_SPEED_PID_KP, M3505_MOTOR_SPEED_PID_KI, M3505_MOTOR_SPEED_PID_KD};
-    
+    const static fp32 motor_speed_pid[3] = {M3505_MOTOR_SPEED_PID_KP, M3505_MOTOR_SPEED_PID_KI,
+                                            M3505_MOTOR_SPEED_PID_KD};
+
     //chassis angle PID
     //底盘角度pid值
-    const static fp32 chassis_yaw_pid[3] = {CHASSIS_FOLLOW_GIMBAL_PID_KP, CHASSIS_FOLLOW_GIMBAL_PID_KI, CHASSIS_FOLLOW_GIMBAL_PID_KD};
-    
-    const static fp32 chassis_x_order_filter[1] = {CHASSIS_ACCEL_X_NUM};
-    const static fp32 chassis_y_order_filter[1] = {CHASSIS_ACCEL_Y_NUM};
+    const static fp32 chassis_yaw_pid[3] = {CHASSIS_FOLLOW_GIMBAL_PID_KP, CHASSIS_FOLLOW_GIMBAL_PID_KI,
+                                            CHASSIS_FOLLOW_GIMBAL_PID_KD};
+
+//    const static fp32 chassis_x_order_filter[1] = {CHASSIS_ACCEL_X_NUM};
+//    const static fp32 chassis_y_order_filter[1] = {CHASSIS_ACCEL_Y_NUM};
     uint8_t i;
 
     //in beginning， chassis mode is raw 
@@ -244,17 +246,17 @@ static void chassis_init(chassis_move_t *chassis_move_init)
     {
         chassis_move_init->motor_chassis[i].chassis_motor_measure = get_chassis_motor_measure_point(i);
         PID_init(&chassis_move_init->motor_speed_pid[i], PID_POSITION, motor_speed_pid, M3505_MOTOR_SPEED_PID_MAX_OUT,
-                 M3505_MOTOR_SPEED_PID_MAX_IOUT, 0, 0, 0, 0, 0, 0);
+                 M3505_MOTOR_SPEED_PID_MAX_IOUT, 0, 0, 0, 0, 0, 0, 0);
     }
     //initialize angle PID
     //初始化角度PID
     PID_init(&chassis_move_init->chassis_angle_pid, PID_POSITION, chassis_yaw_pid, CHASSIS_FOLLOW_GIMBAL_PID_MAX_OUT,
-             CHASSIS_FOLLOW_GIMBAL_PID_MAX_IOUT, 0, 0, 0, 0, 0, 0);
-    
+             CHASSIS_FOLLOW_GIMBAL_PID_MAX_IOUT, 0, 0, 0, 0, 0, 0, 0);
+
     //first order low-pass filter  replace ramp function
     //用一阶滤波代替斜波函数生成
-    first_order_filter_init(&chassis_move_init->chassis_cmd_slow_set_vx, CHASSIS_CONTROL_TIME, chassis_x_order_filter);
-    first_order_filter_init(&chassis_move_init->chassis_cmd_slow_set_vy, CHASSIS_CONTROL_TIME, chassis_y_order_filter);
+    first_order_filter_init(&chassis_move_init->chassis_cmd_slow_set_vx, CHASSIS_CONTROL_TIME, CHASSIS_ACCEL_X_NUM);
+    first_order_filter_init(&chassis_move_init->chassis_cmd_slow_set_vy, CHASSIS_CONTROL_TIME, CHASSIS_ACCEL_Y_NUM);
 
     //max and min speed
     //最大 最小速度

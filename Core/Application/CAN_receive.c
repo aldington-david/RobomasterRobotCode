@@ -76,17 +76,12 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)
     uint8_t rx_data[8];
 
     HAL_CAN_GetRxMessage(hcan, CAN_RX_FIFO0, &rx_header, rx_data);
-
-    switch (rx_header.StdId)
-    {
+if (hcan->Instance == CAN1) {
+    switch (rx_header.StdId) {
         case CAN_3508_M1_ID:
         case CAN_3508_M2_ID:
         case CAN_3508_M3_ID:
-        case CAN_3508_M4_ID:
-        case CAN_YAW_MOTOR_ID:
-        case CAN_PIT_MOTOR_ID:
-        case CAN_TRIGGER_MOTOR_ID:
-        {
+        case CAN_3508_M4_ID: {
             static uint8_t i = 0;
             //get motor id
             i = rx_header.StdId - CAN_3508_M1_ID;
@@ -95,11 +90,52 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)
             break;
         }
 
-        default:
-        {
+        default: {
             break;
         }
     }
+
+} else if (hcan->Instance == CAN2) {
+    switch (rx_header.StdId) {
+        case CAN_YAW_MOTOR_ID:
+        case CAN_PIT_MOTOR_ID:
+        case CAN_TRIGGER_MOTOR_ID: {
+            static uint8_t i = 0;
+            //get motor id
+            i = rx_header.StdId - CAN_3508_M1_ID;
+            get_motor_measure(&motor_chassis[i], rx_data);
+            detect_hook(CHASSIS_MOTOR1_TOE + i);
+            break;
+        }
+
+        default: {
+            break;
+        }
+    }
+}
+//    switch (rx_header.StdId)
+//    {
+//        case CAN_3508_M1_ID:
+//        case CAN_3508_M2_ID:
+//        case CAN_3508_M3_ID:
+//        case CAN_3508_M4_ID:
+//        case CAN_YAW_MOTOR_ID:
+//        case CAN_PIT_MOTOR_ID:
+//        case CAN_TRIGGER_MOTOR_ID:
+//        {
+//            static uint8_t i = 0;
+//            //get motor id
+//            i = rx_header.StdId - CAN_3508_M1_ID;
+//            get_motor_measure(&motor_chassis[i], rx_data);
+//            detect_hook(CHASSIS_MOTOR1_TOE + i);
+//            break;
+//        }
+//
+//        default:
+//        {
+//            break;
+//        }
+//    }
 }
 
 

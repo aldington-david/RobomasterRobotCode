@@ -79,9 +79,9 @@
 
 //yaw encode angle close-loop PID params, max out and max iout
 //yaw 角度环 角度由编码器 PID参数以及 PID最大输出，积分输出
-#define YAW_ENCODE_RELATIVE_PID_KP        8.0f
+#define YAW_ENCODE_RELATIVE_PID_KP        30.0f
 #define YAW_ENCODE_RELATIVE_PID_KI        0.0f
-#define YAW_ENCODE_RELATIVE_PID_KD        0.0f
+#define YAW_ENCODE_RELATIVE_PID_KD        5500.0f
 #define YAW_ENCODE_RELATIVE_PID_MAX_OUT   10.0f
 #define YAW_ENCODE_RELATIVE_PID_MAX_IOUT  0.0f
 

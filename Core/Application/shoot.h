@@ -55,7 +55,7 @@
 #define FULL_COUNT                  18
 //拨弹速度
 #define TRIGGER_SPEED               10.0f
-#define CONTINUE_TRIGGER_SPEED      15.0f
+#define CONTINUE_TRIGGER_SPEED      10.0f
 #define READY_TRIGGER_SPEED         5.0f
 
 #define KEY_OFF_JUGUE_TIME          500
@@ -136,6 +136,9 @@ typedef struct
 
 //由于射击和云台使用同一个can的id故也射击任务在云台任务中执行
 extern void shoot_init(void);
+
 extern int16_t shoot_control_loop(void);
+
+extern shoot_control_t shoot_control;
 
 #endif

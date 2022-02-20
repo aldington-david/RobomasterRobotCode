@@ -187,8 +187,8 @@ void MX_FREERTOS_Init(void) {
     osThreadDef(BATTERY_VOLTAGE, battery_voltage_task, osPriorityNormal, 0, 256);
     battery_voltage_handle = osThreadCreate(osThread(BATTERY_VOLTAGE), NULL);
 
-    osThreadDef(SERVO, servo_task, osPriorityNormal, 0, 256);
-    servo_task_handle = osThreadCreate(osThread(SERVO), NULL);
+//    osThreadDef(SERVO, servo_task, osPriorityNormal, 0, 256);
+//    servo_task_handle = osThreadCreate(osThread(SERVO), NULL);
 
     osThreadDef(PC_receiveTask, PC_receive_task, osPriorityNormal, 0, 512);
     servo_task_handle = osThreadCreate(osThread(PC_receiveTask), NULL);

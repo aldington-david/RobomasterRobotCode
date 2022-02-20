@@ -191,7 +191,7 @@ void INS_task(void const *pvParameters)
     imu_cali_slove(INS_gyro, INS_accel, INS_mag, &bmi088_real_data, &ist8310_real_data);
 
     PID_init(&imu_temp_pid, PID_POSITION, imu_temp_PID, TEMPERATURE_PID_MAX_OUT, TEMPERATURE_PID_MAX_IOUT, 0, 0, 0, 0,
-             0, 0);
+             0, 0, 0);
     AHRS_init(INS_quat, INS_accel, INS_mag);
 
     accel_fliter_1[0] = accel_fliter_2[0] = accel_fliter_3[0] = INS_accel[0];
