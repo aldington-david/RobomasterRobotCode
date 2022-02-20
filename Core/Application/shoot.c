@@ -90,6 +90,9 @@ void shoot_init(void) {
     //初始化PID
     PID_init(&shoot_control.trigger_motor_pid, PID_POSITION, Trigger_speed_pid, TRIGGER_READY_PID_MAX_OUT,
              TRIGGER_READY_PID_MAX_IOUT, 0, 0, 0, 0, 0, 0, 0);
+
+    shoot_control.pwm = SHOOT_FRIC_PWM_ADD_VALUE;
+
     //更新数据
     shoot_feedback_update();
     ramp_init(&shoot_control.fric1_ramp, SHOOT_CONTROL_TIME * 0.001f, FRIC_DOWN, FRIC_OFF);
@@ -153,8 +156,8 @@ int16_t shoot_control_loop(void) {
         shoot_laser_off();
         shoot_control.given_current = 0;
         //摩擦轮需要一个个斜波开启，不能同时直接开启，否则可能电机不转
-        ramp_calc(&shoot_control.fric1_ramp, -SHOOT_FRIC_PWM_ADD_VALUE);
-        ramp_calc(&shoot_control.fric2_ramp, -SHOOT_FRIC_PWM_ADD_VALUE);
+        ramp_calc(&shoot_control.fric1_ramp, -shoot_control.pwm);
+        ramp_calc(&shoot_control.fric2_ramp, -shoot_control.pwm);
     } else {
         shoot_laser_on(); //激光开启
         //计算拨弹轮电机PID
@@ -164,8 +167,8 @@ int16_t shoot_control_loop(void) {
             shoot_control.given_current = 0;
         }
         //摩擦轮需要一个个斜波开启，不能同时直接开启，否则可能电机不转
-        ramp_calc(&shoot_control.fric1_ramp, SHOOT_FRIC_PWM_ADD_VALUE);
-        ramp_calc(&shoot_control.fric2_ramp, SHOOT_FRIC_PWM_ADD_VALUE);
+        ramp_calc(&shoot_control.fric1_ramp, shoot_control.pwm);
+        ramp_calc(&shoot_control.fric2_ramp, shoot_control.pwm);
 
     }
 

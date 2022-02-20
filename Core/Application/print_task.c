@@ -137,6 +137,14 @@ referee usart:%s\r\n\
                     shoot_control.trigger_motor_pid.Ki,
                     shoot_control.trigger_motor_pid.Kd);
             SEGGER_RTT_WriteString(0, print_buf);
+            //摩擦轮pwm
+            SEGGER_RTT_SetTerminal(10);
+            sprintf(print_buf,
+                    "pwm1=%f,pwm2=%f,add=%d\r\n",
+                    shoot_control.fric1_ramp.max_value,
+                    shoot_control.fric2_ramp.max_value,
+                    shoot_control.pwm);
+            SEGGER_RTT_WriteString(0, print_buf);
             //波形显示
             RTT_PrintWave(&shoot_control.speed_set,
                           &shoot_control.speed,

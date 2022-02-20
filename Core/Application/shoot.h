@@ -32,7 +32,7 @@
 
 #define SHOOT_CONTROL_TIME          GIMBAL_CONTROL_TIME
 
-#define SHOOT_FRIC_PWM_ADD_VALUE    100.0f
+#define SHOOT_FRIC_PWM_ADD_VALUE    20
 
 //射击摩擦轮激光打开 关闭
 #define SHOOT_ON_KEYBOARD           KEY_PRESSED_OFFSET_Q
@@ -132,6 +132,8 @@ typedef struct
 
     uint16_t heat_limit;
     uint16_t heat;
+
+    int16_t pwm;
 } shoot_control_t;
 
 //由于射击和云台使用同一个can的id故也射击任务在云台任务中执行
