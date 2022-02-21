@@ -30,23 +30,23 @@ void PC_receive_task(void const *argument) {
 //    PC_receive_data[param0] = (void *) &gimbal_control.gimbal_pitch_motor.gimbal_motor_absolute_angle_pid.kp;
 //    PC_receive_data[param1] = (void *) &gimbal_control.gimbal_pitch_motor.gimbal_motor_absolute_angle_pid.ki;
 
-//    PC_receive_data[param0] = (void *) &gimbal_control.gimbal_pitch_motor.gimbal_motor_relative_angle_pid.kp;
-//    PC_receive_data[param1] = (void *) &gimbal_control.gimbal_pitch_motor.gimbal_motor_relative_angle_pid.ki;
-//    PC_receive_data[param2] = (void *) &gimbal_control.gimbal_pitch_motor.gimbal_motor_relative_angle_pid.kd;
-//    PC_receive_data[param3] = (void *) &gimbal_control.gimbal_pitch_motor.gimbal_motor_gyro_pid.Kp;
-//    PC_receive_data[param4] = (void *) &gimbal_control.gimbal_pitch_motor.gimbal_motor_gyro_pid.Ki;
-//    PC_receive_data[param5] = (void *) &gimbal_control.gimbal_pitch_motor.gimbal_motor_gyro_pid.Kd;
-//    PC_receive_data[param6] = (void *) &gimbal_control.gimbal_pitch_motor.gimbal_motor_gyro_pid.Integral_Separation;
-//    PC_receive_data[param7] = (void *) &gimbal_control.gimbal_pitch_motor.gimbal_motor_relative_angle_pid.max_iout;
-//    PC_receive_data[param8] = (void *) &gimbal_control.gimbal_pitch_motor.gimbal_motor_relative_angle_pid.max_out;
-//    PC_receive_data[param9] = (void *) &gimbal_control.gimbal_pitch_motor.max_relative_angle;
-//    PC_receive_data[param10] = (void *) &gimbal_control.gimbal_pitch_motor.min_relative_angle;
-//    PC_receive_data[param11] = (void *) &gimbal_control.gimbal_pitch_motor.relative_angle_set;
-//    PC_receive_data[param12] = (void *) &gimbal_control.gimbal_pitch_motor.Cloud_MotorAngle_Error_Kalman.R;
-//    PC_receive_data[param13] = (void *) &gimbal_control.gimbal_pitch_motor.Cloud_MotorAngle_Error_Kalman.Q;
-//    PC_receive_data[param14] = (void *) &gimbal_control.gimbal_pitch_motor.gimbal_motor_relative_angle_pid.Cloud_OCKalman.R;
-//    PC_receive_data[param15] = (void *) &gimbal_control.gimbal_pitch_motor.gimbal_motor_relative_angle_pid.Cloud_OCKalman.Q;
-//    PC_receive_data[param16] = (void *) &gimbal_control.gimbal_pitch_motor.LpfFactor;
+    PC_receive_data[param0] = (void *) &gimbal_control.gimbal_pitch_motor.gimbal_motor_relative_angle_pid.kp;
+    PC_receive_data[param1] = (void *) &gimbal_control.gimbal_pitch_motor.gimbal_motor_relative_angle_pid.ki;
+    PC_receive_data[param2] = (void *) &gimbal_control.gimbal_pitch_motor.gimbal_motor_relative_angle_pid.kd;
+    PC_receive_data[param3] = (void *) &gimbal_control.gimbal_pitch_motor.gimbal_motor_gyro_pid.Kp;
+    PC_receive_data[param4] = (void *) &gimbal_control.gimbal_pitch_motor.gimbal_motor_gyro_pid.Ki;
+    PC_receive_data[param5] = (void *) &gimbal_control.gimbal_pitch_motor.gimbal_motor_gyro_pid.Kd;
+    PC_receive_data[param6] = (void *) &gimbal_control.gimbal_pitch_motor.gimbal_motor_gyro_pid.Integral_Separation;
+    PC_receive_data[param7] = (void *) &gimbal_control.gimbal_pitch_motor.gimbal_motor_relative_angle_pid.max_iout;
+    PC_receive_data[param8] = (void *) &gimbal_control.gimbal_pitch_motor.gimbal_motor_relative_angle_pid.max_out;
+    PC_receive_data[param9] = (void *) &gimbal_control.gimbal_pitch_motor.max_relative_angle;
+    PC_receive_data[param10] = (void *) &gimbal_control.gimbal_pitch_motor.min_relative_angle;
+    PC_receive_data[param11] = (void *) &gimbal_control.gimbal_pitch_motor.relative_angle_set;
+    PC_receive_data[param12] = (void *) &gimbal_control.gimbal_pitch_motor.Cloud_MotorAngle_Error_Kalman.R;
+    PC_receive_data[param13] = (void *) &gimbal_control.gimbal_pitch_motor.Cloud_MotorAngle_Error_Kalman.Q;
+    PC_receive_data[param14] = (void *) &gimbal_control.gimbal_pitch_motor.gimbal_motor_relative_angle_pid.Cloud_OCKalman.R;
+    PC_receive_data[param15] = (void *) &gimbal_control.gimbal_pitch_motor.gimbal_motor_relative_angle_pid.Cloud_OCKalman.Q;
+    PC_receive_data[param16] = (void *) &gimbal_control.gimbal_pitch_motor.LpfFactor;
 
 //    PC_receive_data[param0] = (void *) &gimbal_control.gimbal_yaw_motor.gimbal_motor_relative_angle_pid.kp;
 //    PC_receive_data[param1] = (void *) &gimbal_control.gimbal_yaw_motor.gimbal_motor_relative_angle_pid.ki;
@@ -75,10 +75,10 @@ void PC_receive_task(void const *argument) {
 //    PC_receive_data[param24] = (void *) &gimbal_control.gimbal_yaw_motor.gimbal_motor_gyro_pid.D_Low_Pass;
 //    PC_receive_data[param25] = (void *) &gimbal_control.gimbal_yaw_motor.gimbal_motor_gyro_pid.D_Low_Pass_Filter.num;
 
-    PC_receive_data[param0] = (void *) &shoot_control.trigger_motor_pid.Kp;
-    PC_receive_data[param1] = (void *) &shoot_control.trigger_motor_pid.Ki;
-    PC_receive_data[param2] = (void *) &shoot_control.trigger_motor_pid.Kd;
-    PC_receive_data[param3] = (void *) &shoot_control.trigger_speed_set;
+//    PC_receive_data[param0] = (void *) &shoot_control.trigger_motor_pid.Kp;
+//    PC_receive_data[param1] = (void *) &shoot_control.trigger_motor_pid.Ki;
+//    PC_receive_data[param2] = (void *) &shoot_control.trigger_motor_pid.Kd;
+//    PC_receive_data[param3] = (void *) &shoot_control.trigger_speed_set;
 
     while (1) {
 //        SEGGER_RTT_printf(0,"%d",i);

@@ -66,7 +66,7 @@ void test_task(void const * argument)
         //有错误
         if(error)
         {
-//            buzzer_warn_error(error_num+1);
+            buzzer_warn_error(error_num + 1);
         }
 
         last_error = error;
@@ -109,7 +109,7 @@ static void buzzer_warn_error(uint8_t num)
         }
         else if(tick < 100)
         {
-//            buzzer_on(1, 30000);
+            buzzer_on(1, 30000);
         }
         else
         {

@@ -39,8 +39,8 @@
 #define PITCH_SPEED_PID_KP        2900.0f
 #define PITCH_SPEED_PID_KI        60.0f
 #define PITCH_SPEED_PID_KD        0.0f
-#define PITCH_SPEED_PID_MAX_OUT   30000.0f
-#define PITCH_SPEED_PID_MAX_IOUT  30000.0f
+#define PITCH_SPEED_PID_MAX_OUT   10000.0f
+#define PITCH_SPEED_PID_MAX_IOUT  10000.0f
 
 //yaw speed close-loop PID params, max out and max iout
 //yaw 速度环 PID参数以及 PID最大输出，积分输出
@@ -52,7 +52,7 @@
 
 //pitch gyro angle close-loop PID params, max out and max iout
 //pitch 角度环 角度由陀螺仪解算 PID参数以及 PID最大输出，积分输出
-#define PITCH_GYRO_ABSOLUTE_PID_KP 15.0f
+#define PITCH_GYRO_ABSOLUTE_PID_KP 1.0f
 #define PITCH_GYRO_ABSOLUTE_PID_KI 0.0f
 #define PITCH_GYRO_ABSOLUTE_PID_KD 0.0f
 
@@ -61,27 +61,27 @@
 
 //yaw gyro angle close-loop PID params, max out and max iout
 //yaw 角度环 角度由陀螺仪解算 PID参数以及 PID最大输出，积分输出
-#define YAW_GYRO_ABSOLUTE_PID_KP        26.0f
+#define YAW_GYRO_ABSOLUTE_PID_KP        1.0f
 #define YAW_GYRO_ABSOLUTE_PID_KI        0.0f
-#define YAW_GYRO_ABSOLUTE_PID_KD        0.3f
+#define YAW_GYRO_ABSOLUTE_PID_KD        0.0f
 
 #define YAW_GYRO_ABSOLUTE_PID_MAX_OUT   10.0f
 #define YAW_GYRO_ABSOLUTE_PID_MAX_IOUT  0.0f
 
 //pitch encode angle close-loop PID params, max out and max iout
 //pitch 角度环 角度由编码器 PID参数以及 PID最大输出，积分输出
-#define PITCH_ENCODE_RELATIVE_PID_KP 380.0f
+#define PITCH_ENCODE_RELATIVE_PID_KP 1.0f
 #define PITCH_ENCODE_RELATIVE_PID_KI 0.00f
-#define PITCH_ENCODE_RELATIVE_PID_KD 50.0f
+#define PITCH_ENCODE_RELATIVE_PID_KD 0.0f
 
 #define PITCH_ENCODE_RELATIVE_PID_MAX_OUT 10.0f
 #define PITCH_ENCODE_RELATIVE_PID_MAX_IOUT 0.0f
 
 //yaw encode angle close-loop PID params, max out and max iout
 //yaw 角度环 角度由编码器 PID参数以及 PID最大输出，积分输出
-#define YAW_ENCODE_RELATIVE_PID_KP        30.0f
+#define YAW_ENCODE_RELATIVE_PID_KP        1.0f
 #define YAW_ENCODE_RELATIVE_PID_KI        0.0f
-#define YAW_ENCODE_RELATIVE_PID_KD        5500.0f
+#define YAW_ENCODE_RELATIVE_PID_KD        0.0f
 #define YAW_ENCODE_RELATIVE_PID_MAX_OUT   10.0f
 #define YAW_ENCODE_RELATIVE_PID_MAX_IOUT  0.0f
 
@@ -140,7 +140,7 @@
 #define INIT_PITCH_SET  0.0f
 
 //云台校准中值的时候，发送原始电流值，以及堵转时间，通过陀螺仪判断堵转
-#define GIMBAL_CALI_MOTOR_SET   8000
+#define GIMBAL_CALI_MOTOR_SET   4000
 #define GIMBAL_CALI_STEP_TIME   2000
 #define GIMBAL_CALI_GYRO_LIMIT  0.1f
 
@@ -293,7 +293,7 @@ extern const gimbal_motor_t *get_pitch_motor_point(void);
   * @retval         none
   */
 
-extern void gimbal_task(void const *pvParameters);
+_Noreturn extern void gimbal_task(void const *pvParameters);
 
 /**
   * @brief          gimbal cali calculate, return motor offset encode, max and min relative angle

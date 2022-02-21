@@ -27,8 +27,7 @@
 #define GIMBAL_CAN hcan2
 
 /* CAN send and receive ID */
-typedef enum
-{
+typedef enum {
     CAN_CHASSIS_ALL_ID = 0x200,
     CAN_3508_M1_ID = 0x201,
     CAN_3508_M2_ID = 0x202,
@@ -36,7 +35,7 @@ typedef enum
     CAN_3508_M4_ID = 0x204,
 
     CAN_YAW_MOTOR_ID = 0x205,
-    CAN_PIT_MOTOR_ID = 0x206,
+    CAN_PIT_MOTOR_ID = 0x205,
     CAN_TRIGGER_MOTOR_ID = 0x207,
     CAN_GIMBAL_ALL_ID = 0x1FF,
 
@@ -72,6 +71,9 @@ typedef struct {
   */
 extern void CAN_cmd_gimbal(int16_t yaw, int16_t pitch, int16_t shoot, int16_t rev);
 
+void CAN_cmd_gimbal_can1(int16_t yaw, int16_t pitch, int16_t shoot, int16_t rev);
+
+void CAN_cmd_gimbal_can2(int16_t yaw, int16_t pitch, int16_t shoot, int16_t rev);
 /**
   * @brief          send CAN packet of ID 0x700, it will set chassis motor 3508 to quick ID setting
   * @param[in]      none

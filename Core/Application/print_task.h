@@ -18,6 +18,7 @@
 #define PRINT_TASK_H
 
 #include "struct_typedef.h"
+#include "stdint-gcc.h"
 
 
 extern void print_task(void const *argument);
@@ -35,5 +36,6 @@ extern fp32 add_angle_test;
 extern int8_t imu_temp;
 extern fp32 err_test;
 extern char switch_test;
+extern uint32_t id_test;
 
 #endif

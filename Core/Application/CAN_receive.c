@@ -27,6 +27,7 @@
 
 
 #include "detect_task.h"
+#include "print_task.h"
 
 extern CAN_HandleTypeDef hcan1;
 extern CAN_HandleTypeDef hcan2;
@@ -54,11 +55,12 @@ motor data,  0:chassis motor1 3508;1:chassis motor3 3508;2:chassis motor3 3508;3
 电机数据, 0:底盘电机1 3508电机,  1:底盘电机2 3508电机,2:底盘电机3 3508电机,3:底盘电机4 3508电机;
 4:yaw云台电机 6020电机; 5:pitch云台电机 6020电机; 6:拨弹电机 2006电机*/
 static motor_measure_t motor_chassis[7];
+static motor_measure_t can2_motor_chassis[7];
 
-static CAN_TxHeaderTypeDef  gimbal_tx_message;
-static uint8_t              gimbal_can_send_data[8];
-static CAN_TxHeaderTypeDef  chassis_tx_message;
-static uint8_t              chassis_can_send_data[8];
+static CAN_TxHeaderTypeDef gimbal_tx_message;
+static uint8_t gimbal_can_send_data[8];
+static CAN_TxHeaderTypeDef chassis_tx_message;
+static uint8_t chassis_can_send_data[8];
 
 /**
   * @brief          hal CAN fifo call back, receive motor data
@@ -70,49 +72,54 @@ static uint8_t              chassis_can_send_data[8];
   * @param[in]      hcan:CAN句柄指针
   * @retval         none
   */
-void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)
-{
+void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan) {
     CAN_RxHeaderTypeDef rx_header;
     uint8_t rx_data[8];
-
+    static uint8_t i = 0;
     HAL_CAN_GetRxMessage(hcan, CAN_RX_FIFO0, &rx_header, rx_data);
-if (hcan->Instance == CAN1) {
-    switch (rx_header.StdId) {
-        case CAN_3508_M1_ID:
-        case CAN_3508_M2_ID:
-        case CAN_3508_M3_ID:
-        case CAN_3508_M4_ID: {
-            static uint8_t i = 0;
-            //get motor id
-            i = rx_header.StdId - CAN_3508_M1_ID;
-            get_motor_measure(&motor_chassis[i], rx_data);
-            detect_hook(CHASSIS_MOTOR1_TOE + i);
-            break;
+    if (hcan->Instance == CAN1) {
+        switch (rx_header.StdId) {
+            case CAN_3508_M1_ID:
+            case CAN_3508_M2_ID:
+            case CAN_3508_M3_ID:
+            case CAN_3508_M4_ID:
+            case CAN_YAW_MOTOR_ID: {
+
+                //get motor id
+                i = rx_header.StdId - CAN_3508_M1_ID;
+                get_motor_measure(&motor_chassis[i], rx_data);
+                detect_hook(CHASSIS_MOTOR1_TOE + i);
+                break;
+            }
+
+            default: {
+                break;
+            }
         }
 
-        default: {
-            break;
+    } else if (hcan->Instance == CAN2) {
+//        id_test = rx_header.StdId;//for_test
+        switch (rx_header.StdId) {
+            case CAN_PIT_MOTOR_ID: {
+
+                get_motor_measure(&can2_motor_chassis[5], rx_data);
+                detect_hook(6);
+                break;
+            }
+            case CAN_TRIGGER_MOTOR_ID: {
+                //get motor id
+                i = rx_header.StdId - CAN_3508_M1_ID;
+                id_test = i;//for_test
+                get_motor_measure(&can2_motor_chassis[i], rx_data);
+                detect_hook(CHASSIS_MOTOR1_TOE + i);
+                break;
+            }
+
+            default: {
+                break;
+            }
         }
     }
-
-} else if (hcan->Instance == CAN2) {
-    switch (rx_header.StdId) {
-        case CAN_YAW_MOTOR_ID:
-        case CAN_PIT_MOTOR_ID:
-        case CAN_TRIGGER_MOTOR_ID: {
-            static uint8_t i = 0;
-            //get motor id
-            i = rx_header.StdId - CAN_3508_M1_ID;
-            get_motor_measure(&motor_chassis[i], rx_data);
-            detect_hook(CHASSIS_MOTOR1_TOE + i);
-            break;
-        }
-
-        default: {
-            break;
-        }
-    }
-}
 //    switch (rx_header.StdId)
 //    {
 //        case CAN_3508_M1_ID:
@@ -156,8 +163,7 @@ if (hcan->Instance == CAN1) {
   * @param[in]      rev: (0x208) 保留，电机控制电流
   * @retval         none
   */
-void CAN_cmd_gimbal(int16_t yaw, int16_t pitch, int16_t shoot, int16_t rev)
-{
+void CAN_cmd_gimbal(int16_t yaw, int16_t pitch, int16_t shoot, int16_t rev) {
     uint32_t send_mail_box;
     gimbal_tx_message.StdId = CAN_GIMBAL_ALL_ID;
     gimbal_tx_message.IDE = CAN_ID_STD;
@@ -174,6 +180,57 @@ void CAN_cmd_gimbal(int16_t yaw, int16_t pitch, int16_t shoot, int16_t rev)
     HAL_CAN_AddTxMessage(&GIMBAL_CAN, &gimbal_tx_message, gimbal_can_send_data, &send_mail_box);
 }
 
+
+/**
+  * @brief          send control current of motor (0x205, 0x206, 0x207, 0x208)
+  * @param[in]      yaw: (0x205) 6020 motor control current, range [-30000,30000]
+  * @param[in]      pitch: (0x206) 6020 motor control current, range [-30000,30000]
+  * @param[in]      shoot: (0x207) 2006 motor control current, range [-10000,10000]
+  * @param[in]      rev: (0x208) reserve motor control current
+  * @retval         none
+  */
+/**
+  * @brief          发送电机控制电流(0x205,0x206,0x207,0x208)
+  * @param[in]      yaw: (0x205) 6020电机控制电流, 范围 [-30000,30000]
+  * @param[in]      pitch: (0x206) 6020电机控制电流, 范围 [-30000,30000]
+  * @param[in]      shoot: (0x207) 2006电机控制电流, 范围 [-10000,10000]
+  * @param[in]      rev: (0x208) 保留，电机控制电流
+  * @retval         none
+  */
+void CAN_cmd_gimbal_can1(int16_t yaw, int16_t pitch, int16_t shoot, int16_t rev) {
+    uint32_t send_mail_box;
+    gimbal_tx_message.StdId = CAN_GIMBAL_ALL_ID;
+    gimbal_tx_message.IDE = CAN_ID_STD;
+    gimbal_tx_message.RTR = CAN_RTR_DATA;
+    gimbal_tx_message.DLC = 0x08;
+    gimbal_can_send_data[0] = (yaw >> 8);
+    gimbal_can_send_data[1] = yaw;
+    gimbal_can_send_data[2] = (pitch >> 8);
+    gimbal_can_send_data[3] = pitch;
+    gimbal_can_send_data[4] = (shoot >> 8);
+    gimbal_can_send_data[5] = shoot;
+    gimbal_can_send_data[6] = (rev >> 8);
+    gimbal_can_send_data[7] = rev;
+    HAL_CAN_AddTxMessage(&hcan1, &gimbal_tx_message, gimbal_can_send_data, &send_mail_box);
+}
+
+void CAN_cmd_gimbal_can2(int16_t yaw, int16_t pitch, int16_t shoot, int16_t rev) {
+    uint32_t send_mail_box;
+    gimbal_tx_message.StdId = CAN_GIMBAL_ALL_ID;
+    gimbal_tx_message.IDE = CAN_ID_STD;
+    gimbal_tx_message.RTR = CAN_RTR_DATA;
+    gimbal_tx_message.DLC = 0x08;
+    gimbal_can_send_data[0] = (yaw >> 8);
+    gimbal_can_send_data[1] = yaw;
+    gimbal_can_send_data[2] = (pitch >> 8);
+    gimbal_can_send_data[3] = pitch;
+    gimbal_can_send_data[4] = (shoot >> 8);
+    gimbal_can_send_data[5] = shoot;
+    gimbal_can_send_data[6] = (rev >> 8);
+    gimbal_can_send_data[7] = rev;
+    HAL_CAN_AddTxMessage(&hcan2, &gimbal_tx_message, gimbal_can_send_data, &send_mail_box);
+}
+
 /**
   * @brief          send CAN packet of ID 0x700, it will set chassis motor 3508 to quick ID setting
   * @param[in]      none
@@ -184,8 +241,7 @@ void CAN_cmd_gimbal(int16_t yaw, int16_t pitch, int16_t shoot, int16_t rev)
   * @param[in]      none
   * @retval         none
   */
-void CAN_cmd_chassis_reset_ID(void)
-{
+void CAN_cmd_chassis_reset_ID(void) {
     uint32_t send_mail_box;
     chassis_tx_message.StdId = 0x700;
     chassis_tx_message.IDE = CAN_ID_STD;
@@ -220,8 +276,7 @@ void CAN_cmd_chassis_reset_ID(void)
   * @param[in]      motor4: (0x204) 3508电机控制电流, 范围 [-16384,16384]
   * @retval         none
   */
-void CAN_cmd_chassis(int16_t motor1, int16_t motor2, int16_t motor3, int16_t motor4)
-{
+void CAN_cmd_chassis(int16_t motor1, int16_t motor2, int16_t motor3, int16_t motor4) {
     uint32_t send_mail_box;
     chassis_tx_message.StdId = CAN_CHASSIS_ALL_ID;
     chassis_tx_message.IDE = CAN_ID_STD;
@@ -249,8 +304,7 @@ void CAN_cmd_chassis(int16_t motor1, int16_t motor2, int16_t motor3, int16_t mot
   * @param[in]      none
   * @retval         电机数据指针
   */
-const motor_measure_t *get_yaw_gimbal_motor_measure_point(void)
-{
+const motor_measure_t *get_yaw_gimbal_motor_measure_point(void) {
     return &motor_chassis[4];
 }
 
@@ -264,9 +318,8 @@ const motor_measure_t *get_yaw_gimbal_motor_measure_point(void)
   * @param[in]      none
   * @retval         电机数据指针
   */
-const motor_measure_t *get_pitch_gimbal_motor_measure_point(void)
-{
-    return &motor_chassis[5];
+const motor_measure_t *get_pitch_gimbal_motor_measure_point(void) {
+    return &can2_motor_chassis[5];
 }
 
 
@@ -280,8 +333,7 @@ const motor_measure_t *get_pitch_gimbal_motor_measure_point(void)
   * @param[in]      none
   * @retval         电机数据指针
   */
-const motor_measure_t *get_trigger_motor_measure_point(void)
-{
+const motor_measure_t *get_trigger_motor_measure_point(void) {
     return &motor_chassis[6];
 }
 
@@ -296,7 +348,6 @@ const motor_measure_t *get_trigger_motor_measure_point(void)
   * @param[in]      i: 电机编号,范围[0,3]
   * @retval         电机数据指针
   */
-const motor_measure_t *get_chassis_motor_measure_point(uint8_t i)
-{
+const motor_measure_t *get_chassis_motor_measure_point(uint8_t i) {
     return &motor_chassis[(i & 0x03)];
 }
