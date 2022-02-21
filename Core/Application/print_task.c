@@ -110,7 +110,7 @@ referee usart:%s\r\n\
 //            cali
             SEGGER_RTT_SetTerminal(1);
             sprintf(print_buf,
-                    "Yaw_now_ecd=%d,Yaw_total_ecd=%d,Yaw_turncount=%d,Yaw_offset_ecd=%d,Yaw_max_ecd=%d,Yaw_min_ecd=%d,Pitch_now_ecd=%d,Pitch_offset_ecd=%d,Pitch_max_ecd=%d,Pitch_min_ecd=%d\r\n",
+                    "Yaw_now_ecd=%d,Yaw_total_ecd=%d,Yaw_turncount=%d,Yaw_offset_ecd=%d,Yaw_max_ecd=%d,Yaw_min_ecd=%d,Pitch_now_ecd=%d,Pitch_total_ecd=%d,Pitch_turncount=%d,Pitch_offset_ecd=%d,Pitch_max_ecd=%d,Pitch_min_ecd=%d\r\n",
                     gimbal_control.gimbal_yaw_motor.gimbal_motor_measure->ecd,
                     gimbal_control.gimbal_yaw_motor.gimbal_motor_measure->total_ecd,
                     gimbal_control.gimbal_yaw_motor.gimbal_motor_measure->turnCount,
@@ -118,6 +118,8 @@ referee usart:%s\r\n\
                     gimbal_control.gimbal_cali.max_yaw_ecd,
                     gimbal_control.gimbal_cali.min_yaw_ecd,
                     gimbal_control.gimbal_pitch_motor.gimbal_motor_measure->ecd,
+                    gimbal_control.gimbal_yaw_motor.gimbal_motor_measure->total_ecd,
+                    gimbal_control.gimbal_yaw_motor.gimbal_motor_measure->turnCount,
                     gimbal_control.gimbal_pitch_motor.offset_ecd,
                     gimbal_control.gimbal_cali.max_pitch_ecd,
                     gimbal_control.gimbal_cali.max_pitch_ecd);

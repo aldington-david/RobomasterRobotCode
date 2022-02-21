@@ -70,9 +70,9 @@
 
 //pitch encode angle close-loop PID params, max out and max iout
 //pitch 角度环 角度由编码器 PID参数以及 PID最大输出，积分输出
-#define PITCH_ENCODE_RELATIVE_PID_KP 1.0f
+#define PITCH_ENCODE_RELATIVE_PID_KP 200.0f
 #define PITCH_ENCODE_RELATIVE_PID_KI 0.00f
-#define PITCH_ENCODE_RELATIVE_PID_KD 0.0f
+#define PITCH_ENCODE_RELATIVE_PID_KD 400.0f
 
 #define PITCH_ENCODE_RELATIVE_PID_MAX_OUT 10.0f
 #define PITCH_ENCODE_RELATIVE_PID_MAX_IOUT 0.0f
@@ -121,8 +121,8 @@
 //云台测试模式 宏定义 0 为不使用测试模式
 #define GIMBAL_TEST_MODE 0
 
-#define PITCH_TURN  1
-#define YAW_TURN    0
+#define PITCH_TURN  0
+#define YAW_TURN    1
 
 //电机码盘值最大以及中值
 #define HALF_ECD_RANGE  4096

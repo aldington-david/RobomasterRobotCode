@@ -638,8 +638,8 @@ const gimbal_motor_t *get_pitch_motor_point(void) {
   */
 static void gimbal_init(gimbal_control_t *init) {
 
-    static const fp32 Pitch_speed_pid[3] = {1, 0, 0};
-    static const fp32 Yaw_speed_pid[3] = {1, 0, 0};
+    static const fp32 Pitch_speed_pid[3] = {200, 0, 400};
+    static const fp32 Yaw_speed_pid[3] = {350, 0, 500};
     //电机数据指针获取
     init->gimbal_yaw_motor.gimbal_motor_measure = get_yaw_gimbal_motor_measure_point();
     init->gimbal_pitch_motor.gimbal_motor_measure = get_pitch_gimbal_motor_measure_point();
@@ -673,8 +673,8 @@ static void gimbal_init(gimbal_control_t *init) {
 //                 init->gimbal_pitch_motor.gimbal_motor_relative_angle_pid.err_kal_R);
 //    KalmanCreate(&Cloud_PITCHODKalman, init->gimbal_pitch_motor.gimbal_motor_relative_angle_pid.out_kal_Q,
 //                 init->gimbal_pitch_motor.gimbal_motor_relative_angle_pid.out_kal_R);
-    KalmanCreate(&init->gimbal_pitch_motor.Cloud_MotorAngle_Error_Kalman, 1, 1);
-    KalmanCreate(&init->gimbal_pitch_motor.gimbal_motor_relative_angle_pid.Cloud_OCKalman, 1, 1);
+    KalmanCreate(&init->gimbal_pitch_motor.Cloud_MotorAngle_Error_Kalman, 10.0, 0.00001);
+    KalmanCreate(&init->gimbal_pitch_motor.gimbal_motor_relative_angle_pid.Cloud_OCKalman, 0.0001, 40.0);
     KalmanCreate(&init->gimbal_yaw_motor.Cloud_MotorAngle_Error_Kalman, 1, 1.0);
     KalmanCreate(&init->gimbal_yaw_motor.gimbal_motor_relative_angle_pid.Cloud_OCKalman, 1.0, 1.0);
 
