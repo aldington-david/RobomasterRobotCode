@@ -100,14 +100,14 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan) {
     } else if (hcan->Instance == CAN2) {
 //        id_test = rx_header.StdId;//for_test
         switch (rx_header.StdId) {
-            case CAN_3508_M1_ID:
-            case CAN_3508_M4_ID:
             case CAN_PIT_MOTOR_ID: {
 
                 get_motor_measure(&can2_motor_chassis[5], rx_data);
                 detect_hook(6);
                 break;
             }
+            case CAN_3508_M1_ID:
+            case CAN_3508_M4_ID:
             case CAN_TRIGGER_MOTOR_ID: {
                 //get motor id
                 i = rx_header.StdId - CAN_3508_M1_ID;
@@ -336,7 +336,7 @@ const motor_measure_t *get_pitch_gimbal_motor_measure_point(void) {
   * @retval         电机数据指针
   */
 const motor_measure_t *get_trigger_motor_measure_point(void) {
-    return &motor_chassis[6];
+    return &can2_motor_chassis[6];
 }
 
 
@@ -355,9 +355,9 @@ const motor_measure_t *get_chassis_motor_measure_point(uint8_t i) {
 }
 
 const motor_measure_t *get_trigger_motor1_measure_point(void) {
-    return &can2_motor_chassis[1];
+    return &can2_motor_chassis[0];
 }
 
 const motor_measure_t *get_trigger_motor2_measure_point(void) {
-    return &can2_motor_chassis[4];
+    return &can2_motor_chassis[3];
 }

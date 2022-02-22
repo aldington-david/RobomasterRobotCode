@@ -19,6 +19,7 @@
 #include "main.h"
 #include "gimbal_task.h"
 #include "print_task.h"
+#include "shoot.h"
 
 #define abs(x) ((x) > 0 ? (x) : (-x))
 #define LimitMax(input, max)   \
@@ -639,7 +640,10 @@ float Cloud_IPID(pid_type_def *pid, fp32 ref, fp32 set) {
     pid->set = set;
     pid->fdb = ref;
     pid->error[0] = set - ref;
-    err_test = pid->error[0];
+
+    if (pid == &shoot_control.fric1_motor_pid) {//for_test
+        err_test = pid->error[0];
+    }
 
     pid->Pout = pid->Kp * pid->error[0];
     if (pid->Variable_I) {

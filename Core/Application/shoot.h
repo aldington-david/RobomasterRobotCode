@@ -55,7 +55,7 @@
 #define FULL_COUNT                  18
 //拨弹速度
 #define TRIGGER_SPEED               10.0f
-#define CONTINUE_TRIGGER_SPEED      10.0f
+#define CONTINUE_TRIGGER_SPEED      12.0f
 #define READY_TRIGGER_SPEED         5.0f
 
 #define KEY_OFF_JUGUE_TIME          500
@@ -63,23 +63,23 @@
 #define SWITCH_TRIGGER_OFF          1
 
 //卡单时间 以及反转时间
-#define BLOCK_TRIGGER_SPEED         1.0f
-#define BLOCK_TIME                  700
-#define REVERSE_TIME                500
+#define BLOCK_TRIGGER_SPEED         0.7f
+#define BLOCK_TIME                  3500
+#define REVERSE_TIME                10
 #define REVERSE_SPEED_LIMIT         13.0f
 
 #define PI_FOUR                     0.78539816339744830961566084581988f
 #define PI_TEN                      0.314f
 
 //拨弹轮电机PID
-#define TRIGGER_ANGLE_PID_KP        800.0f
+#define TRIGGER_ANGLE_PID_KP        1000.0f
 #define TRIGGER_ANGLE_PID_KI        0.5f
 #define TRIGGER_ANGLE_PID_KD        0.0f
 
 #define TRIGGER_BULLET_PID_MAX_OUT  10000.0f
 #define TRIGGER_BULLET_PID_MAX_IOUT 9000.0f
 
-#define TRIGGER_READY_PID_MAX_OUT   10000.0f
+#define TRIGGER_READY_PID_MAX_OUT   15000.0f
 #define TRIGGER_READY_PID_MAX_IOUT  7000.0f
 
 
@@ -114,6 +114,7 @@ typedef struct {
     pid_type_def fric1_motor_pid;
     pid_type_def fric2_motor_pid;
 
+    fp32 fric_all_speed;
     fp32 fric1_speed_set;
     fp32 fric2_speed_set;
     fp32 fric1_speed;
