@@ -187,7 +187,7 @@ int16_t shoot_control_loop(void) {
 //        ramp_calc(&shoot_control.fric2_ramp, shoot_control.pwm);
         gimbal_control.fric1_current_set = Cloud_IPID(&shoot_control.fric1_motor_pid, shoot_control.fric1_speed,
                                                       shoot_control.fric1_speed_set);
-        gimbal_control.fric2_current_set = Cloud_IPID(&shoot_control.fric2_motor_pid, shoot_control.fric2_speed,
+        gimbal_control.fric2_current_set = Cloud_IPID(&shoot_control.fric2_motor_pid, -shoot_control.fric2_speed,
                                                       shoot_control.fric2_speed_set);
 
     }
