@@ -248,14 +248,19 @@ typedef struct
     uint8_t step;
 } gimbal_step_cali_t;
 
-typedef struct
-{
+typedef struct {
     const RC_ctrl_t *gimbal_rc_ctrl;
     const fp32 *gimbal_INT_angle_point;
     const fp32 *gimbal_INT_gyro_point;
     gimbal_motor_t gimbal_yaw_motor;
     gimbal_motor_t gimbal_pitch_motor;
     gimbal_step_cali_t gimbal_cali;
+
+    fp32 fric1_current_set;
+    int16_t fric1_give_current;
+    fp32 fric2_current_set;
+    int16_t fric2_give_current;
+
 } gimbal_control_t;
 
 /**

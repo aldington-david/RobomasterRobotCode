@@ -100,6 +100,8 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan) {
     } else if (hcan->Instance == CAN2) {
 //        id_test = rx_header.StdId;//for_test
         switch (rx_header.StdId) {
+            case CAN_3508_M1_ID:
+            case CAN_3508_M4_ID:
             case CAN_PIT_MOTOR_ID: {
 
                 get_motor_measure(&can2_motor_chassis[5], rx_data);
@@ -216,7 +218,7 @@ void CAN_cmd_gimbal_can1(int16_t yaw, int16_t pitch, int16_t shoot, int16_t rev)
 
 void CAN_cmd_gimbal_can2(int16_t yaw, int16_t pitch, int16_t shoot, int16_t rev) {
     uint32_t send_mail_box;
-    gimbal_tx_message.StdId = CAN_GIMBAL_ALL_ID;
+    gimbal_tx_message.StdId = CAN_CHASSIS_ALL_ID;
     gimbal_tx_message.IDE = CAN_ID_STD;
     gimbal_tx_message.RTR = CAN_RTR_DATA;
     gimbal_tx_message.DLC = 0x08;
@@ -350,4 +352,12 @@ const motor_measure_t *get_trigger_motor_measure_point(void) {
   */
 const motor_measure_t *get_chassis_motor_measure_point(uint8_t i) {
     return &motor_chassis[(i & 0x03)];
+}
+
+const motor_measure_t *get_trigger_motor1_measure_point(void) {
+    return &can2_motor_chassis[1];
+}
+
+const motor_measure_t *get_trigger_motor2_measure_point(void) {
+    return &can2_motor_chassis[4];
 }

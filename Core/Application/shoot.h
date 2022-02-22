@@ -97,16 +97,28 @@ typedef enum
 } shoot_mode_e;
 
 
-typedef struct
-{
+typedef struct {
     shoot_mode_e shoot_mode;
     const RC_ctrl_t *shoot_rc;
     const motor_measure_t *shoot_motor_measure;
+
+    const motor_measure_t *fric1_motor_measure;
+    const motor_measure_t *fric2_motor_measure;
+
     ramp_function_source_t fric1_ramp;
     uint16_t fric_pwm1;
     ramp_function_source_t fric2_ramp;
     uint16_t fric_pwm2;
     pid_type_def trigger_motor_pid;
+
+    pid_type_def fric1_motor_pid;
+    pid_type_def fric2_motor_pid;
+
+    fp32 fric1_speed_set;
+    fp32 fric2_speed_set;
+    fp32 fric1_speed;
+    fp32 fric2_speed;
+
     fp32 trigger_speed_set;
     fp32 speed;
     fp32 speed_set;

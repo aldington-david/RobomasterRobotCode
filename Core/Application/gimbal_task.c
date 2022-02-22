@@ -369,8 +369,9 @@ void gimbal_task(void const *pvParameters) {
                 CAN_cmd_gimbal_can1(0, 0, 0, 0);
 
             } else {
-                CAN_cmd_gimbal(pitch_can_set_current, 0, 0, 0);
+                CAN_cmd_gimbal(pitch_can_set_current, 0, shoot_can_set_current, 0);
                 CAN_cmd_gimbal_can1(yaw_can_set_current, 0, 0, 0);
+                CAN_cmd_gimbal_can2(gimbal_control.fric1_give_current, 0, 0, gimbal_control.fric2_give_current);
             }
         }
 
@@ -638,8 +639,8 @@ const gimbal_motor_t *get_pitch_motor_point(void) {
   */
 static void gimbal_init(gimbal_control_t *init) {
 
-    static const fp32 Pitch_speed_pid[3] = {200, 0, 400};
-    static const fp32 Yaw_speed_pid[3] = {350, 0, 500};
+    static const fp32 Pitch_speed_pid[3] = {350, 0, 500};
+    static const fp32 Yaw_speed_pid[3] = {0, 0, 0};
     //电机数据指针获取
     init->gimbal_yaw_motor.gimbal_motor_measure = get_yaw_gimbal_motor_measure_point();
     init->gimbal_pitch_motor.gimbal_motor_measure = get_pitch_gimbal_motor_measure_point();
