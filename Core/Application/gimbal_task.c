@@ -338,10 +338,10 @@ void gimbal_task(void const *pvParameters) {
     shoot_init();
     //wait for all motor online
     //判断电机是否都上线
-    while (toe_is_error(YAW_GIMBAL_MOTOR_TOE) || toe_is_error(PITCH_GIMBAL_MOTOR_TOE)) {
-        vTaskDelay(GIMBAL_CONTROL_TIME);
-        gimbal_feedback_update(&gimbal_control);             //云台数据反馈
-    }
+//    while (toe_is_error(YAW_GIMBAL_MOTOR_TOE) || toe_is_error(PITCH_GIMBAL_MOTOR_TOE)) {
+//        vTaskDelay(GIMBAL_CONTROL_TIME);
+//        gimbal_feedback_update(&gimbal_control);             //云台数据反馈
+//    }
 
     while (1) {
         gimbal_set_mode(&gimbal_control);                    //设置云台控制模式
@@ -365,13 +365,14 @@ void gimbal_task(void const *pvParameters) {
         if (!(toe_is_error(YAW_GIMBAL_MOTOR_TOE) && toe_is_error(PITCH_GIMBAL_MOTOR_TOE) &&
               toe_is_error(TRIGGER_MOTOR_TOE))) {
             if (toe_is_error(DBUS_TOE)) {
-                CAN_cmd_gimbal(0, 0, 0, 0);
-                CAN_cmd_gimbal_can1(0, 0, 0, 0);
+//                CAN_cmd_gimbal(0, 0, 0, 0);
+//                CAN_cmd_gimbal_can1(0, 0, 0, 0);
 
             } else {
-                CAN_cmd_gimbal(pitch_can_set_current, 0, shoot_can_set_current, 0);
-                CAN_cmd_gimbal_can1(yaw_can_set_current, 0, 0, 0);
-                CAN_cmd_gimbal_can2(gimbal_control.fric1_give_current, 0, 0, gimbal_control.fric2_give_current);
+//                CAN_cmd_gimbal_can1(0, 0, gimbal_control.fric1_give_current, gimbal_control.fric2_give_current);
+//                CAN_cmd_gimbal(pitch_can_set_current, 0, 0, 0);
+//                CAN_cmd_gimbal_can1(yaw_can_set_current, shoot_can_set_current, 0, 0);
+//                CAN_cmd_gimbal_can2(gimbal_control.fric1_give_current, 0, 0, gimbal_control.fric2_give_current);
             }
         }
 

@@ -134,8 +134,8 @@ referee usart:%s\r\n\
 //                    global_judge_info.ShootData.bullet_speed);
 //            SEGGER_RTT_WriteString(0, print_buf);
 //            //拨盘pid
-            //拨盘数据
-//            SEGGER_RTT_SetTerminal(8);
+//            拨盘数据
+//            SEGGER_RTT_SetTerminal(1);
 //            sprintf(print_buf,
 //                    "shoot_mode=%d,pwm1=%d,pwm2=%d,ecd=%d,ecd_count=%d,angle=%f,t_sp_set=%f,mv_flag=%d,switch_test=%c\r\n",
 //                    shoot_control.shoot_mode,
@@ -156,7 +156,7 @@ referee usart:%s\r\n\
 //                    shoot_control.trigger_motor_pid.Ki,
 //                    shoot_control.trigger_motor_pid.Kd);
 //            SEGGER_RTT_WriteString(0, print_buf);
-//            //摩擦轮pid
+            //摩擦轮pid
 //            SEGGER_RTT_SetTerminal(2);
 //            sprintf(print_buf,
 //                    "tr_p=%f,tr_i=%f,tr_d=%f,fr1_p=%f,fr1_i=%f,fr1_d=%f,fr1_IS=%f,fr2_p=%f,fr2_i=%f,fr2_d=%f,fr2_IS=%f,err=%f\r\n",
@@ -188,13 +188,13 @@ referee usart:%s\r\n\
 //                    gimbal_control.fric1_give_current,
 //                    gimbal_control.fric2_give_current);
 //            SEGGER_RTT_WriteString(0, print_buf);
-//            //拨盘波形显示
-//            RTT_PrintWave(&shoot_control.speed_set,
-//                          &shoot_control.speed,
-//                          &shoot_control.set_angle,
-//                          &shoot_control.angle,
-//                          NULL,
-//                          NULL);
+////            //拨盘波形显示
+////            RTT_PrintWave(&shoot_control.speed_set,
+////                          &shoot_control.speed,
+////                          &shoot_control.set_angle,
+////                          &shoot_control.angle,
+////                          NULL,
+////                          NULL);
 //            //摩擦轮波形显示
 //            RTT_PrintWave(&shoot_control.fric_all_speed,
 //                          &shoot_control.fric1_speed,

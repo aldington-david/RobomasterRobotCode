@@ -119,7 +119,7 @@ void shoot_init(void) {
     shoot_control.key_time = 0;
     shoot_control.fric1_speed = 0.0f;
     shoot_control.fric2_speed = 0.0f;
-    shoot_control.fric_all_speed = 700.0f;
+    shoot_control.fric_all_speed = 100.0f;
     shoot_control.fric1_speed_set = shoot_control.fric_all_speed;
     shoot_control.fric2_speed_set = -shoot_control.fric_all_speed;
 }

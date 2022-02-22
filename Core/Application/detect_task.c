@@ -111,6 +111,8 @@ void detect_task(void const *pvParameters)
             //未使能，跳过
             if (error_list[i].enable == 0)
             {
+                error_list[i].is_lost = 0;
+                error_list[i].error_exist = 0;
                 continue;
             }
 
@@ -282,7 +284,7 @@ static void detect_init(uint32_t time)
         error_list[i].solve_lost_fun = NULL;
         error_list[i].solve_data_error_fun = NULL;
 
-        error_list[i].enable = 1;
+        error_list[i].enable = 0;
         error_list[i].error_exist = 1;
         error_list[i].is_lost = 1;
         error_list[i].data_is_error = 1;
@@ -291,6 +293,9 @@ static void detect_init(uint32_t time)
         error_list[i].last_time = time;
         error_list[i].lost_time = time;
         error_list[i].work_time = time;
+        if (i == 0 || i == 1 || i == 2 || i == 3 || i == 4) {
+            error_list[i].enable = 1;
+        }
     }
 
     error_list[OLED_TOE].data_is_error_fun = NULL;
