@@ -29,7 +29,8 @@ static void Print_RTT_ReadBuffer(void);
 
 static void Use_RTT_SetConfig(void *const variable);
 
-extern void RTT_PrintWave(fp32 *param1, fp32 *param2, fp32 *param3, fp32 *param4, fp32 *param5, fp32 *param6);
+//extern void RTT_PrintWave(fp32 *param1, fp32 *param2, fp32 *param3, fp32 *param4, fp32 *param5, fp32 *param6);
+extern void RTT_PrintWave(int num_args, ...);
 
 extern fp32 bias_angle_test;
 extern fp32 add_angle_test;

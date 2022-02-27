@@ -101,7 +101,9 @@ referee usart:%s\r\n\
 
         while (1) {
             osDelay(50);
-            /***********************电机校准打印数据 Start *****************************/
+            /***********************打印数据 Start *****************************/
+//            //功率显示
+//            RTT_PrintWave(1,&global_judge_info.PowerHeatData.chassis_power);
 //            //CAN_id
 //            SEGGER_RTT_SetTerminal(9);
 //            sprintf(print_buf, "can2_id=%d\r\n",
@@ -124,8 +126,6 @@ referee usart:%s\r\n\
 //                    gimbal_control.gimbal_cali.max_pitch_ecd,
 //                    gimbal_control.gimbal_cali.max_pitch_ecd);
 //            SEGGER_RTT_WriteString(0, print_buf);
-//            //拨盘
-//            RTT_PrintWave(&global_judge_info.PowerHeatData.chassis_power,NULL,NULL,NULL,NULL,NULL);
 //            //裁判系统射速
 //            SEGGER_RTT_SetTerminal(1);
 //            sprintf(print_buf,
@@ -189,19 +189,16 @@ referee usart:%s\r\n\
 //                    gimbal_control.fric2_give_current);
 //            SEGGER_RTT_WriteString(0, print_buf);
 //            //拨盘波形显示
-//            RTT_PrintWave(&shoot_control.speed_set,
+//            RTT_PrintWave(4,
+//                          &shoot_control.speed_set,
 //                          &shoot_control.speed,
 //                          &shoot_control.set_angle,
-//                          &shoot_control.angle,
-//                          NULL,
-//                          NULL);
+//                          &shoot_control.angle);
 //            //摩擦轮波形显示
-//            RTT_PrintWave(&shoot_control.fric_all_speed,
+//            RTT_PrintWave(3,
+//                          &shoot_control.fric_all_speed,
 //                          &shoot_control.fric1_speed,
-//                          &shoot_control.fric2_speed,
-//                          NULL,
-//                          NULL,
-//                          NULL);
+//                          &shoot_control.fric2_speed);
             //relative_mode
 
 ////            Pitch
@@ -246,12 +243,12 @@ referee usart:%s\r\n\
 //                    gimbal_control.gimbal_pitch_motor.given_current);
 //            SEGGER_RTT_WriteString(0, print_buf);
 //            //波形显示
-//            RTT_PrintWave(&gimbal_control.gimbal_pitch_motor.relative_angle_set,
+//            RTT_PrintWave(5,
+//                          &gimbal_control.gimbal_pitch_motor.relative_angle_set,
 //                          &gimbal_control.gimbal_pitch_motor.relative_angle,
 //                          &gimbal_control.gimbal_pitch_motor.motor_gyro_set,
 //                          &gimbal_control.gimbal_pitch_motor.motor_gyro,
-//                          &gimbal_control.gimbal_pitch_motor.motor_speed,
-//                          NULL);
+//                          &gimbal_control.gimbal_pitch_motor.motor_speed);
 
             //YAW
             SEGGER_RTT_SetTerminal(2);
@@ -329,12 +326,12 @@ referee usart:%s\r\n\
 //            SEGGER_RTT_WriteString(0, print_buf);
 //
             //波形显示
-            RTT_PrintWave(&gimbal_control.gimbal_yaw_motor.relative_angle_set,
+            RTT_PrintWave(5,
+                          &gimbal_control.gimbal_yaw_motor.relative_angle_set,
                           &gimbal_control.gimbal_yaw_motor.relative_angle,
                           &gimbal_control.gimbal_yaw_motor.motor_gyro_set,
                           &gimbal_control.gimbal_yaw_motor.motor_gyro,
-                          &gimbal_control.gimbal_yaw_motor.motor_speed,
-                          NULL);
+                          &gimbal_control.gimbal_yaw_motor.motor_speed);
 
 
             //abosolute_mode
@@ -377,55 +374,14 @@ referee usart:%s\r\n\
 //                    INS_angle[2]);
 //            SEGGER_RTT_WriteString(0, print_buf);
             //波形显示
-//            RTT_PrintWave(&gimbal_control.gimbal_pitch_motor.absolute_angle_set,
+//            RTT_PrintWave(4,
+//                          &gimbal_control.gimbal_pitch_motor.absolute_angle_set,
 //                          &gimbal_control.gimbal_pitch_motor.absolute_angle,
 //                          &gimbal_control.gimbal_pitch_motor.motor_gyro_set,
 //                          &gimbal_control.gimbal_pitch_motor.motor_gyro);
-            /***********************电机校准打印数据 End *****************************/
+            /***********************打印数据 End *****************************/
 
 
-
-//            sprintf(print_buf, "setmousey=%d,rfmousey=%d\r\n",rc_ctrl.mouse.y,gimbal_control.gimbal_rc_ctrl->mouse.y);
-//            SEGGER_RTT_WriteString(0, print_buf);
-
-//            sprintf(print_buf, "abkp=%f\r\nabki=%f\r\nabkd=%f\r\n",
-//                    gimbal_control.gimbal_pitch_motor.gimbal_motor_absolute_angle_pid.kp,
-//                    gimbal_control.gimbal_pitch_motor.gimbal_motor_absolute_angle_pid.ki,
-//                    gimbal_control.gimbal_pitch_motor.gimbal_motor_absolute_angle_pid.kd);
-//            SEGGER_RTT_WriteString(0, print_buf);
-
-
-//            sprintf(print_buf, "spkp=%f\r\nspki=%f\r\nspkd=%f\r\n",
-//                    gimbal_control.gimbal_pitch_motor.gimbal_motor_gyro_pid.Kp,
-//                    gimbal_control.gimbal_pitch_motor.gimbal_motor_gyro_pid.Ki,
-//                    gimbal_control.gimbal_pitch_motor.gimbal_motor_gyro_pid.Kd);
-//            SEGGER_RTT_WriteString(0, print_buf);
-
-//            SEGGER_RTT_SetTerminal(1);
-//            sprintf(print_buf, "bias_angle=%f,add_angle=%f\r\n", bias_angle_test, add_angle_test);
-//            SEGGER_RTT_WriteString(0, print_buf);
-
-//            SEGGER_RTT_SetTerminal(3);
-//            sprintf(print_buf, "midecd=%d,nowecd%d\r\nmaxangle=%f,nowangle=%f,minangle=%f\r\n",gimbal_control.gimbal_pitch_motor.offset_ecd,gimbal_control.gimbal_pitch_motor.gimbal_motor_measure->ecd,gimbal_control.gimbal_pitch_motor.max_relative_angle,gimbal_control.gimbal_pitch_motor.relative_angle,gimbal_control.gimbal_pitch_motor.min_relative_angle);
-//            SEGGER_RTT_WriteString(0, print_buf);
-
-
-
-
-
-//            sprintf(print_buf, "ch1=%d,ch2=%d,ch3=%d,ch4=%d,ch5=%d\r\n",
-//                    rc_ctrl.rc.ch[0],
-//                    rc_ctrl.rc.ch[1],
-//                    rc_ctrl.rc.ch[2],
-//                    rc_ctrl.rc.ch[3]
-//                    ,rc_ctrl.rc.ch[4]);
-//            SEGGER_RTT_WriteString(0, print_buf);
-
-//            SEGGER_RTT_printf(0, "RedText \r\n", RTT_CTRL_TEXT_BRIGHT_RED);
-//            SEGGER_RTT_WriteString(0, "中文测试. \r\n ");
-//            SEGGER_RTT_WriteString(0, "adsf");
-//            SEGGER_RTT_TerminalOut(1, "ERROR: Buffer overflow.\r\n");
-//            SEGGER_RTT_SetTerminal(1);
 //            printf(
 //                    "******************************\r\n\
 //voltage percentage:%d%% \r\n\
@@ -523,10 +479,31 @@ static void Use_RTT_SetConfig(void *const variable) {
 }
 
 
-void RTT_PrintWave(fp32 *param1, fp32 *param2, fp32 *param3, fp32 *param4, fp32 *param5, fp32 *param6) {
-    SEGGER_RTT_SetTerminal(0);
+//void RTT_PrintWave(fp32 *param1, fp32 *param2, fp32 *param3, fp32 *param4, fp32 *param5, fp32 *param6) {
+//    SEGGER_RTT_SetTerminal(0);
+//    char buf[256];
+//    sprintf(buf, "%f,%f,%f,%f,%f,%f\r\n", *(float *) param1, *(float *) param2,
+//            *(float *) param3, *(float *) param4, *(float *) param5, *(float *) param6);
+//    SEGGER_RTT_WriteString(0, buf);
+//}
+
+void RTT_PrintWave(int num_args, ...) {
+    fp32 *param_point[num_args];
+    int i;
     char buf[256];
-    sprintf(buf, "%f,%f,%f,%f,%f,%f\r\n", *(float *) param1, *(float *) param2,
-            *(float *) param3, *(float *) param4, *(float *) param5, *(float *) param6);
+    va_list arg;
+    va_start(arg, num_args);
+    int len = 0;
+    for (i = 0; i < num_args; i++) {
+        param_point[i] = va_arg(arg, fp32 *);
+
+        if (i == (num_args - 1)) {
+            len += sprintf((buf + len), "%f\r\n", *(float *) param_point[i]);
+        } else {
+            len += sprintf((buf + len), "%f,", *(float *) param_point[i]);
+        }
+    }
+    va_end(arg);
+    SEGGER_RTT_SetTerminal(0);
     SEGGER_RTT_WriteString(0, buf);
 }
