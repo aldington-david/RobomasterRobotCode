@@ -40,6 +40,7 @@ typedef struct {
 
     fp32 set;
     fp32 fdb;
+    fp32 err;
 
     fp32 out;
     fp32 Pout;
@@ -62,8 +63,15 @@ typedef struct {
     fp32 D2;
     fp32 D1;
 
-    bool D_Low_Pass;
-    first_order_filter_type_t D_Low_Pass_Filter;
+    bool D_Low_Pass;//not_use
+    first_order_filter_type_t D_Low_Pass_Filter;//not_use
+
+    bool NF_D;
+    fp32 Dout_Last;
+    fp32 D_Alpha;//0-1
+
+    lms_filter_type_t PID_lms;
+    lms_filter_type_t PID_lms_2;
 
 } pid_type_def;
 
@@ -89,7 +97,7 @@ typedef struct {
   */
 extern void PID_init(pid_type_def *pid, uint8_t mode, const fp32 PID[3], fp32 max_out, fp32 max_iout, fp32 Integral,
                      bool Variable_I_Switch, fp32 Variable_I_Down, fp32 Variable_I_UP, bool D_First,
-                     fp32 D_Filter_Ratio, bool D_Low_Pass);
+                     fp32 D_Filter_Ratio, bool D_Low_Pass, bool NF_D, fp32 D_Alpha);
 
 /**
   * @brief          pid calculate 
@@ -191,7 +199,7 @@ extern float Cloud_YAWOPID(positionpid_t *pid_t, float target, float measured);
 
 extern float Cloud_YAWIPID(positionpid_t *pid_t, float target, float measured);
 
-
+extern float ALL_PID(pid_type_def *pid, fp32 ref, fp32 set);
 //extern float Vision_YAWIPID(positionpid_t *pid_t, float target, float measured);
 //extern float Vision_YAWOPID(positionpid_t *pid_t, float target, float measured);
 //extern float Vision_PITCHOPID(positionpid_t *pid_t, float target, float measured);

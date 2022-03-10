@@ -1,5 +1,12 @@
 #include "user_lib.h"
 #include "arm_math.h"
+#include "arm_const_structs.h"
+
+//快速指数
+fp32 invpow(fp32 x, fp32 n) {
+    n = n * 1.4427f + 1.4427f; // 1.4427f --> 1/ln(2)
+    return exp2(x * n - n);
+}
 
 //快速开方
 fp32 invSqrt(fp32 num) {
@@ -179,4 +186,13 @@ int floatEqual_0(float num) {//用于处理判断float变量是否为0
     }
     return 0;
 }
+
 /***********************/
+void lms_filter_init(lms_filter_type_t *lmsFilterType, fp32 step_len, fp32 *lmsstate, fp32 *lmscoeffs) {
+    lmsFilterType->outputF32 = 0;
+    lmsFilterType->outputERR = 0;
+    lmsFilterType->step_len = step_len;
+    lmsFilterType->lmsStateF32 = lmsstate;
+    lmsFilterType->lmsCoeffs32 = lmscoeffs;
+    memset(&lmsFilterType->lmsS, 0, sizeof(lmsFilterType->lmsS));
+}

@@ -56,7 +56,7 @@
   */
 void PID_init(pid_type_def *pid, uint8_t mode, const fp32 PID[3], fp32 max_out, fp32 max_iout, fp32 Integral,
               bool Variable_I_Switch, fp32 Variable_I_Down, fp32 Variable_I_UP, bool D_First, fp32 D_Filter_Ratio,
-              bool D_Low_Pass) {
+              bool D_Low_Pass, bool NF_D, fp32 D_Alpha) {
     if (pid == NULL || PID == NULL) {
         return;
     }
@@ -78,6 +78,8 @@ void PID_init(pid_type_def *pid, uint8_t mode, const fp32 PID[3], fp32 max_out, 
     pid->D_Filter_Ratio = D_Filter_Ratio;
 
     pid->D_Low_Pass = D_Low_Pass;
+    pid->NF_D = NF_D;
+    pid->D_Alpha = D_Alpha;
 
 }
 
@@ -641,9 +643,9 @@ float Cloud_IPID(pid_type_def *pid, fp32 ref, fp32 set) {
     pid->fdb = ref;
     pid->error[0] = set - ref;
 
-    if (pid == &shoot_control.fric1_motor_pid) {//for_test
-        err_test = pid->error[0];
-    }
+//    if (pid == &shoot_control.fric1_motor_pid) {//for_test
+//        err_test = pid->error[0];
+//    }
 
     pid->Pout = pid->Kp * pid->error[0];
     if (pid->Variable_I) {
@@ -709,6 +711,79 @@ float Cloud_IPID(pid_type_def *pid, fp32 ref, fp32 set) {
 
     pid->error[2] = pid->error[1];
     pid->error[1] = D_temp_in;
+    return pid->out;
+}
+
+float ALL_PID(pid_type_def *pid, fp32 ref, fp32 set) {
+    if (pid == NULL) {
+        return 0.0f;
+    }
+    pid->set = set;
+    pid->fdb = ref;
+    pid->error[0] = set - ref;
+
+    if (pid == &gimbal_control.gimbal_yaw_motor.gimbal_motor_gyro_pid) {//for_test
+        err_test = pid->error[0];
+    }
+
+    pid->Pout = pid->Kp * pid->error[0];
+    if (pid->Variable_I) {
+        if ((pid->Variable_I_Down != 0.0 || pid->Variable_I_UP != 0.0) &&
+            (pid->Variable_I_UP - pid->Variable_I_Down > 0)) {
+            if (fabs(1000.0 * pid->error[0]) < (1000.0 * pid->Variable_I_Down)) {
+                pid->I_ratio = 1.0;
+            } else if (fabs(pid->error[0]) > pid->Variable_I_UP) {
+                pid->I_ratio = 0.0;
+            } else {
+                pid->I_ratio = ((1000.0 * pid->Variable_I_UP) - fabs(1000.0 * pid->error[0])) /
+                               ((1000.0 * pid->Variable_I_UP) - (1000.0 * pid->Variable_I_Down));
+            }
+        } else {
+            pid->Iout += pid->Ki * (pid->error[0] + pid->error[1]) / 2.0f;
+        }
+        pid->Iout += pid->I_ratio * pid->Ki * (pid->error[0] + pid->error[1]) / 2.0f;
+    } else {
+        pid->Iout += pid->Ki * (pid->error[0] + pid->error[1]) / 2.0f;
+    }
+
+
+    pid->Dbuf[0] = (pid->error[0] - pid->error[1]);
+    pid->Dbuf[2] = pid->Dbuf[1];
+    pid->Dbuf[1] = pid->Dbuf[0];
+
+
+    if (pid->D_First && !pid->NF_D) {
+        fp32 D_temp = pid->D_Filter_Ratio * pid->Kd + pid->Kp;
+        pid->D3 = pid->Kd / D_temp;
+        pid->D2 = (pid->Kd + pid->Kp) / D_temp;
+        pid->D1 = pid->D_Filter_Ratio * pid->D3;
+        pid->Dout = pid->D1 * pid->Dout_Last + pid->D2 * pid->fdb + pid->D3 * pid->last_fdb;
+    } else if (!pid->D_First && pid->NF_D) {
+        pid->Dout = pid->Kd * (1 - pid->D_Alpha) * pid->Dbuf[0] + pid->D_Alpha * pid->Dout_Last;
+    } else {
+        pid->Dout = pid->Kd * pid->Dbuf[0];
+    }
+
+    //积分限幅
+    LimitMax(pid->Iout, pid->max_iout); //取消积分输出的限幅。
+
+    if (fabs(pid->error[0]) >= pid->Integral_Separation) {
+        pid->Iout = 0;
+        pid->out = (pid->Pout + pid->Dout);
+    } else {
+        pid->out = (pid->Pout + pid->Iout + pid->Dout);
+    }
+
+
+    //输出限幅
+    LimitMax(pid->out, pid->max_out);
+
+    pid->last_fdb = pid->fdb;
+
+    pid->error[2] = pid->error[1];
+    pid->error[1] = pid->error[0];
+
+    pid->Dout_Last = pid->Dout;
     return pid->out;
 }
 /***********************************************************************/

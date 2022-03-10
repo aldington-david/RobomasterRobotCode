@@ -187,10 +187,6 @@ typedef struct
 
     fp32 out;
 
-    float err_kal_Q;
-    float err_kal_R;
-    float out_kal_Q;
-    float out_kal_R;
     fp32 error_last;
     fp32 Integral_Separation;
     fp32 ekDeadZone;
@@ -206,11 +202,13 @@ typedef struct
 
 } gimbal_PID_t;
 
-typedef struct
-{
+typedef struct {
     const motor_measure_t *gimbal_motor_measure;
     gimbal_PID_t gimbal_motor_absolute_angle_pid;
     gimbal_PID_t gimbal_motor_relative_angle_pid;
+
+    pid_type_def gimbal_motor_relative_angle_pid_temp;
+
     pid_type_def gimbal_motor_gyro_pid;
     gimbal_motor_mode_e gimbal_motor_mode;
     gimbal_motor_mode_e last_gimbal_motor_mode;

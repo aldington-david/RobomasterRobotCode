@@ -2,6 +2,7 @@
 #define USER_LIB_H
 #include "stdint-gcc.h"
 #include "struct_typedef.h"
+#include "arm_math.h"
 
 typedef struct __attribute__((packed))
 {
@@ -18,8 +19,21 @@ typedef struct __attribute__((packed)) {
     fp32 num;       //滤波参数
     fp32 frame_period; //滤波的时间间隔 单位 s
 } first_order_filter_type_t;
+
+typedef struct {
+    fp32 step_len;
+    fp32 outputF32;          //滤波输出的数据
+    fp32 outputERR; //误差数据
+    fp32 *lmsStateF32; // 状态缓存，大小numTaps + blockSize - 1
+    fp32 *lmsCoeffs32; //滤波器系数
+    arm_lms_norm_instance_f32 lmsS;
+} lms_filter_type_t;
+
 //快速开方
 extern fp32 invSqrt(fp32 num);
+
+//快速指数
+extern fp32 invpow(fp32 x, fp32 n);
 
 //斜波函数初始化
 void ramp_init(ramp_function_source_t *ramp_source_type, fp32 frame_period, fp32 max, fp32 min);
@@ -112,5 +126,5 @@ int floatEqual_0(float num);
 
 
 /******************************/
-
+void lms_filter_init(lms_filter_type_t *lmsFilterType, fp32 step_len, fp32 *lmsstate, fp32 *lmscoeffs);
 #endif

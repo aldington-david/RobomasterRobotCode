@@ -95,11 +95,11 @@ void shoot_init(void) {
 
     //初始化PID
     PID_init(&shoot_control.trigger_motor_pid, PID_POSITION, Trigger_speed_pid, TRIGGER_READY_PID_MAX_OUT,
-             TRIGGER_READY_PID_MAX_IOUT, 100, 0, 0, 0, 0, 0, 0);
+             TRIGGER_READY_PID_MAX_IOUT, 100, 0, 0, 0, 0, 0, 0, 0, 0);
     PID_init(&shoot_control.fric1_motor_pid, PID_POSITION, fric1_speed_pid, TRIGGER_READY_PID_MAX_OUT,
-             TRIGGER_READY_PID_MAX_IOUT, 100, 0, 0, 0, 0, 0, 0);
+             TRIGGER_READY_PID_MAX_IOUT, 100, 0, 0, 0, 0, 0, 0, 0, 0);
     PID_init(&shoot_control.fric2_motor_pid, PID_POSITION, fric2_speed_pid, TRIGGER_READY_PID_MAX_OUT,
-             TRIGGER_READY_PID_MAX_IOUT, 100, 0, 0, 0, 0, 0, 1);
+             TRIGGER_READY_PID_MAX_IOUT, 100, 0, 0, 0, 0, 0, 1, 0, 0);
     first_order_filter_init(&shoot_control.fric2_motor_pid.D_Low_Pass_Filter, 0.001, 0.3);
 //    shoot_control.pwm = SHOOT_FRIC_PWM_ADD_VALUE;
 

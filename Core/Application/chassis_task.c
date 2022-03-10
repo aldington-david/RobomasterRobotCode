@@ -246,12 +246,12 @@ static void chassis_init(chassis_move_t *chassis_move_init)
     {
         chassis_move_init->motor_chassis[i].chassis_motor_measure = get_chassis_motor_measure_point(i);
         PID_init(&chassis_move_init->motor_speed_pid[i], PID_POSITION, motor_speed_pid, M3505_MOTOR_SPEED_PID_MAX_OUT,
-                 M3505_MOTOR_SPEED_PID_MAX_IOUT, 0, 0, 0, 0, 0, 0, 0);
+                 M3505_MOTOR_SPEED_PID_MAX_IOUT, 0, 0, 0, 0, 0, 0, 0, 0, 0);
     }
     //initialize angle PID
     //初始化角度PID
     PID_init(&chassis_move_init->chassis_angle_pid, PID_POSITION, chassis_yaw_pid, CHASSIS_FOLLOW_GIMBAL_PID_MAX_OUT,
-             CHASSIS_FOLLOW_GIMBAL_PID_MAX_IOUT, 0, 0, 0, 0, 0, 0, 0);
+             CHASSIS_FOLLOW_GIMBAL_PID_MAX_IOUT, 0, 0, 0, 0, 0, 0, 0, 0, 0);
 
     //first order low-pass filter  replace ramp function
     //用一阶滤波代替斜波函数生成

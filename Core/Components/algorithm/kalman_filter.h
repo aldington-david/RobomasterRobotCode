@@ -22,11 +22,19 @@ typedef struct {
     float Q;
     float R;
     float H;
+
+    float V; //残差中间变量
+    float r;
+    float d;
+    float b;
+    uint16_t k;
 } extKalman_t;
 
 void KalmanCreate(extKalman_t *p, float T_Q, float T_R);
 
 float KalmanFilter(extKalman_t *p, float dat);
+
+float KalmanFilter_test(extKalman_t *p, float dat);
 /*************一阶卡尔曼 END**************/
 
 /*************二阶卡尔曼**************/
