@@ -35,9 +35,15 @@ extern void RTT_PrintWave(int num_args, ...);
 extern fp32 bias_angle_test;
 extern fp32 add_angle_test;
 extern int8_t imu_temp;
-extern fp32 err_test;
+extern fp32 sp_err;
+extern fp32 re_err;
 extern fp32 kalman_test;
 extern char switch_test;
 extern uint32_t id_test;
+extern fp32 Dout1_test;
+extern fp32 Dout2_test;
+extern fp32 KF_Dout1_test;
+extern fp32 KF_Dout2_test;
+extern fp32 tracer1;
 
 #endif

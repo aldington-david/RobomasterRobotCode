@@ -56,7 +56,7 @@
   */
 void PID_init(pid_type_def *pid, uint8_t mode, const fp32 PID[3], fp32 max_out, fp32 max_iout, fp32 Integral,
               bool Variable_I_Switch, fp32 Variable_I_Down, fp32 Variable_I_UP, bool D_First, fp32 D_Filter_Ratio,
-              bool D_Low_Pass, bool NF_D, fp32 D_Alpha) {
+              bool D_Low_Pass, bool NF_D, fp32 D_Alpha, bool D_KF) {
     if (pid == NULL || PID == NULL) {
         return;
     }
@@ -80,6 +80,8 @@ void PID_init(pid_type_def *pid, uint8_t mode, const fp32 PID[3], fp32 max_out, 
     pid->D_Low_Pass = D_Low_Pass;
     pid->NF_D = NF_D;
     pid->D_Alpha = D_Alpha;
+
+    pid->D_KF = D_KF;
 
 }
 
@@ -613,7 +615,7 @@ fp32 Cloud_OPID(gimbal_PID_t *pid, fp32 set, fp32 get) {
     } else {
         pid->Dout = pid->kd * (pid->err - pid->error_last);
     }
-//    pid->Dout = KalmanFilter(&pid->Cloud_OCKalman, pid->Dout);
+    pid->Dout = KalmanFilter(&pid->Cloud_OCKalman, pid->Dout);
     //积分限幅
     abs_limit(&pid->Iout, pid->max_iout); //取消积分输出的限幅。
 
@@ -723,7 +725,10 @@ float ALL_PID(pid_type_def *pid, fp32 ref, fp32 set) {
     pid->error[0] = set - ref;
 
     if (pid == &gimbal_control.gimbal_yaw_motor.gimbal_motor_gyro_pid) {//for_test
-        err_test = pid->error[0];
+        sp_err = pid->error[0];
+    }
+    if (pid == &gimbal_control.gimbal_yaw_motor.gimbal_motor_relative_angle_pid_temp) {//for_test
+        re_err = pid->error[0];
     }
 
     pid->Pout = pid->Kp * pid->error[0];
@@ -763,6 +768,29 @@ float ALL_PID(pid_type_def *pid, fp32 ref, fp32 set) {
     } else {
         pid->Dout = pid->Kd * pid->Dbuf[0];
     }
+////for_test
+//    if (pid == &gimbal_control.gimbal_yaw_motor.gimbal_motor_gyro_pid) {
+//        Dout1_test = pid->Dout;
+//        KF_Dout1_test = KalmanFilter(&pid->D_Kalman, pid->Dout);
+//    }
+//    if (pid == &gimbal_control.gimbal_yaw_motor.gimbal_motor_relative_angle_pid_temp) {
+//        Dout2_test = pid->Dout;
+//        KF_Dout2_test = KalmanFilter(&pid->D_Kalman, pid->Dout);
+//    }
+
+    if (pid == &gimbal_control.gimbal_yaw_motor.gimbal_motor_gyro_pid) {
+        Dout1_test = pid->Dout;
+    }
+    fp32 KF_temp;
+    if (pid->D_Kalman.A == 1) {
+        KF_temp = KalmanFilter(&pid->D_Kalman, pid->Dout);
+    }
+    if (pid->D_Kalman.A == 1 && pid->D_KF) {
+        KF_Dout1_test = pid->Dout = KF_temp;
+    }
+
+
+
 
     //积分限幅
     LimitMax(pid->Iout, pid->max_iout); //取消积分输出的限幅。

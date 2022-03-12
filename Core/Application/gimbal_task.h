@@ -106,7 +106,7 @@
 #define RC_DEADBAND   10
 
 
-#define YAW_RC_SEN    0.000005f
+#define YAW_RC_SEN    0.000015f
 #define PITCH_RC_SEN  0.000005f //0.005
 
 #define YAW_MOUSE_SEN   0.00005f
@@ -230,6 +230,7 @@ typedef struct {
     float LpfFactor;
 
     extKalman_t Cloud_MotorAngle_Error_Kalman;
+    extKalman_t Cloud_PID_Kalman;
 
 } gimbal_motor_t;
 

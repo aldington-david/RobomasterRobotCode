@@ -50,10 +50,18 @@ const error_t *error_list_print_local;
 fp32 bias_angle_test = 0.0;
 fp32 add_angle_test = 0.0;
 int8_t imu_temp = 0;
-fp32 err_test = 0.0;
+fp32 sp_err = 0.0;
+fp32 re_err = 0.0;
 fp32 kalman_test = 0.0;
 char switch_test = 0;
 uint32_t id_test = 0;
+
+fp32 Dout1_test = 0;
+fp32 Dout2_test = 0;
+fp32 KF_Dout1_test = 0;
+fp32 KF_Dout2_test = 0;
+
+fp32 tracer1 = 0;
 
 void print_task(void const *argument) {
     if (PRINTF_MODE == USB_MODE) {
@@ -270,28 +278,39 @@ referee usart:%s\r\n\
             //PID功能控制
             SEGGER_RTT_SetTerminal(3);
             sprintf(print_buf,
-                    "re_D_First_on=%d,re_D_First_Ratio=%f,sp_D_First_on=%d,sp_D_First_Ratio=%f,err=%f,Var_I_on=%d,I_ratio=%f,I_Down=%f,I_Up=%f,D_L_on=%d,D_L=%f\r\n",
+                    "re_D_First_on=%d,re_D_First_Ratio=%f,sp_D_First_on=%d,sp_D_First_Ratio=%f,re_NF_D_on=%d,re_D_Alpha=%f,sp_NF_D_on=%d,sp_D_Alpha=%f\r\n",
                     gimbal_control.gimbal_yaw_motor.gimbal_motor_relative_angle_pid_temp.D_First,
                     gimbal_control.gimbal_yaw_motor.gimbal_motor_relative_angle_pid_temp.D_Filter_Ratio,
                     gimbal_control.gimbal_yaw_motor.gimbal_motor_gyro_pid.D_First,
                     gimbal_control.gimbal_yaw_motor.gimbal_motor_gyro_pid.D_Filter_Ratio,
-                    err_test,
+                    gimbal_control.gimbal_yaw_motor.gimbal_motor_relative_angle_pid_temp.NF_D,
+                    gimbal_control.gimbal_yaw_motor.gimbal_motor_relative_angle_pid_temp.D_Alpha,
+                    gimbal_control.gimbal_yaw_motor.gimbal_motor_gyro_pid.NF_D,
+                    gimbal_control.gimbal_yaw_motor.gimbal_motor_gyro_pid.D_Alpha);
+            SEGGER_RTT_WriteString(0, print_buf);
+            SEGGER_RTT_SetTerminal(4);
+            sprintf(print_buf,
+                    "sp_err=%f,sp_Var_I_on=%d,sp_I_ratio=%f,sp_I_Down=%f,sp_I_Up=%f,re_err=%f,re_Var_I_on=%d,re_I_ratio=%f,re_I_Down=%f,I_Up=%f\r\n",
+                    sp_err,
                     gimbal_control.gimbal_yaw_motor.gimbal_motor_gyro_pid.Variable_I,
                     gimbal_control.gimbal_yaw_motor.gimbal_motor_gyro_pid.I_ratio,
                     gimbal_control.gimbal_yaw_motor.gimbal_motor_gyro_pid.Variable_I_Down,
                     gimbal_control.gimbal_yaw_motor.gimbal_motor_gyro_pid.Variable_I_UP,
-                    gimbal_control.gimbal_yaw_motor.gimbal_motor_gyro_pid.NF_D,
-                    gimbal_control.gimbal_yaw_motor.gimbal_motor_gyro_pid.D_Alpha);
+                    re_err,
+                    gimbal_control.gimbal_yaw_motor.gimbal_motor_relative_angle_pid_temp.Variable_I,
+                    gimbal_control.gimbal_yaw_motor.gimbal_motor_relative_angle_pid_temp.I_ratio,
+                    gimbal_control.gimbal_yaw_motor.gimbal_motor_relative_angle_pid_temp.Variable_I_Down,
+                    gimbal_control.gimbal_yaw_motor.gimbal_motor_relative_angle_pid_temp.Variable_I_UP);
             SEGGER_RTT_WriteString(0, print_buf);
             //卡尔曼系数
-            SEGGER_RTT_SetTerminal(4);
+            SEGGER_RTT_SetTerminal(5);
             sprintf(print_buf,
                     "err_kalman_MR=%f,err_kalman_SQ=%f\r\n",
                     gimbal_control.gimbal_yaw_motor.Cloud_MotorAngle_Error_Kalman.R,
                     gimbal_control.gimbal_yaw_motor.Cloud_MotorAngle_Error_Kalman.Q);
             SEGGER_RTT_WriteString(0, print_buf);
 ////            rad角度数据
-//            SEGGER_RTT_SetTerminal(5);
+//            SEGGER_RTT_SetTerminal(6);
 //            sprintf(print_buf, "setangle=%f,maxangle=%f,nowangle=%f,minangle=%f\r\n",
 //                    gimbal_control.gimbal_yaw_motor.relative_angle_set,
 //                    gimbal_control.gimbal_yaw_motor.max_relative_angle,
@@ -299,7 +318,7 @@ referee usart:%s\r\n\
 //                    gimbal_control.gimbal_yaw_motor.min_relative_angle);
             SEGGER_RTT_WriteString(0, print_buf);
             //电流数据
-            SEGGER_RTT_SetTerminal(6);
+            SEGGER_RTT_SetTerminal(7);
             sprintf(print_buf, "current=%f,motor_gyro_set=%f,lms=%f,given_current=%d\r\n",
                     gimbal_control.gimbal_yaw_motor.current_set,
                     gimbal_control.gimbal_yaw_motor.motor_gyro_set,
@@ -307,7 +326,7 @@ referee usart:%s\r\n\
                     gimbal_control.gimbal_yaw_motor.given_current);
             SEGGER_RTT_WriteString(0, print_buf);
 //            //遥控器数据
-//            SEGGER_RTT_SetTerminal(7);
+//            SEGGER_RTT_SetTerminal(8);
 //            sprintf(print_buf, "ch1=%d,ch2=%d,ch3=%d,ch4=%d,ch5=%d\r\n",
 //                    rc_ctrl.rc.ch[0],
 //                    rc_ctrl.rc.ch[1],
@@ -315,17 +334,17 @@ referee usart:%s\r\n\
 //                    rc_ctrl.rc.ch[3],
 //                    rc_ctrl.rc.ch[4]);
 //            SEGGER_RTT_WriteString(0, print_buf);
-            //pid内监控
-//            SEGGER_RTT_SetTerminal(7);
-//            sprintf(print_buf, "ch1=%d,ch2=%d,ch3=%d,ch4=%d,ch5=%d\r\n",
-//                    rc_ctrl.rc.ch[0],
-//                    rc_ctrl.rc.ch[1],
-//                    rc_ctrl.rc.ch[2],
-//                    rc_ctrl.rc.ch[3],
-//                    rc_ctrl.rc.ch[4]);
-//            SEGGER_RTT_WriteString(0, print_buf);
-//
-            //波形显示
+//            通道值监控
+            SEGGER_RTT_SetTerminal(9);
+            sprintf(print_buf, "ch1=%d,ch2=%d,ch3=%d,ch4=%d,ch5=%d\r\n",
+                    rc_ctrl.rc.ch[0],
+                    rc_ctrl.rc.ch[1],
+                    rc_ctrl.rc.ch[2],
+                    rc_ctrl.rc.ch[3],
+                    rc_ctrl.rc.ch[4]);
+            SEGGER_RTT_WriteString(0, print_buf);
+
+//            波形显示
             RTT_PrintWave(6,
                           &gimbal_control.gimbal_yaw_motor.relative_angle_set,
                           &gimbal_control.gimbal_yaw_motor.relative_angle,
@@ -337,6 +356,16 @@ referee usart:%s\r\n\
 //            RTT_PrintWave(2,
 //                          &gimbal_control.gimbal_yaw_motor.current_set,
 //                          &kalman_test);
+
+//            RTT_PrintWave(4,
+//                          &Dout1_test,
+//                          &KF_Dout1_test,
+//                          &Dout2_test,
+//                          &KF_Dout2_test);
+
+//            RTT_PrintWave(1,
+//                          &tracer1);
+
 
 
             //abosolute_mode

@@ -73,6 +73,8 @@ typedef struct {
     lms_filter_type_t PID_lms;
     lms_filter_type_t PID_lms_2;
 
+    bool D_KF;
+    extKalman_t D_Kalman;
 } pid_type_def;
 
 /**
@@ -97,7 +99,7 @@ typedef struct {
   */
 extern void PID_init(pid_type_def *pid, uint8_t mode, const fp32 PID[3], fp32 max_out, fp32 max_iout, fp32 Integral,
                      bool Variable_I_Switch, fp32 Variable_I_Down, fp32 Variable_I_UP, bool D_First,
-                     fp32 D_Filter_Ratio, bool D_Low_Pass, bool NF_D, fp32 D_Alpha);
+                     fp32 D_Filter_Ratio, bool D_Low_Pass, bool NF_D, fp32 D_Alpha, bool D_KF);
 
 /**
   * @brief          pid calculate 

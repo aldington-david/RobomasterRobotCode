@@ -36,6 +36,9 @@ enum {
     param23,//sp-D_Filter_Ratio 0-1
     param24,//D_Low_Pass
     param25,//D_Low_Pass_Filter_num 0-1
+    param26,
+    param27,
+    param28,
 
 
 };
@@ -50,7 +53,7 @@ typedef union {
     float *varFloat;
 } DebugVarTrans;
 
-extern void *PC_receive_data[26];
+extern void *PC_receive_data[29];
 
 extern void PC_receive_task(void const *argument);
 
