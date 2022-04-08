@@ -15,7 +15,7 @@ set(SIZE arm-none-eabi-size)
 set(CMAKE_TRY_COMPILE_TARGET_TYPE STATIC_LIBRARY)
 
 # project settings
-project(standardRobotBasicCode C CXX ASM)
+project(RobomasterRobotCode C CXX ASM)
 set(CMAKE_C_FLAGS "-std=c17 -mcpu=Cortex-M4.fp.sp -g -O0")
 set(CMAKE_CXX_FLAGS "-std=c17 -mcpu=Cortex-M4.fp.sp -g -O0")
 set(COMMON_FLAGS "-specs=nosys.specs -specs=nano.specs -u _printf_float -u _scanf_float")
