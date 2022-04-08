@@ -20,7 +20,7 @@
             <toolChain id="fr.ac6.managedbuild.toolchain.gnu.cross.exe.debug.387850616" name="Ac6 STM32 MCU GCC" superClass="fr.ac6.managedbuild.toolchain.gnu.cross.exe.debug">
               <option id="fr.ac6.managedbuild.option.gnu.cross.prefix.1293921608" name="Prefix" superClass="fr.ac6.managedbuild.option.gnu.cross.prefix" value="arm-none-eabi-" valueType="string" />
               <option id="fr.ac6.managedbuild.option.gnu.cross.mcu.349581581" name="Mcu" superClass="fr.ac6.managedbuild.option.gnu.cross.mcu" value="STM32F407IGHx" valueType="string" />
-              <option id="fr.ac6.managedbuild.option.gnu.cross.board.971402395" name="Board" superClass="fr.ac6.managedbuild.option.gnu.cross.board" value="standardRobotBasicCode" valueType="string" />
+              <option id="fr.ac6.managedbuild.option.gnu.cross.board.971402395" name="Board" superClass="fr.ac6.managedbuild.option.gnu.cross.board" value="RobomasterRobotCode" valueType="string" />
               <option id="fr.ac6.managedbuild.option.gnu.cross.core.1083960614" name="Core" superClass="fr.ac6.managedbuild.option.gnu.cross.core" valueType="stringList">
                 <listOptionValue builtIn="false" value="ARM Cortex-M4" />
                 <listOptionValue builtIn="false" value="CM4" />
@@ -143,7 +143,7 @@
             <toolChain id="fr.ac6.managedbuild.toolchain.gnu.cross.exe.release.276674537" name="Ac6 STM32 MCU GCC" superClass="fr.ac6.managedbuild.toolchain.gnu.cross.exe.release">
               <option id="fr.ac6.managedbuild.option.gnu.cross.prefix.1293921608" name="Prefix" superClass="fr.ac6.managedbuild.option.gnu.cross.prefix" value="arm-none-eabi-" valueType="string" />
               <option id="fr.ac6.managedbuild.option.gnu.cross.mcu.349581581" name="Mcu" superClass="fr.ac6.managedbuild.option.gnu.cross.mcu" value="STM32F407IGHx" valueType="string" />
-              <option id="fr.ac6.managedbuild.option.gnu.cross.board.971402395" name="Board" superClass="fr.ac6.managedbuild.option.gnu.cross.board" value="standardRobotBasicCode" valueType="string" />
+              <option id="fr.ac6.managedbuild.option.gnu.cross.board.971402395" name="Board" superClass="fr.ac6.managedbuild.option.gnu.cross.board" value="RobomasterRobotCode" valueType="string" />
               <option id="fr.ac6.managedbuild.option.gnu.cross.core.1083960614" name="Core" superClass="fr.ac6.managedbuild.option.gnu.cross.core" valueType="stringList">
                 <listOptionValue builtIn="false" value="ARM Cortex-M4" />
                 <listOptionValue builtIn="false" value="CM4" />
@@ -261,7 +261,7 @@
   <storageModule moduleId="org.eclipse.cdt.core.LanguageSettingsProviders" />
   <storageModule moduleId="refreshScope" versionNumber="2">
     <configuration artifactName="${ProjName}" configurationName="Debug">
-      <resource resourceType="PROJECT" workspacePath="standardRobotBasicCode" />
+      <resource resourceType="PROJECT" workspacePath="RobomasterRobotCode" />
     </configuration>
   </storageModule>
 </cproject>
