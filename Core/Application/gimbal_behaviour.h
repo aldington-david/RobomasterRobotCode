@@ -83,6 +83,11 @@
 #include "struct_typedef.h"
 
 #include "gimbal_task.h"
+
+#define RADIO_CONTROL_SWITCH_R       0
+#define RADIO_CONTROL_SWITCH_L       1
+
+
 typedef enum
 {
   GIMBAL_ZERO_FORCE = 0, 
@@ -148,5 +153,15 @@ extern bool_t gimbal_cmd_to_chassis_stop(void);
   * @retval         1: no move 0:normal
   */
 extern bool_t gimbal_cmd_to_shoot_stop(void);
+
+/**
+  * @brief          根据遥控器通道值，计算yaw和pitch控制量
+  *
+  * @param[out]     yaw: yaw轴角度控制，为角度的增量 单位 rad
+  * @param[out]     pitch: pitch轴角度控制，为角度的增量 单位 rad
+  * @param[out]     gimbal_control_set: 云台数据指针
+  * @retval         none
+  */
+extern void gimbal_rc_to_control_vector(fp32 *yaw, fp32 *pitch, gimbal_control_t *gimbal_move_rc_to_vector);
 
 #endif

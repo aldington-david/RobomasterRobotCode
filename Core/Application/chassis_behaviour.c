@@ -239,22 +239,39 @@ void chassis_behaviour_mode_set(chassis_move_t *chassis_move_mode)
     }
 
 
-    //remote control  set chassis behaviour mode
-    //遥控器设置模式
-    if (switch_is_mid(chassis_move_mode->chassis_RC->rc.s[CHASSIS_MODE_CHANNEL]))
-    {
-        //can change to CHASSIS_ZERO_FORCE,CHASSIS_NO_MOVE,CHASSIS_INFANTRY_FOLLOW_GIMBAL_YAW,
-        //CHASSIS_ENGINEER_FOLLOW_CHASSIS_YAW,CHASSIS_NO_FOLLOW_YAW,CHASSIS_OPEN
-        chassis_behaviour_mode = CHASSIS_NO_FOLLOW_YAW;
-    }
-    else if (switch_is_down(chassis_move_mode->chassis_RC->rc.s[CHASSIS_MODE_CHANNEL]))
-    {
-        chassis_behaviour_mode = CHASSIS_NO_MOVE;
-    }
-    else if (switch_is_up(chassis_move_mode->chassis_RC->rc.s[CHASSIS_MODE_CHANNEL]))
-    {
-        chassis_behaviour_mode = CHASSIS_INFANTRY_FOLLOW_GIMBAL_YAW;
-    }
+//    //remote control  set chassis behaviour mode
+//    //遥控器设置模式
+//    if (switch_is_mid(chassis_move_mode->chassis_RC->rc.s[RADIO_CONTROL_SWITCH_R]))
+//    {
+//        //can change to CHASSIS_ZERO_FORCE,CHASSIS_NO_MOVE,CHASSIS_INFANTRY_FOLLOW_GIMBAL_YAW,
+//        //CHASSIS_ENGINEER_FOLLOW_CHASSIS_YAW,CHASSIS_NO_FOLLOW_YAW,CHASSIS_OPEN
+//        chassis_behaviour_mode = CHASSIS_NO_FOLLOW_YAW;
+//    }
+//    else if (switch_is_down(chassis_move_mode->chassis_RC->rc.s[RADIO_CONTROL_SWITCH_R]))
+//    {
+//        chassis_behaviour_mode = CHASSIS_NO_MOVE;
+//    }
+//    else if (switch_is_up(chassis_move_mode->chassis_RC->rc.s[RADIO_CONTROL_SWITCH_R]))
+//    {
+//        chassis_behaviour_mode = CHASSIS_INFANTRY_FOLLOW_GIMBAL_YAW;
+//    }
+
+      //remote control  set chassis behaviour mode
+      //遥控器设置模式
+      if (switch_is_mid(chassis_move_mode->chassis_RC->rc.s[RADIO_CONTROL_SWITCH_R]))
+      {
+          //can change to CHASSIS_ZERO_FORCE,CHASSIS_NO_MOVE,CHASSIS_INFANTRY_FOLLOW_GIMBAL_YAW,
+          //CHASSIS_ENGINEER_FOLLOW_CHASSIS_YAW,CHASSIS_NO_FOLLOW_YAW,CHASSIS_OPEN
+          chassis_behaviour_mode = CHASSIS_NO_FOLLOW_YAW;
+      }
+      else if (switch_is_down(chassis_move_mode->chassis_RC->rc.s[RADIO_CONTROL_SWITCH_R]))
+      {
+          chassis_behaviour_mode = CHASSIS_NO_MOVE;
+      }
+      else if (switch_is_up(chassis_move_mode->chassis_RC->rc.s[RADIO_CONTROL_SWITCH_R]))
+      {
+          chassis_behaviour_mode = CHASSIS_INFANTRY_FOLLOW_GIMBAL_YAW;
+      }
 
     //when gimbal in some mode, such as init mode, chassis must's move
     //当云台在某些模式下，像初始化， 底盘不动

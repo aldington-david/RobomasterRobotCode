@@ -42,7 +42,8 @@
 
 //the channel of choosing chassis mode,
 //选择底盘状态 开关通道号
-#define CHASSIS_MODE_CHANNEL 0
+#define RADIO_CONTROL_SWITCH_R       0
+#define RADIO_CONTROL_SWITCH_L       1
 //rocker value (max 660) change to vertial speed (m/s) 
 //遥控器前进摇杆（max 660）转化成车体前进速度（m/s）的比例
 #define CHASSIS_VX_RC_SEN 0.006f

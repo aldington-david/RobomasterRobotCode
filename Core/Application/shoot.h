@@ -27,7 +27,8 @@
 
 
 //射击发射开关通道数据
-#define SHOOT_RC_MODE_CHANNEL       1
+#define RADIO_CONTROL_SWITCH_R       0
+#define RADIO_CONTROL_SWITCH_L       1
 //云台模式使用的开关通道
 
 #define SHOOT_CONTROL_TIME          GIMBAL_CONTROL_TIME
@@ -88,8 +89,7 @@
 typedef enum
 {
     SHOOT_STOP = 0,
-    SHOOT_READY_FRIC,
-    SHOOT_READY_BULLET,
+    SHOOT_START,
     SHOOT_READY,
     SHOOT_BULLET,
     SHOOT_CONTINUE_BULLET,

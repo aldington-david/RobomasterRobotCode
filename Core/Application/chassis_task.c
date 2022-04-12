@@ -239,7 +239,7 @@ static void chassis_init(chassis_move_t *chassis_move_init)
     //获取云台电机数据指针
     chassis_move_init->chassis_yaw_motor = get_yaw_motor_point();
     chassis_move_init->chassis_pitch_motor = get_pitch_motor_point();
-    
+
     //get chassis motor data point,  initialize motor speed PID
     //获取底盘电机数据指针，初始化PID 
     for (i = 0; i < 4; i++)
@@ -395,9 +395,12 @@ void chassis_rc_to_control_vector(fp32 *vx_set, fp32 *vy_set, chassis_move_t *ch
     {
         return;
     }
-    
+
     int16_t vx_channel, vy_channel;
     fp32 vx_set_channel, vy_set_channel;
+    if(!switch_is_up(chassis_move_rc_to_vector->chassis_RC->rc.s[RADIO_CONTROL_SWITCH_L])){
+
+
     //deadline, because some remote control need be calibrated,  the value of rocker is not zero in middle place,
     //死区限制，因为遥控器可能存在差异 摇杆在中间，其值不为0
     rc_deadband_limit(chassis_move_rc_to_vector->chassis_RC->rc.ch[CHASSIS_X_CHANNEL], vx_channel, CHASSIS_RC_DEADLINE);
@@ -405,6 +408,9 @@ void chassis_rc_to_control_vector(fp32 *vx_set, fp32 *vy_set, chassis_move_t *ch
 
     vx_set_channel = vx_channel * CHASSIS_VX_RC_SEN;
     vy_set_channel = vy_channel * -CHASSIS_VY_RC_SEN;
+    } else{
+
+
 
     //keyboard set speed set-point
     //键盘控制
@@ -425,7 +431,7 @@ void chassis_rc_to_control_vector(fp32 *vx_set, fp32 *vy_set, chassis_move_t *ch
     {
         vy_set_channel = chassis_move_rc_to_vector->vy_min_speed;
     }
-
+    }
     //first order low-pass replace ramp function, calculate chassis speed set-point to improve control performance
     //一阶低通滤波代替斜波作为底盘速度输入
     first_order_filter_cali(&chassis_move_rc_to_vector->chassis_cmd_slow_set_vx, vx_set_channel);
@@ -577,7 +583,7 @@ static void chassis_control_loop(chassis_move_t *chassis_move_control_loop)
 
     if (chassis_move_control_loop->chassis_mode == CHASSIS_VECTOR_RAW)
     {
-        
+
         for (i = 0; i < 4; i++)
         {
             chassis_move_control_loop->motor_chassis[i].give_current = (int16_t)(wheel_speed[i]);
