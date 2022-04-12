@@ -32,6 +32,7 @@
 #include "pid.h"
 #include "print_task.h"
 
+
 #define shoot_fric1_on(pwm) fric1_on((pwm)) //摩擦轮1pwm宏定义
 #define shoot_fric2_on(pwm) fric2_on((pwm)) //摩擦轮2pwm宏定义
 #define shoot_fric_off()    fric_off()      //关闭两个摩擦轮
@@ -141,7 +142,7 @@ int16_t shoot_control_loop(void) {
         shoot_control.speed_set = 0.0f;
     }
 
-    if (shoot_control.shoot_mode == SHOOT_STOP) {
+    if (shoot_control.shoot_mode == SHOOT_STOP || toe_is_error(DBUS_TOE)) {
         shoot_laser_off();
         shoot_control.given_current = 0;
         //摩擦轮需要一个个斜波开启，不能同时直接开启，否则可能电机不转
@@ -208,6 +209,8 @@ static void shoot_set_mode(void) {
             (shoot_control.press_r && shoot_control.last_press_r == 0)) {
             shoot_control.shoot_mode = SHOOT_BULLET;
         }
+    } else if (shoot_control.shoot_mode == SHOOT_DONE) {
+        shoot_control.shoot_mode = SHOOT_READY;
     }
 //    else if (shoot_control.shoot_mode == SHOOT_DONE) {
 //        if (shoot_control.key == SWITCH_TRIGGER_OFF) {
@@ -243,8 +246,9 @@ static void shoot_set_mode(void) {
     if (gimbal_cmd_to_shoot_stop()) {
         shoot_control.shoot_mode = SHOOT_STOP;
     }
-
-    last_s = shoot_control.shoot_rc->rc.s[RADIO_CONTROL_SWITCH_R];
+    if (switch_is_down(shoot_control.shoot_rc->rc.s[RADIO_CONTROL_SWITCH_L])) {
+        last_s = shoot_control.shoot_rc->rc.s[RADIO_CONTROL_SWITCH_R];
+    }
     switch_test = last_s;//for_test
 }
 

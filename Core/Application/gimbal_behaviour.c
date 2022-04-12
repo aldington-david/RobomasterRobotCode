@@ -790,6 +790,7 @@ void gimbal_rc_to_control_vector(fp32 *yaw, fp32 *pitch, gimbal_control_t *gimba
 
     int16_t yaw_channel, pitch_channel;
     fp32 yaw_set_channel, pitch_set_channel;
+    yaw_set_channel = pitch_set_channel = yaw_channel = pitch_channel = 0;
     if (!switch_is_up(gimbal_move_rc_to_vector->gimbal_rc_ctrl->rc.s[RADIO_CONTROL_SWITCH_L])) {
 
 

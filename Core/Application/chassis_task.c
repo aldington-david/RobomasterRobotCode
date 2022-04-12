@@ -396,6 +396,7 @@ void chassis_rc_to_control_vector(fp32 *vx_set, fp32 *vy_set, chassis_move_t *ch
 
     int16_t vx_channel, vy_channel;
     fp32 vx_set_channel, vy_set_channel;
+    vx_set_channel = vy_set_channel = vx_channel = vy_channel = 0;
     if (!switch_is_up(chassis_move_rc_to_vector->chassis_RC->rc.s[RADIO_CONTROL_SWITCH_L])) {
 
 
@@ -409,9 +410,6 @@ void chassis_rc_to_control_vector(fp32 *vx_set, fp32 *vy_set, chassis_move_t *ch
         vx_set_channel = vx_channel * CHASSIS_VX_RC_SEN;
         vy_set_channel = vy_channel * -CHASSIS_VY_RC_SEN;
     } else {
-
-
-
         //keyboard set speed set-point
         //键盘控制
         if (chassis_move_rc_to_vector->chassis_RC->key.v & CHASSIS_FRONT_KEY) {
@@ -505,15 +503,15 @@ static void chassis_set_contorl(chassis_move_t *chassis_move_control)
         chassis_move_control->vx_set = fp32_constrain(vx_set, chassis_move_control->vx_min_speed, chassis_move_control->vx_max_speed);
         chassis_move_control->vy_set = fp32_constrain(vy_set, chassis_move_control->vy_min_speed, chassis_move_control->vy_max_speed);
     }
-    else if (chassis_move_control->chassis_mode == CHASSIS_VECTOR_NO_FOLLOW_YAW)
-    {
+    else if (chassis_move_control->chassis_mode == CHASSIS_VECTOR_NO_FOLLOW_YAW) {
         //"angle_set" is rotation speed set-point
         //“angle_set” 是旋转速度控制
         chassis_move_control->wz_set = angle_set;
-        chassis_move_control->vx_set = fp32_constrain(vx_set, chassis_move_control->vx_min_speed, chassis_move_control->vx_max_speed);
-        chassis_move_control->vy_set = fp32_constrain(vy_set, chassis_move_control->vy_min_speed, chassis_move_control->vy_max_speed);
-    }
-    else if (chassis_move_control->chassis_mode == CHASSIS_VECTOR_RAW) {
+        chassis_move_control->vx_set = fp32_constrain(vx_set, chassis_move_control->vx_min_speed,
+                                                      chassis_move_control->vx_max_speed);
+        chassis_move_control->vy_set = fp32_constrain(vy_set, chassis_move_control->vy_min_speed,
+                                                      chassis_move_control->vy_max_speed);
+    } else if (chassis_move_control->chassis_mode == CHASSIS_VECTOR_RAW) {
         //in raw mode, set-point is sent to CAN bus
         //在原始模式，设置值是发送到CAN总线
         chassis_move_control->vx_set = vx_set;
