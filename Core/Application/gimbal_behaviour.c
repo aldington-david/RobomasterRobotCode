@@ -687,13 +687,7 @@ static void gimbal_absolute_angle_control(fp32 *yaw, fp32 *pitch, gimbal_control
         return;
     }
 
-    static int16_t yaw_channel = 0, pitch_channel = 0;
-
-    rc_deadband_limit(gimbal_control_set->gimbal_rc_ctrl->rc.ch[YAW_CHANNEL], yaw_channel, RC_DEADBAND);
-    rc_deadband_limit(gimbal_control_set->gimbal_rc_ctrl->rc.ch[PITCH_CHANNEL], pitch_channel, RC_DEADBAND);
-
-    *yaw = yaw_channel * YAW_RC_SEN - gimbal_control_set->gimbal_rc_ctrl->mouse.x * YAW_MOUSE_SEN;
-    *pitch = pitch_channel * PITCH_RC_SEN + gimbal_control_set->gimbal_rc_ctrl->mouse.y * PITCH_MOUSE_SEN;
+    gimbal_rc_to_control_vector(yaw, pitch, gimbal_control_set);
 
 
 //    {
@@ -754,13 +748,7 @@ static void gimbal_relative_angle_control(fp32 *yaw, fp32 *pitch, gimbal_control
     {
         return;
     }
-    static int16_t yaw_channel = 0, pitch_channel = 0;
-
-    rc_deadband_limit(gimbal_control_set->gimbal_rc_ctrl->rc.ch[YAW_CHANNEL], yaw_channel, RC_DEADBAND);
-    rc_deadband_limit(gimbal_control_set->gimbal_rc_ctrl->rc.ch[PITCH_CHANNEL], pitch_channel, RC_DEADBAND);
-
-    *yaw = yaw_channel * YAW_RC_SEN - gimbal_control_set->gimbal_rc_ctrl->mouse.x * YAW_MOUSE_SEN;
-    *pitch = pitch_channel * PITCH_RC_SEN + gimbal_control_set->gimbal_rc_ctrl->mouse.y * PITCH_MOUSE_SEN;
+    gimbal_rc_to_control_vector(yaw, pitch, gimbal_control_set);
 
 
 }
@@ -781,12 +769,63 @@ static void gimbal_relative_angle_control(fp32 *yaw, fp32 *pitch, gimbal_control
   * @param[in]      gimbal_control_set:云台数据指针
   * @retval         none
   */
-static void gimbal_motionless_control(fp32 *yaw, fp32 *pitch, gimbal_control_t *gimbal_control_set)
-{
-    if (yaw == NULL || pitch == NULL || gimbal_control_set == NULL)
-    {
+static void gimbal_motionless_control(fp32 *yaw, fp32 *pitch, gimbal_control_t *gimbal_control_set) {
+    if (yaw == NULL || pitch == NULL || gimbal_control_set == NULL) {
         return;
     }
     *yaw = 0.0f;
     *pitch = 0.0f;
+}
+
+
+/**
+  * @brief          根据遥控器通道值，计算yaw和pitch控制量
+  *
+  * @param[out]     yaw: yaw轴角度控制，为角度的增量 单位 rad
+  * @param[out]     pitch: pitch轴角度控制，为角度的增量 单位 rad
+  * @param[out]     gimbal_control_set: 云台数据指针
+  * @retval         none
+  */
+void gimbal_rc_to_control_vector(fp32 *yaw, fp32 *pitch, gimbal_control_t *gimbal_move_rc_to_vector) {
+    if (gimbal_move_rc_to_vector == NULL || yaw == NULL || pitch == NULL) {
+        return;
+    }
+
+    int16_t yaw_channel, pitch_channel;
+    fp32 yaw_set_channel, pitch_set_channel;
+    if (!switch_is_up(gimbal_move_rc_to_vector->gimbal_rc_ctrl->rc.s[RADIO_CONTROL_SWITCH_L])) {
+
+
+        //deadline, because some remote control need be calibrated,  the value of rocker is not zero in middle place,
+        //死区限制，因为遥控器可能存在差异 摇杆在中间，其值不为0
+        rc_deadband_limit(gimbal_move_rc_to_vector->gimbal_rc_ctrl->rc.ch[YAW_CHANNEL], yaw_channel, RC_DEADBAND);
+        rc_deadband_limit(gimbal_move_rc_to_vector->gimbal_rc_ctrl->rc.ch[PITCH_CHANNEL], pitch_channel, RC_DEADBAND);
+
+        yaw_set_channel = yaw_channel * YAW_RC_SEN;
+        pitch_set_channel = pitch_channel * PITCH_RC_SEN;
+    } else {
+        //keyboard set speed set-point
+        //键盘控制
+        yaw_set_channel = gimbal_move_rc_to_vector->gimbal_rc_ctrl->mouse.x * YAW_MOUSE_SEN;
+        pitch_set_channel = gimbal_move_rc_to_vector->gimbal_rc_ctrl->mouse.y * PITCH_MOUSE_SEN;
+    }
+    //maybe_useful
+//    //first order low-pass replace ramp function, calculate chassis speed set-point to improve control performance
+//    //一阶低通滤波代替斜波作为底盘速度输入
+//    first_order_filter_cali(&chassis_move_rc_to_vector->chassis_cmd_slow_set_vx, vx_set_channel);
+//    first_order_filter_cali(&chassis_move_rc_to_vector->chassis_cmd_slow_set_vy, vy_set_channel);
+//    //stop command, need not slow change, set zero derectly
+//    //停止信号，不需要缓慢加速，直接减速到零
+//    if (vx_set_channel < CHASSIS_RC_DEADLINE * CHASSIS_VX_RC_SEN && vx_set_channel > -CHASSIS_RC_DEADLINE * CHASSIS_VX_RC_SEN)
+//    {
+//        chassis_move_rc_to_vector->chassis_cmd_slow_set_vx.out = 0.0f;
+//    }
+//
+//    if (vy_set_channel < CHASSIS_RC_DEADLINE * CHASSIS_VY_RC_SEN && vy_set_channel > -CHASSIS_RC_DEADLINE * CHASSIS_VY_RC_SEN)
+//    {
+//        chassis_move_rc_to_vector->chassis_cmd_slow_set_vy.out = 0.0f;
+//    }
+
+    *yaw = yaw_set_channel;
+    *pitch = pitch_set_channel;
 }

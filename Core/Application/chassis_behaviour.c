@@ -233,45 +233,54 @@ chassis_behaviour_e chassis_behaviour_mode = CHASSIS_ZERO_FORCE;
   */
 void chassis_behaviour_mode_set(chassis_move_t *chassis_move_mode)
 {
-    if (chassis_move_mode == NULL)
-    {
+    if (chassis_move_mode == NULL) {
         return;
     }
 
 
-    //remote control  set chassis behaviour mode
-    //遥控器设置模式
-    if (switch_is_mid(chassis_move_mode->chassis_RC->rc.s[CHASSIS_MODE_CHANNEL]))
-    {
-        //can change to CHASSIS_ZERO_FORCE,CHASSIS_NO_MOVE,CHASSIS_INFANTRY_FOLLOW_GIMBAL_YAW,
-        //CHASSIS_ENGINEER_FOLLOW_CHASSIS_YAW,CHASSIS_NO_FOLLOW_YAW,CHASSIS_OPEN
-        chassis_behaviour_mode = CHASSIS_NO_FOLLOW_YAW;
-    }
-    else if (switch_is_down(chassis_move_mode->chassis_RC->rc.s[CHASSIS_MODE_CHANNEL]))
-    {
-        chassis_behaviour_mode = CHASSIS_NO_MOVE;
-    }
-    else if (switch_is_up(chassis_move_mode->chassis_RC->rc.s[CHASSIS_MODE_CHANNEL]))
-    {
-        chassis_behaviour_mode = CHASSIS_INFANTRY_FOLLOW_GIMBAL_YAW;
-    }
+//    //remote control  set chassis behaviour mode
+//    //遥控器设置模式
+//    if (switch_is_mid(chassis_move_mode->chassis_RC->rc.s[RADIO_CONTROL_SWITCH_R]))
+//    {
+//        //can change to CHASSIS_ZERO_FORCE,CHASSIS_NO_MOVE,CHASSIS_INFANTRY_FOLLOW_GIMBAL_YAW,
+//        //CHASSIS_ENGINEER_FOLLOW_CHASSIS_YAW,CHASSIS_NO_FOLLOW_YAW,CHASSIS_OPEN
+//        chassis_behaviour_mode = CHASSIS_NO_FOLLOW_YAW;
+//    }
+//    else if (switch_is_down(chassis_move_mode->chassis_RC->rc.s[RADIO_CONTROL_SWITCH_R]))
+//    {
+//        chassis_behaviour_mode = CHASSIS_NO_MOVE;
+//    }
+//    else if (switch_is_up(chassis_move_mode->chassis_RC->rc.s[RADIO_CONTROL_SWITCH_R]))
+//    {
+//        chassis_behaviour_mode = CHASSIS_INFANTRY_FOLLOW_GIMBAL_YAW;
+//    }
 
-    //when gimbal in some mode, such as init mode, chassis must's move
-    //当云台在某些模式下，像初始化， 底盘不动
-    if (gimbal_cmd_to_chassis_stop())
-    {
-        chassis_behaviour_mode = CHASSIS_NO_MOVE;
-    }
+      //remote control  set chassis behaviour mode
+      //遥控器设置模式
+      if (switch_is_mid(chassis_move_mode->chassis_RC->rc.s[RADIO_CONTROL_SWITCH_R])) {
+          //can change to CHASSIS_ZERO_FORCE,CHASSIS_NO_MOVE,CHASSIS_INFANTRY_FOLLOW_GIMBAL_YAW,
+          //CHASSIS_ENGINEER_FOLLOW_CHASSIS_YAW,CHASSIS_NO_FOLLOW_YAW,CHASSIS_OPEN
+          chassis_behaviour_mode = CHASSIS_NO_FOLLOW_YAW;
+      } else if (switch_is_down(chassis_move_mode->chassis_RC->rc.s[RADIO_CONTROL_SWITCH_R])) {
+          chassis_behaviour_mode = CHASSIS_NO_MOVE;
+      } else if (switch_is_up(chassis_move_mode->chassis_RC->rc.s[RADIO_CONTROL_SWITCH_R])) {
+          chassis_behaviour_mode = CHASSIS_INFANTRY_FOLLOW_GIMBAL_YAW;
+      }
+
+      //when gimbal in some mode, such as init mode, chassis must's move
+      //当云台在某些模式下，像初始化， 底盘不动
+      if (gimbal_cmd_to_chassis_stop()) {
+          chassis_behaviour_mode = CHASSIS_NO_MOVE;
+      }
 
 
-    //add your own logic to enter the new mode
-    //添加自己的逻辑判断进入新模式
+      //add your own logic to enter the new mode
+      //添加自己的逻辑判断进入新模式
 
 
-    //accord to beheviour mode, choose chassis control mode
-    //根据行为模式选择一个底盘控制模式
-    if (chassis_behaviour_mode == CHASSIS_ZERO_FORCE)
-    {
+      //accord to beheviour mode, choose chassis control mode
+      //根据行为模式选择一个底盘控制模式
+      if (chassis_behaviour_mode == CHASSIS_ZERO_FORCE) {
         chassis_move_mode->chassis_mode = CHASSIS_VECTOR_RAW; 
     }
     else if (chassis_behaviour_mode == CHASSIS_NO_MOVE)
