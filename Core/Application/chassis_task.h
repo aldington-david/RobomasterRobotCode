@@ -38,7 +38,8 @@
 
 //in some mode, can use remote control to control rotation speed
 //在特殊模式下，可以通过遥控器控制旋转
-#define CHASSIS_WZ_CHANNEL 2
+#define CHASSIS_YAW_CHANNEL 2
+#define CHASSIS_WZ_CHANNEL 4
 
 //the channel of choosing chassis mode,
 //选择底盘状态 开关通道号
