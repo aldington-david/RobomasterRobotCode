@@ -262,7 +262,8 @@ void chassis_behaviour_mode_set(chassis_move_t *chassis_move_mode)
       {
           //can change to CHASSIS_ZERO_FORCE,CHASSIS_NO_MOVE,CHASSIS_INFANTRY_FOLLOW_GIMBAL_YAW,
           //CHASSIS_ENGINEER_FOLLOW_CHASSIS_YAW,CHASSIS_NO_FOLLOW_YAW,CHASSIS_OPEN
-          chassis_behaviour_mode = CHASSIS_INFANTRY_FOLLOW_GIMBAL_YAW;
+//          chassis_behaviour_mode = CHASSIS_INFANTRY_FOLLOW_GIMBAL_YAW;
+          chassis_behaviour_mode = CHASSIS_SPIN;
       }
       else if (switch_is_mid(chassis_move_mode->chassis_RC->rc.s[RADIO_CONTROL_SWITCH_L]) && switch_is_up(chassis_move_mode->chassis_RC->rc.s[RADIO_CONTROL_SWITCH_R]))
       {
@@ -581,7 +582,7 @@ static void chassis_no_follow_yaw_control(fp32 *vx_set, fp32 *vy_set, fp32 *wz_s
 
     chassis_rc_to_control_vector(vx_set, vy_set, chassis_move_rc_to_vector);
 //    *wz_set = -CHASSIS_WZ_RC_SEN * chassis_move_rc_to_vector->chassis_RC->rc.ch[CHASSIS_YAW_CHANNEL];
-    *wz_set = -CHASSIS_WZ_RC_SEN * chassis_move_rc_to_vector->chassis_RC->rc.ch[CHASSIS_WZ_CHANNEL];
+    *wz_set = CHASSIS_WZ_RC_SEN * chassis_move_rc_to_vector->chassis_RC->rc.ch[CHASSIS_WZ_CHANNEL];
 }
 
 /**
