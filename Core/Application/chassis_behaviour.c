@@ -258,19 +258,19 @@ void chassis_behaviour_mode_set(chassis_move_t *chassis_move_mode)
 
       //remote control  set chassis behaviour mode
       //遥控器设置模式
-      if (switch_is_mid(chassis_move_mode->chassis_RC->rc.s[RADIO_CONTROL_SWITCH_R]))
+      if (switch_is_mid(chassis_move_mode->chassis_RC->rc.s[RADIO_CONTROL_SWITCH_L]) && switch_is_mid(chassis_move_mode->chassis_RC->rc.s[RADIO_CONTROL_SWITCH_R]))
       {
           //can change to CHASSIS_ZERO_FORCE,CHASSIS_NO_MOVE,CHASSIS_INFANTRY_FOLLOW_GIMBAL_YAW,
           //CHASSIS_ENGINEER_FOLLOW_CHASSIS_YAW,CHASSIS_NO_FOLLOW_YAW,CHASSIS_OPEN
-          chassis_behaviour_mode = CHASSIS_NO_FOLLOW_YAW;
-      }
-      else if (switch_is_down(chassis_move_mode->chassis_RC->rc.s[RADIO_CONTROL_SWITCH_R]))
-      {
-          chassis_behaviour_mode = CHASSIS_NO_MOVE;
-      }
-      else if (switch_is_up(chassis_move_mode->chassis_RC->rc.s[RADIO_CONTROL_SWITCH_R]))
-      {
           chassis_behaviour_mode = CHASSIS_INFANTRY_FOLLOW_GIMBAL_YAW;
+      }
+      else if (switch_is_mid(chassis_move_mode->chassis_RC->rc.s[RADIO_CONTROL_SWITCH_L]) && switch_is_up(chassis_move_mode->chassis_RC->rc.s[RADIO_CONTROL_SWITCH_R]))
+      {
+          chassis_behaviour_mode = CHASSIS_SPIN;
+      }
+      else if (switch_is_mid(chassis_move_mode->chassis_RC->rc.s[RADIO_CONTROL_SWITCH_L]) && switch_is_down(chassis_move_mode->chassis_RC->rc.s[RADIO_CONTROL_SWITCH_R]))
+      {
+          chassis_behaviour_mode = CHASSIS_NO_FOLLOW_YAW;
       }
 
     //when gimbal in some mode, such as init mode, chassis must's move
@@ -289,7 +289,7 @@ void chassis_behaviour_mode_set(chassis_move_t *chassis_move_mode)
     //根据行为模式选择一个底盘控制模式
     if (chassis_behaviour_mode == CHASSIS_ZERO_FORCE)
     {
-        chassis_move_mode->chassis_mode = CHASSIS_VECTOR_RAW; 
+        chassis_move_mode->chassis_mode = CHASSIS_VECTOR_RAW;
     }
     else if (chassis_behaviour_mode == CHASSIS_NO_MOVE)
     {
@@ -310,6 +310,10 @@ void chassis_behaviour_mode_set(chassis_move_t *chassis_move_mode)
     else if (chassis_behaviour_mode == CHASSIS_OPEN)
     {
         chassis_move_mode->chassis_mode = CHASSIS_VECTOR_RAW;
+    }
+    else if (chassis_behaviour_mode == CHASSIS_SPIN)
+    {
+        chassis_move_mode->chassis_mode = CHASSIS_NOT_MOVE;
     }
 }
 
