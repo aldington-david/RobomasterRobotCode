@@ -318,7 +318,8 @@ static void shoot_feedback_update(void) {
         if (shoot_control.rc_s_time < RC_S_LONG_TIME) {
             shoot_control.rc_s_time++;
         }
-    } else {
+    } else if((switch_is_down(shoot_control.shoot_rc->rc.s[RADIO_CONTROL_SWITCH_L]) &&
+              !switch_is_down(shoot_control.shoot_rc->rc.s[RADIO_CONTROL_SWITCH_R])) || shoot_control.shoot_mode == SHOOT_STOP){
         shoot_control.rc_s_time = 0;
     }
 //need_to_fixed
