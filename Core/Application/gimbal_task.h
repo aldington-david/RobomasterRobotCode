@@ -91,7 +91,8 @@
 //yaw,pitch控制通道以及状态开关通道
 #define YAW_CHANNEL   2
 #define PITCH_CHANNEL 3
-#define GIMBAL_MODE_CHANNEL 0
+#define RADIO_CONTROL_SWITCH_R       0
+#define RADIO_CONTROL_SWITCH_L       1
 
 //turn 180°
 //掉头180 按键

@@ -513,13 +513,19 @@ static void chassis_set_contorl(chassis_move_t *chassis_move_control)
         chassis_move_control->vx_set = fp32_constrain(vx_set, chassis_move_control->vx_min_speed, chassis_move_control->vx_max_speed);
         chassis_move_control->vy_set = fp32_constrain(vy_set, chassis_move_control->vy_min_speed, chassis_move_control->vy_max_speed);
     }
-    else if (chassis_move_control->chassis_mode == CHASSIS_VECTOR_RAW)
-    {
+    else if (chassis_move_control->chassis_mode == CHASSIS_VECTOR_RAW) {
         //in raw mode, set-point is sent to CAN bus
         //在原始模式，设置值是发送到CAN总线
         chassis_move_control->vx_set = vx_set;
         chassis_move_control->vy_set = vy_set;
         chassis_move_control->wz_set = angle_set;
+        chassis_move_control->chassis_cmd_slow_set_vx.out = 0.0f;
+        chassis_move_control->chassis_cmd_slow_set_vy.out = 0.0f;
+    } else if (chassis_move_control->chassis_mode == CHASSIS_NOT_MOVE) {
+        //底盘无力
+        chassis_move_control->vx_set = 0;
+        chassis_move_control->vy_set = 0;
+        chassis_move_control->wz_set = 0;
         chassis_move_control->chassis_cmd_slow_set_vx.out = 0.0f;
         chassis_move_control->chassis_cmd_slow_set_vy.out = 0.0f;
     }
