@@ -398,6 +398,7 @@ void chassis_rc_to_control_vector(fp32 *vx_set, fp32 *vy_set, chassis_move_t *ch
 
     int16_t vx_channel, vy_channel;
     fp32 vx_set_channel, vy_set_channel;
+    vx_set_channel=vy_set_channel=vx_channel=vy_channel=0;
     if(!switch_is_up(chassis_move_rc_to_vector->chassis_RC->rc.s[RADIO_CONTROL_SWITCH_L])){
 
 
@@ -409,9 +410,6 @@ void chassis_rc_to_control_vector(fp32 *vx_set, fp32 *vy_set, chassis_move_t *ch
     vx_set_channel = vx_channel * CHASSIS_VX_RC_SEN;
     vy_set_channel = vy_channel * -CHASSIS_VY_RC_SEN;
     } else{
-
-
-
     //keyboard set speed set-point
     //键盘控制
     if (chassis_move_rc_to_vector->chassis_RC->key.v & CHASSIS_FRONT_KEY)
