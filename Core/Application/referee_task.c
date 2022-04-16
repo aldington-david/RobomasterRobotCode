@@ -9,6 +9,7 @@
 #include "SEGGER_RTT.h"
 #include "global_control_define.h"
 #include "math.h"
+#include "tim.h"
 
 #define printf(format, args...)  SEGGER_RTT_printf(0, format, ##args)
 judge_info_t global_judge_info;
@@ -432,55 +433,58 @@ void send_toReferee(uint16_t _cmd_id, uint16_t _data_len) {
     fifo_s_puts(&referee_tx_fifo, (char *) &transmit_pack, header_len + _data_len + 4);
 }
 
+//will_abandon
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
+    if (htim->Instance == htim2.Instance) {
 //    printf("%d", fifo_s_used(&referee_tx_fifo));
-    if (No_DMA_IRQHandler) {
-        if (fifo_s_used(&referee_tx_fifo)) {
-            if (fifo_s_used(&referee_tx_len_fifo)) {
-                if ((huart6.hdmatx->Instance->CR & DMA_SxCR_CT) == RESET) {
+        if (No_DMA_IRQHandler) {
+            if (fifo_s_used(&referee_tx_fifo)) {
+                if (fifo_s_used(&referee_tx_len_fifo)) {
+                    if ((huart6.hdmatx->Instance->CR & DMA_SxCR_CT) == RESET) {
 //                    SEGGER_RTT_WriteString(0, "ST0DMA_1");
-                    __HAL_DMA_DISABLE(huart6.hdmatx);
-                    dma_send_data_len = fifo_s_get(&referee_tx_len_fifo);
-                    memset(&usart6_tx_buf[1], 0, USART_TX_BUF_LENGHT);
-                    fifo_s_gets(&referee_tx_fifo, (char *) usart6_tx_buf[1], dma_send_data_len);
-                    huart6.hdmatx->Instance->CR |= DMA_SxCR_CT;
-                    __HAL_DMA_SET_COUNTER(huart6.hdmatx, dma_send_data_len);
-                    __HAL_DMA_ENABLE(huart6.hdmatx);
-                    No_DMA_IRQHandler = 0;
-                    detect_hook(REFEREE_TX_TOE);
-                    if (fifo_s_used(&referee_tx_fifo)) {
-                        if (fifo_s_used(&referee_tx_len_fifo)) {
-                            dma_send_data_len = fifo_s_get(&referee_tx_len_fifo);
-                            memset(&usart6_tx_buf[0], 0, USART_TX_BUF_LENGHT);
-                            fifo_s_gets(&referee_tx_fifo, (char *) usart6_tx_buf[0], dma_send_data_len);
-                        }
-                    } else {
-                        dma_send_data_len = 0;
-                        No_DMA_IRQHandler = 1;
-                        memset(&usart6_tx_buf[0], 0, USART_TX_BUF_LENGHT);
-                    }
-                } else {
-//                    SEGGER_RTT_WriteString(0, "ST0DMA_0");
-                    __HAL_DMA_DISABLE(huart6.hdmatx);
-                    dma_send_data_len = fifo_s_get(&referee_tx_len_fifo);
-                    memset(&usart6_tx_buf[0], 0, USART_TX_BUF_LENGHT);
-                    fifo_s_gets(&referee_tx_fifo, (char *) usart6_tx_buf[0], dma_send_data_len);
-                    huart6.hdmatx->Instance->CR &= ~(DMA_SxCR_CT);
-                    __HAL_DMA_SET_COUNTER(huart6.hdmatx, dma_send_data_len);
-                    __HAL_DMA_ENABLE(huart6.hdmatx);
-                    No_DMA_IRQHandler = 0;
-                    detect_hook(REFEREE_TX_TOE);
-                    if (fifo_s_used(&referee_tx_fifo)) {
-                        if (fifo_s_used(&referee_tx_len_fifo)) {
-                            dma_send_data_len = fifo_s_get(&referee_tx_len_fifo);
-                            memset(&usart6_tx_buf[1], 0, USART_TX_BUF_LENGHT);
-                            fifo_s_gets(&referee_tx_fifo, (char *) usart6_tx_buf[1], dma_send_data_len);
-
-                        }
-                    } else {
-                        dma_send_data_len = 0;
-                        No_DMA_IRQHandler = 1;
+                        __HAL_DMA_DISABLE(huart6.hdmatx);
+                        dma_send_data_len = fifo_s_get(&referee_tx_len_fifo);
                         memset(&usart6_tx_buf[1], 0, USART_TX_BUF_LENGHT);
+                        fifo_s_gets(&referee_tx_fifo, (char *) usart6_tx_buf[1], dma_send_data_len);
+                        huart6.hdmatx->Instance->CR |= DMA_SxCR_CT;
+                        __HAL_DMA_SET_COUNTER(huart6.hdmatx, dma_send_data_len);
+                        __HAL_DMA_ENABLE(huart6.hdmatx);
+                        No_DMA_IRQHandler = 0;
+                        detect_hook(REFEREE_TX_TOE);
+                        if (fifo_s_used(&referee_tx_fifo)) {
+                            if (fifo_s_used(&referee_tx_len_fifo)) {
+                                dma_send_data_len = fifo_s_get(&referee_tx_len_fifo);
+                                memset(&usart6_tx_buf[0], 0, USART_TX_BUF_LENGHT);
+                                fifo_s_gets(&referee_tx_fifo, (char *) usart6_tx_buf[0], dma_send_data_len);
+                            }
+                        } else {
+                            dma_send_data_len = 0;
+                            No_DMA_IRQHandler = 1;
+                            memset(&usart6_tx_buf[0], 0, USART_TX_BUF_LENGHT);
+                        }
+                    } else {
+//                    SEGGER_RTT_WriteString(0, "ST0DMA_0");
+                        __HAL_DMA_DISABLE(huart6.hdmatx);
+                        dma_send_data_len = fifo_s_get(&referee_tx_len_fifo);
+                        memset(&usart6_tx_buf[0], 0, USART_TX_BUF_LENGHT);
+                        fifo_s_gets(&referee_tx_fifo, (char *) usart6_tx_buf[0], dma_send_data_len);
+                        huart6.hdmatx->Instance->CR &= ~(DMA_SxCR_CT);
+                        __HAL_DMA_SET_COUNTER(huart6.hdmatx, dma_send_data_len);
+                        __HAL_DMA_ENABLE(huart6.hdmatx);
+                        No_DMA_IRQHandler = 0;
+                        detect_hook(REFEREE_TX_TOE);
+                        if (fifo_s_used(&referee_tx_fifo)) {
+                            if (fifo_s_used(&referee_tx_len_fifo)) {
+                                dma_send_data_len = fifo_s_get(&referee_tx_len_fifo);
+                                memset(&usart6_tx_buf[1], 0, USART_TX_BUF_LENGHT);
+                                fifo_s_gets(&referee_tx_fifo, (char *) usart6_tx_buf[1], dma_send_data_len);
+
+                            }
+                        } else {
+                            dma_send_data_len = 0;
+                            No_DMA_IRQHandler = 1;
+                            memset(&usart6_tx_buf[1], 0, USART_TX_BUF_LENGHT);
+                        }
                     }
                 }
             }
