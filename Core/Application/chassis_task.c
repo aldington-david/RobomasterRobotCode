@@ -137,19 +137,21 @@ void chassis_task(void const *pvParameters)
 {
     //wait a time 
     //空闲一段时间
-    vTaskDelay(CHASSIS_TASK_INIT_TIME);
+    vTaskDelay(pdMS_TO_TICKS(CHASSIS_TASK_INIT_TIME));
     //chassis init
     //底盘初始化
     chassis_init(&chassis_move);
     //make sure all chassis motor is online,
     //判断底盘电机是否都在线
-    while (toe_is_error(CHASSIS_MOTOR1_TOE) || toe_is_error(CHASSIS_MOTOR2_TOE) || toe_is_error(CHASSIS_MOTOR3_TOE) || toe_is_error(CHASSIS_MOTOR4_TOE) || toe_is_error(DBUS_TOE))
-    {
-        vTaskDelay(CHASSIS_CONTROL_TIME_MS);
+    while (toe_is_error(CHASSIS_MOTOR1_TOE) || toe_is_error(CHASSIS_MOTOR2_TOE) || toe_is_error(CHASSIS_MOTOR3_TOE) ||
+           toe_is_error(CHASSIS_MOTOR4_TOE) || toe_is_error(DBUS_TOE)) {
+        vTaskDelay(pdMS_TO_TICKS(CHASSIS_CONTROL_TIME_MS));
     }
 
-    while (1)
-    {
+    TickType_t LoopStartTime;
+
+    while (1) {
+        LoopStartTime = xTaskGetTickCount();
         //set chassis control mode
         //设置底盘控制模式
         chassis_set_mode(&chassis_move);
@@ -186,7 +188,7 @@ void chassis_task(void const *pvParameters)
         }
         //os delay
         //系统延时
-        vTaskDelay(CHASSIS_CONTROL_TIME_MS);
+        vTaskDelayUntil(&LoopStartTime, pdMS_TO_TICKS(CHASSIS_CONTROL_TIME_MS));
 
 #if INCLUDE_uxTaskGetStackHighWaterMark
         chassis_high_water = uxTaskGetStackHighWaterMark(NULL);

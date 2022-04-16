@@ -94,10 +94,10 @@ void detect_task(void const *pvParameters)
     //init,初始化
     detect_init(system_time);
     //wait a time.空闲一段时间
-    vTaskDelay(DETECT_TASK_INIT_TIME);
-
-    while (1)
-    {
+    vTaskDelay(pdMS_TO_TICKS(DETECT_TASK_INIT_TIME));
+    TickType_t LoopStartTime;
+    while (1) {
+        LoopStartTime = xTaskGetTickCount();
         static uint8_t error_num_display = 0;
         system_time = xTaskGetTickCount();
 
@@ -168,7 +168,7 @@ void detect_task(void const *pvParameters)
             }
         }
 
-        vTaskDelay(DETECT_CONTROL_TIME);
+        vTaskDelayUntil(&LoopStartTime, pdMS_TO_TICKS(DETECT_CONTROL_TIME));
 #if INCLUDE_uxTaskGetStackHighWaterMark
         detect_task_stack = uxTaskGetStackHighWaterMark(NULL);
 #endif

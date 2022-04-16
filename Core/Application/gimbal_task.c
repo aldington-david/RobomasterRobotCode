@@ -334,7 +334,7 @@ static int16_t yaw_can_set_current = 0, pitch_can_set_current = 0, shoot_can_set
 void gimbal_task(void const *pvParameters) {
     //等待陀螺仪任务更新陀螺仪数据
     //wait a time
-    vTaskDelay(GIMBAL_TASK_INIT_TIME);
+    vTaskDelay(pdMS_TO_TICKS(GIMBAL_TASK_INIT_TIME));
     //gimbal init
     //云台初始化
     gimbal_init(&gimbal_control);
@@ -344,11 +344,14 @@ void gimbal_task(void const *pvParameters) {
     //wait for all motor online
     //判断电机是否都上线
     while (toe_is_error(YAW_GIMBAL_MOTOR_TOE) || toe_is_error(PITCH_GIMBAL_MOTOR_TOE)) {
-        vTaskDelay(GIMBAL_CONTROL_TIME);
+        vTaskDelay(pdMS_TO_TICKS(GIMBAL_CONTROL_TIME));
         gimbal_feedback_update(&gimbal_control);             //云台数据反馈
     }
 
+    TickType_t LoopStartTime;
+
     while (1) {
+        LoopStartTime = xTaskGetTickCount();
         gimbal_set_mode(&gimbal_control);                    //设置云台控制模式
         gimbal_mode_change_control_transit(&gimbal_control); //控制模式切换 控制数据过渡
         gimbal_feedback_update(&gimbal_control);             //云台数据反馈
@@ -384,7 +387,7 @@ void gimbal_task(void const *pvParameters) {
         J_scope_gimbal_test();
 #endif
 
-        vTaskDelay(GIMBAL_CONTROL_TIME);
+        vTaskDelayUntil(&LoopStartTime, pdMS_TO_TICKS(GIMBAL_CONTROL_TIME));
 
 #if INCLUDE_uxTaskGetStackHighWaterMark
         gimbal_high_water = uxTaskGetStackHighWaterMark(NULL);
