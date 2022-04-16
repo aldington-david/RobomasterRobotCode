@@ -33,7 +33,7 @@
 
 #define SHOOT_CONTROL_TIME          GIMBAL_CONTROL_TIME
 
-#define SHOOT_FRIC_PWM_ADD_VALUE    20
+#define SHOOT_FRIC_PWM_ADD_VALUE    80
 
 //射击摩擦轮激光打开 关闭
 #define SHOOT_ON_KEYBOARD           KEY_PRESSED_OFFSET_Q
