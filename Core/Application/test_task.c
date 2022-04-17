@@ -42,9 +42,10 @@ void test_task(void const * argument)
     static uint8_t error, last_error;
     static uint8_t error_num;
     error_list_test_local = get_error_list_point();
-
+    TickType_t LoopStartTime;
     while(1)
     {
+        LoopStartTime = xTaskGetTickCount();
         error = 0;
 
         //find error
@@ -70,7 +71,7 @@ void test_task(void const * argument)
         }
 
         last_error = error;
-        osDelay(10);
+        vTaskDelayUntil(&LoopStartTime, pdMS_TO_TICKS(10));
     }
 }
 

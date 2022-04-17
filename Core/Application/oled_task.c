@@ -49,7 +49,7 @@ void oled_task(void const * argument)
     uint8_t i;
     uint8_t show_col, show_row;
     error_list_local = get_error_list_point();
-    osDelay(1000);
+    vTaskDelay(pdMS_TO_TICKS(1000));
     OLED_init();
     OLED_LOGO();
     i = 100;
@@ -59,10 +59,12 @@ void oled_task(void const * argument)
         {
             detect_hook(OLED_TOE);
         }
-        osDelay(10);
+        vTaskDelay(pdMS_TO_TICKS(10));
     }
+    TickType_t LoopStartTime;
     while(1)
     {
+        LoopStartTime = xTaskGetTickCount();
         //use i2c ack to check the oled
         if(OLED_check_ack())
         {
@@ -123,9 +125,8 @@ void oled_task(void const * argument)
         }
 
 
-
         last_oled_error = now_oled_errror;
-        osDelay(OLED_CONTROL_TIME);
+        vTaskDelayUntil(&LoopStartTime, pdMS_TO_TICKS(OLED_CONTROL_TIME));
     }
 }
 

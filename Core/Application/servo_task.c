@@ -49,9 +49,10 @@ uint16_t servo_pwm[4] = {SERVO_MIN_PWM, SERVO_MIN_PWM, SERVO_MIN_PWM, SERVO_MIN_
 void servo_task(void const * argument)
 {
     servo_rc = get_remote_control_point();
-
+    TickType_t LoopStartTime;
     while(1)
     {
+        LoopStartTime = xTaskGetTickCount();
         for(uint8_t i = 0; i < 4; i++)
         {
 
@@ -77,7 +78,7 @@ void servo_task(void const * argument)
 
             servo_pwm_set(servo_pwm[i], i);
         }
-        osDelay(10);
+        vTaskDelayUntil(&LoopStartTime, pdMS_TO_TICKS(10));
     }
 }
 

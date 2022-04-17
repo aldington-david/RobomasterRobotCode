@@ -71,7 +71,7 @@ void led_RGB_flow_task(void const * argument)
 
                 aRGB = ((uint32_t)(alpha)) << 24 | ((uint32_t)(red)) << 16 | ((uint32_t)(green)) << 8 | ((uint32_t)(blue)) << 0;
                 aRGB_led_show(aRGB);
-                osDelay(1);
+                vTaskDelay(pdMS_TO_TICKS(1));
             }
         }
     }

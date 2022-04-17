@@ -10,18 +10,21 @@
 #include "global_control_define.h"
 #include "math.h"
 #include "tim.h"
+#include "task.h"
+#include "USART_task.h"
 
 #define printf(format, args...)  SEGGER_RTT_printf(0, format, ##args)
 judge_info_t global_judge_info;
-fifo_s_t referee_rx_fifo;
-fifo_s_t referee_tx_len_fifo;
-fifo_s_t referee_tx_fifo;
 uint8_t referee_fifo_rx_buf[REFEREE_FIFO_BUF_LENGTH];
 uint8_t referee_fifo_tx_len_buf[REFEREE_FIFO_BUF_LENGTH];
 uint8_t referee_fifo_tx_buf[REFEREE_FIFO_BUF_LENGTH];
 unpack_data_t referee_unpack_obj;
+fifo_s_t referee_rx_fifo;
+fifo_s_t referee_tx_len_fifo;
+fifo_s_t referee_tx_fifo;
 uint8_t usart6_rx_buf[2][USART_RX_BUF_LENGHT];
 uint8_t usart6_tx_buf[2][USART_TX_BUF_LENGHT];
+
 /* 发送数据包缓存区，最大128字节 */
 uint8_t transmit_pack[128] = {0};
 /*****************裁判系统接收功能 Start**********************/
@@ -48,11 +51,11 @@ void referee_rx_task(void const *argument) {
     fifo_s_init(&referee_rx_fifo, referee_fifo_rx_buf, REFEREE_FIFO_BUF_LENGTH);
     usart6_init(usart6_rx_buf[0], usart6_rx_buf[1], USART_RX_BUF_LENGHT, usart6_tx_buf[0], usart6_tx_buf[1],
                 USART_TX_BUF_LENGHT);
-
+    TickType_t LoopStartTime;
     while (1) {
-
+        LoopStartTime = xTaskGetTickCount();
         referee_unpack_fifo_data();
-        osDelay(10);
+        vTaskDelayUntil(&LoopStartTime, pdMS_TO_TICKS(10));
     }
 }
 
@@ -360,11 +363,11 @@ void referee_tx_task(void const *argument) {
     graphic_color_enum_t ruler_color[7] = {graphic_color_white, graphic_color_white, graphic_color_white,
                                            graphic_color_white, graphic_color_white, graphic_color_white,
                                            graphic_color_white};
-    osDelay(5000);
+    vTaskDelay(pdMS_TO_TICKS(5000));
     UI_clean_all();
-
+    TickType_t LoopStartTime;
     while (1) {
-
+        LoopStartTime = xTaskGetTickCount();
 //        SEGGER_RTT_WriteString(0, "referee_task_loop_on");
 //        draw_cnt++;
 //        name[0] = draw_cnt / 255;
@@ -372,7 +375,7 @@ void referee_tx_task(void const *argument) {
 //        line_drawing(name,ADD_PICTURE,0,graphic_color_yellow, 5,200, 200, 400, 400  );
 //        printf("%d", fifo_s_used(&referee_tx_fifo));
         Hero_UI_ruler(5, 961, 538, line_distance, line_length, ruler_color, ADD_PICTURE);
-        osDelay(100);
+        vTaskDelayUntil(&LoopStartTime, pdMS_TO_TICKS(100));
 //        UI_clean_all();
     }
 }
@@ -431,66 +434,67 @@ void send_toReferee(uint16_t _cmd_id, uint16_t _data_len) {
 //    }
     fifo_s_put(&referee_tx_len_fifo, header_len + _data_len + 4);
     fifo_s_puts(&referee_tx_fifo, (char *) &transmit_pack, header_len + _data_len + 4);
+    xTaskNotifyGive(USART_task_local_handler);
 }
 
-//will_abandon
-void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
-    if (htim->Instance == htim2.Instance) {
-//    printf("%d", fifo_s_used(&referee_tx_fifo));
-        if (No_DMA_IRQHandler) {
-            if (fifo_s_used(&referee_tx_fifo)) {
-                if (fifo_s_used(&referee_tx_len_fifo)) {
-                    if ((huart6.hdmatx->Instance->CR & DMA_SxCR_CT) == RESET) {
-//                    SEGGER_RTT_WriteString(0, "ST0DMA_1");
-                        __HAL_DMA_DISABLE(huart6.hdmatx);
-                        dma_send_data_len = fifo_s_get(&referee_tx_len_fifo);
-                        memset(&usart6_tx_buf[1], 0, USART_TX_BUF_LENGHT);
-                        fifo_s_gets(&referee_tx_fifo, (char *) usart6_tx_buf[1], dma_send_data_len);
-                        huart6.hdmatx->Instance->CR |= DMA_SxCR_CT;
-                        __HAL_DMA_SET_COUNTER(huart6.hdmatx, dma_send_data_len);
-                        __HAL_DMA_ENABLE(huart6.hdmatx);
-                        No_DMA_IRQHandler = 0;
-                        detect_hook(REFEREE_TX_TOE);
-                        if (fifo_s_used(&referee_tx_fifo)) {
-                            if (fifo_s_used(&referee_tx_len_fifo)) {
-                                dma_send_data_len = fifo_s_get(&referee_tx_len_fifo);
-                                memset(&usart6_tx_buf[0], 0, USART_TX_BUF_LENGHT);
-                                fifo_s_gets(&referee_tx_fifo, (char *) usart6_tx_buf[0], dma_send_data_len);
-                            }
-                        } else {
-                            dma_send_data_len = 0;
-                            No_DMA_IRQHandler = 1;
-                            memset(&usart6_tx_buf[0], 0, USART_TX_BUF_LENGHT);
-                        }
-                    } else {
-//                    SEGGER_RTT_WriteString(0, "ST0DMA_0");
-                        __HAL_DMA_DISABLE(huart6.hdmatx);
-                        dma_send_data_len = fifo_s_get(&referee_tx_len_fifo);
-                        memset(&usart6_tx_buf[0], 0, USART_TX_BUF_LENGHT);
-                        fifo_s_gets(&referee_tx_fifo, (char *) usart6_tx_buf[0], dma_send_data_len);
-                        huart6.hdmatx->Instance->CR &= ~(DMA_SxCR_CT);
-                        __HAL_DMA_SET_COUNTER(huart6.hdmatx, dma_send_data_len);
-                        __HAL_DMA_ENABLE(huart6.hdmatx);
-                        No_DMA_IRQHandler = 0;
-                        detect_hook(REFEREE_TX_TOE);
-                        if (fifo_s_used(&referee_tx_fifo)) {
-                            if (fifo_s_used(&referee_tx_len_fifo)) {
-                                dma_send_data_len = fifo_s_get(&referee_tx_len_fifo);
-                                memset(&usart6_tx_buf[1], 0, USART_TX_BUF_LENGHT);
-                                fifo_s_gets(&referee_tx_fifo, (char *) usart6_tx_buf[1], dma_send_data_len);
-
-                            }
-                        } else {
-                            dma_send_data_len = 0;
-                            No_DMA_IRQHandler = 1;
-                            memset(&usart6_tx_buf[1], 0, USART_TX_BUF_LENGHT);
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
+////will_abandon
+//void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
+//    if (htim->Instance == htim2.Instance) {
+////    printf("%d", fifo_s_used(&referee_tx_fifo));
+//        if (No_DMA_IRQHandler) {
+//            if (fifo_s_used(&referee_tx_fifo)) {
+//                if (fifo_s_used(&referee_tx_len_fifo)) {
+//                    if ((huart6.hdmatx->Instance->CR & DMA_SxCR_CT) == RESET) {
+////                    SEGGER_RTT_WriteString(0, "ST0DMA_1");
+//                        __HAL_DMA_DISABLE(huart6.hdmatx);
+//                        dma_send_data_len = fifo_s_get(&referee_tx_len_fifo);
+//                        memset(&usart6_tx_buf[1], 0, USART_TX_BUF_LENGHT);
+//                        fifo_s_gets(&referee_tx_fifo, (char *) usart6_tx_buf[1], dma_send_data_len);
+//                        huart6.hdmatx->Instance->CR |= DMA_SxCR_CT;
+//                        __HAL_DMA_SET_COUNTER(huart6.hdmatx, dma_send_data_len);
+//                        __HAL_DMA_ENABLE(huart6.hdmatx);
+//                        No_DMA_IRQHandler = 0;
+//                        detect_hook(REFEREE_TX_TOE);
+//                        if (fifo_s_used(&referee_tx_fifo)) {
+//                            if (fifo_s_used(&referee_tx_len_fifo)) {
+//                                dma_send_data_len = fifo_s_get(&referee_tx_len_fifo);
+//                                memset(&usart6_tx_buf[0], 0, USART_TX_BUF_LENGHT);
+//                                fifo_s_gets(&referee_tx_fifo, (char *) usart6_tx_buf[0], dma_send_data_len);
+//                            }
+//                        } else {
+//                            dma_send_data_len = 0;
+//                            No_DMA_IRQHandler = 1;
+//                            memset(&usart6_tx_buf[0], 0, USART_TX_BUF_LENGHT);
+//                        }
+//                    } else {
+////                    SEGGER_RTT_WriteString(0, "ST0DMA_0");
+//                        __HAL_DMA_DISABLE(huart6.hdmatx);
+//                        dma_send_data_len = fifo_s_get(&referee_tx_len_fifo);
+//                        memset(&usart6_tx_buf[0], 0, USART_TX_BUF_LENGHT);
+//                        fifo_s_gets(&referee_tx_fifo, (char *) usart6_tx_buf[0], dma_send_data_len);
+//                        huart6.hdmatx->Instance->CR &= ~(DMA_SxCR_CT);
+//                        __HAL_DMA_SET_COUNTER(huart6.hdmatx, dma_send_data_len);
+//                        __HAL_DMA_ENABLE(huart6.hdmatx);
+//                        No_DMA_IRQHandler = 0;
+//                        detect_hook(REFEREE_TX_TOE);
+//                        if (fifo_s_used(&referee_tx_fifo)) {
+//                            if (fifo_s_used(&referee_tx_len_fifo)) {
+//                                dma_send_data_len = fifo_s_get(&referee_tx_len_fifo);
+//                                memset(&usart6_tx_buf[1], 0, USART_TX_BUF_LENGHT);
+//                                fifo_s_gets(&referee_tx_fifo, (char *) usart6_tx_buf[1], dma_send_data_len);
+//
+//                            }
+//                        } else {
+//                            dma_send_data_len = 0;
+//                            No_DMA_IRQHandler = 1;
+//                            memset(&usart6_tx_buf[1], 0, USART_TX_BUF_LENGHT);
+//                        }
+//                    }
+//                }
+//            }
+//        }
+//    }
+//}
 
 void MY_USART_DMA_Stream6_TX_IRQHandler(void) {
     __HAL_DMA_DISABLE(huart6.hdmatx);
@@ -552,8 +556,7 @@ void MY_USART_DMA_Stream6_TX_IRQHandler(void) {
                     No_DMA_IRQHandler = 1;
                     memset(&usart6_tx_buf[0], 0, USART_TX_BUF_LENGHT);
                 }
-            }
-            if (UART_SEND_MODE == Byte_MODE) {
+            } else if (UART_SEND_MODE == Byte_MODE) {
                 if (fifo_s_used(&referee_tx_fifo)) {
                     memset(&usart6_tx_buf[0], 0, USART_TX_BUF_LENGHT);
                     dma_send_data_len = 1;
