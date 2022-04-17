@@ -4,6 +4,7 @@
 #include <stdbool.h>
 #include <stdint-gcc.h>
 #include "struct_typedef.h"
+#include "fifo.h"
 
 #define USART_RX_BUF_LENGHT     512
 #define USART_TX_BUF_LENGHT     128
@@ -660,7 +661,14 @@ static volatile uint8_t No_DMA_IRQHandler = 1;
 static volatile uint8_t dma_send_data_len = 0;
 static uint8_t data_pack[DRAWING_PACK * 7] = {0};
 static ext_client_custom_graphic_delete_t cleaning;
+/******declare move frome referee_task.c********/
+extern fifo_s_t referee_rx_fifo;
+extern fifo_s_t referee_tx_len_fifo;
+extern fifo_s_t referee_tx_fifo;
+extern uint8_t usart6_rx_buf[2][USART_RX_BUF_LENGHT];
+extern uint8_t usart6_tx_buf[2][USART_TX_BUF_LENGHT];
 
+/******declare move frome referee_task.c********/
 static void send_toReferee(uint16_t _cmd_id, uint16_t _data_len);
 
 static void UI_clean_all(void);

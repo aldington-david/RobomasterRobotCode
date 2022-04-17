@@ -39,6 +39,7 @@
 #include "voltage_task.h"
 #include "servo_task.h"
 #include "PC_receive_task.h"
+#include "USART_task.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -56,6 +57,7 @@ osThreadId referee_tx_task_handle;
 osThreadId print_task_handle;
 osThreadId battery_voltage_handle;
 osThreadId servo_task_handle;
+osThreadId usart_task_handle;
 
 
 /* USER CODE END PTD */
@@ -157,43 +159,41 @@ void MX_FREERTOS_Init(void) {
     osThreadDef(ChassisTask, chassis_task, osPriorityAboveNormal, 0, 512);
     chassisTaskHandle = osThreadCreate(osThread(ChassisTask), NULL);
 
-    osThreadDef(DETECT, detect_task, osPriorityNormal, 0, 256);
-    detect_handle = osThreadCreate(osThread(DETECT), NULL);
-
     osThreadDef(gimbalTask, gimbal_task, osPriorityHigh, 0, 512);
     gimbalTaskHandle = osThreadCreate(osThread(gimbalTask), NULL);
 
     osThreadDef(imuTask, INS_task, osPriorityRealtime, 0, 1024);
     imuTaskHandle = osThreadCreate(osThread(imuTask), NULL);
 
-    osThreadDef(led, led_RGB_flow_task, osPriorityNormal, 0, 256);
-    led_RGB_flow_handle = osThreadCreate(osThread(led), NULL);
-
-
-    osThreadDef(OLED, oled_task, osPriorityLow, 0, 256);
-    oled_handle = osThreadCreate(osThread(OLED), NULL);
-
+    osThreadDef(SERVO, servo_task, osPriorityAboveNormal, 0, 256);
+    servo_task_handle = osThreadCreate(osThread(SERVO), NULL);
 
     osThreadDef(REFEREE_RX, referee_rx_task, osPriorityNormal, 0, 256);
     referee_rx_task_handle = osThreadCreate(osThread(REFEREE_RX), NULL);
 
+    osThreadDef(USARTTask, USART_task, osPriorityNormal, 0, 512);
+    usart_task_handle = osThreadCreate(osThread(USARTTask), NULL);
+
     osThreadDef(REFEREE_TX, referee_tx_task, osPriorityNormal, 0, 256);
     referee_tx_task_handle = osThreadCreate(osThread(REFEREE_TX), NULL);
 
+    osThreadDef(BATTERY_VOLTAGE, battery_voltage_task, osPriorityLow, 0, 256);
+    battery_voltage_handle = osThreadCreate(osThread(BATTERY_VOLTAGE), NULL);
+
+    osThreadDef(led, led_RGB_flow_task, osPriorityBelowNormal, 0, 256);
+    led_RGB_flow_handle = osThreadCreate(osThread(led), NULL);
+
+    osThreadDef(OLED, oled_task, osPriorityLow, 0, 256);
+    oled_handle = osThreadCreate(osThread(OLED), NULL);
+
+    osThreadDef(DETECT, detect_task, osPriorityRealtime, 0, 256);
+    detect_handle = osThreadCreate(osThread(DETECT), NULL);
 
     osThreadDef(printTask, print_task, osPriorityNormal, 0, 512);
     print_task_handle = osThreadCreate(osThread(printTask), NULL);
 
-    osThreadDef(BATTERY_VOLTAGE, battery_voltage_task, osPriorityNormal, 0, 256);
-    battery_voltage_handle = osThreadCreate(osThread(BATTERY_VOLTAGE), NULL);
-
-    osThreadDef(SERVO, servo_task, osPriorityNormal, 0, 256);
-    servo_task_handle = osThreadCreate(osThread(SERVO), NULL);
-
     osThreadDef(PC_receiveTask, PC_receive_task, osPriorityNormal, 0, 512);
     servo_task_handle = osThreadCreate(osThread(PC_receiveTask), NULL);
-
-
 
     /* USER CODE END RTOS_THREADS */
 

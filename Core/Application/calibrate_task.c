@@ -295,7 +295,7 @@ void calibrate_task(void const *pvParameters)
                 }
             }
         }
-        osDelay(CALIBRATE_CONTROL_TIME);
+        vTaskDelay(pdMS_TO_TICKS(CALIBRATE_CONTROL_TIME));
 #if INCLUDE_uxTaskGetStackHighWaterMark
         calibrate_task_stack = uxTaskGetStackHighWaterMark(NULL);
 #endif

@@ -47,14 +47,16 @@ fp32 electricity_percentage;
   */
 void battery_voltage_task(void const * argument)
 {
-    osDelay(1000);
+    vTaskDelay(pdMS_TO_TICKS(1000));
     //use inner 1.2v to calbrate
     init_vrefint_reciprocal();
+    TickType_t LoopStartTime;
     while(1)
     {
+        LoopStartTime = xTaskGetTickCount();
         battery_voltage = get_battery_voltage() + VOLTAGE_DROP;
         electricity_percentage = calc_battery_percentage(battery_voltage);
-        osDelay(100);
+        vTaskDelayUntil(&LoopStartTime, pdMS_TO_TICKS(100));
     }
 }
 

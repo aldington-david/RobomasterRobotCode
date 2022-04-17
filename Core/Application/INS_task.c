@@ -176,7 +176,7 @@ fp32 INS_angle[3] = {0.0f, 0.0f, 0.0f};      //euler angle, unit rad.欧拉角 �
 void INS_task(void const *pvParameters)
 {
     //wait a time
-    osDelay(INS_TASK_INIT_TIME);
+    vTaskDelay(pdMS_TO_TICKS(INS_TASK_INIT_TIME));
     while(BMI088_init())
     {
         osDelay(100);
@@ -199,18 +199,17 @@ void INS_task(void const *pvParameters)
     accel_fliter_1[2] = accel_fliter_2[2] = accel_fliter_3[2] = INS_accel[2];
     //get the handle of task
     //获取当前任务的任务句柄，
-    INS_task_local_handler = xTaskGetHandle(pcTaskGetName(NULL));
-
+//    INS_task_local_handler = xTaskGetHandle(pcTaskGetName(NULL));
+    INS_task_local_handler = xTaskGetCurrentTaskHandle();
     //set spi frequency
     hspi1.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_8;
-    
-    if (HAL_SPI_Init(&hspi1) != HAL_OK)
-    {
+
+    if (HAL_SPI_Init(&hspi1) != HAL_OK) {
         Error_Handler();
     }
 
 
-    SPI1_DMA_init((uint32_t)gyro_dma_tx_buf, (uint32_t)gyro_dma_rx_buf, SPI_DMA_GYRO_LENGHT);
+    SPI1_DMA_init((uint32_t) gyro_dma_tx_buf, (uint32_t) gyro_dma_rx_buf, SPI_DMA_GYRO_LENGHT);
 
     imu_start_dma_flag = 1;
     

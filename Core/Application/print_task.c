@@ -67,10 +67,10 @@ void print_task(void const *argument) {
     if (PRINTF_MODE == USB_MODE) {
         MX_USB_DEVICE_Init();
         error_list_print_local = get_error_list_point();
-
-
+        vTaskDelay(pdMS_TO_TICKS(500));
+        TickType_t LoopStartTime;
         while (1) {
-            osDelay(1000);
+            LoopStartTime = xTaskGetTickCount();
             usb_printf(
                     "******************************\r\n\
 voltage percentage:%d%% \r\n\
@@ -100,16 +100,16 @@ referee usart:%s\r\n\
                     status[error_list_print_local[BOARD_ACCEL_TOE].error_exist],
                     status[error_list_print_local[BOARD_MAG_TOE].error_exist],
                     status[error_list_print_local[REFEREE_RX_TOE].error_exist]);
-
+            vTaskDelayUntil(&LoopStartTime, pdMS_TO_TICKS(GIMBAL_CONTROL_TIME));
         }
     }
     if (PRINTF_MODE == RTT_MODE) {
         MX_USB_DEVICE_Init();
         error_list_print_local = get_error_list_point();
-
-
+        vTaskDelay(pdMS_TO_TICKS(500));
+        TickType_t LoopStartTime;
         while (1) {
-            osDelay(50);
+            LoopStartTime = xTaskGetTickCount();
             /***********************打印数据 Start *****************************/
 //            //功率显示
 //            RTT_PrintWave(1,&global_judge_info.PowerHeatData.chassis_power);
@@ -474,6 +474,7 @@ $param:Key=%d;\r\n\
                     rc_ctrl.mouse.press_l,
                     rc_ctrl.mouse.press_r,
                     rc_ctrl.key.v);
+            vTaskDelayUntil(&LoopStartTime, pdMS_TO_TICKS(GIMBAL_CONTROL_TIME));
         }
     }
 
