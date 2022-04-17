@@ -176,14 +176,17 @@ int16_t shoot_control_loop(void) {
   */
 static void shoot_set_mode(void) {
     static char last_s = RC_SW_UP;
+    static char last_s_switch = RC_SW_UP;
 
     //上拨判断， 一次开启，再次关闭
     if ((switch_is_down(shoot_control.shoot_rc->rc.s[RADIO_CONTROL_SWITCH_L]) &&
          switch_is_up(shoot_control.shoot_rc->rc.s[RADIO_CONTROL_SWITCH_R]) && !switch_is_up(last_s) &&
+         !switch_is_up(last_s_switch) &&
          shoot_control.shoot_mode == SHOOT_STOP)) {
         shoot_control.shoot_mode = SHOOT_START;
     } else if ((switch_is_down(shoot_control.shoot_rc->rc.s[RADIO_CONTROL_SWITCH_L]) &&
                 switch_is_up(shoot_control.shoot_rc->rc.s[RADIO_CONTROL_SWITCH_R]) && !switch_is_up(last_s) &&
+                !switch_is_up(last_s_switch) &&
                 shoot_control.shoot_mode != SHOOT_STOP)) {
         shoot_control.shoot_mode = SHOOT_STOP;
     }
@@ -249,6 +252,7 @@ static void shoot_set_mode(void) {
     if (switch_is_down(shoot_control.shoot_rc->rc.s[RADIO_CONTROL_SWITCH_L])) {
         last_s = shoot_control.shoot_rc->rc.s[RADIO_CONTROL_SWITCH_R];
     }
+    last_s_switch = shoot_control.shoot_rc->rc.s[RADIO_CONTROL_SWITCH_R];
     switch_test = last_s;//for_test
 }
 
@@ -258,7 +262,7 @@ static void shoot_set_mode(void) {
   * @retval         void
   */
 static void shoot_feedback_update(void) {
-
+    static char last_s = RC_SW_UP;
     static fp32 speed_fliter_1 = 0.0f;
     static fp32 speed_fliter_2 = 0.0f;
     static fp32 speed_fliter_3 = 0.0f;
@@ -322,8 +326,9 @@ static void shoot_feedback_update(void) {
         if (shoot_control.rc_s_time < RC_S_LONG_TIME) {
             shoot_control.rc_s_time++;
         }
-    } else if((switch_is_down(shoot_control.shoot_rc->rc.s[RADIO_CONTROL_SWITCH_L]) &&
-              !switch_is_down(shoot_control.shoot_rc->rc.s[RADIO_CONTROL_SWITCH_R])) || shoot_control.shoot_mode == SHOOT_STOP){
+    } else if (switch_is_down(shoot_control.shoot_rc->rc.s[RADIO_CONTROL_SWITCH_L]) &&
+               !switch_is_down(shoot_control.shoot_rc->rc.s[RADIO_CONTROL_SWITCH_R]) && switch_is_down(last_s) ||
+               shoot_control.shoot_mode == SHOOT_STOP) {
         shoot_control.rc_s_time = 0;
     }
 //need_to_fixed
@@ -342,6 +347,7 @@ static void shoot_feedback_update(void) {
         shoot_control.fric2_ramp.max_value = FRIC_DOWN;
     }
 
+    last_s = shoot_control.shoot_rc->rc.s[RADIO_CONTROL_SWITCH_R];
 
 }
 
