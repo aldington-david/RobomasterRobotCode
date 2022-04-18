@@ -248,18 +248,6 @@ void EXTI9_5_IRQHandler(void) {
 }
 
 /**
-  * @brief This function handles TIM2 global interrupt.
-  */
-void TIM2_IRQHandler(void) {
-    /* USER CODE BEGIN TIM2_IRQn 0 */
-    /* USER CODE END TIM2_IRQn 0 */
-    HAL_TIM_IRQHandler(&htim2);
-    /* USER CODE BEGIN TIM2_IRQn 1 */
-//    __HAL_TIM_CLEAR_IT(&htim2,TIM_IT_UPDATE);
-    /* USER CODE END TIM2_IRQn 1 */
-}
-
-/**
   * @brief This function handles DMA2 stream1 global interrupt.
   */
 void DMA2_Stream1_IRQHandler(void) {
