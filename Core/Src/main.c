@@ -136,16 +136,12 @@ int main(void)
     MX_USART6_UART_Init();
     MX_CRC_Init();
     MX_RNG_Init();
-    MX_TIM2_Init();
-//    SEGGER_RTT_ConfigUpBuffer(1, "DataOut", &abDataOut[0], sizeof(abDataOut),
-//                              SEGGER_RTT_MODE_NO_BLOCK_TRIM);
     /* USER CODE BEGIN 2 */
     can_filter_init();
     delay_init();
     cali_param_init();
     remote_control_init();
     usart1_tx_dma_init();
-    HAL_TIM_Base_Start_IT(&htim2);
     /* USER CODE END 2 */
 
     /* Call init function for freertos objects (in freertos.c) */
