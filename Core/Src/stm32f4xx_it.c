@@ -27,6 +27,9 @@
 #include "SEGGER_RTT.h"
 #include "usart.h"
 #include "referee_task.h"
+#include "vision_task.h"
+#include "matlab_sync_task.h"
+#include "global_control_define.h"
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 /* USER CODE END Includes */
@@ -263,20 +266,6 @@ void EXTI9_5_IRQHandler(void)
 }
 
 /**
-  * @brief This function handles USART1 global interrupt.
-  */
-void USART1_IRQHandler(void)
-{
-  /* USER CODE BEGIN USART1_IRQn 0 */
-
-  /* USER CODE END USART1_IRQn 0 */
-  HAL_UART_IRQHandler(&huart1);
-  /* USER CODE BEGIN USART1_IRQn 1 */
-
-  /* USER CODE END USART1_IRQn 1 */
-}
-
-/**
   * @brief This function handles DMA2 stream1 global interrupt.
   */
 void DMA2_Stream1_IRQHandler(void)
@@ -382,9 +371,17 @@ void DMA2_Stream7_IRQHandler(void)
   /* USER CODE BEGIN DMA2_Stream7_IRQn 0 */
 
   /* USER CODE END DMA2_Stream7_IRQn 0 */
-  HAL_DMA_IRQHandler(&hdma_usart1_tx);
+//  HAL_DMA_IRQHandler(&hdma_usart1_tx);
   /* USER CODE BEGIN DMA2_Stream7_IRQn 1 */
-
+  if(UART1_TARGET_MODE==Vision_MODE){
+      if (__HAL_DMA_GET_FLAG(huart1.hdmatx, DMA_HISR_TCIF7) != RESET) {
+        MY_USART_DMA_Stream7_Vision_TX_IRQHandler();
+    }
+  }else if(UART1_TARGET_MODE==Matlab_MODE){
+      if (__HAL_DMA_GET_FLAG(huart1.hdmatx, DMA_HISR_TCIF7) != RESET) {
+          MY_USART_DMA_Stream7_Matlab_TX_IRQHandler();
+      }
+  }
   /* USER CODE END DMA2_Stream7_IRQn 1 */
 }
 

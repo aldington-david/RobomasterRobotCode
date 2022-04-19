@@ -270,6 +270,8 @@ static void detect_init(uint32_t time)
                 {100, 100, 5},  //referee_rx
                 {100, 100, 5},  //referee_tx
                 {10,  10,  7},    //rm imu
+                {100, 100, 5},  //vision_rx
+                {100, 100, 5},  //usart1_tx
                 {100, 100, 1},  //oled
         };
 

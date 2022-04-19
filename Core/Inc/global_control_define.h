@@ -11,23 +11,34 @@
 /************ Choose Print Mode Start*******************/
 #define USB_MODE 0
 #define RTT_MODE 1
-//#define PRINTF_MODE 0 //print from usb
-#define PRINTF_MODE 1 //print from RTT terminal
+//#define PRINTF_MODE USB_MODE //print from usb
+#define PRINTF_MODE RTT_MODE //print from RTT terminal
 /************ Choose Print Mode End*******************/
 
 /************ Choose UART Send Mode Start*******************/
 #define Byte_MODE 0
 #define Bytes_MODE 1
-//#define UART_SEND_MODE 0 // UART sent one byte
-#define UART_SEND_MODE 1 //UART sent full data bytes
+//#define UART_SEND_MODE Byte_MODE // UART sent one byte
+#define UART_SEND_MODE Bytes_MODE //UART sent full data bytes
 /************ Choose UART Send Mode End*******************/
 
+/************ Choose UART1 TX Target Start*******************/
+#define Vision_MODE 0
+#define Matlab_MODE 1
+//#define UART_SEND_MODE Vision_MODE // UART sent one byte
+#define UART1_TARGET_MODE Matlab_MODE //UART sent full data bytes
+/************ Choose UART1 TX Target End*******************/
 
 /************ Lack Define Warning Start*******************/
 #if !defined(PRINTF_MODE)
 #error "You mast define PRINTF_MODE to chose a printf option"
 #endif
+
 #if !defined(UART_SEND_MODE)
 #error "You mast define UART_SEND_MODE to chose a UART send option"
+#endif
+
+#if !defined(UART1_TARGET_MODE)
+#error "You mast define UART1_TARGET_MODE to chose a UART1 target"
 #endif
 /************ Lack Define Warning End*******************/

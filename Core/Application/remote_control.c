@@ -190,7 +190,7 @@ void USART3_IRQHandler(void)
                 sbus_to_rc(sbus_rx_buf[0], &rc_ctrl);
                 //记录数据接收时间
                 detect_hook(DBUS_TOE);
-                sbus_to_usart1(sbus_rx_buf[0]);
+//                sbus_to_usart1(sbus_rx_buf[0]);
             }
         }
         else
@@ -222,7 +222,7 @@ void USART3_IRQHandler(void)
                 sbus_to_rc(sbus_rx_buf[1], &rc_ctrl);
                 //记录数据接收时间
                 detect_hook(DBUS_TOE);
-                sbus_to_usart1(sbus_rx_buf[1]);
+//                sbus_to_usart1(sbus_rx_buf[1]);
             }
         }
     }
@@ -281,7 +281,7 @@ static void sbus_to_rc(volatile const uint8_t *sbus_buf, RC_ctrl_t *rc_ctrl)
     rc_ctrl->rc.ch[3] -= RC_CH_VALUE_OFFSET;
     rc_ctrl->rc.ch[4] -= RC_CH_VALUE_OFFSET;
 }
-
+//abundant
 /**
   * @brief          send sbus data by usart1, called in usart3_IRQHandle
   * @param[in]      sbus: sbus data, 18 bytes

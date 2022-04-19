@@ -39,7 +39,9 @@
 #include "voltage_task.h"
 #include "servo_task.h"
 #include "PC_receive_task.h"
-#include "USART_task.h"
+#include "vision_task.h"
+#include "matlab_sync_task.h"
+#include "global_control_define.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -57,7 +59,11 @@ osThreadId referee_tx_task_handle;
 osThreadId print_task_handle;
 osThreadId battery_voltage_handle;
 osThreadId servo_task_handle;
-osThreadId usart_task_handle;
+osThreadId usart6tx_active_task_handle;
+osThreadId usart1tx_active_task_handle;
+osThreadId vision_rx_task_handle;
+osThreadId vision_tx_task_handle;
+osThreadId MatlabSync_task_handle;
 
 
 /* USER CODE END PTD */
@@ -165,18 +171,30 @@ void MX_FREERTOS_Init(void) {
     osThreadDef(imuTask, INS_task, osPriorityRealtime, 0, 1024);
     imuTaskHandle = osThreadCreate(osThread(imuTask), NULL);
 
+    osThreadDef(VISION_RX, vision_rx_task, osPriorityRealtime, 0, 256);
+    vision_rx_task_handle = osThreadCreate(osThread(VISION_RX), NULL);
+
     osThreadDef(SERVO, servo_task, osPriorityAboveNormal, 0, 256);
     servo_task_handle = osThreadCreate(osThread(SERVO), NULL);
 
     osThreadDef(REFEREE_RX, referee_rx_task, osPriorityNormal, 0, 256);
     referee_rx_task_handle = osThreadCreate(osThread(REFEREE_RX), NULL);
 
-    osThreadDef(USARTTask, USART_task, osPriorityNormal, 0, 512);
-    usart_task_handle = osThreadCreate(osThread(USARTTask), NULL);
+    osThreadDef(USART6TXAactiveTask, USART6TX_active_task, osPriorityNormal, 0, 512);
+    usart6tx_active_task_handle = osThreadCreate(osThread(USART6TXAactiveTask), NULL);
+
+    osThreadDef(USART1TXAactiveTask, USART1TX_active_task, osPriorityNormal, 0, 512);
+    usart1tx_active_task_handle = osThreadCreate(osThread(USART1TXAactiveTask), NULL);
 
     osThreadDef(REFEREE_TX, referee_tx_task, osPriorityNormal, 0, 256);
     referee_tx_task_handle = osThreadCreate(osThread(REFEREE_TX), NULL);
-
+    if(UART1_TARGET_MODE == Vision_MODE){
+    osThreadDef(VISION_TX, vision_tx_task, osPriorityNormal, 0, 256);
+    vision_tx_task_handle = osThreadCreate(osThread(VISION_TX), NULL);
+    }else if(UART1_TARGET_MODE == Matlab_MODE){
+    osThreadDef(MatlabSyncTask, matlab_sync_task, osPriorityNormal, 0, 256);
+    MatlabSync_task_handle = osThreadCreate(osThread(MatlabSyncTask), NULL);
+    }
     osThreadDef(BATTERY_VOLTAGE, battery_voltage_task, osPriorityLow, 0, 256);
     battery_voltage_handle = osThreadCreate(osThread(BATTERY_VOLTAGE), NULL);
 

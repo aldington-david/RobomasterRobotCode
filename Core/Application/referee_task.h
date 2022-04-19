@@ -5,6 +5,7 @@
 #include <stdint-gcc.h>
 #include "struct_typedef.h"
 #include "fifo.h"
+#include "cmsis_os.h"
 
 #define USART_RX_BUF_LENGHT     512
 #define USART_TX_BUF_LENGHT     128
@@ -657,8 +658,8 @@ typedef enum {
 } drawOperate_e;
 #pragma pack(pop)
 #define DRAWING_PACK    15
-static volatile uint8_t No_DMA_IRQHandler = 1;
-static volatile uint8_t dma_send_data_len = 0;
+static volatile uint8_t Referee_No_DMA_IRQHandler = 1;
+static volatile uint8_t referee_dma_send_data_len = 0;
 static uint8_t data_pack[DRAWING_PACK * 7] = {0};
 static ext_client_custom_graphic_delete_t cleaning;
 /******declare move frome referee_task.c********/
@@ -673,6 +674,14 @@ static void send_toReferee(uint16_t _cmd_id, uint16_t _data_len);
 
 static void UI_clean_all(void);
 
+extern TaskHandle_t USART6TX_active_task_local_handler;
+
+/**
+  * @brief          usart6发送启动任务，由发送时任务通知激活
+  * @param[in]      pvParameters: 空
+  * @retval         none
+  */
+void USART6TX_active_task(void const *pvParameters);
 
 static void
 Hero_UI_ruler(uint8_t _layer, uint16_t start_x, uint16_t start_y, uint16_t *line_distance, uint16_t *line_length,

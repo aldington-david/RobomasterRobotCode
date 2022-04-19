@@ -103,14 +103,15 @@ void PC_receive_task(void const *argument) {
 //    PC_receive_data[param2] = (void *) &shoot_control.trigger_motor_pid.Kd;
 //    PC_receive_data[param3] = (void *) &shoot_control.trigger_speed_set;
 
+    TickType_t LoopStartTime;
     while (1) {
 //        SEGGER_RTT_printf(0,"%d",i);
         if (SEGGER_RTT_HasKey()) {
             uint16_t Char_Buffer_len = sizeof(Char_Receive_Buffer);
             uint16_t NumBytes = SEGGER_RTT_Read(0, &Char_Receive_Buffer[0], Char_Buffer_len);
             if ((NumBytes < Char_Buffer_len)) {
-//                taskENTER_CRITICAL();
                 for (p = &Char_Receive_Buffer[0]; p != NULL; p = strstr(p, "$param")) {
+//                    taskENTER_CRITICAL();
                     sscanf(p, "$param%5d[^=]", &param_num);
                     p = strstr(p, "=");
                     sscanf(p, "=%15[^;]", param_value);
@@ -136,11 +137,13 @@ void PC_receive_task(void const *argument) {
                         }
 
                     }
+//                    taskEXIT_CRITICAL();
                 }
-//                taskEXIT_CRITICAL();
+
             } else {
                 SEGGER_RTT_WriteString(0, "Too many params.");
             }
         }
+        vTaskDelayUntil(&LoopStartTime, pdMS_TO_TICKS(20));
     }
 }
