@@ -100,7 +100,7 @@ referee usart:%s\r\n\
                     status[error_list_print_local[BOARD_ACCEL_TOE].error_exist],
                     status[error_list_print_local[BOARD_MAG_TOE].error_exist],
                     status[error_list_print_local[REFEREE_RX_TOE].error_exist]);
-            vTaskDelayUntil(&LoopStartTime, pdMS_TO_TICKS(GIMBAL_CONTROL_TIME));
+            vTaskDelayUntil(&LoopStartTime, pdMS_TO_TICKS(50));
         }
     }
     if (PRINTF_MODE == RTT_MODE) {
@@ -416,65 +416,65 @@ referee usart:%s\r\n\
             /***********************打印数据 End *****************************/
 
 
-//            printf(
-//                    "******************************\r\n\
-//voltage percentage:%d%% \r\n\
-//DBUS:%s\r\n\
-//chassis motor1:%s\r\n\
-//chassis motor2:%s\r\n\
-//chassis motor3:%s\r\n\
-//chassis motor4:%s\r\n\
-//yaw motor:%s\r\n\
-//pitch motor:%s\r\n\
-//trigger motor:%s\r\n\
-//gyro sensor:%s\r\n\
-//accel sensor:%s\r\n\
-//mag sensor:%s\r\n\
-//referee rx usart:%s\r\n\
-//******************************\r\n",
-//                    get_battery_percentage(),
-//                    status[error_list_print_local[DBUS_TOE].error_exist],
-//                    status[error_list_print_local[CHASSIS_MOTOR1_TOE].error_exist],
-//                    status[error_list_print_local[CHASSIS_MOTOR2_TOE].error_exist],
-//                    status[error_list_print_local[CHASSIS_MOTOR3_TOE].error_exist],
-//                    status[error_list_print_local[CHASSIS_MOTOR4_TOE].error_exist],
-//                    status[error_list_print_local[YAW_GIMBAL_MOTOR_TOE].error_exist],
-//                    status[error_list_print_local[PITCH_GIMBAL_MOTOR_TOE].error_exist],
-//                    status[error_list_print_local[TRIGGER_MOTOR_TOE].error_exist],
-//                    status[error_list_print_local[BOARD_GYRO_TOE].error_exist],
-//                    status[error_list_print_local[BOARD_ACCEL_TOE].error_exist],
-//                    status[error_list_print_local[BOARD_MAG_TOE].error_exist],
-//                    status[error_list_print_local[REFEREE_RX_TOE].error_exist]);
             printf(
-                    "*******Variable Start*********\r\n\
-$param:Channal1=%d;\r\n\
-$param:Channal2=%d;\r\n\
-$param:Channal3=%d;\r\n\
-$param:Channal4=%d;\r\n\
-$param:Channal5=%d;\r\n\
-$param:SwitchRight=%d;\r\n\
-$param:SwitchLeft=%d;\r\n\
-$param:MouseX=%d;\r\n\
-$param:MouseY=%d;\r\n\
-$param:MouseZ=%d;\r\n\
-$param:MouseLeft=%d;\r\n\
-$param:MouseRight=%d;\r\n\
-$param:Key=%d;\r\n\
-*******Variable End***********\r\n",
-                    rc_ctrl.rc.ch[0],
-                    rc_ctrl.rc.ch[1],
-                    rc_ctrl.rc.ch[2],
-                    rc_ctrl.rc.ch[3],
-                    rc_ctrl.rc.ch[4],
-                    rc_ctrl.rc.s[0],
-                    rc_ctrl.rc.s[1],
-                    rc_ctrl.mouse.x,
-                    rc_ctrl.mouse.y,
-                    rc_ctrl.mouse.z,
-                    rc_ctrl.mouse.press_l,
-                    rc_ctrl.mouse.press_r,
-                    rc_ctrl.key.v);
-            vTaskDelayUntil(&LoopStartTime, pdMS_TO_TICKS(GIMBAL_CONTROL_TIME));
+                    "******************************\r\n\
+voltage percentage:%d%% \r\n\
+DBUS:%s\r\n\
+chassis motor1:%s\r\n\
+chassis motor2:%s\r\n\
+chassis motor3:%s\r\n\
+chassis motor4:%s\r\n\
+yaw motor:%s\r\n\
+pitch motor:%s\r\n\
+trigger motor:%s\r\n\
+gyro sensor:%s\r\n\
+accel sensor:%s\r\n\
+mag sensor:%s\r\n\
+referee rx usart:%s\r\n\
+******************************\r\n",
+                    get_battery_percentage(),
+                    status[error_list_print_local[DBUS_TOE].error_exist],
+                    status[error_list_print_local[CHASSIS_MOTOR1_TOE].error_exist],
+                    status[error_list_print_local[CHASSIS_MOTOR2_TOE].error_exist],
+                    status[error_list_print_local[CHASSIS_MOTOR3_TOE].error_exist],
+                    status[error_list_print_local[CHASSIS_MOTOR4_TOE].error_exist],
+                    status[error_list_print_local[YAW_GIMBAL_MOTOR_TOE].error_exist],
+                    status[error_list_print_local[PITCH_GIMBAL_MOTOR_TOE].error_exist],
+                    status[error_list_print_local[TRIGGER_MOTOR_TOE].error_exist],
+                    status[error_list_print_local[BOARD_GYRO_TOE].error_exist],
+                    status[error_list_print_local[BOARD_ACCEL_TOE].error_exist],
+                    status[error_list_print_local[BOARD_MAG_TOE].error_exist],
+                    status[error_list_print_local[REFEREE_RX_TOE].error_exist]);
+//            printf(
+//                    "*******Variable Start*********\r\n\
+//$param:Channal1=%d;\r\n\
+//$param:Channal2=%d;\r\n\
+//$param:Channal3=%d;\r\n\
+//$param:Channal4=%d;\r\n\
+//$param:Channal5=%d;\r\n\
+//$param:SwitchRight=%d;\r\n\
+//$param:SwitchLeft=%d;\r\n\
+//$param:MouseX=%d;\r\n\
+//$param:MouseY=%d;\r\n\
+//$param:MouseZ=%d;\r\n\
+//$param:MouseLeft=%d;\r\n\
+//$param:MouseRight=%d;\r\n\
+//$param:Key=%d;\r\n\
+//*******Variable End***********\r\n",
+//                    rc_ctrl.rc.ch[0],
+//                    rc_ctrl.rc.ch[1],
+//                    rc_ctrl.rc.ch[2],
+//                    rc_ctrl.rc.ch[3],
+//                    rc_ctrl.rc.ch[4],
+//                    rc_ctrl.rc.s[0],
+//                    rc_ctrl.rc.s[1],
+//                    rc_ctrl.mouse.x,
+//                    rc_ctrl.mouse.y,
+//                    rc_ctrl.mouse.z,
+//                    rc_ctrl.mouse.press_l,
+//                    rc_ctrl.mouse.press_r,
+//                    rc_ctrl.key.v);
+            vTaskDelayUntil(&LoopStartTime, pdMS_TO_TICKS(50));
         }
     }
 
