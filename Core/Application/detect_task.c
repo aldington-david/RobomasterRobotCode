@@ -251,7 +251,7 @@ static void detect_init(uint32_t time) {
                     {100, 100, 1},  //oled
             };
 
-    if (DEVICE_BLOCK != Block_All_Device_ecp_Control) {
+    if (DETECT_BLOCK != Block_All_Device_ecp_Control) {
         for (uint8_t i = 0; i < ERROR_LIST_LENGHT; i++) {
             error_list[i].set_offline_time = set_item[i][0];
             error_list[i].set_online_time = set_item[i][1];
@@ -260,12 +260,12 @@ static void detect_init(uint32_t time) {
             error_list[i].solve_lost_fun = NULL;
             error_list[i].solve_data_error_fun = NULL;
 
-            if (DEVICE_BLOCK == Block_None_Device) {
+            if (DETECT_BLOCK == Block_None_Device) {
                 error_list[i].enable = 1;
                 error_list[i].error_exist = 1;
                 error_list[i].is_lost = 1;
                 error_list[i].data_is_error = 1;
-            } else if (DEVICE_BLOCK == Block_All_Device) {
+            } else if (DETECT_BLOCK == Block_All_Device) {
                 error_list[i].enable = 0;
                 error_list[i].error_exist = 0;
                 error_list[i].is_lost = 0;
@@ -281,7 +281,7 @@ static void detect_init(uint32_t time) {
             error_list[i].work_time = time;
         }
 
-    } else if (DEVICE_BLOCK == Block_All_Device_ecp_Control) {
+    } else if (DETECT_BLOCK == Block_All_Device_ecp_Control) {
         uint8_t i = 0;
         error_list[i].set_offline_time = set_item[i][0];
         error_list[i].set_online_time = set_item[i][1];

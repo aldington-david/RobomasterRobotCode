@@ -105,6 +105,7 @@ void PC_receive_task(void const *argument) {
 
     TickType_t LoopStartTime;
     while (1) {
+        LoopStartTime = xTaskGetTickCount();
 //        SEGGER_RTT_printf(0,"%d",i);
         if (SEGGER_RTT_HasKey()) {
             uint16_t Char_Buffer_len = sizeof(Char_Receive_Buffer);

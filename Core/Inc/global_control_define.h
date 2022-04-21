@@ -33,9 +33,18 @@
 #define Block_None_Device 0
 #define Block_All_Device 1
 #define Block_All_Device_ecp_Control 2
-//#define DEVICE_BLOCK Block_None_Device // do not block devices
-#define DEVICE_BLOCK Block_All_Device // block whole device
-//#define DEVICE_BLOCK Block_All_Device_ecp_Control //block whole device except Radio Control
+//#define DETECT_BLOCK Block_None_Device // do not block devices
+#define DETECT_BLOCK Block_All_Device // block whole device
+//#define DETECT_BLOCK Block_All_Device_ecp_Control //block whole device except Radio Control
+/************ Choose Detect Block Device End*******************/
+
+/************ Choose Calibrate Block Start*******************/
+#define Cali_Manually 0
+#define Cali_Auto 1
+#define Cali_Active 2
+#define CALI_BLOCK Cali_Manually //Calibrate manually
+//#define CALI_BLOCK Cali_Auto //Calibrate Auto start
+//#define CALI_BLOCK Cali_Active  //Calibrate by task notification //not realize yet
 /************ Choose Detect Block Device End*******************/
 
 /************ Lack Define Warning Start*******************/
@@ -51,7 +60,11 @@
 #error "You mast define UART1_TARGET_MODE to chose a UART1 target"
 #endif
 
-#if !defined(DEVICE_BLOCK)
-#error "You mast define DEVICE_BLOCK to chose a block mode"
+#if !defined(DETECT_BLOCK)
+#error "You mast define DETECT_BLOCK to chose a block mode"
+#endif
+
+#if !defined(CALI_BLOCK)
+#error "You mast define CALI_BLOCK to chose a block mode"
 #endif
 /************ Lack Define Warning End*******************/
