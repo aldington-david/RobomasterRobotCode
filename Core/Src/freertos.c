@@ -180,10 +180,10 @@ void MX_FREERTOS_Init(void) {
     osThreadDef(REFEREE_RX, referee_rx_task, osPriorityNormal, 0, 256);
     referee_rx_task_handle = osThreadCreate(osThread(REFEREE_RX), NULL);
 
-    osThreadDef(USART6TXAactiveTask, USART6TX_active_task, osPriorityNormal, 0, 512);
+    osThreadDef(USART6TXAactiveTask, USART6TX_active_task, osPriorityRealtime, 0, 512);
     usart6tx_active_task_handle = osThreadCreate(osThread(USART6TXAactiveTask), NULL);
 
-    osThreadDef(USART1TXAactiveTask, USART1TX_active_task, osPriorityNormal, 0, 256);
+    osThreadDef(USART1TXAactiveTask, USART1TX_active_task, osPriorityRealtime, 0, 256);
     usart1tx_active_task_handle = osThreadCreate(osThread(USART1TXAactiveTask), NULL);
 
     osThreadDef(REFEREE_TX, referee_tx_task, osPriorityNormal, 0, 256);

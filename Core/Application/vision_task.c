@@ -68,6 +68,7 @@ void USART1TX_active_task(void const *pvParameters) {
     while (1) {
         while (ulTaskNotifyTake(pdFALSE, portMAX_DELAY) != pdPASS) {
         }
+        vTaskSuspendAll();
         if (UART_SEND_MODE == Vision_MODE) {
             if (Vision_No_DMA_IRQHandler) {
                 if (fifo_s_used(&vision_tx_fifo)) {
@@ -122,28 +123,25 @@ void USART1TX_active_task(void const *pvParameters) {
                     }
                 }
             }
-        }else if (UART1_TARGET_MODE == Matlab_MODE) {
-            SEGGER_RTT_printf(0,"usart1txactive\r\n");
-            SEGGER_RTT_printf(0,"achand=%d\r\n",Matlab_No_DMA_IRQHandler);
-            SEGGER_RTT_printf(0,"buse1=%d\r\n",fifo_s_used(&matlab_tx_fifo));
-            SEGGER_RTT_printf(0,"buse2=%d\r\n",fifo_s_used(&matlab_tx_len_fifo));
-            if (Matlab_No_DMA_IRQHandler) {
-                SEGGER_RTT_printf(0,"use1=%d\r\n",fifo_s_used(&matlab_tx_fifo));
-                SEGGER_RTT_printf(0,"use2=%d\r\n",fifo_s_used(&matlab_tx_len_fifo));
+        } else if (UART1_TARGET_MODE == Matlab_MODE) {
+            SEGGER_RTT_printf(0, "buse1=%d\r\n", fifo_s_used(&matlab_tx_fifo));
+            SEGGER_RTT_printf(0, "buse2=%d\r\n", fifo_s_used(&matlab_tx_len_fifo));
+            SEGGER_RTT_printf(0, "handle1=%d\r\n", Matlab_No_DMA_IRQHandler);
+            if (huart1.hdmatx->Instance->CR !=)) {
+//                SEGGER_RTT_printf(0, "use1=%d\r\n", fifo_s_used(&matlab_tx_fifo));
+//                SEGGER_RTT_printf(0, "use2=%d\r\n", fifo_s_used(&matlab_tx_len_fifo));
                 if (fifo_s_used(&matlab_tx_fifo)) {
                     if (fifo_s_used(&matlab_tx_len_fifo)) {
                         if ((huart1.hdmatx->Instance->CR & DMA_SxCR_CT) == RESET) {
 //                    SEGGER_RTT_WriteString(0, "ST0DMA_1");
                             __HAL_DMA_DISABLE(huart1.hdmatx);
                             matlab_dma_send_data_len = fifo_s_get(&matlab_tx_len_fifo);
-                            SEGGER_RTT_printf(0,"len=%d\r\n",matlab_dma_send_data_len);
+                            SEGGER_RTT_printf(0, "len1=%d\r\n", matlab_dma_send_data_len);
                             memset(&usart1_matlab_tx_buf[1], 0, USART_TX_BUF_LENGHT);
                             fifo_s_gets(&matlab_tx_fifo, (char *) usart1_matlab_tx_buf[1], matlab_dma_send_data_len);
-                            SEGGER_RTT_printf(0,"data=%d\r\n",&usart1_matlab_tx_buf[1]);
                             huart1.hdmatx->Instance->CR |= DMA_SxCR_CT;
                             __HAL_DMA_SET_COUNTER(huart1.hdmatx, matlab_dma_send_data_len);
                             __HAL_DMA_ENABLE(huart1.hdmatx);
-                            Matlab_No_DMA_IRQHandler = 0;
                             detect_hook(USART1_TX_TOE);
                             if (fifo_s_used(&matlab_tx_fifo)) {
                                 if (fifo_s_used(&matlab_tx_len_fifo)) {
@@ -151,6 +149,7 @@ void USART1TX_active_task(void const *pvParameters) {
                                     memset(&usart1_matlab_tx_buf[0], 0, USART_TX_BUF_LENGHT);
                                     fifo_s_gets(&matlab_tx_fifo, (char *) usart1_matlab_tx_buf[0],
                                                 matlab_dma_send_data_len);
+                                    SEGGER_RTT_printf(0, "len2=%d\r\n", matlab_dma_send_data_len);
                                 }
                             } else {
                                 matlab_dma_send_data_len = 0;
@@ -166,7 +165,6 @@ void USART1TX_active_task(void const *pvParameters) {
                             huart1.hdmatx->Instance->CR &= ~(DMA_SxCR_CT);
                             __HAL_DMA_SET_COUNTER(huart1.hdmatx, matlab_dma_send_data_len);
                             __HAL_DMA_ENABLE(huart1.hdmatx);
-                            Matlab_No_DMA_IRQHandler = 0;
                             detect_hook(USART1_TX_TOE);
                             if (fifo_s_used(&matlab_tx_fifo)) {
                                 if (fifo_s_used(&matlab_tx_len_fifo)) {
@@ -174,6 +172,7 @@ void USART1TX_active_task(void const *pvParameters) {
                                     memset(&usart1_matlab_tx_buf[1], 0, USART_TX_BUF_LENGHT);
                                     fifo_s_gets(&matlab_tx_fifo, (char *) usart1_matlab_tx_buf[1],
                                                 matlab_dma_send_data_len);
+                                    SEGGER_RTT_printf(0, "len3=%d\r\n", matlab_dma_send_data_len);
                                 }
                             } else {
                                 matlab_dma_send_data_len = 0;
@@ -185,6 +184,7 @@ void USART1TX_active_task(void const *pvParameters) {
                 }
             }
         }
+        xTaskResumeAll();
     }
 }
 
