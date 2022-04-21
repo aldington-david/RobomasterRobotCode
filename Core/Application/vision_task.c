@@ -82,7 +82,7 @@ void USART1TX_active_task(void const *pvParameters) {
                             __HAL_DMA_SET_COUNTER(huart1.hdmatx, vision_dma_send_data_len);
                             __HAL_DMA_ENABLE(huart1.hdmatx);
                             Vision_No_DMA_IRQHandler = 0;
-                            detect_hook(REFEREE_TX_TOE);
+                            detect_hook(USART1_TX_TOE);
                             if (fifo_s_used(&vision_tx_fifo)) {
                                 if (fifo_s_used(&vision_tx_len_fifo)) {
                                     vision_dma_send_data_len = fifo_s_get(&vision_tx_len_fifo);
@@ -105,7 +105,7 @@ void USART1TX_active_task(void const *pvParameters) {
                             __HAL_DMA_SET_COUNTER(huart1.hdmatx, vision_dma_send_data_len);
                             __HAL_DMA_ENABLE(huart1.hdmatx);
                             Vision_No_DMA_IRQHandler = 0;
-                            detect_hook(REFEREE_TX_TOE);
+                            detect_hook(USART1_TX_TOE);
                             if (fifo_s_used(&vision_tx_fifo)) {
                                 if (fifo_s_used(&vision_tx_len_fifo)) {
                                     vision_dma_send_data_len = fifo_s_get(&vision_tx_len_fifo);
@@ -122,7 +122,7 @@ void USART1TX_active_task(void const *pvParameters) {
                     }
                 }
             }
-        } else if(UART1_TARGET_MODE == Matlab_MODE){
+        }else if (UART1_TARGET_MODE == Matlab_MODE) {
             if (Matlab_No_DMA_IRQHandler) {
                 if (fifo_s_used(&matlab_tx_fifo)) {
                     if (fifo_s_used(&matlab_tx_len_fifo)) {
@@ -136,7 +136,7 @@ void USART1TX_active_task(void const *pvParameters) {
                             __HAL_DMA_SET_COUNTER(huart1.hdmatx, matlab_dma_send_data_len);
                             __HAL_DMA_ENABLE(huart1.hdmatx);
                             Matlab_No_DMA_IRQHandler = 0;
-                            detect_hook(REFEREE_TX_TOE);
+                            detect_hook(USART1_TX_TOE);
                             if (fifo_s_used(&matlab_tx_fifo)) {
                                 if (fifo_s_used(&matlab_tx_len_fifo)) {
                                     matlab_dma_send_data_len = fifo_s_get(&matlab_tx_len_fifo);
@@ -159,7 +159,7 @@ void USART1TX_active_task(void const *pvParameters) {
                             __HAL_DMA_SET_COUNTER(huart1.hdmatx, matlab_dma_send_data_len);
                             __HAL_DMA_ENABLE(huart1.hdmatx);
                             Matlab_No_DMA_IRQHandler = 0;
-                            detect_hook(REFEREE_TX_TOE);
+                            detect_hook(USART1_TX_TOE);
                             if (fifo_s_used(&matlab_tx_fifo)) {
                                 if (fifo_s_used(&matlab_tx_len_fifo)) {
                                     matlab_dma_send_data_len = fifo_s_get(&matlab_tx_len_fifo);

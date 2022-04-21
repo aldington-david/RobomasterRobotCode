@@ -168,7 +168,7 @@ void MX_FREERTOS_Init(void) {
     osThreadDef(gimbalTask, gimbal_task, osPriorityHigh, 0, 512);
     gimbalTaskHandle = osThreadCreate(osThread(gimbalTask), NULL);
 
-    osThreadDef(imuTask, INS_task, osPriorityRealtime, 0, 1024);
+    osThreadDef(imuTask, INS_task, osPriorityRealtime, 0, 512);
     imuTaskHandle = osThreadCreate(osThread(imuTask), NULL);
 
     osThreadDef(VISION_RX, vision_rx_task, osPriorityRealtime, 0, 256);
@@ -183,7 +183,7 @@ void MX_FREERTOS_Init(void) {
     osThreadDef(USART6TXAactiveTask, USART6TX_active_task, osPriorityNormal, 0, 512);
     usart6tx_active_task_handle = osThreadCreate(osThread(USART6TXAactiveTask), NULL);
 
-    osThreadDef(USART1TXAactiveTask, USART1TX_active_task, osPriorityNormal, 0, 512);
+    osThreadDef(USART1TXAactiveTask, USART1TX_active_task, osPriorityNormal, 0, 256);
     usart1tx_active_task_handle = osThreadCreate(osThread(USART1TXAactiveTask), NULL);
 
     osThreadDef(REFEREE_TX, referee_tx_task, osPriorityNormal, 0, 256);

@@ -25,9 +25,18 @@
 /************ Choose UART1 TX Target Start*******************/
 #define Vision_MODE 0
 #define Matlab_MODE 1
-//#define UART_SEND_MODE Vision_MODE // UART sent one byte
+//#define UART1_TARGET_MODE Vision_MODE // UART sent one byte
 #define UART1_TARGET_MODE Matlab_MODE //UART sent full data bytes
 /************ Choose UART1 TX Target End*******************/
+
+/************ Choose Detect Block Device Start*******************/
+#define Block_None_Device 0
+#define Block_All_Device 1
+#define Block_All_Device_ecp_Control 2
+//#define DEVICE_BLOCK Block_None_Device // do not block devices
+#define DEVICE_BLOCK Block_All_Device // block whole device
+//#define DEVICE_BLOCK Block_All_Device_ecp_Control //block whole device except Radio Control
+/************ Choose Detect Block Device End*******************/
 
 /************ Lack Define Warning Start*******************/
 #if !defined(PRINTF_MODE)
@@ -40,5 +49,9 @@
 
 #if !defined(UART1_TARGET_MODE)
 #error "You mast define UART1_TARGET_MODE to chose a UART1 target"
+#endif
+
+#if !defined(DEVICE_BLOCK)
+#error "You mast define DEVICE_BLOCK to chose a block mode"
 #endif
 /************ Lack Define Warning End*******************/

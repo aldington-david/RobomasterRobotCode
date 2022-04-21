@@ -49,10 +49,10 @@
   @endverbatim
   ****************************(C) COPYRIGHT 2019 DJI****************************
   */
-  
+
 #include "detect_task.h"
 #include "cmsis_os.h"
-
+#include "global_control_define.h"
 
 /**
   * @brief          init error_list, assign  offline_time, online_time, priority.
@@ -65,8 +65,6 @@
   * @retval         none
   */
 static void detect_init(uint32_t time);
-
-
 
 
 error_t error_list[ERROR_LIST_LENGHT + 1];
@@ -87,8 +85,7 @@ uint32_t detect_task_stack;
   * @param[in]      pvParameters: NULL
   * @retval         none
   */
-void detect_task(void const *pvParameters)
-{
+void detect_task(void const *pvParameters) {
     static uint32_t system_time;
     system_time = xTaskGetTickCount();
     //init,初始化
@@ -105,20 +102,16 @@ void detect_task(void const *pvParameters)
         error_list[ERROR_LIST_LENGHT].is_lost = 0;
         error_list[ERROR_LIST_LENGHT].error_exist = 0;
 
-        for (int i = 0; i < ERROR_LIST_LENGHT; i++)
-        {
+        for (int i = 0; i < ERROR_LIST_LENGHT; i++) {
             //disable, continue
             //未使能，跳过
-            if (error_list[i].enable == 0)
-            {
+            if (error_list[i].enable == 0) {
                 continue;
             }
 
             //judge offline.判断掉线
-            if (system_time - error_list[i].new_time > error_list[i].set_offline_time)
-            {
-                if (error_list[i].error_exist == 0)
-                {
+            if (system_time - error_list[i].new_time > error_list[i].set_offline_time) {
+                if (error_list[i].error_exist == 0) {
                     //record error and time
                     //记录错误以及掉线时间
                     error_list[i].is_lost = 1;
@@ -127,30 +120,24 @@ void detect_task(void const *pvParameters)
                 }
                 //judge the priority,save the highest priority ,
                 //判断错误优先级， 保存优先级最高的错误码
-                if (error_list[i].priority > error_list[error_num_display].priority)
-                {
+                if (error_list[i].priority > error_list[error_num_display].priority) {
                     error_num_display = i;
                 }
-                
+
 
                 error_list[ERROR_LIST_LENGHT].is_lost = 1;
                 error_list[ERROR_LIST_LENGHT].error_exist = 1;
                 //if solve_lost_fun != NULL, run it
                 //如果提供解决函数，运行解决函数
-                if (error_list[i].solve_lost_fun != NULL)
-                {
+                if (error_list[i].solve_lost_fun != NULL) {
                     error_list[i].solve_lost_fun();
                 }
-            }
-            else if (system_time - error_list[i].work_time < error_list[i].set_online_time)
-            {
+            } else if (system_time - error_list[i].work_time < error_list[i].set_online_time) {
                 //just online, maybe unstable, only record
                 //刚刚上线，可能存在数据不稳定，只记录不丢失，
                 error_list[i].is_lost = 0;
                 error_list[i].error_exist = 1;
-            }
-            else
-            {
+            } else {
                 error_list[i].is_lost = 0;
                 //判断是否存在数据错误
                 //judge if exist data error
@@ -161,9 +148,9 @@ void detect_task(void const *pvParameters)
                 }
                 //calc frequency
                 //计算频率
-                if (error_list[i].new_time > error_list[i].last_time)
-                {
-                    error_list[i].frequency = configTICK_RATE_HZ / (fp32)(error_list[i].new_time - error_list[i].last_time);
+                if (error_list[i].new_time > error_list[i].last_time) {
+                    error_list[i].frequency =
+                            configTICK_RATE_HZ / (fp32) (error_list[i].new_time - error_list[i].last_time);
                 }
             }
         }
@@ -186,8 +173,7 @@ void detect_task(void const *pvParameters)
   * @param[in]      toe:设备目录
   * @retval         true(错误) 或者false(没错误)
   */
-bool_t toe_is_error(uint8_t toe)
-{
+bool_t toe_is_error(uint8_t toe) {
     return (error_list[toe].error_exist == 1);
 }
 
@@ -201,36 +187,27 @@ bool_t toe_is_error(uint8_t toe)
   * @param[in]      toe:设备目录
   * @retval         none
   */
-void detect_hook(uint8_t toe)
-{
+void detect_hook(uint8_t toe) {
     error_list[toe].last_time = error_list[toe].new_time;
     error_list[toe].new_time = xTaskGetTickCount();
-    
-    if (error_list[toe].is_lost)
-    {
+
+    if (error_list[toe].is_lost) {
         error_list[toe].is_lost = 0;
         error_list[toe].work_time = error_list[toe].new_time;
     }
-    
-    if (error_list[toe].data_is_error_fun != NULL)
-    {
-        if (error_list[toe].data_is_error_fun())
-        {
+
+    if (error_list[toe].data_is_error_fun != NULL) {
+        if (error_list[toe].data_is_error_fun()) {
             error_list[toe].error_exist = 1;
             error_list[toe].data_is_error = 1;
 
-            if (error_list[toe].solve_data_error_fun != NULL)
-            {
+            if (error_list[toe].solve_data_error_fun != NULL) {
                 error_list[toe].solve_data_error_fun();
             }
-        }
-        else
-        {
+        } else {
             error_list[toe].data_is_error = 0;
         }
-    }
-    else
-    {
+    } else {
         error_list[toe].data_is_error = 0;
     }
 }
@@ -245,38 +222,67 @@ void detect_hook(uint8_t toe)
   * @param[in]      none
   * @retval         error_list的指针
   */
-const error_t *get_error_list_point(void)
-{
+const error_t *get_error_list_point(void) {
     return error_list;
 }
 
 extern void OLED_com_reset(void);
-static void detect_init(uint32_t time)
-{
+
+static void detect_init(uint32_t time) {
     //设置离线时间，上线稳定工作时间，优先级 offlineTime onlinetime priority
     uint16_t set_item[ERROR_LIST_LENGHT][3] =
-        {
-                {30,  40,  15},   //SBUS
-                {10,  10,  11},   //motor1
-                {10,  10,  10},   //motor2
-                {10,  10,  9},    //motor3
-                {10,  10,  8},    //motor4
-                {2,   3,   14},     //yaw
-                {2,   3,   13},     //pitch
-                {10,  10,  12},   //trigger
-                {2,   3,   7},      //board gyro
-                {5,   5,   7},      //board accel
-                {40,  200, 7},   //board mag
-                {100, 100, 5},  //referee_rx
-                {100, 100, 5},  //referee_tx
-                {10,  10,  7},    //rm imu
-                {100, 100, 5},  //vision_rx
-                {100, 100, 5},  //usart1_tx
-                {100, 100, 1},  //oled
-        };
+            {
+                    {30,  40,  15},   //SBUS
+                    {10,  10,  11},   //motor1
+                    {10,  10,  10},   //motor2
+                    {10,  10,  9},    //motor3
+                    {10,  10,  8},    //motor4
+                    {2,   3,   14},     //yaw
+                    {2,   3,   13},     //pitch
+                    {10,  10,  12},   //trigger
+                    {2,   3,   7},      //board gyro
+                    {5,   5,   7},      //board accel
+                    {40,  200, 7},   //board mag
+                    {100, 100, 5},  //referee_rx
+                    {100, 100, 5},  //referee_tx
+                    {10,  10,  7},    //rm imu
+                    {100, 100, 5},  //vision_rx
+                    {100, 100, 5},  //usart1_tx
+                    {100, 100, 1},  //oled
+            };
 
-    for (uint8_t i = 0; i < ERROR_LIST_LENGHT; i++)
-    {
+    if (DEVICE_BLOCK != Block_All_Device_ecp_Control) {
+        for (uint8_t i = 0; i < ERROR_LIST_LENGHT; i++) {
+            error_list[i].set_offline_time = set_item[i][0];
+            error_list[i].set_online_time = set_item[i][1];
+            error_list[i].priority = set_item[i][2];
+            error_list[i].data_is_error_fun = NULL;
+            error_list[i].solve_lost_fun = NULL;
+            error_list[i].solve_data_error_fun = NULL;
+
+            if (DEVICE_BLOCK == Block_None_Device) {
+                error_list[i].enable = 1;
+                error_list[i].error_exist = 1;
+                error_list[i].is_lost = 1;
+                error_list[i].data_is_error = 1;
+            } else if (DEVICE_BLOCK == Block_All_Device) {
+                error_list[i].enable = 0;
+                error_list[i].error_exist = 0;
+                error_list[i].is_lost = 0;
+                error_list[i].data_is_error = 0;
+            }
+//            error_list[i].error_exist = 1;
+//            error_list[i].is_lost = 1;
+//            error_list[i].data_is_error = 1;
+            error_list[i].frequency = 0.0f;
+            error_list[i].new_time = time;
+            error_list[i].last_time = time;
+            error_list[i].lost_time = time;
+            error_list[i].work_time = time;
+        }
+
+    } else if (DEVICE_BLOCK == Block_All_Device_ecp_Control) {
+        uint8_t i = 0;
         error_list[i].set_offline_time = set_item[i][0];
         error_list[i].set_online_time = set_item[i][1];
         error_list[i].priority = set_item[i][2];
@@ -293,6 +299,26 @@ static void detect_init(uint32_t time)
         error_list[i].last_time = time;
         error_list[i].lost_time = time;
         error_list[i].work_time = time;
+
+        for (uint8_t i = 1; i < ERROR_LIST_LENGHT; i++) {
+            error_list[i].set_offline_time = set_item[i][0];
+            error_list[i].set_online_time = set_item[i][1];
+            error_list[i].priority = set_item[i][2];
+            error_list[i].data_is_error_fun = NULL;
+            error_list[i].solve_lost_fun = NULL;
+            error_list[i].solve_data_error_fun = NULL;
+
+            error_list[i].enable = 0;
+            error_list[i].error_exist = 0;
+            error_list[i].is_lost = 0;
+            error_list[i].data_is_error = 0;
+            error_list[i].frequency = 0.0f;
+            error_list[i].new_time = time;
+            error_list[i].last_time = time;
+            error_list[i].lost_time = time;
+            error_list[i].work_time = time;
+
+        }
     }
 
     error_list[OLED_TOE].data_is_error_fun = NULL;

@@ -21,6 +21,14 @@ extern fifo_s_t matlab_tx_len_fifo;
 extern fifo_s_t matlab_tx_fifo;
 extern uint8_t usart1_matlab_tx_buf[2][USART_TX_BUF_LENGHT];
 
+#pragma pack(push, 1)
+
+typedef struct {
+    uint8_t data1;
+} SyncStruct;
+
+#pragma pack(pop)
+
 /**
   * @brief          matlab发送任务
   * @param[in]      pvParameters: NULL
@@ -29,5 +37,7 @@ extern uint8_t usart1_matlab_tx_buf[2][USART_TX_BUF_LENGHT];
 void matlab_sync_task(void const *argument);
 
 void MY_USART_DMA_Stream7_Matlab_TX_IRQHandler(void);
+
+void data_sync(int data_len);
 
 #endif //ROBOMASTERROBOTCODE_MATLAB_SYNC_TASK_H

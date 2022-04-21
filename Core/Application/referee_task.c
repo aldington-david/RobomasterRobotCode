@@ -26,7 +26,7 @@ uint8_t usart6_tx_buf[2][USART_TX_BUF_LENGHT];
 TaskHandle_t USART6TX_active_task_local_handler;
 
 /* 发送数据包缓存区，最大128字节 */
-uint8_t transmit_pack[128] = {0};
+uint8_t referee_transmit_pack[128] = {0};
 /*****************裁判系统接收功能 Start**********************/
 /**
   * @brief  裁判系统数据内存空间初始化
@@ -396,8 +396,8 @@ void pack_send_robotData(uint16_t _data_cmd_id, uint8_t *_data, uint16_t _data_l
     data_header.receiver_ID = 0x0104;
 //    printf("/r/nclient_id=%d", global_judge_info.self_client_id);
     uint8_t header_len = 6;
-    memcpy((void *) (transmit_pack + 7), &data_header, header_len);                        //将数据帧的数据段进行封装（封装段首）
-    memcpy((void *) (transmit_pack + 7 + header_len), _data, _data_len);                    //将数据帧的数据段进行封装（封装数据）
+    memcpy((void *) (referee_transmit_pack + 7), &data_header, header_len);                        //将数据帧的数据段进行封装（封装段首）
+    memcpy((void *) (referee_transmit_pack + 7 + header_len), _data, _data_len);                    //将数据帧的数据段进行封装（封装数据）
     send_toReferee(ID_COMMUNICATION, header_len + _data_len);
 }
 
@@ -425,15 +425,15 @@ void send_toReferee(uint16_t _cmd_id, uint16_t _data_len) {
 
     uint8_t header_len = 5;
 
-    memcpy((void *) transmit_pack, &send_frame_header, header_len);//将帧头装入缓存区
-    memcpy((void *) (transmit_pack + 5), &CmdID,
+    memcpy((void *) referee_transmit_pack, &send_frame_header, header_len);//将帧头装入缓存区
+    memcpy((void *) (referee_transmit_pack + 5), &CmdID,
            2);                                                                    //将数据段转入缓存区
-    append_CRC16_check_sum((uint8_t *) &transmit_pack, header_len + _data_len + 4);
+    append_CRC16_check_sum((uint8_t *) &referee_transmit_pack, header_len + _data_len + 4);
 //    for (int i = 0; i <= header_len + _data_len + 4;i++) {
-//        printf(" %02x",transmit_pack[i]);
+//        printf(" %02x",referee_transmit_pack[i]);
 //    }
     fifo_s_put(&referee_tx_len_fifo, header_len + _data_len + 4);
-    fifo_s_puts(&referee_tx_fifo, (char *) &transmit_pack, header_len + _data_len + 4);
+    fifo_s_puts(&referee_tx_fifo, (char *) &referee_transmit_pack, header_len + _data_len + 4);
     xTaskNotifyGive(USART6TX_active_task_local_handler);
 }
 
