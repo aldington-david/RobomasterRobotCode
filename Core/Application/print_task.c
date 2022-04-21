@@ -110,6 +110,7 @@ referee usart:%s\r\n\
         TickType_t LoopStartTime;
         while (1) {
             LoopStartTime = xTaskGetTickCount();
+//            SEGGER_RTT_printf(0,"testfunction\n");
             /***********************打印数据 Start *****************************/
 //            //功率显示
 //            RTT_PrintWave(1,&global_judge_info.PowerHeatData.chassis_power);
@@ -416,35 +417,35 @@ referee usart:%s\r\n\
             /***********************打印数据 End *****************************/
 
 
-            printf(
-                    "******************************\r\n\
-voltage percentage:%d%% \r\n\
-DBUS:%s\r\n\
-chassis motor1:%s\r\n\
-chassis motor2:%s\r\n\
-chassis motor3:%s\r\n\
-chassis motor4:%s\r\n\
-yaw motor:%s\r\n\
-pitch motor:%s\r\n\
-trigger motor:%s\r\n\
-gyro sensor:%s\r\n\
-accel sensor:%s\r\n\
-mag sensor:%s\r\n\
-referee rx usart:%s\r\n\
-******************************\r\n",
-                    get_battery_percentage(),
-                    status[error_list_print_local[DBUS_TOE].error_exist],
-                    status[error_list_print_local[CHASSIS_MOTOR1_TOE].error_exist],
-                    status[error_list_print_local[CHASSIS_MOTOR2_TOE].error_exist],
-                    status[error_list_print_local[CHASSIS_MOTOR3_TOE].error_exist],
-                    status[error_list_print_local[CHASSIS_MOTOR4_TOE].error_exist],
-                    status[error_list_print_local[YAW_GIMBAL_MOTOR_TOE].error_exist],
-                    status[error_list_print_local[PITCH_GIMBAL_MOTOR_TOE].error_exist],
-                    status[error_list_print_local[TRIGGER_MOTOR_TOE].error_exist],
-                    status[error_list_print_local[BOARD_GYRO_TOE].error_exist],
-                    status[error_list_print_local[BOARD_ACCEL_TOE].error_exist],
-                    status[error_list_print_local[BOARD_MAG_TOE].error_exist],
-                    status[error_list_print_local[REFEREE_RX_TOE].error_exist]);
+//            printf(
+//                    "******************************\r\n\
+//voltage percentage:%d%% \r\n\
+//DBUS:%s\r\n\
+//chassis motor1:%s\r\n\
+//chassis motor2:%s\r\n\
+//chassis motor3:%s\r\n\
+//chassis motor4:%s\r\n\
+//yaw motor:%s\r\n\
+//pitch motor:%s\r\n\
+//trigger motor:%s\r\n\
+//gyro sensor:%s\r\n\
+//accel sensor:%s\r\n\
+//mag sensor:%s\r\n\
+//referee rx usart:%s\r\n\
+//******************************\r\n",
+//                    get_battery_percentage(),
+//                    status[error_list_print_local[DBUS_TOE].error_exist],
+//                    status[error_list_print_local[CHASSIS_MOTOR1_TOE].error_exist],
+//                    status[error_list_print_local[CHASSIS_MOTOR2_TOE].error_exist],
+//                    status[error_list_print_local[CHASSIS_MOTOR3_TOE].error_exist],
+//                    status[error_list_print_local[CHASSIS_MOTOR4_TOE].error_exist],
+//                    status[error_list_print_local[YAW_GIMBAL_MOTOR_TOE].error_exist],
+//                    status[error_list_print_local[PITCH_GIMBAL_MOTOR_TOE].error_exist],
+//                    status[error_list_print_local[TRIGGER_MOTOR_TOE].error_exist],
+//                    status[error_list_print_local[BOARD_GYRO_TOE].error_exist],
+//                    status[error_list_print_local[BOARD_ACCEL_TOE].error_exist],
+//                    status[error_list_print_local[BOARD_MAG_TOE].error_exist],
+//                    status[error_list_print_local[REFEREE_RX_TOE].error_exist]);
 //            printf(
 //                    "*******Variable Start*********\r\n\
 //$param:Channal1=%d;\r\n\

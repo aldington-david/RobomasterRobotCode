@@ -13,6 +13,7 @@
 #include "global_control_define.h"
 #include "main.h"
 #include "task.h"
+#include "vision_task.h"
 
 
 uint8_t matlab_fifo_tx_len_buf[MATLAB_FIFO_BUF_LENGTH];
@@ -35,10 +36,14 @@ void matlab_sync_task(void const *argument) {
     usart1_tx_init(usart1_matlab_tx_buf[0], usart1_matlab_tx_buf[1], USART_TX_BUF_LENGHT);
     SyncStruct test1;
     TickType_t LoopStartTime;
+    test1.data1 = 123;
+    memcpy((void *) matlab_transmit_pack, &test1, sizeof(test1));
     while (1) {
+        SEGGER_RTT_printf(0,"matlab_main_loop\r\n");
         LoopStartTime = xTaskGetTickCount();
-        test1.data1 = 123;
-        memcpy((void *) matlab_transmit_pack, &test1, sizeof(test1));
+        SEGGER_RTT_printf(0,"sizeof=%d\r\n",sizeof(test1));
+        data_sync(sizeof(test1));
+        data_sync(sizeof(test1));
         data_sync(sizeof(test1));
 //        referee_unpack_fifo_data();
         vTaskDelayUntil(&LoopStartTime, pdMS_TO_TICKS(100));
@@ -46,13 +51,15 @@ void matlab_sync_task(void const *argument) {
 }
 
 void data_sync(int data_len){
+    SEGGER_RTT_printf(0,"matlab_fifo_loop\r\n");
     fifo_s_put(&matlab_tx_len_fifo, data_len);
     fifo_s_puts(&matlab_tx_fifo, (char *) &matlab_transmit_pack, data_len);
-
+    xTaskNotifyGive(USART1TX_active_task_local_handler);
 }
 
 void MY_USART_DMA_Stream7_Matlab_TX_IRQHandler(void)
 {
+    SEGGER_RTT_printf(0,"matlabIRQin\r\n");
     __HAL_DMA_DISABLE(huart1.hdmatx);
     __HAL_DMA_CLEAR_FLAG(huart1.hdmatx, DMA_HISR_TCIF7);
     __HAL_DMA_CLEAR_FLAG (huart1.hdmatx, __HAL_DMA_GET_HT_FLAG_INDEX(huart1.hdmatx));
@@ -67,6 +74,7 @@ void MY_USART_DMA_Stream7_Matlab_TX_IRQHandler(void)
 //            SEGGER_RTT_WriteString(0, "ST1DMA_0");
             __HAL_DMA_ENABLE(huart1.hdmatx);
             detect_hook(USART1_TX_TOE);
+            SEGGER_RTT_printf(0,"ST1DMA_0\r\n");
             if (UART_SEND_MODE == Bytes_MODE) {
                 if (fifo_s_used(&matlab_tx_fifo)) {
                     if (fifo_s_used(&matlab_tx_len_fifo)) {
@@ -100,6 +108,7 @@ void MY_USART_DMA_Stream7_Matlab_TX_IRQHandler(void)
 //            SEGGER_RTT_WriteString(0, "ST1DMA_1");
             __HAL_DMA_ENABLE(huart1.hdmatx);
             detect_hook(USART1_TX_TOE);
+            SEGGER_RTT_printf(0,"ST1DMA_1\r\n");
             if (UART_SEND_MODE == Bytes_MODE) {
                 if (fifo_s_used(&matlab_tx_fifo)) {
                     if (fifo_s_used(&matlab_tx_len_fifo)) {
