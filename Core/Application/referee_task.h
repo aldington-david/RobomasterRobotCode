@@ -674,14 +674,14 @@ static void send_toReferee(uint16_t _cmd_id, uint16_t _data_len);
 
 static void UI_clean_all(void);
 
-//extern TaskHandle_t USART6TX_active_task_local_handler;
-//
-///**
-//  * @brief          usart6发送启动任务，由发送时任务通知激活
-//  * @param[in]      pvParameters: 空
-//  * @retval         none
-//  */
-//void USART6TX_active_task(void const *pvParameters);
+extern TaskHandle_t USART6TX_active_task_local_handler;
+
+/**
+  * @brief          usart6发送启动任务，由发送时任务通知激活
+  * @param[in]      pvParameters: 空
+  * @retval         none
+  */
+void USART6TX_active_task(void const *pvParameters);
 
 static void
 Hero_UI_ruler(uint8_t _layer, uint16_t start_x, uint16_t start_y, uint16_t *line_distance, uint16_t *line_length,

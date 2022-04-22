@@ -61,6 +61,98 @@ void vision_tx_task(void const *argument) {
 }
 
 /**
+  * @brief          single byte upacked
+  * @param[in]      void
+  * @retval         none
+  */
+/**
+  * @brief          单字节解包
+  * @param[in]      void
+  * @retval         none
+  */
+//void vision_unpack_fifo_data(void) {
+//    uint8_t byte = 0;
+//    uint8_t sof = HEADER_SOF;
+//    unpack_data_t *p_obj = &referee_unpack_obj;
+//
+//    while (fifo_s_used(&referee_rx_fifo)) {
+//        byte = fifo_s_get(&referee_rx_fifo);
+//        switch (p_obj->unpack_step) {
+//            case STEP_HEADER_SOF: {
+//                if (byte == sof) {
+//                    p_obj->unpack_step = STEP_LENGTH_LOW;
+//                    p_obj->protocol_packet[p_obj->index++] = byte;
+//                } else {
+//                    p_obj->index = 0;
+//                }
+//            }
+//                break;
+//
+//            case STEP_LENGTH_LOW: {
+//                p_obj->data_len = byte;
+//                p_obj->protocol_packet[p_obj->index++] = byte;
+//                p_obj->unpack_step = STEP_LENGTH_HIGH;
+//            }
+//                break;
+//
+//            case STEP_LENGTH_HIGH: {
+//                p_obj->data_len |= (byte << 8);
+//                p_obj->protocol_packet[p_obj->index++] = byte;
+//
+//                if (p_obj->data_len < (REF_PROTOCOL_FRAME_MAX_SIZE - REF_HEADER_CRC_CMDID_LEN)) {
+//                    p_obj->unpack_step = STEP_FRAME_SEQ;
+//                } else {
+//                    p_obj->unpack_step = STEP_HEADER_SOF;
+//                    p_obj->index = 0;
+//                }
+//            }
+//                break;
+//            case STEP_FRAME_SEQ: {
+//                p_obj->protocol_packet[p_obj->index++] = byte;
+//                p_obj->unpack_step = STEP_HEADER_CRC8;
+//            }
+//                break;
+//
+//            case STEP_HEADER_CRC8: {
+//                p_obj->protocol_packet[p_obj->index++] = byte;
+//
+//                if (p_obj->index == REF_PROTOCOL_HEADER_SIZE) {
+//                    if (verify_CRC8_check_sum(p_obj->protocol_packet, REF_PROTOCOL_HEADER_SIZE)) {
+//                        p_obj->unpack_step = STEP_DATA_CRC16;
+//                    } else {
+//                        p_obj->unpack_step = STEP_HEADER_SOF;
+//                        p_obj->index = 0;
+//                    }
+//                }
+//            }
+//                break;
+//
+//            case STEP_DATA_CRC16: {
+//                if (p_obj->index < (REF_HEADER_CRC_CMDID_LEN + p_obj->data_len)) {
+//                    p_obj->protocol_packet[p_obj->index++] = byte;
+//                }
+//                if (p_obj->index >= (REF_HEADER_CRC_CMDID_LEN + p_obj->data_len)) {
+//                    p_obj->unpack_step = STEP_HEADER_SOF;
+//                    p_obj->index = 0;
+//
+//                    if (verify_CRC16_check_sum(p_obj->protocol_packet, REF_HEADER_CRC_CMDID_LEN + p_obj->data_len)) {
+//                        judge_update(p_obj->protocol_packet);
+//                    }
+//                }
+//            }
+//                break;
+//
+//            default: {
+//                p_obj->unpack_step = STEP_HEADER_SOF;
+//                p_obj->index = 0;
+//            }
+//                break;
+//        }
+//    }
+//}
+
+
+/**
   * @brief          usart1发送启动任务，由发送时任务通知激活
   * @param[in]      pvParameters: 空
   * @retval         none
@@ -130,7 +222,7 @@ void USART1TX_active_task(void const *pvParameters) {
                 if (fifo_s_used(&matlab_tx_fifo)) {
                     if (fifo_s_used(&matlab_tx_len_fifo)) {
                         if ((huart1.hdmatx->Instance->CR & DMA_SxCR_CT) == RESET) {
-                    SEGGER_RTT_WriteString(0, "ST0DMA_1\r\n");
+//                    SEGGER_RTT_WriteString(0, "ST0DMA_1\r\n");
                             __HAL_DMA_DISABLE(huart1.hdmatx);
                             matlab_dma_send_data_len = fifo_s_get(&matlab_tx_len_fifo);
                             memset(&usart1_matlab_tx_buf[1], 0, USART1_MATLAB_TX_BUF_LENGHT);
@@ -153,7 +245,7 @@ void USART1TX_active_task(void const *pvParameters) {
                                 memset(&usart1_matlab_tx_buf[0], 0, USART1_MATLAB_TX_BUF_LENGHT);
                             }
                         } else {
-                    SEGGER_RTT_WriteString(0, "ST0DMA_0\r\n");
+//                    SEGGER_RTT_WriteString(0, "ST0DMA_0\r\n");
                             __HAL_DMA_DISABLE(huart1.hdmatx);
                             matlab_dma_send_data_len = fifo_s_get(&matlab_tx_len_fifo);
                             memset(&usart1_matlab_tx_buf[0], 0, USART1_MATLAB_TX_BUF_LENGHT);

@@ -38,15 +38,18 @@ void matlab_sync_task(void const *argument) {
     usart1_tx_init(usart1_matlab_tx_buf[0], usart1_matlab_tx_buf[1], USART1_MATLAB_TX_BUF_LENGHT);
     SyncStruct test1;
     TickType_t LoopStartTime;
-    test1.data1 = 'a';
-    test1.data2 = 'b';
+    test1.data1 = '$';
+    test1.data2 = '@';
+    test1.data3 = ',';
+    test1.data4 = 2;
+    test1.data5 = '2';
     memcpy((void *) matlab_transmit_pack, &test1, sizeof(test1));
     while (1) {
         LoopStartTime = xTaskGetTickCount();
         data_sync(sizeof(test1));
         data_sync(sizeof(test1));
-        data_sync(sizeof(test1));
-        data_sync(sizeof(test1));
+//        data_sync(sizeof(test1));
+//        data_sync(sizeof(test1));
 //        referee_unpack_fifo_data();
 
         vTaskDelayUntil(&LoopStartTime, pdMS_TO_TICKS(100));
@@ -76,7 +79,7 @@ void MY_USART_DMA_Stream7_Matlab_TX_IRQHandler(void) {
             __HAL_DMA_DISABLE(huart1.hdmatx);
             __HAL_DMA_CLEAR_FLAG(huart1.hdmatx, DMA_HISR_TCIF7);
             __HAL_DMA_SET_COUNTER(huart1.hdmatx, matlab_dma_send_data_len);
-            SEGGER_RTT_WriteString(0, "ST1DMA_0\r\n");
+//            SEGGER_RTT_WriteString(0, "ST1DMA_0\r\n");
             __HAL_DMA_ENABLE(huart1.hdmatx);
             detect_hook(USART1_TX_TOE);
             if (UART_SEND_MODE == Bytes_MODE) {
@@ -109,7 +112,7 @@ void MY_USART_DMA_Stream7_Matlab_TX_IRQHandler(void) {
             __HAL_DMA_DISABLE(huart1.hdmatx);
             __HAL_DMA_CLEAR_FLAG(huart1.hdmatx, DMA_HISR_TCIF7);
             __HAL_DMA_SET_COUNTER(huart1.hdmatx, matlab_dma_send_data_len);
-            SEGGER_RTT_WriteString(0, "ST1DMA_1\r\n");
+//            SEGGER_RTT_WriteString(0, "ST1DMA_1\r\n");
             __HAL_DMA_ENABLE(huart1.hdmatx);
             detect_hook(USART1_TX_TOE);
             if (UART_SEND_MODE == Bytes_MODE) {

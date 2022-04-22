@@ -38,6 +38,18 @@ void vision_rx_task(void const *argument);
   */
 void vision_tx_task(void const *argument);
 
+/**
+  * @brief          single byte upacked
+  * @param[in]      void
+  * @retval         none
+  */
+/**
+  * @brief          单字节解包
+  * @param[in]      void
+  * @retval         none
+  */
+void vision_unpack_fifo_data(void);
+
 void MY_USART_DMA_Stream7_Vision_TX_IRQHandler(void);
 
 extern TaskHandle_t USART1TX_active_task_local_handler;

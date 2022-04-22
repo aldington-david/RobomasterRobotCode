@@ -25,6 +25,9 @@ extern uint8_t usart1_matlab_tx_buf[2][USART1_MATLAB_TX_BUF_LENGHT];
 typedef struct {
     char data1;
     char data2;
+    char data3;
+    uint8_t data4;
+    char data5;
 } SyncStruct;
 
 #pragma pack(pop)
