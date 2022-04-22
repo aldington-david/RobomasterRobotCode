@@ -21,17 +21,17 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "stm32f4xx_it.h"
-#include "cmsis_os.h"
 #include "FreeRTOS.h"
 #include "task.h"
+/* Private includes ----------------------------------------------------------*/
+/* USER CODE BEGIN Includes */
+#include "cmsis_os.h"
 #include "SEGGER_RTT.h"
 #include "usart.h"
 #include "referee_task.h"
 #include "vision_task.h"
 #include "matlab_sync_task.h"
 #include "global_control_define.h"
-/* Private includes ----------------------------------------------------------*/
-/* USER CODE BEGIN Includes */
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -68,9 +68,6 @@
 extern PCD_HandleTypeDef hpcd_USB_OTG_FS;
 extern CAN_HandleTypeDef hcan1;
 extern CAN_HandleTypeDef hcan2;
-//extern DMA_HandleTypeDef hdma_spi1_rx;
-//extern DMA_HandleTypeDef hdma_spi1_tx;
-extern TIM_HandleTypeDef htim2;
 extern DMA_HandleTypeDef hdma_usart1_tx;
 extern DMA_HandleTypeDef hdma_usart1_rx;
 extern DMA_HandleTypeDef hdma_usart6_rx;
@@ -171,22 +168,23 @@ void DebugMon_Handler(void)
 /**
   * @brief This function handles System tick timer.
   */
-void SysTick_Handler(void) {
-    /* USER CODE BEGIN SysTick_IRQn 0 */
+void SysTick_Handler(void)
+{
+  /* USER CODE BEGIN SysTick_IRQn 0 */
 
-    /* USER CODE END SysTick_IRQn 0 */
-    HAL_IncTick();
-//#if (INCLUDE_xTaskGetSchedulerState == 1 )
-//  if (xTaskGetSchedulerState() != taskSCHEDULER_NOT_STARTED)
-//  {
-//#endif /* INCLUDE_xTaskGetSchedulerState */
-//  xPortSysTickHandler();
-//#if (INCLUDE_xTaskGetSchedulerState == 1 )
-//  }
-//#endif /* INCLUDE_xTaskGetSchedulerState */
-    /* USER CODE BEGIN SysTick_IRQn 1 */
+  /* USER CODE END SysTick_IRQn 0 */
+  HAL_IncTick();
+#if (INCLUDE_xTaskGetSchedulerState == 1 )
+  if (xTaskGetSchedulerState() != taskSCHEDULER_NOT_STARTED)
+  {
+#endif /* INCLUDE_xTaskGetSchedulerState */
+  xPortSysTickHandler();
+#if (INCLUDE_xTaskGetSchedulerState == 1 )
+  }
+#endif /* INCLUDE_xTaskGetSchedulerState */
+  /* USER CODE BEGIN SysTick_IRQn 1 */
     osSystickHandler();
-    /* USER CODE END SysTick_IRQn 1 */
+  /* USER CODE END SysTick_IRQn 1 */
 }
 
 /******************************************************************************/
@@ -267,20 +265,6 @@ void EXTI9_5_IRQHandler(void)
 }
 
 /**
-  * @brief This function handles TIM2 global interrupt.
-  */
-void TIM2_IRQHandler(void)
-{
-  /* USER CODE BEGIN TIM2_IRQn 0 */
-
-  /* USER CODE END TIM2_IRQn 0 */
-  HAL_TIM_IRQHandler(&htim2);
-  /* USER CODE BEGIN TIM2_IRQn 1 */
-
-  /* USER CODE END TIM2_IRQn 1 */
-}
-
-/**
   * @brief This function handles DMA2 stream1 global interrupt.
   */
 void DMA2_Stream1_IRQHandler(void)
@@ -293,34 +277,6 @@ void DMA2_Stream1_IRQHandler(void)
 
   /* USER CODE END DMA2_Stream1_IRQn 1 */
 }
-
-/**
-  * @brief This function handles DMA2 stream2 global interrupt.
-  */
-//void DMA2_Stream2_IRQHandler(void)
-//{
-//  /* USER CODE BEGIN DMA2_Stream2_IRQn 0 */
-//
-//  /* USER CODE END DMA2_Stream2_IRQn 0 */
-//  HAL_DMA_IRQHandler(&hdma_spi1_rx);
-//  /* USER CODE BEGIN DMA2_Stream2_IRQn 1 */
-//
-//  /* USER CODE END DMA2_Stream2_IRQn 1 */
-//}
-
-/**
-  * @brief This function handles DMA2 stream3 global interrupt.
-  */
-//void DMA2_Stream3_IRQHandler(void)
-//{
-//  /* USER CODE BEGIN DMA2_Stream3_IRQn 0 */
-//
-//  /* USER CODE END DMA2_Stream3_IRQn 0 */
-//  HAL_DMA_IRQHandler(&hdma_spi1_tx);
-//  /* USER CODE BEGIN DMA2_Stream3_IRQn 1 */
-//
-//  /* USER CODE END DMA2_Stream3_IRQn 1 */
-//}
 
 /**
   * @brief This function handles CAN2 RX0 interrupts.
@@ -367,11 +323,12 @@ void DMA2_Stream5_IRQHandler(void)
 /**
   * @brief This function handles DMA2 stream6 global interrupt.
   */
-void DMA2_Stream6_IRQHandler(void) {
-    /* USER CODE BEGIN DMA2_Stream6_IRQn 0 */
-    /* USER CODE END DMA2_Stream6_IRQn 0 */
-//    HAL_DMA_IRQHandler(&hdma_usart6_tx);
-    /* USER CODE BEGIN DMA2_Stream6_IRQn 1 */
+void DMA2_Stream6_IRQHandler(void)
+{
+  /* USER CODE BEGIN DMA2_Stream6_IRQn 0 */
+  /* USER CODE END DMA2_Stream6_IRQn 0 */
+  HAL_DMA_IRQHandler(&hdma_usart6_tx);
+  /* USER CODE BEGIN DMA2_Stream6_IRQn 1 */
     if (__HAL_DMA_GET_FLAG(huart6.hdmatx, DMA_HISR_TCIF6) != RESET) {
         MY_USART_DMA_Stream6_TX_IRQHandler();
     }
@@ -386,7 +343,7 @@ void DMA2_Stream7_IRQHandler(void)
   /* USER CODE BEGIN DMA2_Stream7_IRQn 0 */
 
   /* USER CODE END DMA2_Stream7_IRQn 0 */
-//  HAL_DMA_IRQHandler(&hdma_usart1_tx);
+  HAL_DMA_IRQHandler(&hdma_usart1_tx);
   /* USER CODE BEGIN DMA2_Stream7_IRQn 1 */
   if(UART1_TARGET_MODE==Vision_MODE){
       if (__HAL_DMA_GET_FLAG(huart1.hdmatx, DMA_HISR_TCIF7) != RESET) {
