@@ -112,6 +112,18 @@ referee usart:%s\r\n\
             LoopStartTime = xTaskGetTickCount();
 //            SEGGER_RTT_printf(0,"testfunction\n");
             /***********************打印数据 Start *****************************/
+            //鼠标控制
+            SEGGER_RTT_SetTerminal(1);
+            sprintf(print_buf,
+                    "mouse_x=%d,mouse_y=%d,mouse_z=%d,mouse_l=%d,mouse_r=%d\r\nkey=%d\r\n,",
+                    rc_ctrl.mouse.x,
+                    rc_ctrl.mouse.y,
+                    rc_ctrl.mouse.z,
+                    rc_ctrl.mouse.press_l,
+                    rc_ctrl.mouse.press_r,
+                    rc_ctrl.key.v);
+            SEGGER_RTT_WriteString(0, print_buf);
+
 //            //功率显示
 //            RTT_PrintWave(1,&global_judge_info.PowerHeatData.chassis_power);
 //            //CAN_id

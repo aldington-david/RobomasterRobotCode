@@ -143,7 +143,7 @@ int main(void)
     cali_param_init();
     remote_control_init();
 //    usart1_tx_dma_init();//abundant
-    HAL_TIM_Base_Start_IT(&htim2);
+//    HAL_TIM_Base_Start_IT(&htim2);
   /* USER CODE END 2 */
 
   /* Call init function for freertos objects (in freertos.c) */
