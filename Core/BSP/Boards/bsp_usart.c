@@ -73,7 +73,7 @@ void usart1_tx_init(uint8_t *tx1_buf, uint8_t *tx2_buf, uint16_t dma_tx_buf_num)
 
     __HAL_DMA_CLEAR_FLAG(&hdma_usart1_tx, DMA_HISR_TCIF7);
 
-    hdma_usart1_tx.Instance->PAR = (uint32_t) &(USART6->DR);
+    hdma_usart1_tx.Instance->PAR = (uint32_t) &(USART1->DR);
     //memory buffer 1
     //内存缓冲区1
     hdma_usart1_tx.Instance->M0AR = (uint32_t) (tx1_buf);
@@ -97,7 +97,7 @@ void usart1_tx_init(uint8_t *tx1_buf, uint8_t *tx2_buf, uint16_t dma_tx_buf_num)
 void usart1_rx_init(uint8_t *rx1_buf, uint8_t *rx2_buf, uint16_t dma_rx_buf_num)
 {
     //enable the DMA transfer for the receiver request
-    //使能DMA串口接收和发送
+    //使能DMA串口接收
     SET_BIT(huart1.Instance->CR3, USART_CR3_DMAR);
 
     //enalbe idle interrupt
@@ -113,7 +113,7 @@ void usart1_rx_init(uint8_t *rx1_buf, uint8_t *rx2_buf, uint16_t dma_rx_buf_num)
     }
     __HAL_DMA_CLEAR_FLAG(&hdma_usart1_rx, DMA_HISR_TCIF5);
 
-    hdma_usart1_rx.Instance->PAR = (uint32_t) &(USART6->DR);
+    hdma_usart1_rx.Instance->PAR = (uint32_t) &(USART1->DR);
     //memory buffer 1
     //内存缓冲区1
     hdma_usart1_rx.Instance->M0AR = (uint32_t) (rx1_buf);

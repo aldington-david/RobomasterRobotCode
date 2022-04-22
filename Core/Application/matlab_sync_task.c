@@ -20,7 +20,7 @@ uint8_t matlab_fifo_tx_len_buf[MATLAB_FIFO_BUF_LENGTH];
 uint8_t matlab_fifo_tx_buf[MATLAB_FIFO_BUF_LENGTH];
 fifo_s_t matlab_tx_len_fifo;
 fifo_s_t matlab_tx_fifo;
-uint8_t usart1_matlab_tx_buf[2][USART_TX_BUF_LENGHT];
+uint8_t usart1_matlab_tx_buf[2][USART1_TX_BUF_LENGHT];
 /* 发送数据包缓存区，最大128字节 */
 uint8_t matlab_transmit_pack[128] = {0};
 
@@ -33,88 +33,72 @@ void matlab_sync_task(void const *argument) {
 //    init_referee_struct_data();
     fifo_s_init(&matlab_tx_len_fifo, matlab_fifo_tx_len_buf, MATLAB_FIFO_BUF_LENGTH);
     fifo_s_init(&matlab_tx_fifo, matlab_fifo_tx_buf, MATLAB_FIFO_BUF_LENGTH);
-    usart1_tx_init(usart1_matlab_tx_buf[0], usart1_matlab_tx_buf[1], USART_TX_BUF_LENGHT);
+    usart1_tx_init(usart1_matlab_tx_buf[0], usart1_matlab_tx_buf[1], USART1_TX_BUF_LENGHT);
     SyncStruct test1;
     TickType_t LoopStartTime;
-    test1.data1 = 123;
+    test1.data1 = 'a';
+    test1.data2 = 'b';
     memcpy((void *) matlab_transmit_pack, &test1, sizeof(test1));
+    vTaskDelay(pdMS_TO_TICKS(5000));
     while (1) {
         LoopStartTime = xTaskGetTickCount();
         data_sync(sizeof(test1));
 //        vTaskDelay(pdMS_TO_TICKS(10));
         data_sync(sizeof(test1));
-        data_sync(sizeof(test1));
-        data_sync(sizeof(test1));
 //        referee_unpack_fifo_data();
-        if(Matlab_No_DMA_IRQHandler){
-            SEGGER_RTT_printf(0, "nohandle\r\n");
-            if (xTaskGetSchedulerState() != taskSCHEDULER_NOT_STARTED)
-            {
-                static BaseType_t xHigherPriorityTaskWoken;
-                xTaskNotifyGive(USART1TX_active_task_local_handler);
-                portYIELD();
-            }
-        }
-        vTaskDelayUntil(&LoopStartTime, pdMS_TO_TICKS(100));
+        vTaskDelayUntil(&LoopStartTime, pdMS_TO_TICKS(10));
     }
 }
 
-void data_sync(int data_len){
+
+void data_sync(int data_len) {
     fifo_s_put(&matlab_tx_len_fifo, data_len);
     fifo_s_puts(&matlab_tx_fifo, (char *) &matlab_transmit_pack, data_len);
-//    if(Matlab_No_DMA_IRQHandler){
-//        SEGGER_RTT_printf(0, "nohandle\r\n");
-//        if (xTaskGetSchedulerState() != taskSCHEDULER_NOT_STARTED)
-//        {
-//            static BaseType_t xHigherPriorityTaskWoken;
-//            xTaskNotifyGive(USART1TX_active_task_local_handler);
-//            portYIELD();
-//        }
-//    }
 }
 
-void MY_USART_DMA_Stream7_Matlab_TX_IRQHandler(void)
-{
+void MY_USART_DMA_Stream7_Matlab_TX_IRQHandler(void) {
     __HAL_DMA_DISABLE(huart1.hdmatx);
     __HAL_DMA_CLEAR_FLAG(huart1.hdmatx, DMA_HISR_TCIF7);
     __HAL_DMA_CLEAR_FLAG (huart1.hdmatx, __HAL_DMA_GET_HT_FLAG_INDEX(huart1.hdmatx));
     __HAL_DMA_CLEAR_FLAG (huart1.hdmatx, __HAL_DMA_GET_TE_FLAG_INDEX(huart1.hdmatx));
     __HAL_DMA_CLEAR_FLAG (huart1.hdmatx, __HAL_DMA_GET_DME_FLAG_INDEX(huart1.hdmatx));
     __HAL_DMA_CLEAR_FLAG (huart1.hdmatx, __HAL_DMA_GET_FE_FLAG_INDEX(huart1.hdmatx));
-    SEGGER_RTT_printf(0, "len4=%d\r\n", matlab_dma_send_data_len);
+    SEGGER_RTT_printf(0,"ST1len0=%d\r\n",matlab_dma_send_data_len);
     if (matlab_dma_send_data_len) {
         if ((huart1.hdmatx->Instance->CR & DMA_SxCR_CT) == RESET) {
             __HAL_DMA_DISABLE(huart1.hdmatx);
             __HAL_DMA_CLEAR_FLAG(huart1.hdmatx, DMA_HISR_TCIF7);
             __HAL_DMA_SET_COUNTER(huart1.hdmatx, matlab_dma_send_data_len);
-//            SEGGER_RTT_WriteString(0, "ST1DMA_0");
+            SEGGER_RTT_WriteString(0, "ST1DMA_0");
             __HAL_DMA_ENABLE(huart1.hdmatx);
             detect_hook(USART1_TX_TOE);
-            SEGGER_RTT_printf(0,"ST1DMA_0\r\n");
             if (UART_SEND_MODE == Bytes_MODE) {
                 if (fifo_s_used(&matlab_tx_fifo)) {
                     if (fifo_s_used(&matlab_tx_len_fifo)) {
                         matlab_dma_send_data_len = fifo_s_get(&matlab_tx_len_fifo);
-                        memset(&usart1_matlab_tx_buf[1], 0, USART_TX_BUF_LENGHT);
+                        SEGGER_RTT_printf(0,"ST1len1=%d\r\n",matlab_dma_send_data_len);
+                        memset(&usart1_matlab_tx_buf[1], 0, USART1_TX_BUF_LENGHT);
                         fifo_s_gets(&matlab_tx_fifo, (char *) usart1_matlab_tx_buf[1], matlab_dma_send_data_len);
-                        SEGGER_RTT_printf(0, "len5=%d\r\n", matlab_dma_send_data_len);
                     }
                 } else {
                     matlab_dma_send_data_len = 0;
+                    SEGGER_RTT_printf(0,"ST1len2=%d\r\n",matlab_dma_send_data_len);
                     Matlab_No_DMA_IRQHandler = 1;
-                    memset(&usart1_matlab_tx_buf[1], 0, USART_TX_BUF_LENGHT);
+                    memset(&usart1_matlab_tx_buf[1], 0, USART1_TX_BUF_LENGHT);
                 }
             }
             if (UART_SEND_MODE == Byte_MODE) {
                 if (fifo_s_used(&matlab_tx_fifo)) {
-                    memset(&usart1_matlab_tx_buf[1], 0, USART_TX_BUF_LENGHT);
+                    memset(&usart1_matlab_tx_buf[1], 0, USART1_TX_BUF_LENGHT);
                     matlab_dma_send_data_len = 1;
+                    SEGGER_RTT_printf(0,"ST1len3=%d\r\n",matlab_dma_send_data_len);
                     fifo_s_gets(&matlab_tx_fifo, (char *) usart1_matlab_tx_buf[1], matlab_dma_send_data_len);
 
                 } else {
                     matlab_dma_send_data_len = 0;
+                    SEGGER_RTT_printf(0,"ST1len4=%d\r\n",matlab_dma_send_data_len);
                     Matlab_No_DMA_IRQHandler = 1;
-                    memset(&usart1_matlab_tx_buf[1], 0, USART_TX_BUF_LENGHT);
+                    memset(&usart1_matlab_tx_buf[1], 0, USART1_TX_BUF_LENGHT);
                 }
             }
 
@@ -122,42 +106,43 @@ void MY_USART_DMA_Stream7_Matlab_TX_IRQHandler(void)
             __HAL_DMA_DISABLE(huart1.hdmatx);
             __HAL_DMA_CLEAR_FLAG(huart1.hdmatx, DMA_HISR_TCIF7);
             __HAL_DMA_SET_COUNTER(huart1.hdmatx, matlab_dma_send_data_len);
-//            SEGGER_RTT_WriteString(0, "ST1DMA_1");
+            SEGGER_RTT_WriteString(0, "ST1DMA_1");
             __HAL_DMA_ENABLE(huart1.hdmatx);
             detect_hook(USART1_TX_TOE);
-            SEGGER_RTT_printf(0,"ST1DMA_1\r\n");
             if (UART_SEND_MODE == Bytes_MODE) {
                 if (fifo_s_used(&matlab_tx_fifo)) {
                     if (fifo_s_used(&matlab_tx_len_fifo)) {
                         matlab_dma_send_data_len = fifo_s_get(&matlab_tx_len_fifo);
-                        memset(&usart1_matlab_tx_buf[0], 0, USART_TX_BUF_LENGHT);
+                        SEGGER_RTT_printf(0,"ST1len5=%d\r\n",matlab_dma_send_data_len);
+                        memset(&usart1_matlab_tx_buf[0], 0, USART1_TX_BUF_LENGHT);
                         fifo_s_gets(&matlab_tx_fifo, (char *) usart1_matlab_tx_buf[0], matlab_dma_send_data_len);
-                        SEGGER_RTT_printf(0, "len6=%d\r\n", matlab_dma_send_data_len);
                     }
                 } else {
                     matlab_dma_send_data_len = 0;
+                    SEGGER_RTT_printf(0,"ST1len6=%d\r\n",matlab_dma_send_data_len);
                     Matlab_No_DMA_IRQHandler = 1;
-                    memset(&usart1_matlab_tx_buf[0], 0, USART_TX_BUF_LENGHT);
+                    memset(&usart1_matlab_tx_buf[0], 0, USART1_TX_BUF_LENGHT);
                 }
             } else if (UART_SEND_MODE == Byte_MODE) {
                 if (fifo_s_used(&matlab_tx_fifo)) {
-                    memset(&usart1_matlab_tx_buf[0], 0, USART_TX_BUF_LENGHT);
+                    memset(&usart1_matlab_tx_buf[0], 0, USART1_TX_BUF_LENGHT);
                     matlab_dma_send_data_len = 1;
+                    SEGGER_RTT_printf(0,"ST1len7=%d\r\n",matlab_dma_send_data_len);
                     fifo_s_gets(&matlab_tx_fifo, (char *) usart1_matlab_tx_buf[0], matlab_dma_send_data_len);
 
                 } else {
                     matlab_dma_send_data_len = 0;
+                    SEGGER_RTT_printf(0,"ST1len8=%d\r\n",matlab_dma_send_data_len);
                     Matlab_No_DMA_IRQHandler = 1;
-                    memset(&usart1_matlab_tx_buf[0], 0, USART_TX_BUF_LENGHT);
+                    memset(&usart1_matlab_tx_buf[0], 0, USART1_TX_BUF_LENGHT);
                 }
             }
         }
     } else {
         if ((huart1.hdmatx->Instance->CR & DMA_SxCR_CT) == RESET) {
-            memset(&usart1_matlab_tx_buf[1], 0, USART_TX_BUF_LENGHT);
+            memset(&usart1_matlab_tx_buf[1], 0, USART1_TX_BUF_LENGHT);
         } else {
-            memset(&usart1_matlab_tx_buf[0], 0, USART_TX_BUF_LENGHT);
+            memset(&usart1_matlab_tx_buf[0], 0, USART1_TX_BUF_LENGHT);
         }
-        Matlab_No_DMA_IRQHandler = 1;
     }
 }
