@@ -83,7 +83,7 @@ void MX_FREERTOS_Init(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-uint16_t abDataOut[128];
+//uint16_t abDataOut[128];
 /* USER CODE END 0 */
 
 /**

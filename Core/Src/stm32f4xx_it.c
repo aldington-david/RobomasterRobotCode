@@ -183,7 +183,7 @@ void SysTick_Handler(void)
   }
 #endif /* INCLUDE_xTaskGetSchedulerState */
   /* USER CODE BEGIN SysTick_IRQn 1 */
-    osSystickHandler();
+//    osSystickHandler();
   /* USER CODE END SysTick_IRQn 1 */
 }
 
