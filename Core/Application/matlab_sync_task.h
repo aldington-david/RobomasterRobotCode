@@ -10,16 +10,15 @@
 #include "struct_typedef.h"
 #include "fifo.h"
 
-#define USART1_RX_BUF_LENGHT     512
-#define USART1_TX_BUF_LENGHT     128
+#define USART1_MATLAB_TX_BUF_LENGHT     128
 #define MATLAB_FIFO_BUF_LENGTH 1024
 
-static volatile uint8_t Matlab_No_DMA_IRQHandler = 1;
-static uint8_t matlab_dma_send_data_len = 0;
+extern volatile uint8_t Matlab_No_DMA_IRQHandler;
+extern volatile uint8_t matlab_dma_send_data_len;
 
 extern fifo_s_t matlab_tx_len_fifo;
 extern fifo_s_t matlab_tx_fifo;
-extern uint8_t usart1_matlab_tx_buf[2][USART1_TX_BUF_LENGHT];
+extern uint8_t usart1_matlab_tx_buf[2][USART1_MATLAB_TX_BUF_LENGHT];
 
 #pragma pack(push, 1)
 

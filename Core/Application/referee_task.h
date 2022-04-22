@@ -658,10 +658,10 @@ typedef enum {
 } drawOperate_e;
 #pragma pack(pop)
 #define DRAWING_PACK    15
-static volatile uint8_t Referee_No_DMA_IRQHandler = 1;
-static volatile uint8_t referee_dma_send_data_len = 0;
-static uint8_t data_pack[DRAWING_PACK * 7] = {0};
-static ext_client_custom_graphic_delete_t cleaning;
+extern volatile uint8_t Referee_No_DMA_IRQHandler;
+extern volatile uint8_t referee_dma_send_data_len;
+extern uint8_t data_pack[DRAWING_PACK * 7];
+extern ext_client_custom_graphic_delete_t cleaning;
 /******declare move frome referee_task.c********/
 extern fifo_s_t referee_rx_fifo;
 extern fifo_s_t referee_tx_len_fifo;
