@@ -83,8 +83,8 @@
 #include "arm_math.h"
 #include "bsp_buzzer.h"
 #include "detect_task.h"
-
 #include "user_lib.h"
+#include "USER_Filter.h"
 
 //when gimbal is in calibrating, set buzzer frequency and strenght
 //当云台在校准, 设置蜂鸣器频率和强度
@@ -813,8 +813,14 @@ void gimbal_rc_to_control_vector(fp32 *yaw, fp32 *pitch, gimbal_control_t *gimba
     } else{
         //keyboard set speed set-point
         //键盘控制
-        yaw_set_channel = gimbal_move_rc_to_vector->gimbal_rc_ctrl->mouse.x * YAW_MOUSE_SEN;
-        pitch_set_channel = gimbal_move_rc_to_vector->gimbal_rc_ctrl->mouse.y * PITCH_MOUSE_SEN;
+        rc_deadband_limit(gimbal_move_rc_to_vector->gimbal_rc_ctrl->mouse.x,yaw_channel,3)
+        rc_deadband_limit(gimbal_move_rc_to_vector->gimbal_rc_ctrl->mouse.y,pitch_channel,2)
+        float temp_yaw = yaw_channel * YAW_MOUSE_SEN;
+        float temp_pitch = pitch_channel * PITCH_MOUSE_SEN;
+        Filter_IIRLPF(&temp_yaw,&yaw_set_channel,0.1f);
+        Filter_IIRLPF(&temp_pitch,&pitch_set_channel,0.1f);
+//        yaw_set_channel = gimbal_move_rc_to_vector->gimbal_rc_ctrl->mouse.x * YAW_MOUSE_SEN;
+//        pitch_set_channel = gimbal_move_rc_to_vector->gimbal_rc_ctrl->mouse.y * PITCH_MOUSE_SEN;
     }
     //maybe_useful
 //    //first order low-pass replace ramp function, calculate chassis speed set-point to improve control performance

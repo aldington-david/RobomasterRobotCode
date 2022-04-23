@@ -224,10 +224,10 @@ static void shoot_set_mode(void) {
     }
 
     //处于左拨杆中档， 可以使用键盘开启/关闭摩擦轮
-    if (switch_is_mid(shoot_control.shoot_rc->rc.s[RADIO_CONTROL_SWITCH_L]) &&
+    if (switch_is_up(shoot_control.shoot_rc->rc.s[RADIO_CONTROL_SWITCH_L]) &&
         (shoot_control.shoot_rc->key.v & SHOOT_ON_KEYBOARD) && shoot_control.shoot_mode == SHOOT_STOP) {
         shoot_control.shoot_mode = SHOOT_START;
-    } else if (switch_is_mid(shoot_control.shoot_rc->rc.s[RADIO_CONTROL_SWITCH_L]) &&
+    } else if (switch_is_up(shoot_control.shoot_rc->rc.s[RADIO_CONTROL_SWITCH_L]) &&
                (shoot_control.shoot_rc->key.v & SHOOT_OFF_KEYBOARD) && shoot_control.shoot_mode != SHOOT_STOP) {
         shoot_control.shoot_mode = SHOOT_STOP;
     }

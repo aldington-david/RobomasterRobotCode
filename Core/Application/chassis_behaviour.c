@@ -476,20 +476,20 @@ static void chassis_infantry_follow_gimbal_yaw_control(fp32 *vx_set, fp32 *vy_se
     
     static uint8_t swing_flag = 0;
 
-    //judge if swing
-    //判断是否要摇摆
-    if (chassis_move_rc_to_vector->chassis_RC->key.v & SWING_KEY)
-    {
-        if (swing_flag == 0)
-        {
-            swing_flag = 1;
-            swing_time = 0.0f;
-        }
-    }
-    else
-    {
-        swing_flag = 0;
-    }
+//    //judge if swing
+//    //判断是否要摇摆
+//    if (chassis_move_rc_to_vector->chassis_RC->key.v & SWING_KEY)
+//    {
+//        if (swing_flag == 0)
+//        {
+//            swing_flag = 1;
+//            swing_time = 0.0f;
+//        }
+//    }
+//    else
+//    {
+//        swing_flag = 0;
+//    }
 
     //judge if keyboard is controlling the chassis, if yes, reduce the max_angle
     //判断键盘输入是不是在控制底盘运动，底盘在运动减小摇摆角度

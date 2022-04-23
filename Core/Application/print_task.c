@@ -29,6 +29,7 @@
 #include "INS_task.h"
 #include "BMI088driver.h"
 #include "shoot.h"
+#include "servo_task.h"
 
 
 #if PRINTF_MODE == RTT_MODE
@@ -112,6 +113,12 @@ referee usart:%s\r\n\
             LoopStartTime = xTaskGetTickCount();
 //            SEGGER_RTT_printf(0,"testfunction\n");
             /***********************打印数据 Start *****************************/
+//            //舵机pwm
+//            SEGGER_RTT_SetTerminal(1);
+//            sprintf(print_buf,
+//                    "bullet_box_pwm=%d\r\n",
+//                    bullet_box_pwm);
+//            SEGGER_RTT_WriteString(0, print_buf);
             //鼠标控制
             SEGGER_RTT_SetTerminal(1);
             sprintf(print_buf,

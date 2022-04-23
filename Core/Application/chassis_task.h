@@ -58,8 +58,11 @@
 //不跟随云台的时候 遥控器的yaw遥杆（max 660）转化成车体旋转速度的比例
 #define CHASSIS_WZ_RC_SEN 0.015f
 
-#define CHASSIS_ACCEL_X_NUM 0.1666666667f
-#define CHASSIS_ACCEL_Y_NUM 0.3333333333f
+//#define CHASSIS_ACCEL_X_NUM 0.1666666667f
+//#define CHASSIS_ACCEL_Y_NUM 0.3333333333f
+//for_test
+#define CHASSIS_ACCEL_X_NUM 0.1f
+#define CHASSIS_ACCEL_Y_NUM 0.1f
 
 //rocker value deadline
 //摇杆死区
@@ -104,12 +107,12 @@
 #define MAX_WHEEL_SPEED 4.0f
 //chassis forward or back max speed
 //底盘运动过程最大前进速度
-#define NORMAL_MAX_CHASSIS_SPEED_X 2.0f
+#define NORMAL_MAX_CHASSIS_SPEED_X 0.8f
 //chassis left or right max speed
 //底盘运动过程最大平移速度
-#define NORMAL_MAX_CHASSIS_SPEED_Y 1.5f
+#define NORMAL_MAX_CHASSIS_SPEED_Y 0.8f
 
-#define CHASSIS_WZ_SET_SCALE 0.1f
+#define CHASSIS_WZ_SET_SCALE 0.5f
 
 //when chassis is not set to move, swing max angle
 //摇摆原地不动摇摆最大角度(rad)
