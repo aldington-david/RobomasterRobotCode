@@ -16,17 +16,26 @@
 #include "remote_control.h"
 #include "user_lib.h"
 #include "shoot.h"
+#include "vision_task.h"
+#include "gimbal_behaviour.h"
 
 char Char_Receive_Buffer[256];
 char *p;
 int param_num;
 char param_value[16];
 int32_t param_value_int;
-double param_value_float;
+float param_value_float;
 void *PC_receive_data[29];
 
 //$param0=12;$param1=13;$param2=12.32;$param3=11.21;
 void PC_receive_task(void const *argument) {
+    /********vision start***********/
+
+
+    /********vision end***********/
+    PC_receive_data[param0] = (void *) &vision_yaw_angle_add_for_test;
+    PC_receive_data[param1] = (void *) &vision_pitch_angle_add_for_test;
+    /********pitch start***********/
 //    PC_receive_data[param0] = (void *) &gimbal_control.gimbal_pitch_motor.gimbal_motor_absolute_angle_pid.kp;
 //    PC_receive_data[param1] = (void *) &gimbal_control.gimbal_pitch_motor.gimbal_motor_absolute_angle_pid.ki;
 
@@ -58,7 +67,9 @@ void PC_receive_task(void const *argument) {
 //    PC_receive_data[param14] = (void *) &gimbal_control.gimbal_pitch_motor.gimbal_motor_relative_angle_pid.Cloud_OCKalman.R;
 //    PC_receive_data[param15] = (void *) &gimbal_control.gimbal_pitch_motor.gimbal_motor_relative_angle_pid.Cloud_OCKalman.Q;
 //    PC_receive_data[param16] = (void *) &gimbal_control.gimbal_pitch_motor.LpfFactor;
+    /********pitch end***********/
 
+    /********yaw start***********/
     PC_receive_data[param0] = (void *) &gimbal_control.gimbal_yaw_motor.gimbal_motor_relative_angle_pid_temp.Kp;
     PC_receive_data[param1] = (void *) &gimbal_control.gimbal_yaw_motor.gimbal_motor_relative_angle_pid_temp.Ki;
     PC_receive_data[param2] = (void *) &gimbal_control.gimbal_yaw_motor.gimbal_motor_relative_angle_pid_temp.Kd;
@@ -97,12 +108,14 @@ void PC_receive_task(void const *argument) {
 //    PC_receive_data[param9] = (void *) &gimbal_control.gimbal_yaw_motor.max_relative_angle;
 //    PC_receive_data[param10] = (void *) &gimbal_control.gimbal_yaw_motor.min_relative_angle;
 //    PC_receive_data[param11] = (void *) &gimbal_control.gimbal_yaw_motor.relative_angle_set;
+    /********yaw end***********/
 
+    /********trigger start***********/
 //    PC_receive_data[param0] = (void *) &shoot_control.trigger_motor_pid.Kp;
 //    PC_receive_data[param1] = (void *) &shoot_control.trigger_motor_pid.Ki;
 //    PC_receive_data[param2] = (void *) &shoot_control.trigger_motor_pid.Kd;
 //    PC_receive_data[param3] = (void *) &shoot_control.trigger_speed_set;
-
+    /********trigger end***********/
     TickType_t LoopStartTime;
     while (1) {
         LoopStartTime = xTaskGetTickCount();
@@ -127,7 +140,7 @@ void PC_receive_task(void const *argument) {
                             *(tmp) = param_value_int;
                         }
                     } else {
-                        param_value_float = strtod(param_value, NULL);
+                        param_value_float = strtof(param_value, NULL);
                         float *tmp = (float *) PC_receive_data[param_num];
                         if (param_num == 11) {
                             *(tmp) = fp32_constrain(param_value_float,

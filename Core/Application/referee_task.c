@@ -9,8 +9,9 @@
 #include "SEGGER_RTT.h"
 #include "global_control_define.h"
 #include "math.h"
-#include "tim.h"//abundant
 #include "task.h"
+//#include "tim.h"//abundant
+
 
 #define printf(format, args...)  SEGGER_RTT_printf(0, format, ##args)
 judge_info_t global_judge_info;

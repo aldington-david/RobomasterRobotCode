@@ -12,6 +12,7 @@
 #include "global_control_define.h"
 #include "main.h"
 #include "matlab_sync_task.h"
+#include <stdlib.h>
 
 uint8_t vision_fifo_rx_buf[VISION_FIFO_BUF_LENGTH];
 uint8_t vision_fifo_tx_len_buf[VISION_FIFO_BUF_LENGTH];
@@ -22,8 +23,11 @@ fifo_s_t vision_tx_fifo;
 uint8_t usart1_rx_buf[2][USART1_RX_BUF_LENGHT];
 uint8_t usart1_vision_tx_buf[2][USART1_VISION_TX_BUF_LENGHT];
 TaskHandle_t USART1TX_active_task_local_handler;
+TaskHandle_t vision_rx_task_local_handler;
 volatile uint8_t Vision_No_DMA_IRQHandler = 1;
 volatile uint8_t vision_dma_send_data_len = 0;
+vision_unpack_data_t vision_unpack_obj;
+vision_info_t global_vision_info;
 
 /**
   * @brief          视觉接收任务
@@ -32,13 +36,13 @@ volatile uint8_t vision_dma_send_data_len = 0;
   */
 void vision_rx_task(void const *argument) {
 //    init_referee_struct_data();
+    vision_rx_task_local_handler = xTaskGetCurrentTaskHandle();
     fifo_s_init(&vision_rx_fifo, vision_fifo_rx_buf, VISION_FIFO_BUF_LENGTH);
     usart1_rx_init(usart1_rx_buf[0], usart1_rx_buf[1], USART1_RX_BUF_LENGHT);
-    TickType_t LoopStartTime;
     while (1) {
-        LoopStartTime = xTaskGetTickCount();
-//        referee_unpack_fifo_data();
-        vTaskDelayUntil(&LoopStartTime, pdMS_TO_TICKS(10));
+        while (ulTaskNotifyTake(pdTRUE, portMAX_DELAY) != pdPASS) {
+        }
+        vision_unpack_fifo_data();
     }
 }
 
@@ -70,87 +74,107 @@ void vision_tx_task(void const *argument) {
   * @param[in]      void
   * @retval         none
   */
-//void vision_unpack_fifo_data(void) {
-//    uint8_t byte = 0;
-//    uint8_t sof = HEADER_SOF;
-//    unpack_data_t *p_obj = &referee_unpack_obj;
-//
-//    while (fifo_s_used(&referee_rx_fifo)) {
-//        byte = fifo_s_get(&referee_rx_fifo);
-//        switch (p_obj->unpack_step) {
-//            case STEP_HEADER_SOF: {
-//                if (byte == sof) {
-//                    p_obj->unpack_step = STEP_LENGTH_LOW;
-//                    p_obj->protocol_packet[p_obj->index++] = byte;
-//                } else {
-//                    p_obj->index = 0;
-//                }
-//            }
-//                break;
-//
-//            case STEP_LENGTH_LOW: {
-//                p_obj->data_len = byte;
-//                p_obj->protocol_packet[p_obj->index++] = byte;
-//                p_obj->unpack_step = STEP_LENGTH_HIGH;
-//            }
-//                break;
-//
-//            case STEP_LENGTH_HIGH: {
-//                p_obj->data_len |= (byte << 8);
-//                p_obj->protocol_packet[p_obj->index++] = byte;
-//
-//                if (p_obj->data_len < (REF_PROTOCOL_FRAME_MAX_SIZE - REF_HEADER_CRC_CMDID_LEN)) {
-//                    p_obj->unpack_step = STEP_FRAME_SEQ;
-//                } else {
-//                    p_obj->unpack_step = STEP_HEADER_SOF;
-//                    p_obj->index = 0;
-//                }
-//            }
-//                break;
-//            case STEP_FRAME_SEQ: {
-//                p_obj->protocol_packet[p_obj->index++] = byte;
-//                p_obj->unpack_step = STEP_HEADER_CRC8;
-//            }
-//                break;
-//
-//            case STEP_HEADER_CRC8: {
-//                p_obj->protocol_packet[p_obj->index++] = byte;
-//
-//                if (p_obj->index == REF_PROTOCOL_HEADER_SIZE) {
-//                    if (verify_CRC8_check_sum(p_obj->protocol_packet, REF_PROTOCOL_HEADER_SIZE)) {
-//                        p_obj->unpack_step = STEP_DATA_CRC16;
-//                    } else {
-//                        p_obj->unpack_step = STEP_HEADER_SOF;
-//                        p_obj->index = 0;
-//                    }
-//                }
-//            }
-//                break;
-//
-//            case STEP_DATA_CRC16: {
-//                if (p_obj->index < (REF_HEADER_CRC_CMDID_LEN + p_obj->data_len)) {
-//                    p_obj->protocol_packet[p_obj->index++] = byte;
-//                }
-//                if (p_obj->index >= (REF_HEADER_CRC_CMDID_LEN + p_obj->data_len)) {
-//                    p_obj->unpack_step = STEP_HEADER_SOF;
-//                    p_obj->index = 0;
-//
-//                    if (verify_CRC16_check_sum(p_obj->protocol_packet, REF_HEADER_CRC_CMDID_LEN + p_obj->data_len)) {
-//                        judge_update(p_obj->protocol_packet);
-//                    }
-//                }
-//            }
-//                break;
-//
-//            default: {
-//                p_obj->unpack_step = STEP_HEADER_SOF;
-//                p_obj->index = 0;
-//            }
-//                break;
-//        }
-//    }
-//}
+void vision_unpack_fifo_data(void) {
+    uint8_t byte = 0;
+    vision_unpack_data_t *p_obj = &vision_unpack_obj;
+    while (fifo_s_used(&vision_rx_fifo)) {
+        byte = fifo_s_get(&vision_rx_fifo);
+        switch (p_obj->unpack_step) {
+            case VISION_STEP_HEADER_SOF: {
+                if (byte == VISION_HEADER_SOF) {
+                    p_obj->head_sof_cnt++;
+//                    SEGGER_RTT_printf(0,"head=%d,sep=%d,end=%d\r\n",p_obj->head_sof_cnt,p_obj->separate_sof_cnt,p_obj->end_sof_cnt);
+                    p_obj->head_index = p_obj->index;
+                    p_obj->unpack_step = VISION_STEP_DATA_1;
+                    p_obj->protocol_packet[p_obj->index++] = byte;
+                } else {
+                    p_obj->index = 0;
+                    p_obj->head_sof_cnt = p_obj->separate_sof_cnt = p_obj->end_sof_cnt = 0;
+                }
+            }
 
+                break;
+
+            case VISION_STEP_DATA_1: {
+//                SEGGER_RTT_WriteString(0, "have_date1\r\n");
+                if (byte != VISION_SEPARATE_SOF) {
+                    p_obj->protocol_packet[p_obj->index++] = byte;
+                } else if (byte == VISION_SEPARATE_SOF) {
+                    p_obj->data1_len = p_obj->index - p_obj->head_index - 1;
+                    p_obj->unpack_step = VISION_STEP_SEPARATE_SOF;
+                }
+            }
+                break;
+
+            case VISION_STEP_SEPARATE_SOF: {
+                p_obj->separate_sof_cnt++;
+//                SEGGER_RTT_printf(0,"head=%d,sep=%d,end=%d\r\n",p_obj->head_sof_cnt,p_obj->separate_sof_cnt,p_obj->end_sof_cnt);
+//                SEGGER_RTT_WriteString(0, "have_point\r\n");
+                p_obj->separate_index = p_obj->index;
+                p_obj->protocol_packet[p_obj->index++] = byte;
+                p_obj->unpack_step = VISION_STEP_DATA_2;
+            }
+                break;
+            case VISION_STEP_DATA_2: {
+//                SEGGER_RTT_WriteString(0, "have_date2\r\n");
+                if (byte != VISION_END_SOF) {
+                    p_obj->protocol_packet[p_obj->index++] = byte;
+                } else if (byte == VISION_END_SOF) {
+                    p_obj->data2_len = p_obj->index - p_obj->separate_index - 1;
+                    p_obj->unpack_step = VISION_STEP_END_SOF;
+                }
+            }
+                break;
+
+            case VISION_STEP_END_SOF: {
+//                SEGGER_RTT_printf(0,"head=%d,sep=%d,end=%d\r\n",p_obj->head_sof_cnt,p_obj->separate_sof_cnt,p_obj->end_sof_cnt);
+//                SEGGER_RTT_WriteString(0, "have_end\r\n");
+                p_obj->protocol_packet[p_obj->index++] = byte;
+                p_obj->end_sof_cnt++;
+                if ((p_obj->head_sof_cnt == 1) && (p_obj->separate_sof_cnt == 1) && (p_obj->end_sof_cnt == 1)) {
+//                    SEGGER_RTT_WriteString(0, "vision_update\r\n");
+                    vision_update(p_obj->protocol_packet);
+                    p_obj->head_sof_cnt = p_obj->separate_sof_cnt = p_obj->end_sof_cnt = 0;
+                } else {
+                    p_obj->unpack_step = VISION_STEP_HEADER_SOF;
+                    p_obj->index = 0;
+                    p_obj->head_sof_cnt = p_obj->separate_sof_cnt = p_obj->end_sof_cnt = 0;
+                }
+            }
+                break;
+
+            default: {
+                p_obj->unpack_step = VISION_STEP_HEADER_SOF;
+                p_obj->index = 0;
+            }
+                break;
+        }
+    }
+}
+
+void vision_update(uint8_t *rxBuf) {
+    uint8_t res = false;
+    vision_info_t *vision_info = &global_vision_info;
+    vision_info->pack_info = &vision_unpack_obj;
+    if (rxBuf[0] == VISION_HEADER_SOF) {
+        if ((vision_info->pack_info->data1_len <= 128) && (vision_info->pack_info->data1_len <= 128)) {
+//            SEGGER_RTT_WriteString(0, "vision_in\r\n");
+            memcpy(vision_info->Original_pitch_angle, (rxBuf + 1), vision_info->pack_info->data1_len);
+            memcpy(vision_info->Original_yaw_angle, (rxBuf + 2 + vision_info->pack_info->data1_len),
+                   vision_info->pack_info->data2_len);
+            global_vision_info.pitch_angle = strtof(vision_info->Original_pitch_angle, NULL);
+            global_vision_info.yaw_angle = strtof(vision_info->Original_yaw_angle, NULL);
+            memset(&vision_info->Original_pitch_angle, 0, sizeof(vision_info->Original_pitch_angle));
+            memset(&vision_info->Original_yaw_angle, 0, sizeof(vision_info->Original_pitch_angle));
+        }
+    } else {
+        memset(&vision_info->Original_pitch_angle, 0, sizeof(vision_info->Original_pitch_angle));
+        memset(&vision_info->Original_yaw_angle, 0, sizeof(vision_info->Original_pitch_angle));
+        global_vision_info.pitch_angle = 0;
+        global_vision_info.yaw_angle = 0;
+    }
+
+}
 
 /**
   * @brief          usart1发送启动任务，由发送时任务通知激活
@@ -295,6 +319,11 @@ void USART1_IRQHandler(void) {
             __HAL_DMA_ENABLE(huart1.hdmarx);
             fifo_s_puts(&vision_rx_fifo, (char *) usart1_rx_buf[0], this_time_rx_len);
             detect_hook(VISION_RX_TOE);
+            if (xTaskGetSchedulerState() != taskSCHEDULER_NOT_STARTED) {
+                static BaseType_t xHigherPriorityTaskWoken;
+                vTaskNotifyGiveFromISR(vision_rx_task_local_handler, &xHigherPriorityTaskWoken);
+                portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
+            }
         } else {
             __HAL_DMA_DISABLE(huart1.hdmarx);
             this_time_rx_len = USART1_RX_BUF_LENGHT - __HAL_DMA_GET_COUNTER(huart1.hdmarx);
@@ -303,6 +332,11 @@ void USART1_IRQHandler(void) {
             __HAL_DMA_ENABLE(huart1.hdmarx);
             fifo_s_puts(&vision_rx_fifo, (char *) usart1_rx_buf[1], this_time_rx_len);
             detect_hook(VISION_RX_TOE);
+            if (xTaskGetSchedulerState() != taskSCHEDULER_NOT_STARTED) {
+                static BaseType_t xHigherPriorityTaskWoken;
+                vTaskNotifyGiveFromISR(vision_rx_task_local_handler, &xHigherPriorityTaskWoken);
+                portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
+            }
         }
     }
 }

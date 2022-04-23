@@ -30,6 +30,7 @@
 #include "BMI088driver.h"
 #include "shoot.h"
 #include "servo_task.h"
+#include "vision_task.h"
 
 
 #if PRINTF_MODE == RTT_MODE
@@ -113,6 +114,22 @@ referee usart:%s\r\n\
             LoopStartTime = xTaskGetTickCount();
 //            SEGGER_RTT_printf(0,"testfunction\n");
             /***********************打印数据 Start *****************************/
+            //视觉
+            SEGGER_RTT_SetTerminal(2);
+            sprintf(print_buf,
+                    "vision_pitch=%f,vision_yaw=%f\r\nor_vision_pitch=%s,or_vision_yaw=%s\r\n",
+                    global_vision_info.pitch_angle,
+                    global_vision_info.yaw_angle,
+                    global_vision_info.Original_pitch_angle,
+                    global_vision_info.Original_yaw_angle);
+            SEGGER_RTT_WriteString(0, print_buf);
+//
+//            SEGGER_RTT_SetTerminal(2);
+//            sprintf(print_buf,
+//                    "vision_index=%d\r\n",
+//                    global_vision_info.pack_info->index);
+//            SEGGER_RTT_WriteString(0, print_buf);
+
 //            //舵机pwm
 //            SEGGER_RTT_SetTerminal(1);
 //            sprintf(print_buf,
@@ -120,16 +137,16 @@ referee usart:%s\r\n\
 //                    bullet_box_pwm);
 //            SEGGER_RTT_WriteString(0, print_buf);
             //鼠标控制
-            SEGGER_RTT_SetTerminal(1);
-            sprintf(print_buf,
-                    "mouse_x=%d,mouse_y=%d,mouse_z=%d,mouse_l=%d,mouse_r=%d\r\nkey=%d\r\n,",
-                    rc_ctrl.mouse.x,
-                    rc_ctrl.mouse.y,
-                    rc_ctrl.mouse.z,
-                    rc_ctrl.mouse.press_l,
-                    rc_ctrl.mouse.press_r,
-                    rc_ctrl.key.v);
-            SEGGER_RTT_WriteString(0, print_buf);
+//            SEGGER_RTT_SetTerminal(1);
+//            sprintf(print_buf,
+//                    "mouse_x=%d,mouse_y=%d,mouse_z=%d,mouse_l=%d,mouse_r=%d\r\nkey=%d\r\n,",
+//                    rc_ctrl.mouse.x,
+//                    rc_ctrl.mouse.y,
+//                    rc_ctrl.mouse.z,
+//                    rc_ctrl.mouse.press_l,
+//                    rc_ctrl.mouse.press_r,
+//                    rc_ctrl.key.v);
+//            SEGGER_RTT_WriteString(0, print_buf);
 
 //            //功率显示
 //            RTT_PrintWave(1,&global_judge_info.PowerHeatData.chassis_power);

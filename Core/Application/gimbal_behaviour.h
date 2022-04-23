@@ -98,6 +98,9 @@ typedef enum
   GIMBAL_MOTIONLESS,     
 } gimbal_behaviour_e;
 
+extern fp32 vision_pitch_angle_add_for_test;
+extern fp32 vision_yaw_angle_add_for_test;
+
 /**
   * @brief          the function is called by gimbal_set_mode function in gimbal_task.c
   *                 the function set gimbal_behaviour variable, and set motor mode.
