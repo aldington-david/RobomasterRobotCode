@@ -11,9 +11,9 @@
 #include "fifo.h"
 #include "cmsis_os.h"
 
-#define USART1_RX_BUF_LENGHT     64
-#define USART1_VISION_TX_BUF_LENGHT     64
-#define VISION_FIFO_BUF_LENGTH 256
+#define USART1_RX_BUF_LENGHT     512
+#define USART1_VISION_TX_BUF_LENGHT     128
+#define VISION_FIFO_BUF_LENGTH 1024
 /*************define for unpack start*********************/
 #define VISION_HEADER_SOF 0x24
 #define VISION_SEPARATE_SOF 0x2C

@@ -30,7 +30,7 @@
 
 
 //遥控器出错数据上限
-#define RC_CHANNAL_ERROR_VALUE 700
+#define RC_CHANNAL_ERROR_VALUE 670
 
 extern UART_HandleTypeDef huart3;
 extern DMA_HandleTypeDef hdma_usart3_rx;

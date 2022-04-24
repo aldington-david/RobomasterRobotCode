@@ -89,7 +89,7 @@ typedef enum {
     LEN_GAME_STATUS = 11,                      //!< 0x0001 比赛状态数据
     LEN_GAME_RESULT = 1,                      //!< 0x0002 比赛结果数据
     LEN_GAME_ROBOT_HP = 28,                   //!< 0x0003 比赛机器人血量数据
-    LEN_ICRA_BUFF_DEBUFF_ZONE_STATUS = 11,     //!< 0x0005 人工智能挑战赛加成与惩罚区状态
+    LEN_ICRA_BUFF_DEBUFF_ZONE_STATUS = 13,     //!< 0x0005 人工智能挑战赛加成与惩罚区状态
     // 0x010x
     LEN_EVENT_DATA = 4,                     //!< 0x0101 场地事件数据
     LEN_SUPPLY_PROJECTILE_ACTION = 3,       //!< 0x0102 场地补给站动作标识数据
@@ -180,6 +180,8 @@ typedef struct {
     uint16_t red2_bullet_left;
     uint16_t blue1_bullet_left;
     uint16_t blue2_bullet_left;
+    uint8_t lurk_mode;
+    uint8_t res;
 } ext_ICRA_buff_debuff_zone_status_t;
 
 /**
