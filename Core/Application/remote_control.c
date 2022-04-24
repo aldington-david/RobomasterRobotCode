@@ -128,8 +128,8 @@ error:
     rc_ctrl.rc.ch[2] = 0;
     rc_ctrl.rc.ch[3] = 0;
     rc_ctrl.rc.ch[4] = 0;
-    rc_ctrl.rc.s[0] = RC_SW_DOWN;
-    rc_ctrl.rc.s[1] = RC_SW_DOWN;
+    rc_ctrl.rc.s[0] = RC_SW_UP;
+    rc_ctrl.rc.s[1] = RC_SW_UP;
     rc_ctrl.mouse.x = 0;
     rc_ctrl.mouse.y = 0;
     rc_ctrl.mouse.z = 0;

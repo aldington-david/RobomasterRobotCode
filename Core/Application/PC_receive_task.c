@@ -158,6 +158,6 @@ void PC_receive_task(void const *argument) {
                 SEGGER_RTT_WriteString(0, "Too many params.");
             }
         }
-        vTaskDelayUntil(&LoopStartTime, pdMS_TO_TICKS(20));
+        vTaskDelayUntil(&LoopStartTime, pdMS_TO_TICKS(13));
     }
 }

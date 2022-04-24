@@ -53,6 +53,7 @@
 #include "detect_task.h"
 #include "cmsis_os.h"
 #include "global_control_define.h"
+#include "remote_control.h"
 
 /**
   * @brief          init error_list, assign  offline_time, online_time, priority.
@@ -226,8 +227,6 @@ const error_t *get_error_list_point(void) {
     return error_list;
 }
 
-extern void OLED_com_reset(void);
-
 static void detect_init(uint32_t time) {
     //设置离线时间，上线稳定工作时间，优先级 offlineTime onlinetime priority
     uint16_t set_item[ERROR_LIST_LENGHT][3] =
@@ -248,7 +247,6 @@ static void detect_init(uint32_t time) {
                     {10,  10,  7},    //rm imu
                     {100, 100, 5},  //vision_rx
                     {100, 100, 5},  //usart1_tx
-                    {100, 100, 1},  //oled
             };
 
     if (DETECT_BLOCK != Block_All_Device_ecp_Control) {
@@ -321,12 +319,12 @@ static void detect_init(uint32_t time) {
         }
     }
 
-    error_list[OLED_TOE].data_is_error_fun = NULL;
-    error_list[OLED_TOE].solve_lost_fun = OLED_com_reset;
-    error_list[OLED_TOE].solve_data_error_fun = NULL;
+//    error_list[OLED_TOE].data_is_error_fun = NULL;
+//    error_list[OLED_TOE].solve_lost_fun = OLED_com_reset;
+//    error_list[OLED_TOE].solve_data_error_fun = NULL;
 
-//    error_list[DBUSTOE].dataIsErrorFun = RC_data_is_error;
-//    error_list[DBUSTOE].solveLostFun = slove_RC_lost;
-//    error_list[DBUSTOE].solveDataErrorFun = slove_data_error;
+    error_list[DBUS_TOE].data_is_error_fun = RC_data_is_error;
+    error_list[DBUS_TOE].solve_lost_fun = slove_RC_lost;
+    error_list[DBUS_TOE].solve_data_error_fun = slove_data_error;
 
 }

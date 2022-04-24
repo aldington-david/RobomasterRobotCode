@@ -33,7 +33,6 @@
 #include "gimbal_task.h"
 #include "INS_task.h"
 #include "led_flow_task.h"
-#include "oled_task.h"
 #include "referee_task.h"
 #include "print_task.h"
 #include "voltage_task.h"
@@ -205,14 +204,14 @@ void MX_FREERTOS_Init(void) {
     osThreadDef(PC_receiveTask, PC_receive_task, osPriorityNormal, 0, 512);
     servo_task_handle = osThreadCreate(osThread(PC_receiveTask), NULL);
 
-    osThreadDef(BATTERY_VOLTAGE, battery_voltage_task, osPriorityLow, 0, 256);
+    osThreadDef(BATTERY_VOLTAGE, battery_voltage_task, osPriorityBelowNormal, 0, 256);
     battery_voltage_handle = osThreadCreate(osThread(BATTERY_VOLTAGE), NULL);
 
-    osThreadDef(led, led_RGB_flow_task, osPriorityBelowNormal, 0, 256);
+    osThreadDef(led, led_RGB_flow_task, osPriorityLow, 0, 256);
     led_RGB_flow_handle = osThreadCreate(osThread(led), NULL);
 
-    osThreadDef(OLED, oled_task, osPriorityLow, 0, 256);
-    oled_handle = osThreadCreate(osThread(OLED), NULL);
+//    osThreadDef(OLED, oled_task, osPriorityLow, 0, 256);
+//    oled_handle = osThreadCreate(osThread(OLED), NULL);
 
 
 

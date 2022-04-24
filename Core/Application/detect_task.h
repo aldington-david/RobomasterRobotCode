@@ -79,7 +79,6 @@ enum errorList
     RM_IMU_TOE,
     VISION_RX_TOE,
     USART1_TX_TOE,
-    OLED_TOE,
     ERROR_LIST_LENGHT,
 };
 

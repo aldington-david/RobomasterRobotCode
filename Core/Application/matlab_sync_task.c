@@ -46,13 +46,13 @@ void matlab_sync_task(void const *argument) {
     memcpy((void *) matlab_transmit_pack, &test1, sizeof(test1));
     while (1) {
         LoopStartTime = xTaskGetTickCount();
-        data_sync(sizeof(test1));
-        data_sync(sizeof(test1));
+//        data_sync(sizeof(test1));
+//        data_sync(sizeof(test1));
 //        data_sync(sizeof(test1));
 //        data_sync(sizeof(test1));
 //        referee_unpack_fifo_data();
 
-        vTaskDelayUntil(&LoopStartTime, pdMS_TO_TICKS(100));
+        vTaskDelayUntil(&LoopStartTime, pdMS_TO_TICKS(10));
     }
 }
 

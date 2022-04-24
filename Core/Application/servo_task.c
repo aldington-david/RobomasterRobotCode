@@ -86,7 +86,7 @@ void servo_task(void const *argument) {
 //
 //            servo_pwm_set(servo_pwm[i], i);
 //        }
-        vTaskDelayUntil(&LoopStartTime, pdMS_TO_TICKS(50));
+        vTaskDelayUntil(&LoopStartTime, pdMS_TO_TICKS(13));
     }
 }
 
