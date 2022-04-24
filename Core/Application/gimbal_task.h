@@ -39,7 +39,7 @@
 #define PITCH_SPEED_PID_KP        2900.0f
 #define PITCH_SPEED_PID_KI        60.0f
 #define PITCH_SPEED_PID_KD        0.0f
-#define PITCH_SPEED_PID_MAX_OUT   10000.0f
+#define PITCH_SPEED_PID_MAX_OUT   30000.0f
 #define PITCH_SPEED_PID_MAX_IOUT  10000.0f
 
 //yaw speed close-loop PID params, max out and max iout
@@ -47,7 +47,7 @@
 #define YAW_SPEED_PID_KP        3600.0f
 #define YAW_SPEED_PID_KI        20.0f
 #define YAW_SPEED_PID_KD        0.0f
-#define YAW_SPEED_PID_MAX_OUT   10000.0f
+#define YAW_SPEED_PID_MAX_OUT   30000.0f
 #define YAW_SPEED_PID_MAX_IOUT  15000.0f
 
 //pitch gyro angle close-loop PID params, max out and max iout
@@ -108,7 +108,7 @@
 
 
 #define YAW_RC_SEN    0.000015f
-#define PITCH_RC_SEN  0.000005f //0.005
+#define PITCH_RC_SEN  0.000005f
 
 #define YAW_MOUSE_SEN   0.00006f
 #define PITCH_MOUSE_SEN 0.00014f

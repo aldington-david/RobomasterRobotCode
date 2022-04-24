@@ -85,6 +85,7 @@
 #include "detect_task.h"
 #include "user_lib.h"
 #include "USER_Filter.h"
+#include "vision_task.h"
 
 //when gimbal is in calibrating, set buzzer frequency and strenght
 //当云台在校准, 设置蜂鸣器频率和强度
@@ -749,11 +750,17 @@ void gimbal_rc_to_control_vector(fp32 *yaw, fp32 *pitch, gimbal_control_t *gimba
         //死区限制，因为遥控器可能存在差异 摇杆在中间，其值不为0
         rc_deadband_limit(gimbal_move_rc_to_vector->gimbal_rc_ctrl->rc.ch[YAW_CHANNEL], yaw_channel, RC_DEADBAND);
         rc_deadband_limit(gimbal_move_rc_to_vector->gimbal_rc_ctrl->rc.ch[PITCH_CHANNEL], pitch_channel, RC_DEADBAND);
+        float temp_vision_yaw = 0;
+        float temp_vision_pitch = 0;
+        Filter_IIRLPF(&global_vision_info.yaw_angle, &temp_vision_yaw, 0.1f);
+        Filter_IIRLPF(&global_vision_info.pitch_angle, &temp_vision_pitch, 0.1f);
 
-        yaw_set_channel = yaw_channel * YAW_RC_SEN + vision_yaw_angle_add_for_test;
-        pitch_set_channel = pitch_channel * PITCH_RC_SEN + vision_pitch_angle_add_for_test;
+        yaw_set_channel = yaw_channel * YAW_RC_SEN + vision_yaw_angle_add_for_test + temp_vision_yaw;
+        pitch_set_channel = pitch_channel * PITCH_RC_SEN + vision_pitch_angle_add_for_test + temp_vision_pitch;
         vision_yaw_angle_add_for_test = 0;
         vision_pitch_angle_add_for_test = 0;
+        global_vision_info.pitch_angle = 0;
+        global_vision_info.yaw_angle = 0;
     } else {
         //keyboard set speed set-point
         //键盘控制

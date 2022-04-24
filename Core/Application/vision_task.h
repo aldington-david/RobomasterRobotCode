@@ -18,7 +18,7 @@
 #define VISION_HEADER_SOF 0x24
 #define VISION_SEPARATE_SOF 0x2C
 #define VISION_END_SOF 0x40
-#define Vision_PROTOCOL_FRAME_MAX_SIZE         64
+#define Vision_PROTOCOL_FRAME_MAX_SIZE         128
 
 typedef enum {
     VISION_STEP_HEADER_SOF = 0,

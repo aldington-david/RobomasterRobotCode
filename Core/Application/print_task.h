@@ -45,5 +45,8 @@ extern fp32 Dout2_test;
 extern fp32 KF_Dout1_test;
 extern fp32 KF_Dout2_test;
 extern fp32 tracer1;
+extern fp32 vision_pitch_probe;
+extern fp32 vision_yaw_probe;
+//extern char vision_or_probe[128];
 
 #endif

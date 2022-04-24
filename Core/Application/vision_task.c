@@ -1,6 +1,7 @@
 //
 // Created by Ken_n on 2022/4/18.
 //
+#include <stdlib.h>
 #include "vision_task.h"
 #include "CRC8_CRC16.h"
 #include "usart.h"
@@ -12,7 +13,7 @@
 #include "global_control_define.h"
 #include "main.h"
 #include "matlab_sync_task.h"
-#include <stdlib.h>
+#include "print_task.h"
 
 uint8_t vision_fifo_rx_buf[VISION_FIFO_BUF_LENGTH];
 uint8_t vision_fifo_tx_len_buf[VISION_FIFO_BUF_LENGTH];
@@ -92,7 +93,6 @@ void vision_unpack_fifo_data(void) {
                     p_obj->head_sof_cnt = p_obj->separate_sof_cnt = p_obj->end_sof_cnt = 0;
                 }
             }
-
                 break;
 
             case VISION_STEP_DATA_1: {
@@ -101,20 +101,21 @@ void vision_unpack_fifo_data(void) {
                     p_obj->protocol_packet[p_obj->index++] = byte;
                 } else if (byte == VISION_SEPARATE_SOF) {
                     p_obj->data1_len = p_obj->index - p_obj->head_index - 1;
-                    p_obj->unpack_step = VISION_STEP_SEPARATE_SOF;
+                    p_obj->separate_sof_cnt++;
+                    p_obj->protocol_packet[p_obj->index++] = byte;
+                    p_obj->separate_index = p_obj->index -1;
+                    p_obj->unpack_step = VISION_STEP_DATA_2;
                 }
             }
                 break;
 
-            case VISION_STEP_SEPARATE_SOF: {
-                p_obj->separate_sof_cnt++;
-//                SEGGER_RTT_printf(0,"head=%d,sep=%d,end=%d\r\n",p_obj->head_sof_cnt,p_obj->separate_sof_cnt,p_obj->end_sof_cnt);
-//                SEGGER_RTT_WriteString(0, "have_point\r\n");
-                p_obj->separate_index = p_obj->index;
-                p_obj->protocol_packet[p_obj->index++] = byte;
-                p_obj->unpack_step = VISION_STEP_DATA_2;
-            }
-                break;
+//            case VISION_STEP_SEPARATE_SOF: {
+//
+////                SEGGER_RTT_printf(0,"head=%d,sep=%d,end=%d\r\n",p_obj->head_sof_cnt,p_obj->separate_sof_cnt,p_obj->end_sof_cnt);
+////                SEGGER_RTT_WriteString(0, "have_point\r\n");
+//
+//            }
+//                break;
             case VISION_STEP_DATA_2: {
 //                SEGGER_RTT_WriteString(0, "have_date2\r\n");
                 if (byte != VISION_END_SOF) {
@@ -159,19 +160,21 @@ void vision_update(uint8_t *rxBuf) {
     if (rxBuf[0] == VISION_HEADER_SOF) {
         if ((vision_info->pack_info->data1_len <= 128) && (vision_info->pack_info->data1_len <= 128)) {
 //            SEGGER_RTT_WriteString(0, "vision_in\r\n");
-            memcpy(vision_info->Original_pitch_angle, (rxBuf + 1), vision_info->pack_info->data1_len);
-            memcpy(vision_info->Original_yaw_angle, (rxBuf + 2 + vision_info->pack_info->data1_len),
+//            memcpy(vision_or_probe, rxBuf, (vision_info->pack_info->data1_len + vision_info->pack_info->data2_len+2));
+            memcpy(vision_info->Original_yaw_angle, (rxBuf + 1), vision_info->pack_info->data1_len);
+            memcpy(vision_info->Original_pitch_angle, (rxBuf + 2 + vision_info->pack_info->data1_len),
                    vision_info->pack_info->data2_len);
             global_vision_info.pitch_angle = strtof(vision_info->Original_pitch_angle, NULL);
             global_vision_info.yaw_angle = strtof(vision_info->Original_yaw_angle, NULL);
+            //for_test
+            vision_pitch_probe = global_vision_info.pitch_angle;
+            vision_yaw_probe = global_vision_info.yaw_angle;
             memset(&vision_info->Original_pitch_angle, 0, sizeof(vision_info->Original_pitch_angle));
-            memset(&vision_info->Original_yaw_angle, 0, sizeof(vision_info->Original_pitch_angle));
+            memset(&vision_info->Original_yaw_angle, 0, sizeof(vision_info->Original_yaw_angle));
         }
     } else {
         memset(&vision_info->Original_pitch_angle, 0, sizeof(vision_info->Original_pitch_angle));
-        memset(&vision_info->Original_yaw_angle, 0, sizeof(vision_info->Original_pitch_angle));
-        global_vision_info.pitch_angle = 0;
-        global_vision_info.yaw_angle = 0;
+        memset(&vision_info->Original_yaw_angle, 0, sizeof(vision_info->Original_yaw_angle));
     }
 
 }

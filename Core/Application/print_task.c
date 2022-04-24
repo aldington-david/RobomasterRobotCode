@@ -65,6 +65,10 @@ fp32 KF_Dout2_test = 0;
 
 fp32 tracer1 = 0;
 
+fp32 vision_pitch_probe = 0;
+fp32 vision_yaw_probe = 0;
+//char vision_or_probe[128]={0};
+
 void print_task(void const *argument) {
     if (PRINTF_MODE == USB_MODE) {
         MX_USB_DEVICE_Init();
@@ -117,12 +121,23 @@ referee usart:%s\r\n\
             //视觉
             SEGGER_RTT_SetTerminal(2);
             sprintf(print_buf,
-                    "vision_pitch=%f,vision_yaw=%f\r\nor_vision_pitch=%s,or_vision_yaw=%s\r\n",
-                    global_vision_info.pitch_angle,
-                    global_vision_info.yaw_angle,
-                    global_vision_info.Original_pitch_angle,
-                    global_vision_info.Original_yaw_angle);
+                    "vision_yaw=%f,vision_pitch=%f\r\n",
+                    vision_yaw_probe,
+                    vision_pitch_probe);
             SEGGER_RTT_WriteString(0, print_buf);
+
+            SEGGER_RTT_SetTerminal(3);
+            sprintf(print_buf,
+                    "now_yaw=%f,now_pitch=%f\r\n",
+                    gimbal_control.gimbal_yaw_motor.relative_angle,
+                    gimbal_control.gimbal_pitch_motor.relative_angle);
+            SEGGER_RTT_WriteString(0, print_buf);
+
+//            SEGGER_RTT_SetTerminal(4);
+//            sprintf(print_buf,
+//                    "vision_info=%s\r\n",
+//                    vision_or_probe);
+//            SEGGER_RTT_WriteString(0, print_buf);
 //
 //            SEGGER_RTT_SetTerminal(2);
 //            sprintf(print_buf,
