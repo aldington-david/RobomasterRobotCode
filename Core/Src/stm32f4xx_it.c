@@ -349,7 +349,7 @@ void DMA2_Stream7_IRQHandler(void)
       if (__HAL_DMA_GET_FLAG(huart1.hdmatx, DMA_HISR_TCIF7) != RESET) {
         MY_USART_DMA_Stream7_Vision_TX_IRQHandler();
     }
-  }else if(UART1_TARGET_MODE==Matlab_MODE){
+  }else if((UART1_TARGET_MODE==Matlab_MODE) || (UART1_TARGET_MODE == Vision_rx_Matlab_tx_MODE)){
       if (__HAL_DMA_GET_FLAG(huart1.hdmatx, DMA_HISR_TCIF7) != RESET) {
           MY_USART_DMA_Stream7_Matlab_TX_IRQHandler();
       }

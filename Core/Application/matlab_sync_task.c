@@ -23,6 +23,7 @@ fifo_s_t matlab_tx_fifo;
 uint8_t usart1_matlab_tx_buf[2][USART1_MATLAB_TX_BUF_LENGHT];
 volatile uint8_t Matlab_No_DMA_IRQHandler = 1;
 volatile uint8_t matlab_dma_send_data_len = 0;
+TaskHandle_t matlab_tx_task_local_handler;
 /* 发送数据包缓存区，最大128字节 */
 uint8_t matlab_transmit_pack[128] = {0};
 
@@ -36,15 +37,18 @@ void matlab_sync_task(void const *argument) {
     fifo_s_init(&matlab_tx_len_fifo, matlab_fifo_tx_len_buf, MATLAB_FIFO_BUF_LENGTH);
     fifo_s_init(&matlab_tx_fifo, matlab_fifo_tx_buf, MATLAB_FIFO_BUF_LENGTH);
     usart1_tx_init(usart1_matlab_tx_buf[0], usart1_matlab_tx_buf[1], USART1_MATLAB_TX_BUF_LENGHT);
-    SyncStruct test1;
+    matlab_tx_task_local_handler = xTaskGetCurrentTaskHandle();
     TickType_t LoopStartTime;
-    test1.data1 = '$';
-    test1.data2 = '@';
-    test1.data3 = ',';
-    test1.data4 = 2;
-    test1.data5 = '2';
-    memcpy((void *) matlab_transmit_pack, &test1, sizeof(test1));
+//    SyncStruct test1;
+//    test1.data1 = '$';
+//    test1.data2 = '@';
+//    test1.data3 = ',';
+//    test1.data4 = 2;
+//    test1.data5 = '2';
+//    memcpy((void *) matlab_transmit_pack, &test1, sizeof(test1));
     while (1) {
+        while (ulTaskNotifyTake(pdTRUE, portMAX_DELAY) != pdPASS) {
+        }
         LoopStartTime = xTaskGetTickCount();
 //        data_sync(sizeof(test1));
 //        data_sync(sizeof(test1));

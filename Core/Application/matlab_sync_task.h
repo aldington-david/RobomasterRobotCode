@@ -9,6 +9,7 @@
 #include <stdint-gcc.h>
 #include "struct_typedef.h"
 #include "fifo.h"
+#include "cmsis_os.h"
 
 #define USART1_MATLAB_TX_BUF_LENGHT     128
 #define MATLAB_FIFO_BUF_LENGTH 1024
@@ -19,6 +20,7 @@ extern volatile uint8_t matlab_dma_send_data_len;
 extern fifo_s_t matlab_tx_len_fifo;
 extern fifo_s_t matlab_tx_fifo;
 extern uint8_t usart1_matlab_tx_buf[2][USART1_MATLAB_TX_BUF_LENGHT];
+extern TaskHandle_t matlab_tx_task_local_handler;
 
 #pragma pack(push, 1)
 

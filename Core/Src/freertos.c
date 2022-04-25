@@ -164,7 +164,7 @@ void MX_FREERTOS_Init(void) {
     osThreadDef(ChassisTask, chassis_task, osPriorityAboveNormal, 0, 512);
     chassisTaskHandle = osThreadCreate(osThread(ChassisTask), NULL);
 
-    osThreadDef(gimbalTask, gimbal_task, osPriorityHigh, 0, 768);
+    osThreadDef(gimbalTask, gimbal_task, osPriorityHigh, 0, 512);
     gimbalTaskHandle = osThreadCreate(osThread(gimbalTask), NULL);
 
     osThreadDef(imuTask, INS_task, osPriorityRealtime, 0, 512);
@@ -191,7 +191,7 @@ void MX_FREERTOS_Init(void) {
     osThreadDef(VISION_TX, vision_tx_task, osPriorityNormal, 0, 256);
     vision_tx_task_handle = osThreadCreate(osThread(VISION_TX), NULL);
     }else if(UART1_TARGET_MODE == Matlab_MODE){
-    osThreadDef(MatlabSyncTask, matlab_sync_task, osPriorityNormal, 0, 256);
+    osThreadDef(MatlabSyncTask, matlab_sync_task, osPriorityRealtime, 0, 256);
     MatlabSync_task_handle = osThreadCreate(osThread(MatlabSyncTask), NULL);
     }
 

@@ -36,7 +36,7 @@ vision_info_t global_vision_info;
   * @retval         none
   */
 void vision_rx_task(void const *argument) {
-//    init_referee_struct_data();
+    init_vision_struct_data();
     vision_rx_task_local_handler = xTaskGetCurrentTaskHandle();
     fifo_s_init(&vision_rx_fifo, vision_fifo_rx_buf, VISION_FIFO_BUF_LENGTH);
     usart1_rx_init(usart1_rx_buf[0], usart1_rx_buf[1], USART1_RX_BUF_LENGHT);
@@ -103,7 +103,7 @@ void vision_unpack_fifo_data(void) {
                     p_obj->data1_len = p_obj->index - p_obj->head_index - 1;
                     p_obj->separate_sof_cnt++;
                     p_obj->protocol_packet[p_obj->index++] = byte;
-                    p_obj->separate_index = p_obj->index -1;
+                    p_obj->separate_index = p_obj->index - 1;
                     p_obj->unpack_step = VISION_STEP_DATA_2;
                 }
             }
@@ -161,22 +161,42 @@ void vision_update(uint8_t *rxBuf) {
         if ((vision_info->pack_info->data1_len <= 128) && (vision_info->pack_info->data1_len <= 128)) {
 //            SEGGER_RTT_WriteString(0, "vision_in\r\n");
 //            memcpy(vision_or_probe, rxBuf, (vision_info->pack_info->data1_len + vision_info->pack_info->data2_len+2));
-            memcpy(vision_info->Original_yaw_angle, (rxBuf + 1), vision_info->pack_info->data1_len);
-            memcpy(vision_info->Original_pitch_angle, (rxBuf + 2 + vision_info->pack_info->data1_len),
+            memcpy(vision_info->pack_info->Original_yaw_angle, (rxBuf + 1), vision_info->pack_info->data1_len);
+            memcpy(vision_info->pack_info->Original_pitch_angle, (rxBuf + 2 + vision_info->pack_info->data1_len),
                    vision_info->pack_info->data2_len);
-            global_vision_info.pitch_angle = strtof(vision_info->Original_pitch_angle, NULL);
-            global_vision_info.yaw_angle = strtof(vision_info->Original_yaw_angle, NULL);
+            global_vision_info.vision_control.pitch_angle = strtof(vision_info->pack_info->Original_pitch_angle, NULL);
+            global_vision_info.vision_control.yaw_angle = strtof(vision_info->pack_info->Original_yaw_angle, NULL);
             //for_test
-            vision_pitch_probe = global_vision_info.pitch_angle;
-            vision_yaw_probe = global_vision_info.yaw_angle;
-            memset(&vision_info->Original_pitch_angle, 0, sizeof(vision_info->Original_pitch_angle));
-            memset(&vision_info->Original_yaw_angle, 0, sizeof(vision_info->Original_yaw_angle));
+            vision_pitch_probe = global_vision_info.vision_control.pitch_angle;
+            vision_yaw_probe = global_vision_info.vision_control.yaw_angle;
+            memset(&vision_info->pack_info->Original_pitch_angle, 0,
+                   sizeof(vision_info->pack_info->Original_pitch_angle));
+            memset(&vision_info->pack_info->Original_yaw_angle, 0, sizeof(vision_info->pack_info->Original_yaw_angle));
         }
     } else {
-        memset(&vision_info->Original_pitch_angle, 0, sizeof(vision_info->Original_pitch_angle));
-        memset(&vision_info->Original_yaw_angle, 0, sizeof(vision_info->Original_yaw_angle));
+        memset(&vision_info->pack_info->Original_pitch_angle, 0, sizeof(vision_info->pack_info->Original_pitch_angle));
+        memset(&vision_info->pack_info->Original_yaw_angle, 0, sizeof(vision_info->pack_info->Original_yaw_angle));
     }
 
+}
+
+
+/**
+  * @brief          获取视觉数据指针
+  * @param[in]      none
+  * @retval         视觉数据指针
+  */
+const vision_control_t *get_vision_control_point(void) {
+    return &global_vision_info.vision_control;
+}
+
+/**
+  * @brief  裁判系统数据内存空间初始化
+  * @param  None
+  * @retval None
+  */
+void init_vision_struct_data(void) {
+    memset(&global_vision_info, 0, sizeof(vision_info_t));
 }
 
 /**
@@ -244,7 +264,7 @@ void USART1TX_active_task(void const *pvParameters) {
                     }
                 }
             }
-        } else if (UART1_TARGET_MODE == Matlab_MODE) {
+        } else if ((UART1_TARGET_MODE == Matlab_MODE) || (UART1_TARGET_MODE == Vision_rx_Matlab_tx_MODE)) {
             if (Matlab_No_DMA_IRQHandler) {
                 if (fifo_s_used(&matlab_tx_fifo)) {
                     if (fifo_s_used(&matlab_tx_len_fifo)) {
@@ -309,36 +329,73 @@ void USART1TX_active_task(void const *pvParameters) {
   * @retval         none
   */
 void USART1_IRQHandler(void) {
-    //    SEGGER_RTT_WriteString(0,"TEST");
-    static volatile uint8_t res;
-    if (USART1->SR & UART_FLAG_IDLE) {
-        __HAL_UART_CLEAR_PEFLAG(&huart1);
-        static uint16_t this_time_rx_len = 0;
-        if ((huart1.hdmarx->Instance->CR & DMA_SxCR_CT) == RESET) {
-            __HAL_DMA_DISABLE(huart1.hdmarx);
-            this_time_rx_len = USART1_RX_BUF_LENGHT - __HAL_DMA_GET_COUNTER(huart1.hdmarx);
-            __HAL_DMA_SET_COUNTER(huart1.hdmarx, USART1_RX_BUF_LENGHT);
-            huart1.hdmarx->Instance->CR |= DMA_SxCR_CT;
-            __HAL_DMA_ENABLE(huart1.hdmarx);
-            fifo_s_puts(&vision_rx_fifo, (char *) usart1_rx_buf[0], this_time_rx_len);
-            detect_hook(VISION_RX_TOE);
-            if (xTaskGetSchedulerState() != taskSCHEDULER_NOT_STARTED) {
-                static BaseType_t xHigherPriorityTaskWoken;
-                vTaskNotifyGiveFromISR(vision_rx_task_local_handler, &xHigherPriorityTaskWoken);
-                portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
+    if ((UART1_TARGET_MODE == Vision_MODE) || (UART1_TARGET_MODE == Vision_rx_Matlab_tx_MODE)) {
+        //    SEGGER_RTT_WriteString(0,"TEST");
+        static volatile uint8_t res;
+        if (USART1->SR & UART_FLAG_IDLE) {
+            __HAL_UART_CLEAR_PEFLAG(&huart1);
+            static uint16_t this_time_rx_len = 0;
+            if ((huart1.hdmarx->Instance->CR & DMA_SxCR_CT) == RESET) {
+                __HAL_DMA_DISABLE(huart1.hdmarx);
+                this_time_rx_len = USART1_RX_BUF_LENGHT - __HAL_DMA_GET_COUNTER(huart1.hdmarx);
+                __HAL_DMA_SET_COUNTER(huart1.hdmarx, USART1_RX_BUF_LENGHT);
+                huart1.hdmarx->Instance->CR |= DMA_SxCR_CT;
+                __HAL_DMA_ENABLE(huart1.hdmarx);
+                fifo_s_puts(&vision_rx_fifo, (char *) usart1_rx_buf[0], this_time_rx_len);
+                detect_hook(VISION_RX_TOE);
+                if (xTaskGetSchedulerState() != taskSCHEDULER_NOT_STARTED) {
+                    static BaseType_t xHigherPriorityTaskWoken;
+                    vTaskNotifyGiveFromISR(vision_rx_task_local_handler, &xHigherPriorityTaskWoken);
+                    portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
+                }
+            } else {
+                __HAL_DMA_DISABLE(huart1.hdmarx);
+                this_time_rx_len = USART1_RX_BUF_LENGHT - __HAL_DMA_GET_COUNTER(huart1.hdmarx);
+                __HAL_DMA_SET_COUNTER(huart1.hdmarx, USART1_RX_BUF_LENGHT);
+                huart1.hdmarx->Instance->CR &= ~(DMA_SxCR_CT);
+                __HAL_DMA_ENABLE(huart1.hdmarx);
+                fifo_s_puts(&vision_rx_fifo, (char *) usart1_rx_buf[1], this_time_rx_len);
+                detect_hook(VISION_RX_TOE);
+                if (xTaskGetSchedulerState() != taskSCHEDULER_NOT_STARTED) {
+                    static BaseType_t xHigherPriorityTaskWoken;
+                    vTaskNotifyGiveFromISR(vision_rx_task_local_handler, &xHigherPriorityTaskWoken);
+                    portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
+                }
             }
-        } else {
-            __HAL_DMA_DISABLE(huart1.hdmarx);
-            this_time_rx_len = USART1_RX_BUF_LENGHT - __HAL_DMA_GET_COUNTER(huart1.hdmarx);
-            __HAL_DMA_SET_COUNTER(huart1.hdmarx, USART1_RX_BUF_LENGHT);
-            huart1.hdmarx->Instance->CR &= ~(DMA_SxCR_CT);
-            __HAL_DMA_ENABLE(huart1.hdmarx);
-            fifo_s_puts(&vision_rx_fifo, (char *) usart1_rx_buf[1], this_time_rx_len);
-            detect_hook(VISION_RX_TOE);
-            if (xTaskGetSchedulerState() != taskSCHEDULER_NOT_STARTED) {
-                static BaseType_t xHigherPriorityTaskWoken;
-                vTaskNotifyGiveFromISR(vision_rx_task_local_handler, &xHigherPriorityTaskWoken);
-                portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
+        }
+    }
+    if (UART1_TARGET_MODE == Matlab_MODE) {
+        //    SEGGER_RTT_WriteString(0,"TEST");
+        static volatile uint8_t res;
+        if (USART1->SR & UART_FLAG_IDLE) {
+            __HAL_UART_CLEAR_PEFLAG(&huart1);
+            static uint16_t this_time_rx_len = 0;
+            if ((huart1.hdmarx->Instance->CR & DMA_SxCR_CT) == RESET) {
+                __HAL_DMA_DISABLE(huart1.hdmarx);
+                this_time_rx_len = USART1_RX_BUF_LENGHT - __HAL_DMA_GET_COUNTER(huart1.hdmarx);
+                __HAL_DMA_SET_COUNTER(huart1.hdmarx, USART1_RX_BUF_LENGHT);
+                huart1.hdmarx->Instance->CR |= DMA_SxCR_CT;
+                __HAL_DMA_ENABLE(huart1.hdmarx);
+                if (memchr(usart1_rx_buf[0], '$', this_time_rx_len) != NULL) {
+                    if (xTaskGetSchedulerState() != taskSCHEDULER_NOT_STARTED) {
+                        static BaseType_t xHigherPriorityTaskWoken;
+                        vTaskNotifyGiveFromISR(matlab_tx_task_local_handler, &xHigherPriorityTaskWoken);
+                        portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
+                    }
+                }
+            } else {
+                __HAL_DMA_DISABLE(huart1.hdmarx);
+                this_time_rx_len = USART1_RX_BUF_LENGHT - __HAL_DMA_GET_COUNTER(huart1.hdmarx);
+                __HAL_DMA_SET_COUNTER(huart1.hdmarx, USART1_RX_BUF_LENGHT);
+                huart1.hdmarx->Instance->CR &= ~(DMA_SxCR_CT);
+                __HAL_DMA_ENABLE(huart1.hdmarx);
+                if (memchr(usart1_rx_buf[1], '$', this_time_rx_len) != NULL) {
+                    if (xTaskGetSchedulerState() != taskSCHEDULER_NOT_STARTED) {
+                        static BaseType_t xHigherPriorityTaskWoken;
+                        vTaskNotifyGiveFromISR(matlab_tx_task_local_handler, &xHigherPriorityTaskWoken);
+                        portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
+                    }
+                }
             }
         }
     }

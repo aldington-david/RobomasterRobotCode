@@ -33,6 +33,7 @@
 #include "remote_control.h"
 #include "kalman_filter.h"
 #include "pid.h"
+#include "vision_task.h"
 
 //pitch speed close-loop PID params, max out and max iout
 //pitch 速度环 PID参数以及 PID最大输出，积分输出
@@ -112,6 +113,9 @@
 
 #define YAW_MOUSE_SEN   0.00006f
 #define PITCH_MOUSE_SEN 0.00014f
+
+#define YAW_VISION_SEN   0.35f
+#define PITCH_VISION_SEN 0.15f
 
 #define YAW_ENCODE_SEN    0.01f
 #define PITCH_ENCODE_SEN  0.01f
@@ -249,12 +253,14 @@ typedef struct
 } gimbal_step_cali_t;
 
 typedef struct {
+    const vision_control_t *gimbal_vision_ctrl;
     const RC_ctrl_t *gimbal_rc_ctrl;
     const fp32 *gimbal_INT_angle_point;
     const fp32 *gimbal_INT_gyro_point;
     gimbal_motor_t gimbal_yaw_motor;
     gimbal_motor_t gimbal_pitch_motor;
     gimbal_step_cali_t gimbal_cali;
+
 
     fp32 fric1_current_set;
     int16_t fric1_give_current;

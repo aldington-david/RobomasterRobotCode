@@ -32,6 +32,10 @@ typedef enum {
 #pragma pack(push, 1)
 
 typedef struct {
+    bool data_valid;
+    char Original_pitch_angle[128];
+    char Original_yaw_angle[128];
+
     uint8_t protocol_packet[Vision_PROTOCOL_FRAME_MAX_SIZE];
     vision_unpack_step_e unpack_step;
     uint16_t index;
@@ -46,11 +50,12 @@ typedef struct {
 } vision_unpack_data_t;
 
 typedef volatile struct{
-    bool data_valid;
-    char Original_pitch_angle[128];
-    char Original_yaw_angle[128];
     fp32 pitch_angle;
     fp32 yaw_angle;
+} vision_control_t;
+
+typedef volatile struct{
+    vision_control_t vision_control;
     vision_unpack_data_t *pack_info;
 } vision_info_t;
 
@@ -94,6 +99,20 @@ void vision_tx_task(void const *argument);
 void vision_unpack_fifo_data(void);
 
 void vision_update(uint8_t *rxBuf);
+
+/**
+  * @brief          获取视觉数据指针
+  * @param[in]      none
+  * @retval         视觉数据指针
+  */
+extern const vision_control_t *get_vision_control_point(void);
+
+/**
+  * @brief  视觉数据内存空间初始化
+  * @param  None
+  * @retval None
+  */
+void init_vision_struct_data(void);
 
 void MY_USART_DMA_Stream7_Vision_TX_IRQHandler(void);
 

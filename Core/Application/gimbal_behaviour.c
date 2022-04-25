@@ -742,25 +742,25 @@ void gimbal_rc_to_control_vector(fp32 *yaw, fp32 *pitch, gimbal_control_t *gimba
     }
 
     int16_t yaw_channel, pitch_channel;
-    fp32 yaw_set_channel, pitch_set_channel;
-    yaw_set_channel = pitch_set_channel = yaw_channel = pitch_channel = 0;
+    fp32 yaw_set_channel, pitch_set_channel, add_vision_yaw, add_vision_pitch,lim_vision_yaw, lim_vision_pitch;
+    yaw_set_channel = pitch_set_channel = add_vision_yaw = add_vision_pitch = yaw_channel = pitch_channel= 0;
     if (!switch_is_up(gimbal_move_rc_to_vector->gimbal_rc_ctrl->rc.s[RADIO_CONTROL_SWITCH_L])) {
 
         //deadline, because some remote control need be calibrated,  the value of rocker is not zero in middle place,
         //死区限制，因为遥控器可能存在差异 摇杆在中间，其值不为0
         rc_deadband_limit(gimbal_move_rc_to_vector->gimbal_rc_ctrl->rc.ch[YAW_CHANNEL], yaw_channel, RC_DEADBAND);
         rc_deadband_limit(gimbal_move_rc_to_vector->gimbal_rc_ctrl->rc.ch[PITCH_CHANNEL], pitch_channel, RC_DEADBAND);
-        float temp_vision_yaw = 0;
-        float temp_vision_pitch = 0;
-        Filter_IIRLPF(&global_vision_info.yaw_angle, &temp_vision_yaw, 0.1f);
-        Filter_IIRLPF(&global_vision_info.pitch_angle, &temp_vision_pitch, 0.1f);
+        rc_deadband_limit(gimbal_move_rc_to_vector->gimbal_vision_ctrl->yaw_angle, lim_vision_yaw, 0.05f)
+        rc_deadband_limit(gimbal_move_rc_to_vector->gimbal_vision_ctrl->pitch_angle, lim_vision_pitch, 0.0015f)
+        float temp_yaw = lim_vision_yaw * YAW_VISION_SEN;
+        float temp_pitch = lim_vision_pitch * PITCH_VISION_SEN;
+        Filter_IIRLPF(&temp_yaw, &add_vision_yaw, 0.03f);
+        Filter_IIRLPF(&temp_pitch, &add_vision_pitch, 0.07f);
 
-        yaw_set_channel = yaw_channel * YAW_RC_SEN + vision_yaw_angle_add_for_test + temp_vision_yaw;
-        pitch_set_channel = pitch_channel * PITCH_RC_SEN + vision_pitch_angle_add_for_test + temp_vision_pitch;
+        yaw_set_channel = yaw_channel * YAW_RC_SEN + vision_yaw_angle_add_for_test + add_vision_yaw;
+        pitch_set_channel = pitch_channel * PITCH_RC_SEN + vision_pitch_angle_add_for_test + add_vision_pitch;
         vision_yaw_angle_add_for_test = 0;
         vision_pitch_angle_add_for_test = 0;
-        global_vision_info.pitch_angle = 0;
-        global_vision_info.yaw_angle = 0;
     } else {
         //keyboard set speed set-point
         //键盘控制

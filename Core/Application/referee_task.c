@@ -437,6 +437,7 @@ void send_toReferee(uint16_t _cmd_id, uint16_t _data_len) {
 //    }
     fifo_s_put(&referee_tx_len_fifo, header_len + _data_len + 4);
     fifo_s_puts(&referee_tx_fifo, (char *) &referee_transmit_pack, header_len + _data_len + 4);
+    memset(referee_transmit_pack,0,sizeof(referee_transmit_pack));
     if (Referee_No_DMA_IRQHandler) {
         if (xTaskGetSchedulerState() != taskSCHEDULER_NOT_STARTED) {
             xTaskNotifyGive(USART6TX_active_task_local_handler);
