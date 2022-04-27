@@ -329,18 +329,18 @@ void USART1TX_active_task(void const *pvParameters) {
   * @retval         none
   */
 void USART1_IRQHandler(void) {
-    if ((UART1_TARGET_MODE == Vision_MODE) || (UART1_TARGET_MODE == Vision_rx_Matlab_tx_MODE)) {
-        //    SEGGER_RTT_WriteString(0,"TEST");
-        static volatile uint8_t res;
-        if (USART1->SR & UART_FLAG_IDLE) {
-            __HAL_UART_CLEAR_PEFLAG(&huart1);
-            static uint16_t this_time_rx_len = 0;
-            if ((huart1.hdmarx->Instance->CR & DMA_SxCR_CT) == RESET) {
-                __HAL_DMA_DISABLE(huart1.hdmarx);
-                this_time_rx_len = USART1_RX_BUF_LENGHT - __HAL_DMA_GET_COUNTER(huart1.hdmarx);
-                __HAL_DMA_SET_COUNTER(huart1.hdmarx, USART1_RX_BUF_LENGHT);
-                huart1.hdmarx->Instance->CR |= DMA_SxCR_CT;
-                __HAL_DMA_ENABLE(huart1.hdmarx);
+    //    SEGGER_RTT_WriteString(0,"TEST");
+    static volatile uint8_t res;
+    if (USART1->SR & UART_FLAG_IDLE) {
+        __HAL_UART_CLEAR_PEFLAG(&huart1);
+        static uint16_t this_time_rx_len = 0;
+        if ((huart1.hdmarx->Instance->CR & DMA_SxCR_CT) == RESET) {
+            __HAL_DMA_DISABLE(huart1.hdmarx);
+            this_time_rx_len = USART1_RX_BUF_LENGHT - __HAL_DMA_GET_COUNTER(huart1.hdmarx);
+            __HAL_DMA_SET_COUNTER(huart1.hdmarx, USART1_RX_BUF_LENGHT);
+            huart1.hdmarx->Instance->CR |= DMA_SxCR_CT;
+            __HAL_DMA_ENABLE(huart1.hdmarx);
+            if ((UART1_TARGET_MODE == Vision_MODE) || (UART1_TARGET_MODE == Vision_rx_Matlab_tx_MODE)) {
                 fifo_s_puts(&vision_rx_fifo, (char *) usart1_rx_buf[0], this_time_rx_len);
                 detect_hook(VISION_RX_TOE);
                 if (xTaskGetSchedulerState() != taskSCHEDULER_NOT_STARTED) {
@@ -348,34 +348,7 @@ void USART1_IRQHandler(void) {
                     vTaskNotifyGiveFromISR(vision_rx_task_local_handler, &xHigherPriorityTaskWoken);
                     portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
                 }
-            } else {
-                __HAL_DMA_DISABLE(huart1.hdmarx);
-                this_time_rx_len = USART1_RX_BUF_LENGHT - __HAL_DMA_GET_COUNTER(huart1.hdmarx);
-                __HAL_DMA_SET_COUNTER(huart1.hdmarx, USART1_RX_BUF_LENGHT);
-                huart1.hdmarx->Instance->CR &= ~(DMA_SxCR_CT);
-                __HAL_DMA_ENABLE(huart1.hdmarx);
-                fifo_s_puts(&vision_rx_fifo, (char *) usart1_rx_buf[1], this_time_rx_len);
-                detect_hook(VISION_RX_TOE);
-                if (xTaskGetSchedulerState() != taskSCHEDULER_NOT_STARTED) {
-                    static BaseType_t xHigherPriorityTaskWoken;
-                    vTaskNotifyGiveFromISR(vision_rx_task_local_handler, &xHigherPriorityTaskWoken);
-                    portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
-                }
-            }
-        }
-    }
-    if (UART1_TARGET_MODE == Matlab_MODE) {
-        //    SEGGER_RTT_WriteString(0,"TEST");
-        static volatile uint8_t res;
-        if (USART1->SR & UART_FLAG_IDLE) {
-            __HAL_UART_CLEAR_PEFLAG(&huart1);
-            static uint16_t this_time_rx_len = 0;
-            if ((huart1.hdmarx->Instance->CR & DMA_SxCR_CT) == RESET) {
-                __HAL_DMA_DISABLE(huart1.hdmarx);
-                this_time_rx_len = USART1_RX_BUF_LENGHT - __HAL_DMA_GET_COUNTER(huart1.hdmarx);
-                __HAL_DMA_SET_COUNTER(huart1.hdmarx, USART1_RX_BUF_LENGHT);
-                huart1.hdmarx->Instance->CR |= DMA_SxCR_CT;
-                __HAL_DMA_ENABLE(huart1.hdmarx);
+            } else if (UART1_TARGET_MODE == Matlab_MODE) {
                 if (memchr(usart1_rx_buf[0], '$', this_time_rx_len) != NULL) {
                     if (xTaskGetSchedulerState() != taskSCHEDULER_NOT_STARTED) {
                         static BaseType_t xHigherPriorityTaskWoken;
@@ -383,12 +356,22 @@ void USART1_IRQHandler(void) {
                         portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
                     }
                 }
-            } else {
-                __HAL_DMA_DISABLE(huart1.hdmarx);
-                this_time_rx_len = USART1_RX_BUF_LENGHT - __HAL_DMA_GET_COUNTER(huart1.hdmarx);
-                __HAL_DMA_SET_COUNTER(huart1.hdmarx, USART1_RX_BUF_LENGHT);
-                huart1.hdmarx->Instance->CR &= ~(DMA_SxCR_CT);
-                __HAL_DMA_ENABLE(huart1.hdmarx);
+            }
+        } else {
+            __HAL_DMA_DISABLE(huart1.hdmarx);
+            this_time_rx_len = USART1_RX_BUF_LENGHT - __HAL_DMA_GET_COUNTER(huart1.hdmarx);
+            __HAL_DMA_SET_COUNTER(huart1.hdmarx, USART1_RX_BUF_LENGHT);
+            huart1.hdmarx->Instance->CR &= ~(DMA_SxCR_CT);
+            __HAL_DMA_ENABLE(huart1.hdmarx);
+            if ((UART1_TARGET_MODE == Vision_MODE) || (UART1_TARGET_MODE == Vision_rx_Matlab_tx_MODE)) {
+                fifo_s_puts(&vision_rx_fifo, (char *) usart1_rx_buf[1], this_time_rx_len);
+                detect_hook(VISION_RX_TOE);
+                if (xTaskGetSchedulerState() != taskSCHEDULER_NOT_STARTED) {
+                    static BaseType_t xHigherPriorityTaskWoken;
+                    vTaskNotifyGiveFromISR(vision_rx_task_local_handler, &xHigherPriorityTaskWoken);
+                    portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
+                }
+            } else if (UART1_TARGET_MODE == Matlab_MODE) {
                 if (memchr(usart1_rx_buf[1], '$', this_time_rx_len) != NULL) {
                     if (xTaskGetSchedulerState() != taskSCHEDULER_NOT_STARTED) {
                         static BaseType_t xHigherPriorityTaskWoken;

@@ -4,10 +4,10 @@ close all
 clear all
 
 %删除所有已经打开的串口，这条很重要，防止之前运行没有关闭串口
-delete(instrfindall);  
+delete(instrfindall);
 
 %打开串口COM1，波特率115200，8位数据位，1位停止位，无奇偶校验，无流控制
-s = serial('COM1', 'BaudRate', 115200, 'DataBits', 8, 'StopBits', 1, 'Parity', 'none', 'FlowControl', 'none');
+s = serialport("COM3", 9600, "BaudRate", 115200, "DataBits", 8, "StopBits", 1);
 s.ReadAsyncMode = 'continuous';
 fopen(s);
 
