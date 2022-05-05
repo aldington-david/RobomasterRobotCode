@@ -18,7 +18,7 @@
 /************ Choose UART Send Mode Start*******************/
 #define Byte_MODE 0
 #define Bytes_MODE 1
-//#define UART_SEND_MODE Byte_MODE // UART sent one byte
+//#define UART_SEND_MODE Byte_MODE // UART sent one byte //not_use
 #define UART_SEND_MODE Bytes_MODE //UART sent full data bytes
 /************ Choose UART Send Mode End*******************/
 

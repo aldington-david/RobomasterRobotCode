@@ -25,7 +25,8 @@ volatile uint8_t Matlab_No_DMA_IRQHandler = 1;
 volatile uint8_t matlab_dma_send_data_len = 0;
 TaskHandle_t matlab_tx_task_local_handler;
 /* 发送数据包缓存区，最大128字节 */
-uint8_t matlab_transmit_pack[128] = {0};
+uint8_t matlab_transmit_pack[128];
+SyncStruct test1;
 
 /**
   * @brief          matlab发送任务
@@ -33,36 +34,45 @@ uint8_t matlab_transmit_pack[128] = {0};
   * @retval         none
   */
 void matlab_sync_task(void const *argument) {
-//    init_referee_struct_data();
+    init_matlab_struct_data();
     fifo_s_init(&matlab_tx_len_fifo, matlab_fifo_tx_len_buf, MATLAB_FIFO_BUF_LENGTH);
     fifo_s_init(&matlab_tx_fifo, matlab_fifo_tx_buf, MATLAB_FIFO_BUF_LENGTH);
     usart1_tx_init(usart1_matlab_tx_buf[0], usart1_matlab_tx_buf[1], USART1_MATLAB_TX_BUF_LENGHT);
     matlab_tx_task_local_handler = xTaskGetCurrentTaskHandle();
-    TickType_t LoopStartTime;
-    SyncStruct test1;
-    test1.data1 = '$';
-    test1.data2 = '@';
-    test1.data3 = ',';
-    test1.data4 = 2;
-    test1.data5 = '2';
-    memcpy((void *) matlab_transmit_pack, &test1, sizeof(test1));
+//    TickType_t LoopStartTime;
     while (1) {
         while (ulTaskNotifyTake(pdTRUE, portMAX_DELAY) != pdPASS) {
         }
-        LoopStartTime = xTaskGetTickCount();
+//        LoopStartTime = xTaskGetTickCount();
+        test1.data1 = rand() % 65535;
+        test1.data2 = rand() % 65535;
+        test1.data3 = rand() % 65535;
+        test1.data4 = rand() % 65535;
+        test1.data5 = rand() % 65535;
+        memcpy((void *) matlab_transmit_pack, &test1, sizeof(test1));
         data_sync(sizeof(test1));
 //        data_sync(sizeof(test1));
 //        data_sync(sizeof(test1));
 //        data_sync(sizeof(test1));
 //        referee_unpack_fifo_data();
 
-        vTaskDelayUntil(&LoopStartTime, pdMS_TO_TICKS(10));
+//        vTaskDelayUntil(&LoopStartTime, pdMS_TO_TICKS(10));
     }
 }
 
+void init_matlab_struct_data(void) {
+    memset(&matlab_fifo_tx_len_buf, 0, MATLAB_FIFO_BUF_LENGTH);
+    memset(&matlab_fifo_tx_buf, 0, MATLAB_FIFO_BUF_LENGTH);
+    memset(&matlab_transmit_pack, 0, 128);
+    memset(&usart1_matlab_tx_buf, 0, 2 * USART1_MATLAB_TX_BUF_LENGHT);
+    test1.sync_char = '$';
+}
+
 void data_sync(int data_len) {
+
     fifo_s_put(&matlab_tx_len_fifo, data_len);
     fifo_s_puts(&matlab_tx_fifo, (char *) &matlab_transmit_pack, data_len);
+//    send_sync_char();
     if (Matlab_No_DMA_IRQHandler) {
         if (xTaskGetSchedulerState() != taskSCHEDULER_NOT_STARTED) {
             xTaskNotifyGive(USART1TX_active_task_local_handler);

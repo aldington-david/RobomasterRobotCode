@@ -7,8 +7,7 @@ clear all
 delete(instrfindall);
 
 %打开串口COM1，波特率115200，8位数据位，1位停止位，无奇偶校验，无流控制
-s = serialport("COM3", 9600, "BaudRate", 115200, "DataBits", 8, "StopBits", 1);
-s.ReadAsyncMode = 'continuous';
+s = serialport("COM5", 115200, "DataBits", 8, "StopBits", 1);
 fopen(s);
 
 fig = figure(1);
@@ -53,9 +52,10 @@ while ishandle(fig)
     
     %设置同步信号标志， = 1表示接收到下位机发送的同步帧
     SOF = 0;  
-    
+    pause(100/1000);
     %发送同步帧
-    fwrite(s, 13);
+    encoded_str = unicode2native('$','UTF-8');
+    fwrite(s,encoded_str);
     
     %获取是否有数据
     bytes = get(s, 'BytesAvailable');
@@ -67,7 +67,7 @@ while ishandle(fig)
     RecData = fread(s, bytes, 'uint8');
    
     %检索下位机返回的数据中是否有字符$
-    StartData = find(RecData == 13);
+    StartData = find(char(RecData) == '$');
     
     %如果检索到$，读取10个字节的数据，也就是5个uint16的数据
     if(StartData >= 1)

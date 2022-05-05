@@ -24,12 +24,21 @@ extern TaskHandle_t matlab_tx_task_local_handler;
 
 #pragma pack(push, 1)
 
+//typedef struct {
+//    char data1;
+//    char data2;
+//    char data3;
+//    uint8_t data4;
+//    char data5;
+//} SyncStruct;
+
 typedef struct {
-    char data1;
-    char data2;
-    char data3;
-    uint8_t data4;
-    char data5;
+    char sync_char;
+    uint16_t data1;
+    uint16_t data2;
+    uint16_t data3;
+    uint16_t data4;
+    uint16_t data5;
 } SyncStruct;
 
 #pragma pack(pop)
@@ -41,8 +50,11 @@ typedef struct {
   */
 void matlab_sync_task(void const *argument);
 
+void init_matlab_struct_data(void);
+
 void MY_USART_DMA_Stream7_Matlab_TX_IRQHandler(void);
 
 void data_sync(int data_len);
+
 
 #endif //ROBOMASTERROBOTCODE_MATLAB_SYNC_TASK_H
