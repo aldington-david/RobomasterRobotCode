@@ -187,6 +187,8 @@ void MX_FREERTOS_Init(void) {
 
     osThreadDef(REFEREE_TX, referee_tx_task, osPriorityNormal, 0, 256);
     referee_tx_task_handle = osThreadCreate(osThread(REFEREE_TX), NULL);
+    osThreadDef(DETECT, detect_task, osPriorityNormal, 0, 256);
+    detect_handle = osThreadCreate(osThread(DETECT), NULL);
     if(UART1_TARGET_MODE == Vision_MODE){
     osThreadDef(VISION_TX, vision_tx_task, osPriorityNormal, 0, 256);
     vision_tx_task_handle = osThreadCreate(osThread(VISION_TX), NULL);
@@ -195,8 +197,7 @@ void MX_FREERTOS_Init(void) {
     MatlabSync_task_handle = osThreadCreate(osThread(MatlabSyncTask), NULL);
     }
 
-    osThreadDef(DETECT, detect_task, osPriorityNormal, 0, 256);
-    detect_handle = osThreadCreate(osThread(DETECT), NULL);
+
 
     osThreadDef(printTask, print_task, osPriorityNormal, 0, 512);
     print_task_handle = osThreadCreate(osThread(printTask), NULL);
@@ -207,7 +208,7 @@ void MX_FREERTOS_Init(void) {
     osThreadDef(BATTERY_VOLTAGE, battery_voltage_task, osPriorityBelowNormal, 0, 256);
     battery_voltage_handle = osThreadCreate(osThread(BATTERY_VOLTAGE), NULL);
 
-    osThreadDef(led, led_RGB_flow_task, osPriorityLow, 0, 256);
+    osThreadDef(led, led_RGB_flow_task, osPriorityLow, 0, 128);
     led_RGB_flow_handle = osThreadCreate(osThread(led), NULL);
 
 //    osThreadDef(OLED, oled_task, osPriorityLow, 0, 256);

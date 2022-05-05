@@ -28,7 +28,7 @@
 #define Vision_rx_Matlab_tx_MODE 2
 //#define UART1_TARGET_MODE Vision_MODE // UART1 rx_tx to vision
 #define UART1_TARGET_MODE Matlab_MODE //UART1 rx_tx to matlab
-//#define UART1_TARGET_MODE Vision_rx_Matlab_tx_MODE //UART1 rx to vision tx to matlab
+//#define UART1_TARGET_MODE Vision_rx_Matlab_tx_MODE //UART1 rx to vision tx to matlab //not_use
 /************ Choose UART1 TX Target End*******************/
 
 /************ Choose Detect Block Device Start*******************/

@@ -264,7 +264,7 @@ void USART1TX_active_task(void const *pvParameters) {
                     }
                 }
             }
-        } else if ((UART1_TARGET_MODE == Matlab_MODE) || (UART1_TARGET_MODE == Vision_rx_Matlab_tx_MODE)) {
+        } else if (UART1_TARGET_MODE == Matlab_MODE) {
             if (Matlab_No_DMA_IRQHandler) {
                 if (fifo_s_used(&matlab_tx_fifo)) {
                     if (fifo_s_used(&matlab_tx_len_fifo)) {
@@ -340,7 +340,7 @@ void USART1_IRQHandler(void) {
             __HAL_DMA_SET_COUNTER(huart1.hdmarx, USART1_RX_BUF_LENGHT);
             huart1.hdmarx->Instance->CR |= DMA_SxCR_CT;
             __HAL_DMA_ENABLE(huart1.hdmarx);
-            if ((UART1_TARGET_MODE == Vision_MODE) || (UART1_TARGET_MODE == Vision_rx_Matlab_tx_MODE)) {
+            if (UART1_TARGET_MODE == Vision_MODE) {
                 fifo_s_puts(&vision_rx_fifo, (char *) usart1_rx_buf[0], this_time_rx_len);
                 detect_hook(VISION_RX_TOE);
                 if (xTaskGetSchedulerState() != taskSCHEDULER_NOT_STARTED) {
@@ -363,7 +363,7 @@ void USART1_IRQHandler(void) {
             __HAL_DMA_SET_COUNTER(huart1.hdmarx, USART1_RX_BUF_LENGHT);
             huart1.hdmarx->Instance->CR &= ~(DMA_SxCR_CT);
             __HAL_DMA_ENABLE(huart1.hdmarx);
-            if ((UART1_TARGET_MODE == Vision_MODE) || (UART1_TARGET_MODE == Vision_rx_Matlab_tx_MODE)) {
+            if (UART1_TARGET_MODE == Vision_MODE) {
                 fifo_s_puts(&vision_rx_fifo, (char *) usart1_rx_buf[1], this_time_rx_len);
                 detect_hook(VISION_RX_TOE);
                 if (xTaskGetSchedulerState() != taskSCHEDULER_NOT_STARTED) {
@@ -394,7 +394,7 @@ void DMA2_Stream7_IRQHandler(void) {
         if (__HAL_DMA_GET_FLAG(huart1.hdmatx, DMA_HISR_TCIF7) != RESET) {
             MY_USART_DMA_Stream7_Vision_TX_IRQHandler();
         }
-    } else if ((UART1_TARGET_MODE == Matlab_MODE) || (UART1_TARGET_MODE == Vision_rx_Matlab_tx_MODE)) {
+    } else if (UART1_TARGET_MODE == Matlab_MODE) {
         if (__HAL_DMA_GET_FLAG(huart1.hdmatx, DMA_HISR_TCIF7) != RESET) {
             MY_USART_DMA_Stream7_Matlab_TX_IRQHandler();
         }

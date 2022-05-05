@@ -39,18 +39,18 @@ void matlab_sync_task(void const *argument) {
     usart1_tx_init(usart1_matlab_tx_buf[0], usart1_matlab_tx_buf[1], USART1_MATLAB_TX_BUF_LENGHT);
     matlab_tx_task_local_handler = xTaskGetCurrentTaskHandle();
     TickType_t LoopStartTime;
-//    SyncStruct test1;
-//    test1.data1 = '$';
-//    test1.data2 = '@';
-//    test1.data3 = ',';
-//    test1.data4 = 2;
-//    test1.data5 = '2';
-//    memcpy((void *) matlab_transmit_pack, &test1, sizeof(test1));
+    SyncStruct test1;
+    test1.data1 = '$';
+    test1.data2 = '@';
+    test1.data3 = ',';
+    test1.data4 = 2;
+    test1.data5 = '2';
+    memcpy((void *) matlab_transmit_pack, &test1, sizeof(test1));
     while (1) {
         while (ulTaskNotifyTake(pdTRUE, portMAX_DELAY) != pdPASS) {
         }
         LoopStartTime = xTaskGetTickCount();
-//        data_sync(sizeof(test1));
+        data_sync(sizeof(test1));
 //        data_sync(sizeof(test1));
 //        data_sync(sizeof(test1));
 //        data_sync(sizeof(test1));
