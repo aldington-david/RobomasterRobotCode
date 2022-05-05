@@ -326,6 +326,17 @@ void USART6_IRQHandler(void) {
         }
     }
 }
+
+/**
+  * @brief          发送串口（USART6）DMA回调函数
+  * @param[in]      void
+  * @retval         none
+  */
+void DMA2_Stream6_IRQHandler(void) {
+    if (__HAL_DMA_GET_FLAG(huart6.hdmatx, DMA_HISR_TCIF6) != RESET) {
+        MY_USART_DMA_Stream6_TX_IRQHandler();
+    }
+}
 /*****************裁判系统接收功能 END**********************/
 /*****************裁判系统接收数据分析函数 START**********************/
 
@@ -437,7 +448,7 @@ void send_toReferee(uint16_t _cmd_id, uint16_t _data_len) {
 //    }
     fifo_s_put(&referee_tx_len_fifo, header_len + _data_len + 4);
     fifo_s_puts(&referee_tx_fifo, (char *) &referee_transmit_pack, header_len + _data_len + 4);
-    memset(referee_transmit_pack,0,sizeof(referee_transmit_pack));
+    memset(referee_transmit_pack, 0, sizeof(referee_transmit_pack));
     if (Referee_No_DMA_IRQHandler) {
         if (xTaskGetSchedulerState() != taskSCHEDULER_NOT_STARTED) {
             xTaskNotifyGive(USART6TX_active_task_local_handler);

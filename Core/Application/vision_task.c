@@ -384,6 +384,24 @@ void USART1_IRQHandler(void) {
     }
 }
 
+/**
+  * @brief          发送串口（USART1）DMA回调函数
+  * @param[in]      void
+  * @retval         none
+  */
+void DMA2_Stream7_IRQHandler(void) {
+    if (UART1_TARGET_MODE == Vision_MODE) {
+        if (__HAL_DMA_GET_FLAG(huart1.hdmatx, DMA_HISR_TCIF7) != RESET) {
+            MY_USART_DMA_Stream7_Vision_TX_IRQHandler();
+        }
+    } else if ((UART1_TARGET_MODE == Matlab_MODE) || (UART1_TARGET_MODE == Vision_rx_Matlab_tx_MODE)) {
+        if (__HAL_DMA_GET_FLAG(huart1.hdmatx, DMA_HISR_TCIF7) != RESET) {
+            MY_USART_DMA_Stream7_Matlab_TX_IRQHandler();
+        }
+    }
+}
+
+
 void MY_USART_DMA_Stream7_Vision_TX_IRQHandler(void) {
     __HAL_DMA_DISABLE(huart1.hdmatx);
     __HAL_DMA_CLEAR_FLAG(huart1.hdmatx, DMA_HISR_TCIF7);

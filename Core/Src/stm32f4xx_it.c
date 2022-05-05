@@ -320,42 +320,9 @@ void DMA2_Stream5_IRQHandler(void)
   /* USER CODE END DMA2_Stream5_IRQn 1 */
 }
 
-/**
-  * @brief This function handles DMA2 stream6 global interrupt.
-  */
-void DMA2_Stream6_IRQHandler(void)
-{
-  /* USER CODE BEGIN DMA2_Stream6_IRQn 0 */
-  /* USER CODE END DMA2_Stream6_IRQn 0 */
-  HAL_DMA_IRQHandler(&hdma_usart6_tx);
-  /* USER CODE BEGIN DMA2_Stream6_IRQn 1 */
-    if (__HAL_DMA_GET_FLAG(huart6.hdmatx, DMA_HISR_TCIF6) != RESET) {
-        MY_USART_DMA_Stream6_TX_IRQHandler();
-    }
-  /* USER CODE END DMA2_Stream6_IRQn 1 */
-}
 
-/**
-  * @brief This function handles DMA2 stream7 global interrupt.
-  */
-void DMA2_Stream7_IRQHandler(void)
-{
-  /* USER CODE BEGIN DMA2_Stream7_IRQn 0 */
 
-  /* USER CODE END DMA2_Stream7_IRQn 0 */
-  HAL_DMA_IRQHandler(&hdma_usart1_tx);
-  /* USER CODE BEGIN DMA2_Stream7_IRQn 1 */
-  if(UART1_TARGET_MODE==Vision_MODE){
-      if (__HAL_DMA_GET_FLAG(huart1.hdmatx, DMA_HISR_TCIF7) != RESET) {
-        MY_USART_DMA_Stream7_Vision_TX_IRQHandler();
-    }
-  }else if((UART1_TARGET_MODE==Matlab_MODE) || (UART1_TARGET_MODE == Vision_rx_Matlab_tx_MODE)){
-      if (__HAL_DMA_GET_FLAG(huart1.hdmatx, DMA_HISR_TCIF7) != RESET) {
-          MY_USART_DMA_Stream7_Matlab_TX_IRQHandler();
-      }
-  }
-  /* USER CODE END DMA2_Stream7_IRQn 1 */
-}
+
 
 /* USER CODE BEGIN 1 */
 

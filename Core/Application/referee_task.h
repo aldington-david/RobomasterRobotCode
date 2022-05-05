@@ -677,7 +677,8 @@ static void send_toReferee(uint16_t _cmd_id, uint16_t _data_len);
 static void UI_clean_all(void);
 
 extern TaskHandle_t USART6TX_active_task_local_handler;
-
+void USART6_IRQHandler(void);
+void DMA2_Stream6_IRQHandler(void);
 /**
   * @brief          usart6发送启动任务，由发送时任务通知激活
   * @param[in]      pvParameters: 空

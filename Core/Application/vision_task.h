@@ -71,7 +71,8 @@ extern fifo_s_t vision_tx_fifo;
 extern uint8_t usart1_rx_buf[2][USART1_RX_BUF_LENGHT];
 extern uint8_t usart1_vision_tx_buf[2][USART1_VISION_TX_BUF_LENGHT];
 extern vision_info_t global_vision_info;
-
+void USART1_IRQHandler(void);
+void DMA2_Stream7_IRQHandler(void);
 /**
   * @brief          视觉接收任务
   * @param[in]      pvParameters: NULL
