@@ -47,10 +47,12 @@
 #define RADIO_CONTROL_SWITCH_L       1
 //rocker value (max 660) change to vertial speed (m/s) 
 //遥控器前进摇杆（max 660）转化成车体前进速度（m/s）的比例
-#define CHASSIS_VX_RC_SEN 0.0032f
+//#define CHASSIS_VX_RC_SEN 0.0032f
+#define CHASSIS_VX_RC_SEN 0.0102f
 //rocker value (max 660) change to horizontal speed (m/s)
 //遥控器左右摇杆（max 660）转化成车体左右速度（m/s）的比例
-#define CHASSIS_VY_RC_SEN 0.0030f
+//#define CHASSIS_VY_RC_SEN 0.0030f
+#define CHASSIS_VY_RC_SEN 0.0102f
 //in following yaw angle mode, rocker value add to angle 
 //跟随底盘yaw模式下，遥控器的yaw遥杆（max 660）增加到车体角度的比例
 #define CHASSIS_ANGLE_Z_RC_SEN 0.000002f
@@ -61,8 +63,8 @@
 //#define CHASSIS_ACCEL_X_NUM 0.1666666667f
 //#define CHASSIS_ACCEL_Y_NUM 0.3333333333f
 //for_test
-#define CHASSIS_ACCEL_X_NUM 0.02f
-#define CHASSIS_ACCEL_Y_NUM 0.05f
+#define CHASSIS_ACCEL_X_NUM 0.00005f
+#define CHASSIS_ACCEL_Y_NUM 0.00005f
 
 //rocker value deadline
 //摇杆死区
@@ -107,10 +109,12 @@
 #define MAX_WHEEL_SPEED 4.0f
 //chassis forward or back max speed
 //底盘运动过程最大前进速度
-#define NORMAL_MAX_CHASSIS_SPEED_X 4.0f
+//#define NORMAL_MAX_CHASSIS_SPEED_X 4.0f
+#define NORMAL_MAX_CHASSIS_SPEED_X 10.0f
 //chassis left or right max speed
 //底盘运动过程最大平移速度
-#define NORMAL_MAX_CHASSIS_SPEED_Y 3.0f
+//#define NORMAL_MAX_CHASSIS_SPEED_Y 3.0f
+#define NORMAL_MAX_CHASSIS_SPEED_Y 10.0f
 
 #define CHASSIS_WZ_SET_SCALE 0.5f
 
