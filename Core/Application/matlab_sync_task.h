@@ -16,6 +16,7 @@
 
 extern volatile uint8_t Matlab_No_DMA_IRQHandler;
 extern volatile uint8_t matlab_dma_send_data_len;
+extern volatile uint8_t Matlab_IRQ_Return_Before;
 
 extern fifo_s_t matlab_tx_len_fifo;
 extern fifo_s_t matlab_tx_fifo;
@@ -53,6 +54,8 @@ void matlab_sync_task(void const *argument);
 void init_matlab_struct_data(void);
 
 void MY_USART_DMA_Stream7_Matlab_TX_IRQHandler(void);
+
+void send_sync_char(void);
 
 void data_sync(int data_len);
 

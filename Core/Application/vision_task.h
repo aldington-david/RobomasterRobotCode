@@ -64,6 +64,7 @@ typedef volatile struct{
 
 extern volatile uint8_t Vision_No_DMA_IRQHandler;
 extern volatile uint8_t vision_dma_send_data_len;
+extern volatile uint8_t Vision_IRQ_Return_Before;
 
 extern fifo_s_t vision_rx_fifo;
 extern fifo_s_t vision_tx_len_fifo;

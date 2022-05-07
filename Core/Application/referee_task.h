@@ -662,6 +662,7 @@ typedef enum {
 #define DRAWING_PACK    15
 extern volatile uint8_t Referee_No_DMA_IRQHandler;
 extern volatile uint8_t referee_dma_send_data_len;
+extern volatile uint8_t Referee_IRQ_Return_Before;
 extern uint8_t data_pack[DRAWING_PACK * 7];
 extern ext_client_custom_graphic_delete_t cleaning;
 /******declare move frome referee_task.c********/
