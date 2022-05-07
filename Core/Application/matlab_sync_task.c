@@ -53,8 +53,8 @@ void matlab_sync_task(void const *argument) {
         test1.data5 = rand() % 65535;
         memcpy((void *) matlab_transmit_pack, &test1, sizeof(test1));
         data_sync(sizeof(test1));
-        data_sync(sizeof(test1));
-        data_sync(sizeof(test1));
+//        data_sync(sizeof(test1));
+//        data_sync(sizeof(test1));
 //        data_sync(sizeof(test1));
 //        referee_unpack_fifo_data();
 
@@ -69,7 +69,7 @@ void init_matlab_struct_data(void) {
     memset(&usart1_matlab_tx_buf, 0, 2 * USART1_MATLAB_TX_BUF_LENGHT);
     test1.sync_char = '$';
 }
-
+//not_use
 void send_sync_char(void) {
     fifo_s_put(&matlab_tx_len_fifo, sizeof(sync_char));
     fifo_s_puts(&matlab_tx_fifo, (char *) &sync_char, sizeof(sync_char));

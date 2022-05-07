@@ -52,7 +52,8 @@ while ishandle(fig)
     
     %设置同步信号标志， = 1表示接收到下位机发送的同步帧
     SOF = 0;  
-    pause(100/1000);
+    %同步延迟
+    pause(5/1000);
     %发送同步帧
     encoded_str = unicode2native('$','UTF-8');
     fwrite(s,encoded_str);
