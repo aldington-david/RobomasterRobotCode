@@ -504,6 +504,7 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
             imu_cmd_spi_dma();
         }
     } else if (GPIO_Pin == DRDY_IST8310_Pin) {
+        detect_hook(BOARD_MAG_TOE);
         mag_update_flag |= 1 << IMU_DR_SHFITS;
 
         if (mag_update_flag &= 1 << IMU_DR_SHFITS) {

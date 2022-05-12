@@ -28,6 +28,7 @@
 #include "remote_control.h"
 #include "INS_task.h"
 #include "BMI088driver.h"
+#include "ist8310driver.h"
 #include "shoot.h"
 #include "servo_task.h"
 #include "vision_task.h"
@@ -118,6 +119,27 @@ referee usart:%s\r\n\
             LoopStartTime = xTaskGetTickCount();
 //            SEGGER_RTT_printf(0,"testfunction\n");
             /***********************打印数据 Start *****************************/
+            //传感器
+
+            //mag
+            SEGGER_RTT_SetTerminal(1);
+            sprintf(print_buf,
+                    "mag_x=%f,mag_y=%f,mag_z=%f,\r\n",
+                    ist8310_real_data.mag[0],
+                    ist8310_real_data.mag[1],
+                    ist8310_real_data.mag[2]);
+            SEGGER_RTT_WriteString(0, print_buf);
+
+            //IMU数据
+//            SEGGER_RTT_SetTerminal(5);
+//            sprintf(print_buf, "imu_tmp=%f,YAW=%f,PITCH=%f,ROLL=%f\r\n",
+//                    bmi088_real_data.temp,
+//                    INS_angle[0],
+//                    INS_angle[1],
+//                    INS_angle[2]);
+//            SEGGER_RTT_WriteString(0, print_buf);
+
+
             //视觉
 //            SEGGER_RTT_SetTerminal(2);
 //            sprintf(print_buf,
@@ -451,14 +473,6 @@ referee usart:%s\r\n\
 //                    gimbal_control.gimbal_pitch_motor.motor_gyro_set,
 //                    gimbal_control.gimbal_pitch_motor.given_current);
 //            SEGGER_RTT_WriteString(0, print_buf);
-//            //IMU数据
-//            SEGGER_RTT_SetTerminal(5);
-//            sprintf(print_buf, "imu_tmp=%f,YAW=%f,PITCH=%f,ROLL=%f\r\n",
-//                    bmi088_real_data.temp,
-//                    INS_angle[0],
-//                    INS_angle[1],
-//                    INS_angle[2]);
-//            SEGGER_RTT_WriteString(0, print_buf);
             //波形显示
 //            RTT_PrintWave(4,
 //                          &gimbal_control.gimbal_pitch_motor.absolute_angle_set,
@@ -497,6 +511,9 @@ referee usart:%s\r\n\
 //                    status[error_list_print_local[BOARD_ACCEL_TOE].error_exist],
 //                    status[error_list_print_local[BOARD_MAG_TOE].error_exist],
 //                    status[error_list_print_local[REFEREE_RX_TOE].error_exist]);
+
+
+
 //            printf(
 //                    "*******Variable Start*********\r\n\
 //$param:Channal1=%d;\r\n\
