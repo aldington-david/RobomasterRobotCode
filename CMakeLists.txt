@@ -16,8 +16,8 @@ set(CMAKE_TRY_COMPILE_TARGET_TYPE STATIC_LIBRARY)
 
 # project settings
 project(RobomasterRobotCode C CXX ASM)
-set(CMAKE_C_FLAGS "-std=c17 -mcpu=Cortex-M4.fp.sp -g -O0")
-set(CMAKE_CXX_FLAGS "-std=c17 -mcpu=Cortex-M4.fp.sp -g -O0")
+set(CMAKE_C_FLAGS "-std=c17 -mcpu=Cortex-M4.fp.sp -g -O2")
+set(CMAKE_CXX_FLAGS "-std=c17 -mcpu=Cortex-M4.fp.sp -g -O2")
 set(COMMON_FLAGS "-specs=nosys.specs -specs=nano.specs -u _printf_float -u _scanf_float")
 #Uncomment for hardware floating point
 add_compile_definitions(ARM_MATH_CM4;ARM_MATH_MATRIX_CHECK;ARM_MATH_ROUNDING)

@@ -6,8 +6,8 @@ clear all
 %删除所有已经打开的串口，这条很重要，防止之前运行没有关闭串口
 delete(instrfindall);
 
-%打开串口COM1，波特率115200，8位数据位，1位停止位，无奇偶校验，无流控制
-s = serialport("COM5", 115200, "DataBits", 8, "StopBits", 1);
+%打开串口COM1，波特率38400，8位数据位，1位停止位，无奇偶校验，无流控制
+s = serialport("COM9", 38400, "DataBits", 8, "StopBits", 1);
 fopen(s);
 
 fig = figure(1);
@@ -26,7 +26,6 @@ Axis = zeros(1,100000);        %开辟100000个数据单元，用于X轴。
 
 window = window_width * (-0.9); %窗口X轴起始坐标
 axis([window, window + window_width, AxisMin, AxisMax]); %设置窗口坐标范围
-
 %子图1显示串口上传的数据
 subplot(2,1,1); 
 grid on;
@@ -49,11 +48,8 @@ f = n * Fs / N; %真实的频率
 % ********************************************************************************************************************
 
 while ishandle(fig)
-    
     %设置同步信号标志， = 1表示接收到下位机发送的同步帧
     SOF = 0;  
-    %同步延迟
-    pause(5/1000);
     %发送同步帧
     encoded_str = unicode2native('$','UTF-8');
     fwrite(s,encoded_str);
@@ -126,7 +122,8 @@ if(g_Count== 50)
    g_Count = 0;
    drawnow
 end
-
+    %同步延迟
+    pause(130/1000);
 end
 
 fclose(s);

@@ -46,11 +46,11 @@ void matlab_sync_task(void const *argument) {
         while (ulTaskNotifyTake(pdTRUE, portMAX_DELAY) != pdPASS) {
         }
 //        LoopStartTime = xTaskGetTickCount();
-        test1.data1 = rand() % 65535;
-        test1.data2 = rand() % 65535;
-        test1.data3 = rand() % 65535;
-        test1.data4 = rand() % 65535;
-        test1.data5 = rand() % 65535;
+        test1.data1 = 10;
+        test1.data2 = 20;
+        test1.data3 = 30;
+        test1.data4 = 40;
+        test1.data5 = 50;
         memcpy((void *) matlab_transmit_pack, &test1, sizeof(test1));
         data_sync(sizeof(test1));
 //        data_sync(sizeof(test1));
