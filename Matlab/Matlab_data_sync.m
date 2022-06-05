@@ -1,7 +1,11 @@
 % ********************************************************************************************************************
 % ********************************************************************************************************************
-close all
-clear all
+%包含当前文件夹子文件夹到工作区
+addpath(genpath(pwd));
+
+close all;
+clear variables;
+clear global;
 
 %删除所有已经打开的串口，这条很重要，防止之前运行没有关闭串口
 delete(instrfindall);
@@ -25,7 +29,7 @@ RecData = zeros(1,100);        %开辟100个数据单元，用于数据处理。
 Axis = zeros(1,100000);        %开辟100000个数据单元，用于X轴。
 
 window = window_width * (-0.9); %窗口X轴起始坐标
-axis([window, window + window_width, AxisMin, AxisMax]); %设置窗口坐标范围
+axis([window, window + window_width, -inf, inf]); %设置窗口坐标范围
 %子图1显示串口上传的数据
 subplot(2,1,1); 
 grid on;
@@ -97,7 +101,7 @@ if(SOF == 1)
 	subplot(2,1,1);
 	plot(Axis(1:AxisValue-1),  RecDataDisp(1:AxisValue-1), 'r');
 	window = window + 5;
-	axis([window, window + window_width, AxisMin, AxisMax]);
+	axis([window, window + window_width, -inf, inf]);
 	grid on;
 	title('串口数据接收');
 	xlabel('时间');

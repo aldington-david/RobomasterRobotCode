@@ -35,6 +35,7 @@ extern TaskHandle_t matlab_tx_task_local_handler;
 
 typedef struct {
     char sync_char;
+    uint8_t data_num;
     uint16_t data1;
     uint16_t data2;
     uint16_t data3;
