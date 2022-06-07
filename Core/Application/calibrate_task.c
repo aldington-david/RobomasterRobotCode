@@ -670,6 +670,8 @@ static bool_t cali_gimbal_hook(uint32_t *cali, bool_t cmd) {
                              local_cali_t->yaw_max_angle, local_cali_t->yaw_min_angle,
                              local_cali_t->pitch_max_angle, local_cali_t->pitch_min_angle);
 
+
+
         return 0;
     } else if (cmd == CALI_FUNC_CMD_ON) {
         if (cmd_cali_gimbal_hook(&local_cali_t->yaw_offset, &local_cali_t->pitch_offset,

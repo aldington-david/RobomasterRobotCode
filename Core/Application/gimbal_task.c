@@ -349,6 +349,9 @@ void gimbal_task(void const *pvParameters) {
     }
 
     TickType_t LoopStartTime;
+//for_test
+//设置当前云台朝向为前
+    gimbal_control.gimbal_yaw_motor.offset_ecd = gimbal_control.gimbal_yaw_motor.gimbal_motor_measure->total_ecd;
 
     while (1) {
         LoopStartTime = xTaskGetTickCount();
@@ -375,6 +378,7 @@ void gimbal_task(void const *pvParameters) {
             if (toe_is_error(DBUS_TOE)) {
                 CAN_cmd_gimbal(0, 0, 0, 0);
                 CAN_cmd_gimbal_can1(0, 0, 0, 0);
+//                gimbal_control.gimbal_yaw_motor.offset_ecd = gimbal_control.gimbal_yaw_motor.gimbal_motor_measure->total_ecd;
 
             } else {
                 CAN_cmd_gimbal(pitch_can_set_current, 0, shoot_can_set_current, 0);

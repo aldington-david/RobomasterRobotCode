@@ -343,12 +343,12 @@ referee usart:%s\r\n\
 //                    gimbal_control.gimbal_pitch_motor.given_current);
 //            SEGGER_RTT_WriteString(0, print_buf);
 //            //波形显示
-            RTT_PrintWave(5,
-                          &gimbal_control.gimbal_pitch_motor.relative_angle_set,
-                          &gimbal_control.gimbal_pitch_motor.relative_angle,
-                          &gimbal_control.gimbal_pitch_motor.motor_gyro_set,
-                          &gimbal_control.gimbal_pitch_motor.motor_gyro,
-                          &gimbal_control.gimbal_pitch_motor.motor_speed);
+//            RTT_PrintWave(5,
+//                          &gimbal_control.gimbal_pitch_motor.relative_angle_set,
+//                          &gimbal_control.gimbal_pitch_motor.relative_angle,
+//                          &gimbal_control.gimbal_pitch_motor.motor_gyro_set,
+//                          &gimbal_control.gimbal_pitch_motor.motor_gyro,
+//                          &gimbal_control.gimbal_pitch_motor.motor_speed);
 
 //            //YAW
 //            SEGGER_RTT_SetTerminal(2);
@@ -400,15 +400,17 @@ referee usart:%s\r\n\
 //                    gimbal_control.gimbal_yaw_motor.Cloud_MotorAngle_Error_Kalman.R,
 //                    gimbal_control.gimbal_yaw_motor.Cloud_MotorAngle_Error_Kalman.Q);
 //            SEGGER_RTT_WriteString(0, print_buf);
-//////            rad角度数据
-////            SEGGER_RTT_SetTerminal(6);
-////            sprintf(print_buf, "setangle=%f,maxangle=%f,nowangle=%f,minangle=%f\r\n",
-////                    gimbal_control.gimbal_yaw_motor.relative_angle_set,
-////                    gimbal_control.gimbal_yaw_motor.max_relative_angle,
-////                    gimbal_control.gimbal_yaw_motor.relative_angle,
-////                    gimbal_control.gimbal_yaw_motor.min_relative_angle);
+//            rad角度数据
+//            SEGGER_RTT_SetTerminal(6);
+//            sprintf(print_buf, "setangle=%f,maxangle=%f,nowangle=%f,minangle=%f,total_ecd=%d,offset_ecd=%d\r\n",
+//                    gimbal_control.gimbal_yaw_motor.relative_angle_set,
+//                    gimbal_control.gimbal_yaw_motor.max_relative_angle,
+//                    gimbal_control.gimbal_yaw_motor.relative_angle,
+//                    gimbal_control.gimbal_yaw_motor.min_relative_angle,
+//                    gimbal_control.gimbal_yaw_motor.gimbal_motor_measure->total_ecd,
+//                    gimbal_control.gimbal_yaw_motor.offset_ecd);
 //            SEGGER_RTT_WriteString(0, print_buf);
-//            //电流数据
+            //电流数据
 //            SEGGER_RTT_SetTerminal(7);
 //            sprintf(print_buf, "current=%f,motor_gyro_set=%f,lms=%f,given_current=%d\r\n",
 //                    gimbal_control.gimbal_yaw_motor.current_set,
@@ -500,35 +502,35 @@ referee usart:%s\r\n\
             /***********************打印数据 End *****************************/
 
 
-//            printf(
-//                    "******************************\r\n\
-//voltage percentage:%d%% \r\n\
-//DBUS:%s\r\n\
-//chassis motor1:%s\r\n\
-//chassis motor2:%s\r\n\
-//chassis motor3:%s\r\n\
-//chassis motor4:%s\r\n\
-//yaw motor:%s\r\n\
-//pitch motor:%s\r\n\
-//trigger motor:%s\r\n\
-//gyro sensor:%s\r\n\
-//accel sensor:%s\r\n\
-//mag sensor:%s\r\n\
-//referee rx usart:%s\r\n\
-//******************************\r\n",
-//                    get_battery_percentage(),
-//                    status[error_list_print_local[DBUS_TOE].error_exist],
-//                    status[error_list_print_local[CHASSIS_MOTOR1_TOE].error_exist],
-//                    status[error_list_print_local[CHASSIS_MOTOR2_TOE].error_exist],
-//                    status[error_list_print_local[CHASSIS_MOTOR3_TOE].error_exist],
-//                    status[error_list_print_local[CHASSIS_MOTOR4_TOE].error_exist],
-//                    status[error_list_print_local[YAW_GIMBAL_MOTOR_TOE].error_exist],
-//                    status[error_list_print_local[PITCH_GIMBAL_MOTOR_TOE].error_exist],
-//                    status[error_list_print_local[TRIGGER_MOTOR_TOE].error_exist],
-//                    status[error_list_print_local[BOARD_GYRO_TOE].error_exist],
-//                    status[error_list_print_local[BOARD_ACCEL_TOE].error_exist],
-//                    status[error_list_print_local[BOARD_MAG_TOE].error_exist],
-//                    status[error_list_print_local[REFEREE_RX_TOE].error_exist]);
+            printf(
+                    "******************************\r\n\
+voltage percentage:%d%% \r\n\
+DBUS:%s\r\n\
+chassis motor1:%s\r\n\
+chassis motor2:%s\r\n\
+chassis motor3:%s\r\n\
+chassis motor4:%s\r\n\
+yaw motor:%s\r\n\
+pitch motor:%s\r\n\
+trigger motor:%s\r\n\
+gyro sensor:%s\r\n\
+accel sensor:%s\r\n\
+mag sensor:%s\r\n\
+referee rx usart:%s\r\n\
+******************************\r\n",
+                    get_battery_percentage(),
+                    status[error_list_print_local[DBUS_TOE].error_exist],
+                    status[error_list_print_local[CHASSIS_MOTOR1_TOE].error_exist],
+                    status[error_list_print_local[CHASSIS_MOTOR2_TOE].error_exist],
+                    status[error_list_print_local[CHASSIS_MOTOR3_TOE].error_exist],
+                    status[error_list_print_local[CHASSIS_MOTOR4_TOE].error_exist],
+                    status[error_list_print_local[YAW_GIMBAL_MOTOR_TOE].error_exist],
+                    status[error_list_print_local[PITCH_GIMBAL_MOTOR_TOE].error_exist],
+                    status[error_list_print_local[TRIGGER_MOTOR_TOE].error_exist],
+                    status[error_list_print_local[BOARD_GYRO_TOE].error_exist],
+                    status[error_list_print_local[BOARD_ACCEL_TOE].error_exist],
+                    status[error_list_print_local[BOARD_MAG_TOE].error_exist],
+                    status[error_list_print_local[REFEREE_RX_TOE].error_exist]);
 
 
 

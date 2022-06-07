@@ -107,7 +107,9 @@ void PC_receive_task(void const *argument) {
 
 //    PC_receive_data[param9] = (void *) &gimbal_control.gimbal_yaw_motor.max_relative_angle;
 //    PC_receive_data[param10] = (void *) &gimbal_control.gimbal_yaw_motor.min_relative_angle;
-//    PC_receive_data[param11] = (void *) &gimbal_control.gimbal_yaw_motor.relative_angle_set;
+    PC_receive_data[param12] = (void *) &gimbal_control.gimbal_yaw_motor.relative_angle_set;
+    PC_receive_data[param13] = (void *) &gimbal_control.gimbal_yaw_motor.relative_angle;
+    PC_receive_data[param14] = (void *) &gimbal_control.gimbal_yaw_motor.offset_ecd;
     /********yaw end***********/
 
     /********trigger start***********/
