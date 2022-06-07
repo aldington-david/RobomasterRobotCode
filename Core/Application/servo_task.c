@@ -23,12 +23,12 @@
 #include "detect_task.h"
 #include "SEGGER_RTT.h"
 
-#define SERVO_MIN_PWM   895
+#define SERVO_MIN_PWM   892
 #define SERVO_MAX_PWM   1980
 #define PWM_DETAL_VALUE 10
 
 #define Bullet_Box_Open_PWM   1980
-#define Bullet_Box_Close_PWM   895
+#define Bullet_Box_Close_PWM   892
 
 static servo_mode_e Bullet_Box_Mode = Bullet_Box_Min;
 const RC_ctrl_t *servo_rc;

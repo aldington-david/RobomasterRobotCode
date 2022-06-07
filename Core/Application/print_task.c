@@ -216,36 +216,36 @@ referee usart:%s\r\n\
 //                    global_judge_info.PowerHeatData.chassis_power,
 //                    global_judge_info.ShootData.bullet_speed);
 //            SEGGER_RTT_WriteString(0, print_buf);
-//            //拨盘pid
-            //拨盘数据
-//            SEGGER_RTT_SetTerminal(8);
-//            sprintf(print_buf,
-//                    "shoot_mode=%d,pwm1=%d,pwm2=%d,ecd=%d,ecd_count=%d,angle=%f,t_sp_set=%f,mv_flag=%d,switch_test=%c\r\n",
-//                    shoot_control.shoot_mode,
-//                    shoot_control.fric_pwm1,
-//                    shoot_control.fric_pwm2,
-//                    shoot_control.shoot_motor_measure->ecd,
-//                    shoot_control.ecd_count,
-//                    shoot_control.angle,
-//                    shoot_control.trigger_speed_set,
-//                    shoot_control.move_flag,
-//                    switch_test);
-//            SEGGER_RTT_WriteString(0, print_buf);
+            //拨盘pid
+//            拨盘数据
+            SEGGER_RTT_SetTerminal(8);
+            sprintf(print_buf,
+                    "shoot_mode=%d,pwm1=%d,pwm2=%d,ecd=%d,ecd_count=%d,angle=%f,t_sp_set=%f,mv_flag=%d,switch_test=%x\r\n",
+                    shoot_control.shoot_mode,
+                    shoot_control.fric_pwm1,
+                    shoot_control.fric_pwm2,
+                    shoot_control.shoot_motor_measure->ecd,
+                    shoot_control.shoot_motor_measure->turnCount,
+                    shoot_control.angle,
+                    shoot_control.trigger_speed_set,
+                    shoot_control.move_flag,
+                    switch_test);
+            SEGGER_RTT_WriteString(0, print_buf);
 //            //拨盘pid
 //            SEGGER_RTT_SetTerminal(9);
 //            sprintf(print_buf,
 //                    "p=%f,i=%f,d=%f\r\n",
-//                    shoot_control.trigger_motor_pid.Kp,
-//                    shoot_control.trigger_motor_pid.Ki,
-//                    shoot_control.trigger_motor_pid.Kd);
+//                    shoot_control.trigger_motor_speed_pid.Kp,
+//                    shoot_control.trigger_motor_speed_pid.Ki,
+//                    shoot_control.trigger_motor_speed_pid.Kd);
 //            SEGGER_RTT_WriteString(0, print_buf);
 //            //摩擦轮pid
 //            SEGGER_RTT_SetTerminal(2);
 //            sprintf(print_buf,
 //                    "tr_p=%f,tr_i=%f,tr_d=%f,fr1_p=%f,fr1_i=%f,fr1_d=%f,fr1_IS=%f,fr2_p=%f,fr2_i=%f,fr2_d=%f,fr2_IS=%f,err=%f\r\n",
-//                    shoot_control.trigger_motor_pid.Kp,
-//                    shoot_control.trigger_motor_pid.Ki,
-//                    shoot_control.trigger_motor_pid.Kd,
+//                    shoot_control.trigger_motor_speed_pid.Kp,
+//                    shoot_control.trigger_motor_speed_pid.Ki,
+//                    shoot_control.trigger_motor_speed_pid.Kd,
 //                    shoot_control.fric1_motor_pid.Kp,
 //                    shoot_control.fric1_motor_pid.Ki,
 //                    shoot_control.fric1_motor_pid.Kd,
@@ -275,7 +275,7 @@ referee usart:%s\r\n\
 //            RTT_PrintWave(4,
 //                          &shoot_control.speed_set,
 //                          &shoot_control.speed,
-//                          &shoot_control.set_angle,
+//                          &shoot_control.angle_set,
 //                          &shoot_control.angle);
 //            //摩擦轮波形显示
 //            RTT_PrintWave(3,

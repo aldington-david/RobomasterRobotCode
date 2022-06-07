@@ -111,9 +111,9 @@ void PC_receive_task(void const *argument) {
     /********yaw end***********/
 
     /********trigger start***********/
-//    PC_receive_data[param0] = (void *) &shoot_control.trigger_motor_pid.Kp;
-//    PC_receive_data[param1] = (void *) &shoot_control.trigger_motor_pid.Ki;
-//    PC_receive_data[param2] = (void *) &shoot_control.trigger_motor_pid.Kd;
+//    PC_receive_data[param0] = (void *) &shoot_control.trigger_motor_speed_pid.Kp;
+//    PC_receive_data[param1] = (void *) &shoot_control.trigger_motor_speed_pid.Ki;
+//    PC_receive_data[param2] = (void *) &shoot_control.trigger_motor_speed_pid.Kd;
 //    PC_receive_data[param3] = (void *) &shoot_control.trigger_speed_set;
     /********trigger end***********/
     TickType_t LoopStartTime;

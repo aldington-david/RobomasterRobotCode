@@ -73,9 +73,13 @@
 #define PI_TEN                      0.314f
 
 //拨弹轮电机PID
-#define TRIGGER_ANGLE_PID_KP        1000.0f
-#define TRIGGER_ANGLE_PID_KI        0.5f
-#define TRIGGER_ANGLE_PID_KD        0.0f
+#define TRIGGER_SPEED_PID_KP        750.0f
+#define TRIGGER_SPEED_PID_KI        1.2f
+#define TRIGGER_SPEED_PID_KD        0.0f
+
+#define TRIGGER_ANGLE_PID_KP        30.0f
+#define TRIGGER_ANGLE_PID_KI        0.00f
+#define TRIGGER_ANGLE_PID_KD        250.0f
 
 #define TRIGGER_BULLET_PID_MAX_OUT  10000.0f
 #define TRIGGER_BULLET_PID_MAX_IOUT 9000.0f
@@ -109,7 +113,8 @@ typedef struct {
     uint16_t fric_pwm1;
     ramp_function_source_t fric2_ramp;
     uint16_t fric_pwm2;
-    pid_type_def trigger_motor_pid;
+    pid_type_def trigger_motor_speed_pid;
+    pid_type_def trigger_motor_angle_pid;
 
     pid_type_def fric1_motor_pid;
     pid_type_def fric2_motor_pid;
@@ -124,7 +129,7 @@ typedef struct {
     fp32 speed;
     fp32 speed_set;
     fp32 angle;
-    fp32 set_angle;
+    fp32 angle_set;
     int16_t given_current;
     int8_t ecd_count;
 

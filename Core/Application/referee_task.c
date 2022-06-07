@@ -390,7 +390,8 @@ void referee_tx_task(void const *argument) {
 //        name[1] = draw_cnt % 255;
 //        line_drawing(name,ADD_PICTURE,0,graphic_color_yellow, 5,200, 200, 400, 400  );
 //        printf("%d", fifo_s_used(&referee_tx_fifo));
-        Hero_UI_ruler(5, 961, 538, line_distance, line_length, ruler_color, ADD_PICTURE);
+        UI_clean_all();
+//        Hero_UI_ruler(5, 961, 538, line_distance, line_length, ruler_color, ADD_PICTURE);
         vTaskDelayUntil(&LoopStartTime, pdMS_TO_TICKS(100));
     }
 }
