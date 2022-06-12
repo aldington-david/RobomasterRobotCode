@@ -85,8 +85,8 @@ void shoot_init(void) {
 
     static const fp32 Trigger_speed_pid[3] = {TRIGGER_SPEED_PID_KP, TRIGGER_SPEED_PID_KI, TRIGGER_SPEED_PID_KD};
     static const fp32 Trigger_angle_pid[3] = {TRIGGER_ANGLE_PID_KP, TRIGGER_ANGLE_PID_KI, TRIGGER_ANGLE_PID_KD};
-    static const fp32 fric1_speed_pid[3] = {230, 0, 0};
-    static const fp32 fric2_speed_pid[3] = {230, 0, 0};
+    static const fp32 fric1_speed_pid[3] = {500, 0, 0};
+    static const fp32 fric2_speed_pid[3] = {500, 0, 0};
     shoot_control.shoot_mode = SHOOT_STOP;
     //遥控器指针
     shoot_control.shoot_rc = get_remote_control_point();
@@ -105,7 +105,7 @@ void shoot_init(void) {
              TRIGGER_READY_PID_MAX_IOUT, 100, 0, 0, 0, 0, 0, 1, 0, 0, 0);
     PID_init(&shoot_control.fric2_motor_pid, PID_POSITION, fric2_speed_pid, TRIGGER_READY_PID_MAX_OUT,
              TRIGGER_READY_PID_MAX_IOUT, 100, 0, 0, 0, 0, 0, 1, 0, 0, 0);
-    first_order_filter_init(&shoot_control.fric2_motor_pid.D_Low_Pass_Filter, 0.001, 0.3);
+    first_order_filter_init(&shoot_control.fric1_motor_pid.D_Low_Pass_Filter, 0.001, 0.3);
     first_order_filter_init(&shoot_control.fric2_motor_pid.D_Low_Pass_Filter, 0.001, 0.3);
 //    shoot_control.pwm = SHOOT_FRIC_PWM_ADD_VALUE;
 
@@ -125,7 +125,7 @@ void shoot_init(void) {
     shoot_control.key_time = 0;
     shoot_control.fric1_speed = 0.0f;
     shoot_control.fric2_speed = 0.0f;
-    shoot_control.fric_all_speed = 700.0f;
+    shoot_control.fric_all_speed = 968.0f; //matx 968
     shoot_control.fric1_speed_set = shoot_control.fric_all_speed;
     shoot_control.fric2_speed_set = -shoot_control.fric_all_speed;
 }
@@ -198,6 +198,8 @@ int16_t shoot_control_loop(void) {
 //        //摩擦轮需要一个个斜波开启，不能同时直接开启，否则可能电机不转
 //        ramp_calc(&shoot_control.fric1_ramp, shoot_control.pwm);
 //        ramp_calc(&shoot_control.fric2_ramp, shoot_control.pwm);
+//        gimbal_control.fric1_current_set = Cloud_IPID(&shoot_control.fric1_motor_pid, shoot_control.fric1_speed,
+//                                                      shoot_control.fric1_speed_set);
         gimbal_control.fric1_current_set = Cloud_IPID(&shoot_control.fric1_motor_pid, shoot_control.fric1_speed,
                                                       shoot_control.fric1_speed_set);
         gimbal_control.fric2_current_set = Cloud_IPID(&shoot_control.fric2_motor_pid, shoot_control.fric2_speed,
@@ -284,13 +286,13 @@ static void shoot_set_mode(void) {
             shoot_control.shoot_mode = SHOOT_READY;
         }
     }
-
-    get_shoot_heat0_limit_and_heat0(&shoot_control.heat_limit, &shoot_control.heat);
-    if (!toe_is_error(REFEREE_RX_TOE) && (shoot_control.heat + SHOOT_HEAT_REMAIN_VALUE > shoot_control.heat_limit)) {
-        if (shoot_control.shoot_mode == SHOOT_BULLET || shoot_control.shoot_mode == SHOOT_CONTINUE_BULLET) {
-            shoot_control.shoot_mode = SHOOT_READY;
-        }
-    }
+//for_test 枪口热量 服务器 屏蔽
+//    get_shoot_heat0_limit_and_heat0(&shoot_control.heat_limit, &shoot_control.heat);
+//    if (!toe_is_error(REFEREE_RX_TOE) && (shoot_control.heat + SHOOT_HEAT_REMAIN_VALUE > shoot_control.heat_limit)) {
+//        if (shoot_control.shoot_mode == SHOOT_BULLET || shoot_control.shoot_mode == SHOOT_CONTINUE_BULLET) {
+//            shoot_control.shoot_mode = SHOOT_READY;
+//        }
+//    }
     //如果云台状态是 无力状态，就关闭射击
     if (gimbal_cmd_to_shoot_stop()) {
         shoot_control.shoot_mode = SHOOT_STOP;

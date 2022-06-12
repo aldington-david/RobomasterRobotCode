@@ -97,12 +97,12 @@
 
 //turn 180°
 //掉头180 按键
-#define TURN_KEYBOARD KEY_PRESSED_OFFSET_F
+//#define TURN_KEYBOARD KEY_PRESSED_OFFSET_F
 //turn speed
 //掉头云台速度
 #define TURN_SPEED    0.04f
 //测试按键尚未使用
-#define TEST_KEYBOARD KEY_PRESSED_OFFSET_R
+//#define TEST_KEYBOARD KEY_PRESSED_OFFSET_R
 //rocker value deadband
 //遥控器输入死区，因为遥控器存在差异，摇杆在中间，其值不一定为零
 #define RC_DEADBAND   10
@@ -111,8 +111,8 @@
 #define YAW_RC_SEN    0.000015f
 #define PITCH_RC_SEN  0.000005f
 
-#define YAW_MOUSE_SEN   0.00006f
-#define PITCH_MOUSE_SEN 0.00014f
+#define YAW_MOUSE_SEN   0.00084f
+#define PITCH_MOUSE_SEN 0.0021f
 
 #define YAW_VISION_SEN   0.35f
 #define PITCH_VISION_SEN 0.15f

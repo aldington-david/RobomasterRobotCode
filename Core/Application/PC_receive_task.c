@@ -33,13 +33,13 @@ void PC_receive_task(void const *argument) {
 
 
     /********vision end***********/
-    PC_receive_data[param0] = (void *) &vision_yaw_angle_add_for_test;
-    PC_receive_data[param1] = (void *) &vision_pitch_angle_add_for_test;
+//    PC_receive_data[param0] = (void *) &vision_yaw_angle_add_for_test;
+//    PC_receive_data[param1] = (void *) &vision_pitch_angle_add_for_test;
     /********pitch start***********/
 //    PC_receive_data[param0] = (void *) &gimbal_control.gimbal_pitch_motor.gimbal_motor_absolute_angle_pid.kp;
 //    PC_receive_data[param1] = (void *) &gimbal_control.gimbal_pitch_motor.gimbal_motor_absolute_angle_pid.ki;
 
-//    PC_receive_data[param0] = (void *) &shoot_control.fric_all_speed;
+    PC_receive_data[param0] = (void *) &shoot_control.fric_all_speed;
 ////    PC_receive_data[param1] = (void *) &shoot_control.fric2_speed_set;
 //    PC_receive_data[param2] = (void *) &shoot_control.fric1_motor_pid.Kp;
 //    PC_receive_data[param3] = (void *) &shoot_control.fric1_motor_pid.Ki;
