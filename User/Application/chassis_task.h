@@ -65,7 +65,7 @@
 //for_test
 #define CHASSIS_ACCEL_X_NUM 0.00005f
 #define CHASSIS_ACCEL_Y_NUM 0.00005f
-
+#define CHASSIS_ACCEL_WZ_NUM 0.00005f
 //rocker value deadline
 //摇杆死区
 #define CHASSIS_RC_DEADLINE 10
@@ -91,14 +91,15 @@
 #define MAX_MOTOR_CAN_CURRENT 16000.0f
 //press the key, chassis will swing
 //底盘摇摆按键
-#define SWING_KEY KEY_PRESSED_OFFSET_CTRL
+//#define SWING_KEY KEY_PRESSED_OFFSET_CTRL
 //chassi forward, back, left, right key
 //底盘前后左右控制按键
 #define CHASSIS_FRONT_KEY KEY_PRESSED_OFFSET_W
 #define CHASSIS_BACK_KEY KEY_PRESSED_OFFSET_S
 #define CHASSIS_LEFT_KEY KEY_PRESSED_OFFSET_A
 #define CHASSIS_RIGHT_KEY KEY_PRESSED_OFFSET_D
-
+#define CHASSIS_SPIN_LEFT_KEY KEY_PRESSED_OFFSET_Q
+#define CHASSIS_SPIN_RIGHT_KEY KEY_PRESSED_OFFSET_E
 //m3508 rmp change to chassis speed,
 //m3508转化成底盘速度(m/s)的比例，
 #define M3508_MOTOR_RPM_TO_VECTOR 0.000415809748903494517209f
@@ -174,6 +175,7 @@ typedef struct
 
   first_order_filter_type_t chassis_cmd_slow_set_vx;  //use first order filter to slow set-point.使用一阶低通滤波减缓设定值
   first_order_filter_type_t chassis_cmd_slow_set_vy;  //use first order filter to slow set-point.使用一阶低通滤波减缓设定值
+  first_order_filter_type_t chassis_cmd_slow_set_wz;
 
   fp32 vx;                          //chassis vertical speed, positive means forward,unit m/s. 底盘速度 前进方向 前为正，单位 m/s
   fp32 vy;                          //chassis horizontal speed, positive means letf,unit m/s.底盘速度 左右方向 左为正  单位 m/s
@@ -230,6 +232,6 @@ extern void chassis_task(void const *pvParameters);
   * @param[out]     chassis_move_rc_to_vector: "chassis_move" 变量指针
   * @retval         none
   */
-extern void chassis_rc_to_control_vector(fp32 *vx_set, fp32 *vy_set, chassis_move_t *chassis_move_rc_to_vector);
+extern void chassis_rc_to_control_vector(fp32 *vx_set, fp32 *vy_set,fp32 *wz_set, chassis_move_t *chassis_move_rc_to_vector);
 
 #endif

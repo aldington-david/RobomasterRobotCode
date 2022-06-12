@@ -317,12 +317,14 @@ referee usart:%s\r\n\
 //                    shoot_control.pwm);
 //            SEGGER_RTT_WriteString(0, print_buf);
 //            //摩擦轮电流
-//            SEGGER_RTT_SetTerminal(9);
-//            sprintf(print_buf,
-//                    "fric1_current=%d,fric2_current=%d\r\n",
-//                    gimbal_control.fric1_give_current,
-//                    gimbal_control.fric2_give_current);
-//            SEGGER_RTT_WriteString(0, print_buf);
+            SEGGER_RTT_SetTerminal(9);
+            sprintf(print_buf,
+                    "fric1_current_set=%d,fric2_current_set=%d,fric1_current=%d,fric2_current=%d\r\n",
+                    gimbal_control.fric1_give_current,
+                    gimbal_control.fric2_give_current,
+                    shoot_control.fric1_motor_measure->given_current,
+                    shoot_control.fric2_motor_measure->given_current);
+            SEGGER_RTT_WriteString(0, print_buf);
 //            //拨盘波形显示
 //            RTT_PrintWave(4,
 //                          &shoot_control.speed_set,
@@ -330,10 +332,10 @@ referee usart:%s\r\n\
 //                          &shoot_control.angle_set,
 //                          &shoot_control.angle);
 //            //摩擦轮波形显示
-//            RTT_PrintWave(3,
-//                          &shoot_control.fric_all_speed,
-//                          &shoot_control.fric1_speed,
-//                          &shoot_control.fric2_speed);
+            RTT_PrintWave(3,
+                          &shoot_control.fric_all_speed,
+                          &shoot_control.fric1_speed,
+                          &shoot_control.fric2_speed);
             //relative_mode
 
 ////            Pitch
