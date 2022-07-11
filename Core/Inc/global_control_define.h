@@ -35,8 +35,8 @@
 #define Block_None_Device 0
 #define Block_All_Device 1
 #define Block_All_Device_ecp_Control 2
-#define DETECT_BLOCK Block_None_Device // do not block devices
-//#define DETECT_BLOCK Block_All_Device // block whole device
+//#define DETECT_BLOCK Block_None_Device // do not block devices
+#define DETECT_BLOCK Block_All_Device // block whole device
 //#define DETECT_BLOCK Block_All_Device_ecp_Control //block whole device except Radio Control
 /************ Choose Detect Block Device End*******************/
 
