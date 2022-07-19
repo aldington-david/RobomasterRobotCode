@@ -18,7 +18,7 @@
 #define PID_H
 
 #include "kalman_filter.h"
-#include "stdint-gcc.h"
+#include <stdint.h>
 #include "user_lib.h"
 #include <math.h>
 #include "struct_typedef.h"
@@ -179,11 +179,11 @@ extern void Position_PIDInit(positionpid_t *pid_t, float Kp, float Kd, float Ki,
                              float Integral_Separation);
 
 //extern float Vision_AutoTracPID(positionpid_t *pid_t, float target, float measured);
-extern float Cloud_IMUYAWOPID(positionpid_t *pid_t, float target, float measured);
+//extern float Cloud_IMUYAWOPID(positionpid_t *pid_t, float target, float measured);
 
 extern float Cloud_IMUYAWIPID(positionpid_t *pid_t, float target, float measured);
 
-extern float Cloud_IMUPITCHOPID(positionpid_t *pid_t, float target, float measured);
+//extern float Cloud_IMUPITCHOPID(positionpid_t *pid_t, float target, float measured);
 
 extern float Cloud_IMUPITCHIPID(positionpid_t *pid_t, float target, float measured);
 
@@ -197,7 +197,7 @@ extern void Clear_PositionPIDData(positionpid_t *pid_t);
 
 extern void Clear_IncrementalPIDData(incrementalpid_t *pid_t);
 
-extern float Cloud_YAWOPID(positionpid_t *pid_t, float target, float measured);
+//extern float Cloud_YAWOPID(positionpid_t *pid_t, float target, float measured);
 
 extern float Cloud_YAWIPID(positionpid_t *pid_t, float target, float measured);
 
@@ -206,8 +206,8 @@ extern float ALL_PID(pid_type_def *pid, fp32 ref, fp32 set);
 //extern float Vision_YAWOPID(positionpid_t *pid_t, float target, float measured);
 //extern float Vision_PITCHOPID(positionpid_t *pid_t, float target, float measured);
 //extern float Vision_PITCHIPID(positionpid_t *pid_t, float target, float measured);
-extern extKalman_t Cloud_YAWODKalman;
-extern extKalman_t Cloud_PITCHODKalman;
+//extern extKalman_t Cloud_YAWODKalman;
+//extern extKalman_t Cloud_PITCHODKalman;
 
 
 #endif

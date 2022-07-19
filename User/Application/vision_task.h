@@ -6,7 +6,7 @@
 #define ROBOMASTERROBOTCODE_VISION_TASK_H
 
 #include <stdbool.h>
-#include <stdint-gcc.h>
+#include <stdint.h>
 #include "struct_typedef.h"
 #include "fifo.h"
 #include "cmsis_os.h"

@@ -21,7 +21,7 @@
 #ifndef CAN_RECEIVE_H
 #define CAN_RECEIVE_H
 
-#include <stdint-gcc.h>
+#include <stdint.h>
 
 #define CHASSIS_CAN hcan1
 #define GIMBAL_CAN hcan2

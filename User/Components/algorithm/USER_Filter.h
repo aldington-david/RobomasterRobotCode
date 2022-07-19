@@ -13,7 +13,7 @@
 
 
 #include "stm32f4xx.h"
-#include "stdint-gcc.h"
+#include <stdint.h>
 
 
 void Filter_IIRLPF(float *in, float *out, float LpfAttFactor);

@@ -1,6 +1,6 @@
 #ifndef USER_LIB_H
 #define USER_LIB_H
-#include "stdint-gcc.h"
+#include <stdint.h>
 #include "struct_typedef.h"
 #include "arm_math.h"
 

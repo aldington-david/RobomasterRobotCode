@@ -18,7 +18,7 @@
 #define PRINT_TASK_H
 
 #include "struct_typedef.h"
-#include "stdint-gcc.h"
+#include <stdint.h>
 
 
 extern void print_task(void const *argument);

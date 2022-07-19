@@ -99,19 +99,18 @@
 #ifndef CALIBRATE_TASK_H
 #define CALIBRATE_TASK_H
 
-#include <stdint-gcc.h>
+#include <stdint.h>
 #include "struct_typedef.h"
 
 //when imu is calibrating ,buzzer set frequency and strength. 当imu在校准,蜂鸣器的设置频率和强度
-#define imu_start_buzzer()          buzzer_on(95, 10000)    
+#define imu_start_buzzer()          buzzer_on(95, 10000)
 //when gimbal is calibrating ,buzzer set frequency and strength.当云台在校准,蜂鸣器的设置频率和强度
-#define gimbal_start_buzzer()       buzzer_on(31, 19999)    
+#define gimbal_start_buzzer()       buzzer_on(31, 19999)
 #define cali_buzzer_off()           buzzer_off()            //buzzer off，关闭蜂鸣器
 
 
 //get stm32 chip temperature, to calc imu control temperature.获取stm32片内温度，计算imu的控制温度
-#define cali_get_mcu_temperature()  get_temprate()      
-
+#define cali_get_mcu_temperature()  get_temprate()
 
 
 #define cali_flash_read(address, buf, len)  flash_read((address), (buf), (len))                     //flash read function, flash 读取函数
@@ -127,7 +126,6 @@
 #define gyro_cali_fun(cali_scale, cali_offset, time_count)  INS_cali_gyro((cali_scale), (cali_offset), (time_count))
 //set the zero drift to the INS task, 设置在INS task内的陀螺仪零漂
 #define gyro_set_cali(cali_scale, cali_offset)              INS_set_cali_gyro((cali_scale), (cali_offset))
-
 
 
 #define FLASH_USER_ADDR         ADDR_FLASH_SECTOR_9 //write flash page 9,保存的flash页地址
@@ -154,18 +152,17 @@
 
 #define rc_cali_buzzer_middle_on()  gimbal_start_buzzer()
 #define rc_cali_buzzer_start_on()   imu_start_buzzer()
-#define RC_CMD_LONG_TIME            2000    
+#define RC_CMD_LONG_TIME            2000
 
-#define RCCALI_BUZZER_CYCLE_TIME    400        
-#define RC_CALI_BUZZER_PAUSE_TIME   200       
+#define RCCALI_BUZZER_CYCLE_TIME    400
+#define RC_CALI_BUZZER_PAUSE_TIME   200
 #define RC_CALI_VALUE_HOLE          600     //remote control threshold, the max value of remote control channel is 660. 
 
 
 #define GYRO_CALIBRATE_TIME         20000   //gyro calibrate time,陀螺仪校准时间
 
 //cali device name
-typedef enum
-{
+typedef enum {
     CALI_HEAD = 0,
     CALI_GIMBAL = 1,
     CALI_GYRO = 2,
@@ -175,21 +172,18 @@ typedef enum
     CALI_LIST_LENGHT,
 } cali_id_e;
 
-
-typedef struct __attribute__((packed))
-
-{
+#pragma pack(push, 1)
+typedef struct {
     uint8_t name[3];                                    //device name
     uint8_t cali_done;                                  //0x55 means has been calibrated
-    uint8_t flash_len : 7;                              //buf lenght
-    uint8_t cali_cmd : 1;                               //1 means to run cali hook function,
+    uint8_t flash_len: 7;                              //buf lenght
+    uint8_t cali_cmd: 1;                               //1 means to run cali hook function,
     uint32_t *flash_buf;                                //link to device calibration data
     bool_t (*cali_hook)(uint32_t *point, bool_t cmd);   //cali function
 } cali_sensor_t;
 
 //header device
-typedef struct __attribute__((packed))
-{
+typedef struct {
     uint8_t self_id;            // the "SELF_ID"
     uint16_t firmware_version;  // set to the "FIRMWARE_VERSION"
     //'temperature' and 'latitude' should not be in the head_cali, because don't want to create a new sensor
@@ -198,7 +192,7 @@ typedef struct __attribute__((packed))
     fp32 latitude;              // latitude
 } head_cali_t;
 //gimbal device
-typedef struct __attribute__((packed)) {
+typedef struct {
     uint16_t yaw_offset;
     uint16_t pitch_offset;
     fp32 yaw_max_angle;
@@ -207,11 +201,11 @@ typedef struct __attribute__((packed)) {
     fp32 pitch_min_angle;
 } gimbal_cali_t;
 //gyro, accel, mag device
-typedef struct __attribute__((packed)) {
+typedef struct {
     fp32 offset[3]; //x,y,z
     fp32 scale[3];  //x,y,z
 } imu_cali_t;
-
+#pragma pack(pop)
 
 /**
   * @brief          use remote control to begin a calibrate,such as gyro, gimbal, chassis
