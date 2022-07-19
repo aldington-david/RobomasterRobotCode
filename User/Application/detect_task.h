@@ -53,7 +53,7 @@
 #ifndef DETECT_TASK_H
 #define DETECT_TASK_H
 
-#include <stdint-gcc.h>
+#include <stdint.h>
 #include "struct_typedef.h"
 
 

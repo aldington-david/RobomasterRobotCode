@@ -6,7 +6,7 @@
 #define STANDARDROBOTBASICCODE_PC_RECEIVE_TASK_H
 
 #include <stdbool.h>
-#include <stdint-gcc.h>
+#include <stdint.h>
 #include "struct_typedef.h"
 
 enum {

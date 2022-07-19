@@ -83,7 +83,7 @@ void remote_control_init(void)
   * @param[in]      none
   * @retval         遥控器数据指针
   */
-const RC_ctrl_t *get_remote_control_point(void)
+const volatile RC_ctrl_t *get_remote_control_point(void)
 {
     return &rc_ctrl;
 }

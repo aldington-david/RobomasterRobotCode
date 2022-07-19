@@ -1,6 +1,5 @@
 #include "bsp_usart.h"
 #include "main.h"
-#include "memory.h"
 #include "detect_task.h"
 #include "referee_task.h"
 #include "SEGGER_RTT.h"

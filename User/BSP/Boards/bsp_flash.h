@@ -1,7 +1,7 @@
 #ifndef BSP_FLASH_H
 #define BSP_FLASH_H
 
-#include <stdint-gcc.h>
+#include <stdint.h>
 #include "struct_typedef.h"
 
 /* Base address of the Flash sectors */
