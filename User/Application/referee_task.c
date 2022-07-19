@@ -1,4 +1,4 @@
-#include <memory.h>
+//#include <memory.h>
 #include "referee_task.h"
 #include "CRC8_CRC16.h"
 #include "usart.h"

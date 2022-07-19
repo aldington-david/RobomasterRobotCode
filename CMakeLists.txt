@@ -21,7 +21,7 @@ set(CMAKE_CXX_FLAGS "-std=c17 -mcpu=Cortex-M4.fp.sp -g -O2")
 set(COMMON_FLAGS "-specs=nosys.specs -specs=nano.specs -u _printf_float -u _scanf_float")
 #Uncomment for hardware floating point
 add_compile_definitions(ARM_MATH_CM4;ARM_MATH_MATRIX_CHECK;ARM_MATH_ROUNDING)
-add_compile_options(-mfloat-abi=hard -mfpu=fpv4-sp-d16 -ffunction-sections -fdata-sections)
+add_compile_options(-mfloat-abi=hard -mfpu=fpv4-sp-d16 -ffunction-sections -fdata-sections -fno-common)
 add_link_options(-mfloat-abi=hard -mfpu=fpv4-sp-d16)
 
 #Uncomment for software floating point
@@ -50,19 +50,19 @@ else ()
     add_compile_options(-Og -g)
 endif ()
 
-include_directories(Core/Inc Drivers/STM32F4xx_HAL_Driver/Inc Drivers/STM32F4xx_HAL_Driver/Inc/Legacy Drivers/CMSIS/Device/ST/STM32F4xx/Include Drivers/CMSIS/Include USB_DEVICE/App USB_DEVICE/Target Middlewares/Third_Party/FreeRTOS/Source/include Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F Middlewares/ST/STM32_USB_Device_Library/Core/Inc Middlewares/ST/STM32_USB_Device_Library/Class/CDC/Inc USB_DEVICE/App USB_DEVICE/Target "Core/BSP/Boards" Core/Components/algorithm/Include Core/Application Core/Components/controller Core/Components/algorithm Core/Components/devices Core/Components/support Core/Application/protocol Core/Application RTT Fusion)
+include_directories(Core/Inc Drivers/STM32F4xx_HAL_Driver/Inc Drivers/STM32F4xx_HAL_Driver/Inc/Legacy Drivers/CMSIS/Device/ST/STM32F4xx/Include Drivers/CMSIS/Include USB_DEVICE/App USB_DEVICE/Target Middlewares/Third_Party/FreeRTOS/Source/include Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F Middlewares/ST/STM32_USB_Device_Library/Core/Inc Middlewares/ST/STM32_USB_Device_Library/Class/CDC/Inc USB_DEVICE/App USB_DEVICE/Target User/BSP/Boards User/Application User/Components/algorithm User/Components/devices User/Components/support User/Application User/RTT)
 
 add_definitions(-DUSE_HAL_DRIVER -DSTM32F407xx -D__FPU_PRESENT=1U -D__FPU_USED=1U -D__TARGET_FPU_VFP)
 
-file(GLOB_RECURSE SOURCES "Middlewares/*.*" "USB_DEVICE/*.*" "startup/*.*" "Drivers/*.*" "Core/*.*" "Core/Application/*.*" "Core/BSP/Boards/*.*" "Core/Components/algorithm/*.*" "Core/Components/controller/*.*" "Core/Components/devices/*.*" "Core/Components/support/*.*" "RTT/*.*" "Fusion/*.*")
+file(GLOB_RECURSE SOURCES "Middlewares/*.*" "USB_DEVICE/*.*" "startup/*.*" "Drivers/*.*" "Core/*.*" "User/Application/*.*" "User/BSP/Boards/*.*" "User/Components/algorithm/*.*" "User/Components/controller/*.*" "User/Components/devices/*.*" "User/Components/support/*.*" "User/RTT/*.*" "Fusion/*.*")
 
 set(LINKER_SCRIPT ${CMAKE_SOURCE_DIR}/STM32F407IGHx_FLASH.ld)
 
 add_link_options(-lm -Wl,-gc-sections,--print-memory-usage,-Map=${PROJECT_BINARY_DIR}/${PROJECT_NAME}.map,--cref,--no-warn-mismatch)
 add_link_options(-mcpu=cortex-m4 -mthumb -mthumb-interwork)
 add_link_options(-T ${LINKER_SCRIPT})
-link_libraries(${PROJECT_BINARY_DIR}/../Core/Components/algorithm/libahrs.a)
-link_libraries(${PROJECT_BINARY_DIR}/../Core/Components/algorithm/libarm_cortexM4lf_math.a)
+link_libraries(${PROJECT_BINARY_DIR}/../User/Components/algorithm/libahrs.a)
+link_libraries(${PROJECT_BINARY_DIR}/../User/Components/algorithm/libarm_cortexM4lf_math.a)
 
 add_executable(${PROJECT_NAME}.elf ${SOURCES} ${LINKER_SCRIPT})
 

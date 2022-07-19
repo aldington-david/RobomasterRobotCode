@@ -151,7 +151,7 @@ void PID_clear(pid_type_def *pid) {
     pid->Dbuf[0] = pid->Dbuf[1] = pid->Dbuf[2] = 0.0f;
     pid->out = pid->Pout = pid->Iout = pid->Dout = 0.0f;
     pid->last_fdb = pid->fdb = pid->set = 0.0f;
-    pid->I_ratio = pid->D_Low_Pass_Filter.out = 0.0f;
+    pid->D_Low_Pass_Filter.out = pid->I_ratio = 0.0f;
 }
 
 /************ Move pid *************/
