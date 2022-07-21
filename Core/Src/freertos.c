@@ -191,14 +191,13 @@ void MX_FREERTOS_Init(void) {
     osThreadDef(REFEREE_TX, referee_tx_task, osPriorityNormal, 0, 256);
     referee_tx_task_handle = osThreadCreate(osThread(REFEREE_TX), NULL);
 
-    if(UART1_TARGET_MODE == Vision_MODE){
-    osThreadDef(VISION_TX, vision_tx_task, osPriorityNormal, 0, 256);
-    vision_tx_task_handle = osThreadCreate(osThread(VISION_TX), NULL);
-    }else if(UART1_TARGET_MODE == Matlab_MODE){
-    osThreadDef(MatlabSyncTask, matlab_sync_task, osPriorityRealtime, 0, 256);
-    MatlabSync_task_handle = osThreadCreate(osThread(MatlabSyncTask), NULL);
+    if (UART1_TARGET_MODE == Vision_MODE) {
+        osThreadDef(VISION_TX, vision_tx_task, osPriorityNormal, 0, 256);
+        vision_tx_task_handle = osThreadCreate(osThread(VISION_TX), NULL);
+    } else if (UART1_TARGET_MODE == Matlab_MODE) {
+        osThreadDef(MatlabSyncTask, matlab_sync_task, osPriorityRealtime, 0, 256);
+        MatlabSync_task_handle = osThreadCreate(osThread(MatlabSyncTask), NULL);
     }
-
 
 
     osThreadDef(printTask, print_task, osPriorityNormal, 0, 512);
@@ -235,8 +234,7 @@ __weak void test_task(void const * argument)
   MX_USB_DEVICE_Init();
   /* USER CODE BEGIN test_task */
     /* Infinite loop */
-    for(;;)
-    {
+    for (;;) {
         osDelay(1);
     }
   /* USER CODE END test_task */

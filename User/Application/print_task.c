@@ -142,13 +142,13 @@ referee usart:%s\r\n\
 //            SEGGER_RTT_WriteString(0, print_buf);
 
             //IMU数据
-//            SEGGER_RTT_SetTerminal(5);
-//            sprintf(print_buf, "imu_tmp=%f,YAW=%f,PITCH=%f,ROLL=%f\r\n",
-//                    bmi088_real_data.temp,
-//                    INS_angle[0],
-//                    INS_angle[1],
-//                    INS_angle[2]);
-//            SEGGER_RTT_WriteString(0, print_buf);
+            SEGGER_RTT_SetTerminal(5);
+            sprintf(print_buf, "imu_tmp=%f,YAW=%f,PITCH=%f,ROLL=%f\r\n",
+                    bmi088_real_data.temp,
+                    INS_angle[0],
+                    INS_angle[1],
+                    INS_angle[2]);
+            SEGGER_RTT_WriteString(0, print_buf);
 
 
             //视觉
@@ -502,35 +502,35 @@ referee usart:%s\r\n\
             /***********************打印数据 End *****************************/
 
 
-            printf(
-                    "******************************\r\n\
-voltage percentage:%d%% \r\n\
-DBUS:%s\r\n\
-chassis motor1:%s\r\n\
-chassis motor2:%s\r\n\
-chassis motor3:%s\r\n\
-chassis motor4:%s\r\n\
-yaw motor:%s\r\n\
-pitch motor:%s\r\n\
-trigger motor:%s\r\n\
-gyro sensor:%s\r\n\
-accel sensor:%s\r\n\
-mag sensor:%s\r\n\
-referee rx usart:%s\r\n\
-******************************\r\n",
-                    get_battery_percentage(),
-                    status[error_list_print_local[DBUS_TOE].error_exist],
-                    status[error_list_print_local[CHASSIS_MOTOR1_TOE].error_exist],
-                    status[error_list_print_local[CHASSIS_MOTOR2_TOE].error_exist],
-                    status[error_list_print_local[CHASSIS_MOTOR3_TOE].error_exist],
-                    status[error_list_print_local[CHASSIS_MOTOR4_TOE].error_exist],
-                    status[error_list_print_local[YAW_GIMBAL_MOTOR_TOE].error_exist],
-                    status[error_list_print_local[PITCH_GIMBAL_MOTOR_TOE].error_exist],
-                    status[error_list_print_local[TRIGGER_MOTOR_TOE].error_exist],
-                    status[error_list_print_local[BOARD_GYRO_TOE].error_exist],
-                    status[error_list_print_local[BOARD_ACCEL_TOE].error_exist],
-                    status[error_list_print_local[BOARD_MAG_TOE].error_exist],
-                    status[error_list_print_local[REFEREE_RX_TOE].error_exist]);
+//            printf(
+//                    "******************************\r\n\
+//voltage percentage:%d%% \r\n\
+//DBUS:%s\r\n\
+//chassis motor1:%s\r\n\
+//chassis motor2:%s\r\n\
+//chassis motor3:%s\r\n\
+//chassis motor4:%s\r\n\
+//yaw motor:%s\r\n\
+//pitch motor:%s\r\n\
+//trigger motor:%s\r\n\
+//gyro sensor:%s\r\n\
+//accel sensor:%s\r\n\
+//mag sensor:%s\r\n\
+//referee rx usart:%s\r\n\
+//******************************\r\n",
+//                    get_battery_percentage(),
+//                    status[error_list_print_local[DBUS_TOE].error_exist],
+//                    status[error_list_print_local[CHASSIS_MOTOR1_TOE].error_exist],
+//                    status[error_list_print_local[CHASSIS_MOTOR2_TOE].error_exist],
+//                    status[error_list_print_local[CHASSIS_MOTOR3_TOE].error_exist],
+//                    status[error_list_print_local[CHASSIS_MOTOR4_TOE].error_exist],
+//                    status[error_list_print_local[YAW_GIMBAL_MOTOR_TOE].error_exist],
+//                    status[error_list_print_local[PITCH_GIMBAL_MOTOR_TOE].error_exist],
+//                    status[error_list_print_local[TRIGGER_MOTOR_TOE].error_exist],
+//                    status[error_list_print_local[BOARD_GYRO_TOE].error_exist],
+//                    status[error_list_print_local[BOARD_ACCEL_TOE].error_exist],
+//                    status[error_list_print_local[BOARD_MAG_TOE].error_exist],
+//                    status[error_list_print_local[REFEREE_RX_TOE].error_exist]);
 
 
 
