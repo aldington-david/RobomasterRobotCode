@@ -49,6 +49,15 @@
 //#define CALI_BLOCK Cali_Active  //Calibrate by task notification //not realize yet
 /************ Choose Detect Block Device End*******************/
 
+/************ Keil Feature Define Start*******************/
+#if __CC_ARM
+#define Enable_EventRecorder 1
+#define Disable_EventRecorder 1
+#define EventRecorder_MODE Enable_EventRecorder
+//#define EventRecorder_MODE Disable_EventRecorder
+#endif
+/************ Keil Feature Define End*******************/
+
 /************ Lack Define Warning Start*******************/
 #if !defined(PRINTF_MODE)
 #error "You mast define PRINTF_MODE to chose a printf option"
@@ -68,5 +77,15 @@
 
 #if !defined(CALI_BLOCK)
 #error "You mast define CALI_BLOCK to chose a block mode"
+#endif
+
+#if !defined(CALI_BLOCK)
+#error "You mast define CALI_BLOCK to chose a block mode"
+#endif
+
+#if __CC_ARM
+#if !defined(EventRecorder_MODE)
+#error "You mast define EventRecorder_MODE to chose enalbe or not"
+#endif
 #endif
 /************ Lack Define Warning End*******************/

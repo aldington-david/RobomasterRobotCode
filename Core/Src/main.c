@@ -51,6 +51,11 @@
 #include "voltage_task.h"
 #include "referee_task.h"
 #include "SEGGER_RTT.h"
+#if __CC_ARM
+#if EventRecorder_MODE == Enable_EventRecorder
+#include "EventRecorder.h"
+#endif
+#endif
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -110,6 +115,12 @@ int main(void)
   /* USER CODE BEGIN SysInit */
   HAL_RTC_MspInit(&hrtc);
 
+#if __CC_ARM
+#if EventRecorder_MODE == Enable_EventRecorder
+    /* EventRecorder Initializes */
+	EventRecorderInitialize(EventRecordAll, 1U);
+#endif
+#endif
   /* USER CODE END SysInit */
 
   /* Initialize all configured peripherals */
