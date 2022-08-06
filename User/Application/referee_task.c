@@ -14,6 +14,13 @@
 
 
 #define printf(format, args...)  SEGGER_RTT_printf(0, format, ##args)
+
+#if INCLUDE_uxTaskGetStackHighWaterMark
+uint32_t referee_rx_task_stack;
+uint32_t referee_tx_task_stack;
+uint32_t USART6TX_active_task_stack;
+#endif
+
 judge_info_t global_judge_info;
 uint8_t referee_fifo_rx_buf[REFEREE_FIFO_BUF_LENGTH];
 uint8_t referee_fifo_tx_len_buf[REFEREE_FIFO_BUF_LENGTH];
@@ -60,6 +67,9 @@ void referee_rx_task(void const *argument) {
     while (1) {
         LoopStartTime = xTaskGetTickCount();
         referee_unpack_fifo_data();
+#if INCLUDE_uxTaskGetStackHighWaterMark
+        referee_rx_task_stack = uxTaskGetStackHighWaterMark(NULL);
+#endif
         vTaskDelayUntil(&LoopStartTime, pdMS_TO_TICKS(10));
     }
 }
@@ -391,9 +401,30 @@ void referee_tx_task(void const *argument) {
 //        line_drawing(name,ADD_PICTURE,0,graphic_color_yellow, 5,200, 200, 400, 400  );
 //        printf("%d", fifo_s_used(&referee_tx_fifo));
         UI_clean_all();
-//        Hero_UI_ruler(5, 961, 538, line_distance, line_length, ruler_color, ADD_PICTURE);
+        Hero_UI_ruler(5, 961, 538, line_distance, line_length, ruler_color, ADD_PICTURE);
+#if INCLUDE_uxTaskGetStackHighWaterMark
+        referee_tx_task_stack = uxTaskGetStackHighWaterMark(NULL);
+#endif
         vTaskDelayUntil(&LoopStartTime, pdMS_TO_TICKS(100));
     }
+}
+
+/**
+  * @brief          获取referee_tx_task栈大小
+  * @param[in]      none
+  * @retval         referee_tx_task_stack:任务堆栈大小
+  */
+uint32_t get_stack_of_referee_tx_task(void) {
+    return referee_tx_task_stack;
+}
+
+/**
+  * @brief          获取referee_rx_task栈大小
+  * @param[in]      none
+  * @retval         referee_rx_task_stack:任务堆栈大小
+  */
+uint32_t get_stack_of_referee_rx_task(void) {
+    return referee_rx_task_stack;
 }
 
 /**
@@ -597,6 +628,9 @@ void USART6TX_active_task(void const *pvParameters) {
             }
         }
         xTaskResumeAll();
+#if INCLUDE_uxTaskGetStackHighWaterMark
+        USART6TX_active_task_stack = uxTaskGetStackHighWaterMark(NULL);
+#endif
     }
 }
 
@@ -676,6 +710,15 @@ void MY_USART_DMA_Stream6_TX_IRQHandler(void) {
             }
         }
     }
+}
+
+/**
+  * @brief          获取USART6TX_active_task栈大小
+  * @param[in]      none
+  * @retval         USART6TX_active_task_stack:任务堆栈大小
+  */
+uint32_t get_stack_of_USART6TX_active_task(void) {
+    return USART6TX_active_task_stack;
 }
 
 /************裁判系统UI绘图功能函数******************/

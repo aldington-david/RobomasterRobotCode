@@ -15,6 +15,12 @@
 #include "matlab_sync_task.h"
 #include "print_task.h"
 
+#if INCLUDE_uxTaskGetStackHighWaterMark
+uint32_t vision_rx_task_stack;
+uint32_t vision_tx_task_stack;
+uint32_t USART1TX_active_task_stack;
+#endif
+
 uint8_t vision_fifo_rx_buf[VISION_FIFO_BUF_LENGTH];
 uint8_t vision_fifo_tx_len_buf[VISION_FIFO_BUF_LENGTH];
 uint8_t vision_fifo_tx_buf[VISION_FIFO_BUF_LENGTH];
@@ -45,6 +51,9 @@ void vision_rx_task(void const *argument) {
         while (ulTaskNotifyTake(pdTRUE, portMAX_DELAY) != pdPASS) {
         }
         vision_unpack_fifo_data();
+#if INCLUDE_uxTaskGetStackHighWaterMark
+        vision_rx_task_stack = uxTaskGetStackHighWaterMark(NULL);
+#endif
     }
 }
 
@@ -62,8 +71,38 @@ void vision_tx_task(void const *argument) {
     while (1) {
         LoopStartTime = xTaskGetTickCount();
 //        referee_unpack_fifo_data();
+#if INCLUDE_uxTaskGetStackHighWaterMark
+        vision_tx_task_stack = uxTaskGetStackHighWaterMark(NULL);
+#endif
         vTaskDelayUntil(&LoopStartTime, pdMS_TO_TICKS(10));
     }
+}
+
+/**
+  * @brief          获取vision_tx_task栈大小
+  * @param[in]      none
+  * @retval         vision_tx_task_stack:任务堆栈大小
+  */
+uint32_t get_stack_of_vision_tx_task(void) {
+    return vision_tx_task_stack;
+}
+
+/**
+  * @brief          获取vision_rx_task栈大小
+  * @param[in]      none
+  * @retval         vision_rx_task_stack:任务堆栈大小
+  */
+uint32_t get_stack_of_vision_rx_task(void) {
+    return vision_rx_task_stack;
+}
+
+/**
+  * @brief          获取USART1TX_active_task栈大小
+  * @param[in]      none
+  * @retval         USART1TX_active_task_stack:任务堆栈大小
+  */
+uint32_t get_stack_of_USART1TX_active_task(void) {
+    return USART1TX_active_task_stack;
 }
 
 /**
@@ -277,6 +316,9 @@ void USART1TX_active_task(void const *pvParameters) {
                                 }
                             }
                             taskEXIT_CRITICAL();
+#if INCLUDE_uxTaskGetStackHighWaterMark
+                            USART1TX_active_task_stack = uxTaskGetStackHighWaterMark(NULL);
+#endif
                         }
                     }
                 }
@@ -363,6 +405,9 @@ void USART1TX_active_task(void const *pvParameters) {
                 }
             }
         }
+#if INCLUDE_uxTaskGetStackHighWaterMark
+        USART1TX_active_task_stack = uxTaskGetStackHighWaterMark(NULL);
+#endif
         xTaskResumeAll();
     }
 }

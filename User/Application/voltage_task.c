@@ -29,6 +29,10 @@
 #define VOLTAGE_DROP            0.00f
 
 
+#if INCLUDE_uxTaskGetStackHighWaterMark
+uint32_t battery_voltage_task_stack;
+#endif
+
 static fp32 calc_battery_percentage(float voltage);
 
 
@@ -56,8 +60,20 @@ void battery_voltage_task(void const * argument)
         LoopStartTime = xTaskGetTickCount();
         battery_voltage = get_battery_voltage() + VOLTAGE_DROP;
         electricity_percentage = calc_battery_percentage(battery_voltage);
+#if INCLUDE_uxTaskGetStackHighWaterMark
+        battery_voltage_task_stack = uxTaskGetStackHighWaterMark(NULL);
+#endif
         vTaskDelayUntil(&LoopStartTime, pdMS_TO_TICKS(100));
     }
+}
+
+/**
+  * @brief          获取battery_voltage_task栈大小
+  * @param[in]      none
+  * @retval         battery_voltage_task_stack:任务堆栈大小
+  */
+uint32_t get_stack_of_battery_voltage_task(void) {
+    return battery_voltage_task_stack;
 }
 
 static fp32 calc_battery_percentage(float voltage)

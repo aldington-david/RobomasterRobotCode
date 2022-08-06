@@ -15,6 +15,9 @@
 #include "task.h"
 #include "vision_task.h"
 
+#if INCLUDE_uxTaskGetStackHighWaterMark
+uint32_t matlab_sync_task_stack;
+#endif
 
 uint8_t matlab_fifo_tx_len_buf[MATLAB_FIFO_BUF_LENGTH];
 uint8_t matlab_fifo_tx_buf[MATLAB_FIFO_BUF_LENGTH];
@@ -57,9 +60,20 @@ void matlab_sync_task(void const *argument) {
 //        data_sync(sizeof(test1));
 //        data_sync(sizeof(test1));
 //        referee_unpack_fifo_data();
-
+#if INCLUDE_uxTaskGetStackHighWaterMark
+        matlab_sync_task_stack = uxTaskGetStackHighWaterMark(NULL);
+#endif
 //        vTaskDelayUntil(&LoopStartTime, pdMS_TO_TICKS(10));
     }
+}
+
+/**
+  * @brief          获取matlab_sync_task栈大小
+  * @param[in]      none
+  * @retval         matlab_sync_task_stack:任务堆栈大小
+  */
+uint32_t get_stack_of_matlab_sync_task(void) {
+    return matlab_sync_task_stack;
 }
 
 void init_matlab_struct_data(void) {

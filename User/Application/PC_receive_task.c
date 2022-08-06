@@ -19,6 +19,10 @@
 #include "vision_task.h"
 #include "gimbal_behaviour.h"
 
+#if INCLUDE_uxTaskGetStackHighWaterMark
+uint32_t PC_receive_task_stack;
+#endif
+
 char Char_Receive_Buffer[256];
 char *p;
 int param_num;
@@ -160,6 +164,18 @@ void PC_receive_task(void const *argument) {
                 SEGGER_RTT_WriteString(0, "Too many params.");
             }
         }
+#if INCLUDE_uxTaskGetStackHighWaterMark
+        PC_receive_task_stack = uxTaskGetStackHighWaterMark(NULL);
+#endif
         vTaskDelayUntil(&LoopStartTime, pdMS_TO_TICKS(13));
     }
+}
+
+/**
+  * @brief          获取PC_receive_task栈大小
+  * @param[in]      none
+  * @retval         PC_receive_task_stack:任务堆栈大小
+  */
+uint32_t get_stack_of_PC_receive_task(void){
+    return PC_receive_task_stack;
 }

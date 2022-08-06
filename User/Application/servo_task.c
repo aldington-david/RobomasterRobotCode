@@ -30,6 +30,10 @@
 #define Bullet_Box_Open_PWM   1980
 #define Bullet_Box_Close_PWM   892
 
+#if INCLUDE_uxTaskGetStackHighWaterMark
+uint32_t servo_task_stack;
+#endif
+
 static servo_mode_e Bullet_Box_Mode = Bullet_Box_Min;
 const RC_ctrl_t *servo_rc;
 //const static uint16_t servo_key[4] = {SERVO1_ADD_PWM_KEY, SERVO2_ADD_PWM_KEY, SERVO3_ADD_PWM_KEY, SERVO4_ADD_PWM_KEY};
@@ -86,8 +90,21 @@ void servo_task(void const *argument) {
 //
 //            servo_pwm_set(servo_pwm[i], i);
 //        }
+
+#if INCLUDE_uxTaskGetStackHighWaterMark
+        servo_task_stack = uxTaskGetStackHighWaterMark(NULL);
+#endif
         vTaskDelayUntil(&LoopStartTime, pdMS_TO_TICKS(13));
     }
+}
+
+/**
+  * @brief          获取servo_task栈大小
+  * @param[in]      none
+  * @retval         servo_task:任务堆栈大小
+  */
+uint32_t get_stack_of_servo_task(void) {
+    return servo_task_stack;
 }
 
 void bullet_box_control(void) {

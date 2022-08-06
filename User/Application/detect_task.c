@@ -155,14 +155,21 @@ void detect_task(void const *pvParameters) {
                 }
             }
         }
-
-        vTaskDelayUntil(&LoopStartTime, pdMS_TO_TICKS(DETECT_CONTROL_TIME));
 #if INCLUDE_uxTaskGetStackHighWaterMark
         detect_task_stack = uxTaskGetStackHighWaterMark(NULL);
 #endif
+        vTaskDelayUntil(&LoopStartTime, pdMS_TO_TICKS(DETECT_CONTROL_TIME));
     }
 }
 
+/**
+  * @brief          获取detect_task栈大小
+  * @param[in]      none
+  * @retval         detect_task_stack:任务堆栈大小
+  */
+uint32_t get_stack_of_detect_task(void) {
+    return detect_task_stack;
+}
 
 /**
   * @brief          get toe error status

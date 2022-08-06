@@ -153,33 +153,33 @@ void MX_FREERTOS_Init(void) {
 
   /* Create the thread(s) */
   /* definition and creation of test */
-  osThreadDef(test, test_task, osPriorityNormal, 0, 128);
+  osThreadDef(test, test_task, osPriorityNormal, 0, 64);
   testHandle = osThreadCreate(osThread(test), NULL);
 
   /* USER CODE BEGIN RTOS_THREADS */
     /* add threads, ... */
-    osThreadDef(cali, calibrate_task, osPriorityNormal, 0, 512);
+    osThreadDef(cali, calibrate_task, osPriorityNormal, 0, 128);
     calibrate_tast_handle = osThreadCreate(osThread(cali), NULL);
 
-    osThreadDef(DETECT, detect_task, osPriorityNormal, 0, 256);
+    osThreadDef(DETECT, detect_task, osPriorityNormal, 0, 128);
     detect_handle = osThreadCreate(osThread(DETECT), NULL);
 
-    osThreadDef(ChassisTask, chassis_task, osPriorityAboveNormal, 0, 512);
+    osThreadDef(ChassisTask, chassis_task, osPriorityAboveNormal, 0, 256);
     chassisTaskHandle = osThreadCreate(osThread(ChassisTask), NULL);
 
-    osThreadDef(gimbalTask, gimbal_task, osPriorityHigh, 0, 512);
+    osThreadDef(gimbalTask, gimbal_task, osPriorityHigh, 0, 256);
     gimbalTaskHandle = osThreadCreate(osThread(gimbalTask), NULL);
 
-    osThreadDef(imuTask, INS_task, osPriorityRealtime, 0, 512);
+    osThreadDef(imuTask, INS_task, osPriorityRealtime, 0, 256);
     imuTaskHandle = osThreadCreate(osThread(imuTask), NULL);
 
     osThreadDef(VISION_RX, vision_rx_task, osPriorityRealtime, 0, 256);
     vision_rx_task_handle = osThreadCreate(osThread(VISION_RX), NULL);
 
-    osThreadDef(SERVO, servo_task, osPriorityAboveNormal, 0, 256);
+    osThreadDef(SERVO, servo_task, osPriorityAboveNormal, 0, 128);
     servo_task_handle = osThreadCreate(osThread(SERVO), NULL);
 
-    osThreadDef(REFEREE_RX, referee_rx_task, osPriorityNormal, 0, 256);
+    osThreadDef(REFEREE_RX, referee_rx_task, osPriorityNormal, 0, 512);
     referee_rx_task_handle = osThreadCreate(osThread(REFEREE_RX), NULL);
 
     osThreadDef(USART6TXAactiveTask, USART6TX_active_task, osPriorityRealtime, 0, 256);
@@ -203,7 +203,7 @@ void MX_FREERTOS_Init(void) {
     osThreadDef(printTask, print_task, osPriorityNormal, 0, 512);
     print_task_handle = osThreadCreate(osThread(printTask), NULL);
 
-    osThreadDef(PC_receiveTask, PC_receive_task, osPriorityNormal, 0, 512);
+    osThreadDef(PC_receiveTask, PC_receive_task, osPriorityNormal, 0, 256);
     servo_task_handle = osThreadCreate(osThread(PC_receiveTask), NULL);
 
     osThreadDef(BATTERY_VOLTAGE, battery_voltage_task, osPriorityBelowNormal, 0, 256);

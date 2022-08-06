@@ -115,7 +115,7 @@ static void chassis_set_contorl(chassis_move_t *chassis_move_control);
 static void chassis_control_loop(chassis_move_t *chassis_move_control_loop);
 
 #if INCLUDE_uxTaskGetStackHighWaterMark
-uint32_t chassis_high_water;
+uint32_t chassis_task_stack;
 #endif
 
 
@@ -186,14 +186,20 @@ void chassis_task(void const *pvParameters)
                                 chassis_move.motor_chassis[2].give_current, chassis_move.motor_chassis[3].give_current);
             }
         }
-        //os delay
-        //系统延时
-        vTaskDelayUntil(&LoopStartTime, pdMS_TO_TICKS(CHASSIS_CONTROL_TIME_MS));
-
 #if INCLUDE_uxTaskGetStackHighWaterMark
-        chassis_high_water = uxTaskGetStackHighWaterMark(NULL);
+        chassis_task_stack = uxTaskGetStackHighWaterMark(NULL);
 #endif
+        vTaskDelayUntil(&LoopStartTime, pdMS_TO_TICKS(CHASSIS_CONTROL_TIME_MS));
     }
+}
+
+/**
+  * @brief          获取chassis_task栈大小
+  * @param[in]      none
+  * @retval         chassis_task_stack:任务堆栈大小
+  */
+uint32_t get_stack_of_chassis_task(void) {
+    return chassis_task_stack;
 }
 
 /**

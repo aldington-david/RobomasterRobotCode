@@ -21,6 +21,13 @@
 #include <stdint.h>
 
 
+/**
+  * @brief          获取print_task栈大小
+  * @param[in]      none
+  * @retval         print_task_stack:任务堆栈大小
+  */
+extern uint32_t get_stack_of_print_task(void);
+
 extern void print_task(void const *argument);
 
 static void usb_printf(const char *fmt, ...);

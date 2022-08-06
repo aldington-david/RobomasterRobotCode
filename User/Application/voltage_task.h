@@ -18,9 +18,15 @@
   */
 #ifndef VOLTAGE_TASK_H
 #define VOLTAGE_TASK_H
+#include <stdint.h>
 #include "struct_typedef.h"
 
-
+/**
+  * @brief          获取battery_voltage_task栈大小
+  * @param[in]      none
+  * @retval         battery_voltage_task_stack:任务堆栈大小
+  */
+extern uint32_t get_stack_of_battery_voltage_task(void);
 
 /**
   * @brief          power ADC and calculate electricity percentage

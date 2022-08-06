@@ -290,11 +290,20 @@ void calibrate_task(void const *pvParameters) {
                 }
             }
         }
-        vTaskDelayUntil(&LoopStartTime, pdMS_TO_TICKS(CALIBRATE_CONTROL_TIME));
 #if INCLUDE_uxTaskGetStackHighWaterMark
         calibrate_task_stack = uxTaskGetStackHighWaterMark(NULL);
 #endif
+        vTaskDelayUntil(&LoopStartTime, pdMS_TO_TICKS(CALIBRATE_CONTROL_TIME));
     }
+}
+
+/**
+  * @brief          获取calibrate_task栈大小
+  * @param[in]      none
+  * @retval         calibrate_task_stack:任务堆栈大小
+  */
+uint32_t get_stack_of_calibrate_task(void) {
+    return calibrate_task_stack;
 }
 
 /**
@@ -520,10 +529,10 @@ static void cali_data_read(void) {
         cali_sensor[i].cali_done = flash_read_buf[3];
 
         offset += CALI_SENSOR_HEAD_LEGHT * 4;
-        if(CALI_BLOCK==Cali_Auto)
-        if (cali_sensor[i].cali_done != CALIED_FLAG && cali_sensor[i].cali_hook != NULL) {
-            cali_sensor[i].cali_cmd = 1;
-        }
+        if (CALI_BLOCK == Cali_Auto)
+            if (cali_sensor[i].cali_done != CALIED_FLAG && cali_sensor[i].cali_hook != NULL) {
+                cali_sensor[i].cali_cmd = 1;
+            }
     }
 }
 
@@ -669,7 +678,6 @@ static bool_t cali_gimbal_hook(uint32_t *cali, bool_t cmd) {
         set_cali_gimbal_hook(local_cali_t->yaw_offset, local_cali_t->pitch_offset,
                              local_cali_t->yaw_max_angle, local_cali_t->yaw_min_angle,
                              local_cali_t->pitch_max_angle, local_cali_t->pitch_min_angle);
-
 
 
         return 0;

@@ -23,6 +23,7 @@
 
 #ifndef INS_Task_H
 #define INS_Task_H
+#include <stdint.h>
 #include "struct_typedef.h"
 
 
@@ -73,6 +74,14 @@
 #define INS_MAG_Z_ADDRESS_OFFSET 2
 
 extern fp32 INS_angle[3];
+
+/**
+  * @brief          获取INS_task栈大小
+  * @param[in]      none
+  * @retval         INS_task_stack:任务堆栈大小
+  */
+extern uint32_t get_stack_of_INS_task(void);
+
 /**
   * @brief          imu task, init bmi088, ist8310, calculate the euler angle
   * @param[in]      pvParameters: NULL

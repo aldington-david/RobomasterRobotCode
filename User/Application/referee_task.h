@@ -635,6 +635,27 @@ extern void referee_rx_task(void const *argument);
 
 extern void referee_tx_task(void const *argument);
 
+/**
+  * @brief          获取referee_tx_task栈大小
+  * @param[in]      none
+  * @retval         referee_tx_task_stack:任务堆栈大小
+  */
+extern uint32_t get_stack_of_referee_tx_task(void);
+
+/**
+  * @brief          获取referee_rx_task栈大小
+  * @param[in]      none
+  * @retval         referee_rx_task_stack:任务堆栈大小
+  */
+extern uint32_t get_stack_of_referee_rx_task(void);
+
+/**
+  * @brief          获取USART6TX_active_task栈大小
+  * @param[in]      none
+  * @retval         USART6TX_active_task_stack:任务堆栈大小
+  */
+extern uint32_t get_stack_of_USART6TX_active_task(void);
+
 #pragma pack(push, 1)
 //TX Declare
 //#define DRAWING_PACK	15

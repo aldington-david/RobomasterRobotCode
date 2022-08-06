@@ -17,8 +17,16 @@
 #ifndef LED_TRIGGER_TASK_H
 #define LED_TRIGGER_TASK_H
 
-
+#include <stdint.h>
 #include "struct_typedef.h"
+
+
+/**
+  * @brief          获取led_RGB_flow_task栈大小
+  * @param[in]      none
+  * @retval         led_RGB_flow_task_stack:任务堆栈大小
+  */
+extern uint32_t get_stack_of_led_RGB_flow_task(void);
 
 /**
   * @brief          led rgb task

@@ -52,11 +52,20 @@
 /************ Keil Feature Define Start*******************/
 #if __CC_ARM
 #define Enable_EventRecorder 1
-#define Disable_EventRecorder 1
+#define Disable_EventRecorder 0
 #define EventRecorder_MODE Enable_EventRecorder
 //#define EventRecorder_MODE Disable_EventRecorder
 #endif
 /************ Keil Feature Define End*******************/
+
+/************ FreeRTOS Debug Define Start*******************/
+
+#define Enable_FreeRTOS_Heap_Data 1
+#define Disable_FreeRTOS_Heap_Data 0
+#define FreeRTOS_Date_MODE Enable_EventRecorder
+//#define FreeRTOS_Date_MODE Disable_FreeRTOS_Heap_Data
+
+/************ FreeRTOS Debug Define End*******************/
 
 /************ Lack Define Warning Start*******************/
 #if !defined(PRINTF_MODE)
@@ -64,7 +73,7 @@
 #endif
 
 //#if !defined(UART_SEND_MODE)
-//#error "You mast define UART_SEND_MODE to chose a UART send option"
+//#error "You mast define UART_SEND_MODE to choose a UART send option"
 //#endif
 
 #if !defined(UART1_TARGET_MODE)

@@ -74,6 +74,28 @@ extern uint8_t usart1_vision_tx_buf[2][USART1_VISION_TX_BUF_LENGHT];
 extern vision_info_t global_vision_info;
 void USART1_IRQHandler(void);
 void DMA2_Stream7_IRQHandler(void);
+
+/**
+  * @brief          获取vision_tx_task栈大小
+  * @param[in]      none
+  * @retval         vision_tx_task_stack:任务堆栈大小
+  */
+extern uint32_t get_stack_of_vision_tx_task(void);
+
+/**
+  * @brief          获取vision_rx_task栈大小
+  * @param[in]      none
+  * @retval         vision_rx_task_stack:任务堆栈大小
+  */
+extern uint32_t get_stack_of_vision_rx_task(void);
+
+/**
+  * @brief          获取USART1TX_active_task栈大小
+  * @param[in]      none
+  * @retval         USART1TX_active_task_stack:任务堆栈大小
+  */
+extern uint32_t get_stack_of_USART1TX_active_task(void);
+
 /**
   * @brief          视觉接收任务
   * @param[in]      pvParameters: NULL

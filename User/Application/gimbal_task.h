@@ -270,6 +270,13 @@ typedef struct {
 } gimbal_control_t;
 
 /**
+  * @brief          获取gimbal_task栈大小
+  * @param[in]      none
+  * @retval         gimbal_task_stack:任务堆栈大小
+  */
+extern uint32_t get_stack_of_gimbal_task(void);
+
+/**
   * @brief          return yaw motor data point
   * @param[in]      none
   * @retval         yaw motor data point

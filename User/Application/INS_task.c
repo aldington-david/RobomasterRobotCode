@@ -97,6 +97,9 @@ static void imu_temp_control(fp32 temp);
   */
 static void imu_cmd_spi_dma(void);
 
+#if INCLUDE_uxTaskGetStackHighWaterMark
+uint32_t INS_task_stack;
+#endif
 
 extern SPI_HandleTypeDef hspi1;
 
@@ -270,10 +273,20 @@ void INS_task(void const *pvParameters) {
             ist8310_read_mag(ist8310_real_data.mag);
         }
 
+#if INCLUDE_uxTaskGetStackHighWaterMark
+        INS_task_stack = uxTaskGetStackHighWaterMark(NULL);
+#endif
     }
 }
 
-
+/**
+  * @brief          获取INS_task栈大小
+  * @param[in]      none
+  * @retval         INS_task_stack:任务堆栈大小
+  */
+uint32_t get_stack_of_INS_task(void) {
+    return INS_task_stack;
+}
 
 
 /**

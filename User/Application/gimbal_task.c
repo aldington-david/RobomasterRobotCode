@@ -71,7 +71,7 @@
     }
 
 #if INCLUDE_uxTaskGetStackHighWaterMark
-uint32_t gimbal_high_water;
+uint32_t gimbal_task_stack;
 #endif
 #define NUM_TAPS 4
 
@@ -306,12 +306,6 @@ calc_gimbal_cali(const gimbal_step_cali_t *gimbal_cali, uint16_t *yaw_offset, ui
                  fp32 *min_yaw, fp32 *max_pitch, fp32 *min_pitch);
 
 
-#if GIMBAL_TEST_MODE
-//j-scope 帮助pid调参
-static void J_scope_gimbal_test(void);
-#endif
-
-
 //gimbal control data
 //云台控制所有相关数据
 gimbal_control_t gimbal_control;
@@ -387,18 +381,21 @@ void gimbal_task(void const *pvParameters) {
             }
         }
 
-#if GIMBAL_TEST_MODE
-        J_scope_gimbal_test();
-#endif
-
-        vTaskDelayUntil(&LoopStartTime, pdMS_TO_TICKS(GIMBAL_CONTROL_TIME));
-
 #if INCLUDE_uxTaskGetStackHighWaterMark
-        gimbal_high_water = uxTaskGetStackHighWaterMark(NULL);
+        gimbal_task_stack = uxTaskGetStackHighWaterMark(NULL);
 #endif
+        vTaskDelayUntil(&LoopStartTime, pdMS_TO_TICKS(GIMBAL_CONTROL_TIME));
     }
 }
 
+/**
+  * @brief          获取gimbal_task栈大小
+  * @param[in]      none
+  * @retval         gimbal_task_stack:任务堆栈大小
+  */
+uint32_t get_stack_of_gimbal_task(void) {
+    return gimbal_task_stack;
+}
 
 /**
   * @brief          gimbal cali data, set motor offset encode, max and min relative angle
@@ -1177,29 +1174,6 @@ static void gimbal_motor_raw_angle_control(gimbal_motor_t *gimbal_motor) {
     gimbal_motor->current_set = gimbal_motor->raw_cmd_current;
     gimbal_motor->given_current = (int16_t) (gimbal_motor->current_set);
 }
-
-#if GIMBAL_TEST_MODE
-int32_t yaw_ins_int_1000, pitch_ins_int_1000;
-int32_t yaw_ins_set_1000, pitch_ins_set_1000;
-int32_t pitch_relative_set_1000, pitch_relative_angle_1000;
-int32_t yaw_speed_int_1000, pitch_speed_int_1000;
-int32_t yaw_speed_set_int_1000, pitch_speed_set_int_1000;
-static void J_scope_gimbal_test(void)
-{
-    yaw_ins_int_1000 = (int32_t)(gimbal_control.gimbal_yaw_motor.absolute_angle * 1000);
-    yaw_ins_set_1000 = (int32_t)(gimbal_control.gimbal_yaw_motor.absolute_angle_set * 1000);
-    yaw_speed_int_1000 = (int32_t)(gimbal_control.gimbal_yaw_motor.motor_gyro * 1000);
-    yaw_speed_set_int_1000 = (int32_t)(gimbal_control.gimbal_yaw_motor.motor_gyro_set * 1000);
-
-    pitch_ins_int_1000 = (int32_t)(gimbal_control.gimbal_pitch_motor.absolute_angle * 1000);
-    pitch_ins_set_1000 = (int32_t)(gimbal_control.gimbal_pitch_motor.absolute_angle_set * 1000);
-    pitch_speed_int_1000 = (int32_t)(gimbal_control.gimbal_pitch_motor.motor_gyro * 1000);
-    pitch_speed_set_int_1000 = (int32_t)(gimbal_control.gimbal_pitch_motor.motor_gyro_set * 1000);
-    pitch_relative_angle_1000 = (int32_t)(gimbal_control.gimbal_pitch_motor.relative_angle * 1000);
-    pitch_relative_set_1000 = (int32_t)(gimbal_control.gimbal_pitch_motor.relative_angle_set * 1000);
-}
-
-#endif
 
 /**
   * @brief          "gimbal_control" valiable initialization, include pid initialization, remote control data point initialization, gimbal motors

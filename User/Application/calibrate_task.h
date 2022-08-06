@@ -208,6 +208,13 @@ typedef struct {
 #pragma pack(pop)
 
 /**
+  * @brief          获取calibrate_task栈大小
+  * @param[in]      none
+  * @retval         calibrate_task_stack:任务堆栈大小
+  */
+extern uint32_t get_stack_of_calibrate_task(void);
+
+/**
   * @brief          use remote control to begin a calibrate,such as gyro, gimbal, chassis
   * @param[in]      none
   * @retval         none

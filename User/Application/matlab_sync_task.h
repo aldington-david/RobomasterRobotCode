@@ -60,5 +60,11 @@ void send_sync_char(void);
 
 void data_sync(int data_len);
 
+/**
+  * @brief          获取matlab_sync_task栈大小
+  * @param[in]      none
+  * @retval         matlab_sync_task_stack:任务堆栈大小
+  */
+extern uint32_t get_stack_of_matlab_sync_task(void);
 
 #endif //ROBOMASTERROBOTCODE_MATLAB_SYNC_TASK_H

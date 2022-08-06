@@ -57,4 +57,11 @@ extern void *PC_receive_data[29];
 
 extern void PC_receive_task(void const *argument);
 
+/**
+  * @brief          获取PC_receive_task栈大小
+  * @param[in]      none
+  * @retval         PC_receive_task_stack:任务堆栈大小
+  */
+extern uint32_t get_stack_of_PC_receive_task(void);
+
 #endif //STANDARDROBOTBASICCODE_PC_RECEIVE_TASK_H

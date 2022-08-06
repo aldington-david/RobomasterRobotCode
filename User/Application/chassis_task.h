@@ -196,6 +196,13 @@ typedef struct
 } chassis_move_t;
 
 /**
+  * @brief          获取chassis_task栈大小
+  * @param[in]      none
+  * @retval         chassis_task_stack:任务堆栈大小
+  */
+extern uint32_t get_stack_of_chassis_task(void);
+
+/**
   * @brief          chassis task, osDelay CHASSIS_CONTROL_TIME_MS (2ms) 
   * @param[in]      pvParameters: null
   * @retval         none

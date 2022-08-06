@@ -22,6 +22,11 @@
 
 #define RGB_FLOW_COLOR_CHANGE_TIME  1000
 #define RGB_FLOW_COLOR_LENGHT   6
+
+#if INCLUDE_uxTaskGetStackHighWaterMark
+uint32_t led_RGB_flow_task_stack;
+#endif
+
 //blue-> green(dark)-> red -> blue(dark) -> green(dark) -> red(dark) -> blue
 //蓝 -> 绿(灭) -> 红 -> 蓝(灭) -> 绿 -> 红(灭) -> 蓝 
 uint32_t RGB_flow_color[
@@ -77,8 +82,20 @@ void led_RGB_flow_task(void const *argument) {
                 vTaskDelay(pdMS_TO_TICKS(5));
             }
         }
+#if INCLUDE_uxTaskGetStackHighWaterMark
+        led_RGB_flow_task_stack = uxTaskGetStackHighWaterMark(NULL);
+#endif
         vTaskDelayUntil(&LoopStartTime, pdMS_TO_TICKS(100));
     }
+}
+
+/**
+  * @brief          获取led_RGB_flow_task栈大小
+  * @param[in]      none
+  * @retval         led_RGB_flow_task_stack:任务堆栈大小
+  */
+uint32_t get_stack_of_led_RGB_flow_task(void) {
+    return led_RGB_flow_task_stack;
 }
 
 

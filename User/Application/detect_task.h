@@ -102,6 +102,12 @@ typedef struct __attribute__((packed))
     void (*solve_data_error_fun)(void);
 } error_t;
 
+/**
+  * @brief          获取detect_task栈大小
+  * @param[in]      none
+  * @retval         detect_task_stack:任务堆栈大小
+  */
+extern uint32_t get_stack_of_detect_task(void);
 
 /**
   * @brief          detect task
