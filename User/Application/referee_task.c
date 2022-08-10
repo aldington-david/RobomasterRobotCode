@@ -46,7 +46,7 @@ uint8_t referee_transmit_pack[128] = {0};
   * @retval None
   */
 void init_referee_struct_data(void) {
-    memset(&global_judge_info, 0, sizeof(judge_info_t));
+    memset((void *) &global_judge_info, 0, sizeof(judge_info_t));
 }
 /**
   * @brief          referee rx task
@@ -79,7 +79,7 @@ void judge_update(uint8_t *rxBuf) {
     uint16_t frame_length = 0;
     uint16_t cmd_id = 0;
     judge_info_t *judge_info = &global_judge_info;
-    memcpy(&judge_info->FrameHeader, rxBuf, LEN_FRAME_HEAD);
+    memcpy((void *) &judge_info->FrameHeader, rxBuf, LEN_FRAME_HEAD);
 //    printf("%d",judge_info->FrameHeader.SEQ);
 
     if (rxBuf[J_SOF] == HEADER_SOF) {
@@ -95,106 +95,108 @@ void judge_update(uint8_t *rxBuf) {
                 switch (cmd_id) {
                     // 0x000x
                     case ID_GAME_STATUS://!< 0x0001 比赛状态数据
-                        memcpy(&judge_info->GameStatus, (rxBuf + DATA_SEG), LEN_GAME_STATUS);
+                        memcpy((void *) &judge_info->GameStatus, (rxBuf + DATA_SEG), LEN_GAME_STATUS);
                         break;
 
                     case ID_GAME_RESULT://!< 0x0002 比赛结果数据
-                        memcpy(&judge_info->GameResult, (rxBuf + DATA_SEG), LEN_GAME_RESULT);
+                        memcpy((void *) &judge_info->GameResult, (rxBuf + DATA_SEG), LEN_GAME_RESULT);
                         break;
 
                     case ID_GAME_ROBOT_HP://!< 0x0003 比赛机器人血量数据
-                        memcpy(&judge_info->GameRobotHP, (rxBuf + DATA_SEG), LEN_GAME_ROBOT_HP);
+                        memcpy((void *) &judge_info->GameRobotHP, (rxBuf + DATA_SEG), LEN_GAME_ROBOT_HP);
                         break;
 
                     case ID_ICRA_BUFF_DEBUFF_ZONE_STATUS://!< 0x0005 人工智能挑战赛(ICRA)加成与惩罚区状态
-                        memcpy(&judge_info->ICRA_Buff_Debuff_zone_status, (rxBuf + DATA_SEG),
+                        memcpy((void *) &judge_info->ICRA_Buff_Debuff_zone_status, (rxBuf + DATA_SEG),
                                LEN_ICRA_BUFF_DEBUFF_ZONE_STATUS);
                         judge_info->ICRA_buff_debuff_zone_status_update = true;
                         break;
                         // 0x010x
                     case ID_EVENT_DATA://!< 0x0101 场地事件数据
-                        memcpy(&judge_info->EventData, (rxBuf + DATA_SEG), LEN_EVENT_DATA);
+                        memcpy((void *) &judge_info->EventData, (rxBuf + DATA_SEG), LEN_EVENT_DATA);
                         break;
 
                     case ID_SUPPLY_PROJECTILE_ACTION://!< 0x0102, 场地补给站动作标识数据
-                        memcpy(&judge_info->SupplyProjectileAction, (rxBuf + DATA_SEG), LEN_SUPPLY_PROJECTILE_ACTION);
+                        memcpy((void *) &judge_info->SupplyProjectileAction, (rxBuf + DATA_SEG),
+                               LEN_SUPPLY_PROJECTILE_ACTION);
                         judge_info->supply_data_update = true;
                         break;
 
                     case ID_REFEREE_WARNING://!< 0x0104 裁判警告数据
-                        memcpy(&judge_info->RefereeWarning, (rxBuf + DATA_SEG), LEN_REFEREE_WARNING);
+                        memcpy((void *) &judge_info->RefereeWarning, (rxBuf + DATA_SEG), LEN_REFEREE_WARNING);
                         break;
 
                     case ID_DART_REMAINING_TIME://!< 0x0105 比赛机器人血量数据
-                        memcpy(&judge_info->DartRemainingTime, (rxBuf + DATA_SEG), LEN_DART_REMAINING_TIME);
+                        memcpy((void *) &judge_info->DartRemainingTime, (rxBuf + DATA_SEG), LEN_DART_REMAINING_TIME);
                         break;
                         // 0x020x
                     case ID_GAME_ROBOT_STATUS://!< 0x0201 机器人状态数据
-                        memcpy(&judge_info->GameRobotStatus, (rxBuf + DATA_SEG), LEN_GAME_ROBOT_STATUS);
+                        memcpy((void *) &judge_info->GameRobotStatus, (rxBuf + DATA_SEG), LEN_GAME_ROBOT_STATUS);
                         judge_info->self_client_id = judge_info->GameRobotStatus.robot_id + 0x0100;
 //                        printf("/r/n judge_client_id=%d", judge_info->self_client_id);
                         break;
 
                     case ID_POWER_HEAT_DATA://!< 0x0202 实时功率热量数据
-                        memcpy(&judge_info->PowerHeatData, (rxBuf + DATA_SEG), LEN_POWER_HEAT_DATA);
+                        memcpy((void *) &judge_info->PowerHeatData, (rxBuf + DATA_SEG), LEN_POWER_HEAT_DATA);
                         judge_info->power_heat_update = true;
                         break;
 
                     case ID_GAME_ROBOT_POS://!< 0x0203 机器人位置数据
-                        memcpy(&judge_info->GameRobotPos, (rxBuf + DATA_SEG), LEN_GAME_ROBOT_POS);
+                        memcpy((void *) &judge_info->GameRobotPos, (rxBuf + DATA_SEG), LEN_GAME_ROBOT_POS);
                         break;
 
                     case ID_BUFF://!< 0x0204 机器人增益数据
-                        memcpy(&judge_info->Buff, (rxBuf + DATA_SEG), LEN_BUFF);
+                        memcpy((void *) &judge_info->Buff, (rxBuf + DATA_SEG), LEN_BUFF);
                         break;
 
                     case ID_AERIAL_ROBOT_ENERGY://!< 0x0205 空中机器人能量状态数据
-                        memcpy(&judge_info->AerialRobotEnergy, (rxBuf + DATA_SEG), LEN_AERIAL_ROBOT_ENERGY);
+                        memcpy((void *) &judge_info->AerialRobotEnergy, (rxBuf + DATA_SEG), LEN_AERIAL_ROBOT_ENERGY);
                         break;
 
                     case ID_ROBOT_HURT://!< 0x0206 伤害状态数据
-                        memcpy(&judge_info->RobotHurt, (rxBuf + DATA_SEG), LEN_ROBOT_HURT);
+                        memcpy((void *) &judge_info->RobotHurt, (rxBuf + DATA_SEG), LEN_ROBOT_HURT);
                         judge_info->hurt_data_update = true;
                         break;
 
                     case ID_SHOOT_DATA://!< 0x0207 实时射击数据
-                        memcpy(&judge_info->ShootData, (rxBuf + DATA_SEG), LEN_SHOOT_DATA);
+                        memcpy((void *) &judge_info->ShootData, (rxBuf + DATA_SEG), LEN_SHOOT_DATA);
                         judge_info->shoot_update = true;
                         break;
 
                     case ID_BULLET_REMAINING://!< 0x0208 弹丸剩余发射数
-                        memcpy(&judge_info->BulletRemaining, (rxBuf + DATA_SEG), LEN_BULLET_REMAINING);
+                        memcpy((void *) &judge_info->BulletRemaining, (rxBuf + DATA_SEG), LEN_BULLET_REMAINING);
                         break;
 
                     case ID_RFID_STATUS://!< 0x0209 机器人RFID状态
-                        memcpy(&judge_info->RFIDStatus, (rxBuf + DATA_SEG), LEN_RFID_STATUS);
+                        memcpy((void *) &judge_info->RFIDStatus, (rxBuf + DATA_SEG), LEN_RFID_STATUS);
                         break;
 
                     case ID_DART_CLIENT_COMMAND://!< 0x020A 飞镖机器人客户端指令数据
-                        memcpy(&judge_info->DartClientCMD, (rxBuf + DATA_SEG), LEN_DART_CLIENT_COMMAND);
+                        memcpy((void *) &judge_info->DartClientCMD, (rxBuf + DATA_SEG), LEN_DART_CLIENT_COMMAND);
                         judge_info->dart_data_update = true;
                         break;
 
                     case ID_COMMUNICATION://!< 0x0301 机器人间交互数据（裁判系统），10HZ，最大128字节，数据段113字节
-                        memcpy(&judge_info->AerialData, (rxBuf + DATA_SEG), LEN_COMMUNICATION);
+                        memcpy((void *) &judge_info->AerialData, (rxBuf + DATA_SEG), LEN_COMMUNICATION);
                         judge_info->communication_data_update = true;
                         break;
 
                     case ID_CUSTOMIZE_CONTROL_DATA://!< 0x0302 自定义控制器交互数据接口，30HZ
-                        memcpy(&judge_info->RobotInteractiveData, (rxBuf + DATA_SEG), LEN_CUSTOMIZE_CONTROL_DATA);
+                        memcpy((void *) &judge_info->RobotInteractiveData, (rxBuf + DATA_SEG),
+                               LEN_CUSTOMIZE_CONTROL_DATA);
                         judge_info->customize_control_data_update = true;
                         break;
 
                     case ID_MAP_INTERACTION_DATA://!< 0x0303 客户端小地图交互数据
-                        memcpy(&judge_info->command, (rxBuf + DATA_SEG), LEN_MAP_INTERACTION_DATA);
+                        memcpy((void *) &judge_info->command, (rxBuf + DATA_SEG), LEN_MAP_INTERACTION_DATA);
                         judge_info->map_data_update = true;
                         break;
                     case ID_CONTROL_UART_DATA://!< 0x0304 图传串口发送键盘、鼠标信息
-                        memcpy(&judge_info->ControlUart, (rxBuf + DATA_SEG), LEN_CONTROL_UART_DATA);
+                        memcpy((void *) &judge_info->ControlUart, (rxBuf + DATA_SEG), LEN_CONTROL_UART_DATA);
                         judge_info->map_data_update = true;
                         break;
                     case ID_MAP_DATA://!< 0x0305 客户端小地图接收信息
-                        memcpy(&judge_info->ClientMapCommand, (rxBuf + DATA_SEG), LEN_MAP_DATA);
+                        memcpy((void *) &judge_info->ClientMapCommand, (rxBuf + DATA_SEG), LEN_MAP_DATA);
                         judge_info->client_map_data_update = true;
                         break;
                     default:
@@ -475,12 +477,12 @@ void send_toReferee(uint16_t _cmd_id, uint16_t _data_len) {
     memcpy((void *) referee_transmit_pack, &send_frame_header, header_len);//将帧头装入缓存区
     memcpy((void *) (referee_transmit_pack + 5), &CmdID,
            2);                                                                    //将数据段转入缓存区
-    append_CRC16_check_sum((uint8_t *) &referee_transmit_pack, header_len + _data_len + 4);
+    append_CRC16_check_sum(referee_transmit_pack, header_len + _data_len + 4);
 //    for (int i = 0; i <= header_len + _data_len + 4;i++) {
 //        printf(" %02x",referee_transmit_pack[i]);
 //    }
     fifo_s_put(&referee_tx_len_fifo, header_len + _data_len + 4);
-    fifo_s_puts(&referee_tx_fifo, (char *) &referee_transmit_pack, header_len + _data_len + 4);
+    fifo_s_puts(&referee_tx_fifo, (char *) referee_transmit_pack, header_len + _data_len + 4);
     memset(referee_transmit_pack, 0, sizeof(referee_transmit_pack));
     if (Referee_No_DMA_IRQHandler || Referee_IRQ_Return_Before) {
         if (xTaskGetSchedulerState() != taskSCHEDULER_NOT_STARTED) {

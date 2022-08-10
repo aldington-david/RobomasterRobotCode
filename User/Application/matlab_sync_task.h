@@ -31,17 +31,30 @@ extern TaskHandle_t matlab_tx_task_local_handler;
 //    char data3;
 //    uint8_t data4;
 //    char data5;
-//} SyncStruct;
+//} Matlab_SyncStruct;
 
 typedef struct {
     char sync_char;
-    uint8_t data_num;
+    uint8_t data_len;
+} Matlab_Sync_frame_header;
+
+typedef struct {
     uint16_t data1;
     uint16_t data2;
     uint16_t data3;
     uint16_t data4;
     uint16_t data5;
-} SyncStruct;
+} Matlab_Sync_frame_data;
+
+typedef struct {
+    uint16_t data_CRC16;
+} Matlab_Sync_frame_tail;
+
+typedef struct {
+    Matlab_Sync_frame_header header;
+    Matlab_Sync_frame_data data;
+    Matlab_Sync_frame_tail tail;
+} Matlab_SyncStruct;
 
 #pragma pack(pop)
 

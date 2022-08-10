@@ -507,28 +507,28 @@ referee usart:%s\r\n\
 //                          &gimbal_control.gimbal_pitch_motor.motor_gyro_set,
 //                          &gimbal_control.gimbal_pitch_motor.motor_gyro);
             //FreeRTOS 任务栈打印
-            SEGGER_RTT_SetTerminal(1);
-            sprintf(print_buf,
-                    "******************************\r\nAllStack_min_size=%d\r\ncalibrate_task=%d\r\ndetect_task=%d\r\nchassis_task=%d\r\ngimbal_task=%d\r\nINS_task=%d\r\nvision_rx_task=%d\r\nservo_task=%d\r\nreferee_rx_task=%d\r\nUSART6TX_active_task=%d\r\nUSART1TX_active_task=%d\r\nreferee_tx_task=%d\r\nvision_tx_task=%d\r\nmatlab_sync_task=%d\r\nprint_task=%d\r\nPC_receive_task=%d\r\nbattery_voltage_task=%d\r\nled_RGB_flow_task=%d\r\n",
-                    (int)xPortGetMinimumEverFreeHeapSize(),
-                    (int)get_stack_of_calibrate_task(),
-                    (int)get_stack_of_detect_task(),
-                    (int)get_stack_of_chassis_task(),
-                    (int)get_stack_of_gimbal_task(),
-                    (int)get_stack_of_INS_task(),
-                    (int)get_stack_of_vision_rx_task(),
-                    (int)get_stack_of_servo_task(),
-                    (int)get_stack_of_referee_rx_task(),
-                    (int)get_stack_of_USART6TX_active_task(),
-                    (int)get_stack_of_USART1TX_active_task(),
-                    (int)get_stack_of_referee_tx_task(),
-                    (int)get_stack_of_vision_tx_task(),
-                    (int)get_stack_of_matlab_sync_task(),
-                    (int)get_stack_of_print_task(),
-                    (int)get_stack_of_PC_receive_task(),
-                    (int)get_stack_of_battery_voltage_task(),
-                    (int)get_stack_of_led_RGB_flow_task());
-            SEGGER_RTT_WriteString(0, print_buf);
+//            SEGGER_RTT_SetTerminal(1);
+//            sprintf(print_buf,
+//                    "******************************\r\nAllStack_min_size=%d\r\ncalibrate_task=%d\r\ndetect_task=%d\r\nchassis_task=%d\r\ngimbal_task=%d\r\nINS_task=%d\r\nvision_rx_task=%d\r\nservo_task=%d\r\nreferee_rx_task=%d\r\nUSART6TX_active_task=%d\r\nUSART1TX_active_task=%d\r\nreferee_tx_task=%d\r\nvision_tx_task=%d\r\nmatlab_sync_task=%d\r\nprint_task=%d\r\nPC_receive_task=%d\r\nbattery_voltage_task=%d\r\nled_RGB_flow_task=%d\r\n",
+//                    (int)xPortGetMinimumEverFreeHeapSize(),
+//                    (int)get_stack_of_calibrate_task(),
+//                    (int)get_stack_of_detect_task(),
+//                    (int)get_stack_of_chassis_task(),
+//                    (int)get_stack_of_gimbal_task(),
+//                    (int)get_stack_of_INS_task(),
+//                    (int)get_stack_of_vision_rx_task(),
+//                    (int)get_stack_of_servo_task(),
+//                    (int)get_stack_of_referee_rx_task(),
+//                    (int)get_stack_of_USART6TX_active_task(),
+//                    (int)get_stack_of_USART1TX_active_task(),
+//                    (int)get_stack_of_referee_tx_task(),
+//                    (int)get_stack_of_vision_tx_task(),
+//                    (int)get_stack_of_matlab_sync_task(),
+//                    (int)get_stack_of_print_task(),
+//                    (int)get_stack_of_PC_receive_task(),
+//                    (int)get_stack_of_battery_voltage_task(),
+//                    (int)get_stack_of_led_RGB_flow_task());
+//            SEGGER_RTT_WriteString(0, print_buf);
             /***********************打印数据 End *****************************/
 
 

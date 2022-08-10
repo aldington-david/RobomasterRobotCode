@@ -10,9 +10,8 @@ clear global;
 %删除所有已经打开的串口，这条很重要，防止之前运行没有关闭串口
 delete(instrfindall);
 
-%打开串口COM1，波特率38400，8位数据位，1位停止位，无奇偶校验，无流控制
-s = serialport("COM9", 38400, "DataBits", 8, "StopBits", 1);
-fopen(s);
+%打开串口COM，波特率38400，8位数据位，1位停止位，无奇偶校验，无流控制
+s = serialport("COM4", 115200, "DataBits", 8, "StopBits", 1);
 
 fig = figure(1);
 
@@ -21,9 +20,12 @@ AxisMax =  65536;    %坐标轴最大值
 AxisMin = -65536;    %坐标轴最小值
 window_width = 800;  %窗口宽度
 
-g_Count =0;          %接收到的数据计数
+g_Count = 0;          %接收到的数据计数
 SOF = 0;             %同步帧标志
 AxisValue = 1;       %坐标值
+Data_len = 0;       %本次应收数据长度
+Data_CRC16 = 0;
+Data_temp = zeros(1,100);   %Data读取缓冲区，一次取Data_len长做CRC
 RecDataDisp = zeros(1,100000); %开辟100000个数据单元，用于存储接收到的数据。
 RecData = zeros(1,100);        %开辟100个数据单元，用于数据处理。
 Axis = zeros(1,100000);        %开辟100000个数据单元，用于X轴。
@@ -31,21 +33,15 @@ Axis = zeros(1,100000);        %开辟100000个数据单元，用于X轴。
 window = window_width * (-0.9); %窗口X轴起始坐标
 axis([window, window + window_width, -inf, inf]); %设置窗口坐标范围
 %子图1显示串口上传的数据
-subplot(2,1,1); 
+subplot(1,1,1); 
 grid on;
 title('串口数据接收');
 xlabel('时间');
 ylabel('数据');
 
-%子图2显示波形的幅频响应
-subplot(2,1,2);
-grid on;
-title( 'FFT');
-xlabel( '频率');
-ylabel( '幅度');
 
 Fs = 100;        % 采样率
-N = 50;         % 采样点数
+N = 5;         % 采样点数
 n = 0:N-1;      % 采样序列
 f = n * Fs / N; %真实的频率
 
@@ -56,7 +52,7 @@ while ishandle(fig)
     SOF = 0;  
     %发送同步帧
     encoded_str = unicode2native('$','UTF-8');
-    fwrite(s,encoded_str);
+    write(s,encoded_str,'uint8');
     
     %获取是否有数据
     bytes = get(s, 'BytesAvailable');
@@ -65,16 +61,34 @@ while ishandle(fig)
     end
     
     %读取下位机返回的所有数据
-    RecData = fread(s, bytes, 'uint8');
+    RecData = read(s, bytes, 'uint8');
    
     %检索下位机返回的数据中是否有字符$
     StartData = find(char(RecData) == '$');
     
-    %如果检索到$，读取10个字节的数据，也就是5个uint16的数据
+    %如果检索到$，读取数据包字节数，为同步字符后一字节，同时将数据段暂存并进行CRC16校验，与数据包CRC比对，如有误立刻重传
     if(StartData >= 1)
-        RecData = fread(s, 5, 'uint16');
-        SOF =1;
+        Data_len = read(s, 1, 'uint8');
+        if(bytes >1 && Data_len > bytes)
+            RecData = zeros(1,100);
+            flush(s);
+            continue
+        end
+        Data_temp = read(s, Data_len, 'uint8');
+        Data_CRC16 = read(s, 1, 'uint16');
+        [CRC6_cal,return_value] = CRC16_Verify(Data_temp,Data_CRC16);
         StartData = 0;
+        if return_value == 0
+            RecData = zeros(1,100);
+            flush(s);
+            continue
+        end
+    end
+
+    %如果CRC16校验通过，读取帧头后数据段，也就是5个uint16的数据
+    if(return_value == 1)
+        RecData = typecast(uint8(Data_temp),'uint16');
+        SOF =1;
     end
     
 %更新接收到的数据波形
@@ -98,7 +112,7 @@ if(SOF == 1)
 	g_Count = g_Count + 5;
 	
 	%绘制波形
-	subplot(2,1,1);
+	subplot(1,1,1);
 	plot(Axis(1:AxisValue-1),  RecDataDisp(1:AxisValue-1), 'r');
 	window = window + 5;
 	axis([window, window + window_width, -inf, inf]);
@@ -109,28 +123,11 @@ if(SOF == 1)
 	drawnow
 end
     
-if(g_Count== 50)
-   subplot(2,1,2); 
-   %对原始信号做 FFT 变换
-   y = fft(RecDataDisp(AxisValue-50:AxisValue-1), 50); 
-   
-   %求 FFT 转换结果的模值
-   Mag = abs(y)*2/N;  
-   
-   %绘制幅频相应曲线
-   plot(f, Mag, 'r'); 
-   grid on;
-   title( 'FFT');
-   xlabel( '频率');
-   ylabel( '幅度');
-   g_Count = 0;
-   drawnow
-end
     %同步延迟
     pause(130/1000);
 end
 
-fclose(s);
 delete(s);
+delete(instrfindall);
 
 % ********************************************************************************************************************

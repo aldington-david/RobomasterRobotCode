@@ -31,7 +31,7 @@ TaskHandle_t matlab_tx_task_local_handler;
 /* 发送数据包缓存区，最大128字节 */
 uint8_t matlab_transmit_pack[128];
 static char sync_char = '$';
-SyncStruct test1;
+Matlab_SyncStruct test1;
 
 /**
   * @brief          matlab发送任务
@@ -48,21 +48,24 @@ void matlab_sync_task(void const *argument) {
     while (1) {
         while (ulTaskNotifyTake(pdTRUE, portMAX_DELAY) != pdPASS) {
         }
+//#if INCLUDE_uxTaskGetStackHighWaterMark
+//        matlab_sync_task_stack = uxTaskGetStackHighWaterMark(NULL);
+//#endif
 //        LoopStartTime = xTaskGetTickCount();
-        test1.data1 = 10;
-        test1.data2 = 20;
-        test1.data3 = 30;
-        test1.data4 = 40;
-        test1.data5 = 50;
+        test1.data.data1 = 10;
+        test1.data.data2 = 20;
+        test1.data.data3 = 30;
+        test1.data.data4 = 40;
+        test1.data.data5 = 50;
+        test1.header.data_len = sizeof(test1.data);
+//        SEGGER_RTT_printf(0, "test1=%p\r\ntest2=%p\r\ntest3=%p\r\n", &test1,&test1.data,&test1.data.data2);
+        append_CRC16_check_sum((uint8_t *) &test1.data, sizeof(test1.data) + sizeof(test1.tail));
         memcpy((void *) matlab_transmit_pack, &test1, sizeof(test1));
         data_sync(sizeof(test1));
 //        data_sync(sizeof(test1));
 //        data_sync(sizeof(test1));
 //        data_sync(sizeof(test1));
 //        referee_unpack_fifo_data();
-#if INCLUDE_uxTaskGetStackHighWaterMark
-        matlab_sync_task_stack = uxTaskGetStackHighWaterMark(NULL);
-#endif
 //        vTaskDelayUntil(&LoopStartTime, pdMS_TO_TICKS(10));
     }
 }
@@ -81,8 +84,9 @@ void init_matlab_struct_data(void) {
     memset(&matlab_fifo_tx_buf, 0, MATLAB_FIFO_BUF_LENGTH);
     memset(&matlab_transmit_pack, 0, 128);
     memset(&usart1_matlab_tx_buf, 0, 2 * USART1_MATLAB_TX_BUF_LENGHT);
-    test1.sync_char = '$';
+    test1.header.sync_char = '$';
 }
+
 //not_use
 void send_sync_char(void) {
     fifo_s_put(&matlab_tx_len_fifo, sizeof(sync_char));
