@@ -198,7 +198,7 @@ void vision_update(uint8_t *rxBuf) {
     vision_info_t *vision_info = &global_vision_info;
     vision_info->pack_info = &vision_unpack_obj;
     if (rxBuf[0] == VISION_HEADER_SOF) {
-        if ((vision_info->pack_info->data1_len <= 128) && (vision_info->pack_info->data1_len <= 128)) {
+        if ((vision_info->pack_info->data1_len <= 128) && (vision_info->pack_info->data2_len <= 128)) {
 //            SEGGER_RTT_WriteString(0, "vision_in\r\n");
 //            memcpy(vision_or_probe, rxBuf, (vision_info->pack_info->data1_len + vision_info->pack_info->data2_len+2));
             memcpy(vision_info->pack_info->Original_yaw_angle, (rxBuf + 1), vision_info->pack_info->data1_len);
@@ -207,8 +207,8 @@ void vision_update(uint8_t *rxBuf) {
             global_vision_info.vision_control.pitch_angle = strtof(vision_info->pack_info->Original_pitch_angle, NULL);
             global_vision_info.vision_control.yaw_angle = strtof(vision_info->pack_info->Original_yaw_angle, NULL);
             //for_test
-            vision_pitch_probe = global_vision_info.vision_control.pitch_angle;
-            vision_yaw_probe = global_vision_info.vision_control.yaw_angle;
+//            vision_pitch_probe = global_vision_info.vision_control.pitch_angle;
+//            vision_yaw_probe = global_vision_info.vision_control.yaw_angle;
             memset(&vision_info->pack_info->Original_pitch_angle, 0,
                    sizeof(vision_info->pack_info->Original_pitch_angle));
             memset(&vision_info->pack_info->Original_yaw_angle, 0, sizeof(vision_info->pack_info->Original_yaw_angle));

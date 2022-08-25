@@ -34,11 +34,15 @@ void *PC_receive_data[29];
 //$param0=12;$param1=13;$param2=12.32;$param3=11.21;
 void PC_receive_task(void const *argument) {
     /********vision start***********/
-
+    PC_receive_data[param0] = (void *) &vision_pitch_angle_deadband_sen;
+    PC_receive_data[param1] = (void *) &vision_yaw_angle_deadband_sen;
+    PC_receive_data[param2] = (void *) &vision_pitch_control_sen;
+    PC_receive_data[param3] = (void *) &vision_yaw_control_sen;
+    PC_receive_data[param4] = (void *) &vision_pitch_lpf_factor;
+    PC_receive_data[param5] = (void *) &vision_yaw_control_lpf_factor;
 
     /********vision end***********/
-    PC_receive_data[param0] = (void *) &vision_yaw_angle_add_for_test;
-    PC_receive_data[param1] = (void *) &vision_pitch_angle_add_for_test;
+
     /********pitch start***********/
 //    PC_receive_data[param0] = (void *) &gimbal_control.gimbal_pitch_motor.gimbal_motor_absolute_angle_pid.kp;
 //    PC_receive_data[param1] = (void *) &gimbal_control.gimbal_pitch_motor.gimbal_motor_absolute_angle_pid.ki;

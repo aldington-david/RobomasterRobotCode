@@ -37,6 +37,7 @@
 #include "matlab_sync_task.h"
 #include "PC_receive_task.h"
 #include "led_flow_task.h"
+#include "gimbal_behaviour.h"
 
 
 #if PRINTF_MODE == RTT_MODE
@@ -77,6 +78,8 @@ fp32 tracer1 = 0;
 
 fp32 vision_pitch_probe = 0;
 fp32 vision_yaw_probe = 0;
+
+fp32 zero_line = 0;
 //char vision_or_probe[128]={0};
 
 void print_task(void const *argument) {
@@ -159,6 +162,30 @@ referee usart:%s\r\n\
 
 
             //视觉
+
+            SEGGER_RTT_SetTerminal(1);
+            sprintf(print_buf,
+                    "vision_yaw=%f,vision_pitch=%f\r\n",
+                    global_vision_info.vision_control.yaw_angle,
+                    global_vision_info.vision_control.pitch_angle);
+            SEGGER_RTT_WriteString(0, print_buf);
+
+            SEGGER_RTT_SetTerminal(2);
+            sprintf(print_buf,
+                    "p_dead_sen=%f,y_dead_sen=%f,p_contr_sen=%f,y_contr_sen=%f,p_lpf=%f,y_lpf=%f\r\n",
+                    &vision_pitch_angle_deadband_sen,
+                    &vision_yaw_angle_deadband_sen,
+                    &vision_pitch_control_sen,
+                    &vision_yaw_control_sen,
+                    &vision_pitch_lpf_factor,
+                    &vision_yaw_control_lpf_factor);
+            SEGGER_RTT_WriteString(0, print_buf);
+
+            RTT_PrintWave(3,
+                          &zero_line,
+                          &global_vision_info.vision_control.yaw_angle,
+                          &global_vision_info.vision_control.pitch_angle);
+
 //            SEGGER_RTT_SetTerminal(2);
 //            sprintf(print_buf,
 //                    "vision_yaw=%f,vision_pitch=%f\r\n",
@@ -173,12 +200,13 @@ referee usart:%s\r\n\
 //                    gimbal_control.gimbal_pitch_motor.relative_angle);
 //            SEGGER_RTT_WriteString(0, print_buf);
 
+//缓冲区
 //            SEGGER_RTT_SetTerminal(4);
 //            sprintf(print_buf,
 //                    "vision_info=%s\r\n",
 //                    vision_or_probe);
 //            SEGGER_RTT_WriteString(0, print_buf);
-//
+//接收进度调试
 //            SEGGER_RTT_SetTerminal(2);
 //            sprintf(print_buf,
 //                    "vision_index=%d\r\n",
@@ -530,7 +558,7 @@ referee usart:%s\r\n\
 //                    (int)get_stack_of_led_RGB_flow_task());
 //            SEGGER_RTT_WriteString(0, print_buf);
             /***********************打印数据 End *****************************/
-
+//离线检测
 
 //            printf(
 //                    "******************************\r\n\
@@ -562,7 +590,7 @@ referee usart:%s\r\n\
 //                    status[error_list_print_local[BOARD_MAG_TOE].error_exist],
 //                    status[error_list_print_local[REFEREE_RX_TOE].error_exist]);
 
-
+//控制输出
 
 //            printf(
 //                    "*******Variable Start*********\r\n\

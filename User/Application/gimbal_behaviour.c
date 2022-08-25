@@ -94,8 +94,13 @@
 
 #define int_abs(x) ((x) > 0 ? (x) : (-x))
 
-fp32 vision_pitch_angle_add_for_test;
-fp32 vision_yaw_angle_add_for_test;
+fp32 vision_pitch_angle_deadband_sen = 0.05f;
+fp32 vision_yaw_angle_deadband_sen = 0.0015f;
+fp32 vision_pitch_control_sen = 0.35f;
+fp32 vision_yaw_control_sen = 0.15f;
+fp32 vision_pitch_lpf_factor = 0.03f;
+fp32 vision_yaw_control_lpf_factor = 0.07f;
+
 
 /**
   * @brief          remote control dealline solve,because the value of rocker is not zero in middle place,
@@ -750,17 +755,17 @@ void gimbal_rc_to_control_vector(fp32 *yaw, fp32 *pitch, gimbal_control_t *gimba
         //死区限制，因为遥控器可能存在差异 摇杆在中间，其值不为0
         rc_deadband_limit(gimbal_move_rc_to_vector->gimbal_rc_ctrl->rc.ch[YAW_CHANNEL], yaw_channel, RC_DEADBAND);
         rc_deadband_limit(gimbal_move_rc_to_vector->gimbal_rc_ctrl->rc.ch[PITCH_CHANNEL], pitch_channel, RC_DEADBAND);
-        rc_deadband_limit(gimbal_move_rc_to_vector->gimbal_vision_ctrl->yaw_angle, lim_vision_yaw, 0.05f)
-        rc_deadband_limit(gimbal_move_rc_to_vector->gimbal_vision_ctrl->pitch_angle, lim_vision_pitch, 0.0015f)
-        float temp_yaw = lim_vision_yaw * YAW_VISION_SEN;
-        float temp_pitch = lim_vision_pitch * PITCH_VISION_SEN;
-        Filter_IIRLPF(&temp_yaw, &add_vision_yaw, 0.03f);
-        Filter_IIRLPF(&temp_pitch, &add_vision_pitch, 0.07f);
 
-        yaw_set_channel = yaw_channel * YAW_RC_SEN + vision_yaw_angle_add_for_test + add_vision_yaw;
-        pitch_set_channel = pitch_channel * PITCH_RC_SEN + vision_pitch_angle_add_for_test + add_vision_pitch;
-        vision_yaw_angle_add_for_test = 0;
-        vision_pitch_angle_add_for_test = 0;
+        //视觉控制
+        rc_deadband_limit(gimbal_move_rc_to_vector->gimbal_vision_ctrl->yaw_angle, lim_vision_yaw, vision_pitch_angle_deadband_sen)
+        rc_deadband_limit(gimbal_move_rc_to_vector->gimbal_vision_ctrl->pitch_angle, lim_vision_pitch, vision_yaw_angle_deadband_sen)
+        float temp_yaw = lim_vision_yaw * vision_pitch_control_sen;
+        float temp_pitch = lim_vision_pitch * vision_yaw_control_sen;
+        Filter_IIRLPF(&temp_yaw, &add_vision_yaw, vision_pitch_lpf_factor);
+        Filter_IIRLPF(&temp_pitch, &add_vision_pitch, vision_yaw_control_lpf_factor);
+
+        yaw_set_channel = yaw_channel * YAW_RC_SEN + add_vision_yaw;
+        pitch_set_channel = pitch_channel * PITCH_RC_SEN + add_vision_pitch;
     } else {
         //keyboard set speed set-point
         //键盘控制
