@@ -710,7 +710,7 @@ static void gimbal_init(gimbal_control_t *init) {
             1);                   /* 处理的数据个数 */
 
     init->gimbal_pitch_motor.LpfFactor = 1.0;
-    init->gimbal_yaw_motor.LpfFactor = 0.7;
+    init->gimbal_yaw_motor.LpfFactor = 0.5;
 
 
     //清除所有PID

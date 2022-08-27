@@ -723,7 +723,7 @@ float ALL_PID(pid_type_def *pid, fp32 ref, fp32 set) {
     pid->set = set;
     pid->fdb = ref;
     pid->error[0] = set - ref;
-
+//探针
     if (pid == &gimbal_control.gimbal_yaw_motor.gimbal_motor_gyro_pid) {//for_test
         sp_err = pid->error[0];
     }

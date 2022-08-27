@@ -108,7 +108,7 @@
 #define RC_DEADBAND   10
 
 
-#define YAW_RC_SEN    0.000015f
+#define YAW_RC_SEN    0.00003f
 #define PITCH_RC_SEN  0.000005f
 
 #define YAW_MOUSE_SEN   0.00006f

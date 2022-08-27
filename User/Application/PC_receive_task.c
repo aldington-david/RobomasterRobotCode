@@ -34,12 +34,12 @@ void *PC_receive_data[29];
 //$param0=12;$param1=13;$param2=12.32;$param3=11.21;
 void PC_receive_task(void const *argument) {
     /********vision start***********/
-    PC_receive_data[param0] = (void *) &vision_pitch_angle_deadband_sen;
-    PC_receive_data[param1] = (void *) &vision_yaw_angle_deadband_sen;
-    PC_receive_data[param2] = (void *) &vision_pitch_control_sen;
-    PC_receive_data[param3] = (void *) &vision_yaw_control_sen;
-    PC_receive_data[param4] = (void *) &vision_pitch_lpf_factor;
-    PC_receive_data[param5] = (void *) &vision_yaw_control_lpf_factor;
+//    PC_receive_data[param0] = (void *) &vision_pitch_angle_deadband_sen;
+//    PC_receive_data[param1] = (void *) &vision_yaw_angle_deadband_sen;
+//    PC_receive_data[param2] = (void *) &vision_pitch_control_sen;
+//    PC_receive_data[param3] = (void *) &vision_yaw_control_sen;
+//    PC_receive_data[param4] = (void *) &vision_pitch_lpf_factor;
+//    PC_receive_data[param5] = (void *) &vision_yaw_control_lpf_factor;
 
     /********vision end***********/
 
@@ -78,46 +78,46 @@ void PC_receive_task(void const *argument) {
     /********pitch end***********/
 
     /********yaw start***********/
-//    PC_receive_data[param0] = (void *) &gimbal_control.gimbal_yaw_motor.gimbal_motor_relative_angle_pid_temp.Kp;
-//    PC_receive_data[param1] = (void *) &gimbal_control.gimbal_yaw_motor.gimbal_motor_relative_angle_pid_temp.Ki;
-//    PC_receive_data[param2] = (void *) &gimbal_control.gimbal_yaw_motor.gimbal_motor_relative_angle_pid_temp.Kd;
-//    PC_receive_data[param3] = (void *) &gimbal_control.gimbal_yaw_motor.gimbal_motor_gyro_pid.Kp;
-//    PC_receive_data[param4] = (void *) &gimbal_control.gimbal_yaw_motor.gimbal_motor_gyro_pid.Ki;
-//    PC_receive_data[param5] = (void *) &gimbal_control.gimbal_yaw_motor.gimbal_motor_gyro_pid.Kd;
-//    PC_receive_data[param6] = (void *) &gimbal_control.gimbal_yaw_motor.gimbal_motor_relative_angle_pid_temp.max_iout;
-//    PC_receive_data[param7] = (void *) &gimbal_control.gimbal_yaw_motor.gimbal_motor_relative_angle_pid_temp.max_out;
-//    PC_receive_data[param8] = (void *) &gimbal_control.gimbal_yaw_motor.gimbal_motor_gyro_pid.Integral_Separation;
-//    PC_receive_data[param9] = (void *) &gimbal_control.gimbal_yaw_motor.gimbal_motor_relative_angle_pid_temp.Integral_Separation;
-//
-//    PC_receive_data[param10] = (void *) &gimbal_control.gimbal_yaw_motor.Cloud_MotorAngle_Error_Kalman.R;
-//    PC_receive_data[param11] = (void *) &gimbal_control.gimbal_yaw_motor.Cloud_MotorAngle_Error_Kalman.Q;
-//    PC_receive_data[param12] = (void *) &gimbal_control.gimbal_yaw_motor.gimbal_motor_relative_angle_pid_temp.D_Kalman.R;
-//    PC_receive_data[param13] = (void *) &gimbal_control.gimbal_yaw_motor.gimbal_motor_relative_angle_pid_temp.D_Kalman.Q;
-//
-//    PC_receive_data[param14] = (void *) &gimbal_control.gimbal_yaw_motor.gimbal_motor_relative_angle_pid_temp.Variable_I;
-//    PC_receive_data[param15] = (void *) &gimbal_control.gimbal_yaw_motor.gimbal_motor_relative_angle_pid_temp.Variable_I_Down;
-//    PC_receive_data[param16] = (void *) &gimbal_control.gimbal_yaw_motor.gimbal_motor_relative_angle_pid_temp.Variable_I_UP;
-//    PC_receive_data[param17] = (void *) &gimbal_control.gimbal_yaw_motor.gimbal_motor_gyro_pid.Variable_I;
-//    PC_receive_data[param18] = (void *) &gimbal_control.gimbal_yaw_motor.gimbal_motor_gyro_pid.Variable_I_Down;
-//    PC_receive_data[param19] = (void *) &gimbal_control.gimbal_yaw_motor.gimbal_motor_gyro_pid.Variable_I_UP;
-//
-//
-//    PC_receive_data[param20] = (void *) &gimbal_control.gimbal_yaw_motor.gimbal_motor_relative_angle_pid_temp.NF_D;
-//    PC_receive_data[param21] = (void *) &gimbal_control.gimbal_yaw_motor.gimbal_motor_relative_angle_pid_temp.D_Alpha;
-//    PC_receive_data[param22] = (void *) &gimbal_control.gimbal_yaw_motor.gimbal_motor_gyro_pid.NF_D;
-//    PC_receive_data[param23] = (void *) &gimbal_control.gimbal_yaw_motor.gimbal_motor_gyro_pid.D_Alpha;
-//    PC_receive_data[param24] = (void *) &gimbal_control.gimbal_yaw_motor.gimbal_motor_relative_angle_pid_temp.D_First;
-//    PC_receive_data[param25] = (void *) &gimbal_control.gimbal_yaw_motor.gimbal_motor_relative_angle_pid_temp.D_Filter_Ratio;
-//    PC_receive_data[param26] = (void *) &gimbal_control.gimbal_yaw_motor.gimbal_motor_gyro_pid.D_First;
-//    PC_receive_data[param27] = (void *) &gimbal_control.gimbal_yaw_motor.gimbal_motor_gyro_pid.D_Filter_Ratio;
-//
-//    PC_receive_data[param28] = (void *) &gimbal_control.gimbal_yaw_motor.LpfFactor;
+    PC_receive_data[param0] = (void *) &gimbal_control.gimbal_yaw_motor.gimbal_motor_relative_angle_pid_temp.Kp;
+    PC_receive_data[param1] = (void *) &gimbal_control.gimbal_yaw_motor.gimbal_motor_relative_angle_pid_temp.Ki;
+    PC_receive_data[param2] = (void *) &gimbal_control.gimbal_yaw_motor.gimbal_motor_relative_angle_pid_temp.Kd;
+    PC_receive_data[param3] = (void *) &gimbal_control.gimbal_yaw_motor.gimbal_motor_gyro_pid.Kp;
+    PC_receive_data[param4] = (void *) &gimbal_control.gimbal_yaw_motor.gimbal_motor_gyro_pid.Ki;
+    PC_receive_data[param5] = (void *) &gimbal_control.gimbal_yaw_motor.gimbal_motor_gyro_pid.Kd;
+    PC_receive_data[param6] = (void *) &gimbal_control.gimbal_yaw_motor.gimbal_motor_relative_angle_pid_temp.max_iout;
+    PC_receive_data[param7] = (void *) &gimbal_control.gimbal_yaw_motor.gimbal_motor_relative_angle_pid_temp.max_out;
+    PC_receive_data[param8] = (void *) &gimbal_control.gimbal_yaw_motor.gimbal_motor_gyro_pid.Integral_Separation;
+    PC_receive_data[param9] = (void *) &gimbal_control.gimbal_yaw_motor.gimbal_motor_relative_angle_pid_temp.Integral_Separation;
+
+    PC_receive_data[param10] = (void *) &gimbal_control.gimbal_yaw_motor.Cloud_MotorAngle_Error_Kalman.R;
+    PC_receive_data[param11] = (void *) &gimbal_control.gimbal_yaw_motor.Cloud_MotorAngle_Error_Kalman.Q;
+    PC_receive_data[param12] = (void *) &gimbal_control.gimbal_yaw_motor.gimbal_motor_relative_angle_pid_temp.D_Kalman.R;
+    PC_receive_data[param13] = (void *) &gimbal_control.gimbal_yaw_motor.gimbal_motor_relative_angle_pid_temp.D_Kalman.Q;
+
+    PC_receive_data[param14] = (void *) &gimbal_control.gimbal_yaw_motor.gimbal_motor_relative_angle_pid_temp.Variable_I;
+    PC_receive_data[param15] = (void *) &gimbal_control.gimbal_yaw_motor.gimbal_motor_relative_angle_pid_temp.Variable_I_Down;
+    PC_receive_data[param16] = (void *) &gimbal_control.gimbal_yaw_motor.gimbal_motor_relative_angle_pid_temp.Variable_I_UP;
+    PC_receive_data[param17] = (void *) &gimbal_control.gimbal_yaw_motor.gimbal_motor_gyro_pid.Variable_I;
+    PC_receive_data[param18] = (void *) &gimbal_control.gimbal_yaw_motor.gimbal_motor_gyro_pid.Variable_I_Down;
+    PC_receive_data[param19] = (void *) &gimbal_control.gimbal_yaw_motor.gimbal_motor_gyro_pid.Variable_I_UP;
+
+
+    PC_receive_data[param20] = (void *) &gimbal_control.gimbal_yaw_motor.gimbal_motor_relative_angle_pid_temp.NF_D;
+    PC_receive_data[param21] = (void *) &gimbal_control.gimbal_yaw_motor.gimbal_motor_relative_angle_pid_temp.D_Alpha;
+    PC_receive_data[param22] = (void *) &gimbal_control.gimbal_yaw_motor.gimbal_motor_gyro_pid.NF_D;
+    PC_receive_data[param23] = (void *) &gimbal_control.gimbal_yaw_motor.gimbal_motor_gyro_pid.D_Alpha;
+    PC_receive_data[param24] = (void *) &gimbal_control.gimbal_yaw_motor.gimbal_motor_relative_angle_pid_temp.D_First;
+    PC_receive_data[param25] = (void *) &gimbal_control.gimbal_yaw_motor.gimbal_motor_relative_angle_pid_temp.D_Filter_Ratio;
+    PC_receive_data[param26] = (void *) &gimbal_control.gimbal_yaw_motor.gimbal_motor_gyro_pid.D_First;
+    PC_receive_data[param27] = (void *) &gimbal_control.gimbal_yaw_motor.gimbal_motor_gyro_pid.D_Filter_Ratio;
+
+    PC_receive_data[param28] = (void *) &gimbal_control.gimbal_yaw_motor.LpfFactor;
 
 //    PC_receive_data[param9] = (void *) &gimbal_control.gimbal_yaw_motor.max_relative_angle;
 //    PC_receive_data[param10] = (void *) &gimbal_control.gimbal_yaw_motor.min_relative_angle;
-    PC_receive_data[param12] = (void *) &gimbal_control.gimbal_yaw_motor.relative_angle_set;
-    PC_receive_data[param13] = (void *) &gimbal_control.gimbal_yaw_motor.relative_angle;
-    PC_receive_data[param14] = (void *) &gimbal_control.gimbal_yaw_motor.offset_ecd;
+//    PC_receive_data[param12] = (void *) &gimbal_control.gimbal_yaw_motor.relative_angle_set;
+//    PC_receive_data[param13] = (void *) &gimbal_control.gimbal_yaw_motor.relative_angle;
+//    PC_receive_data[param14] = (void *) &gimbal_control.gimbal_yaw_motor.offset_ecd;
     /********yaw end***********/
 
     /********trigger start***********/

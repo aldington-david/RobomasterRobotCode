@@ -163,28 +163,28 @@ referee usart:%s\r\n\
 
             //视觉
 
-            SEGGER_RTT_SetTerminal(1);
-            sprintf(print_buf,
-                    "vision_yaw=%f,vision_pitch=%f\r\n",
-                    global_vision_info.vision_control.yaw_angle,
-                    global_vision_info.vision_control.pitch_angle);
-            SEGGER_RTT_WriteString(0, print_buf);
-
-            SEGGER_RTT_SetTerminal(2);
-            sprintf(print_buf,
-                    "p_dead_sen=%f,y_dead_sen=%f,p_contr_sen=%f,y_contr_sen=%f,p_lpf=%f,y_lpf=%f\r\n",
-                    &vision_pitch_angle_deadband_sen,
-                    &vision_yaw_angle_deadband_sen,
-                    &vision_pitch_control_sen,
-                    &vision_yaw_control_sen,
-                    &vision_pitch_lpf_factor,
-                    &vision_yaw_control_lpf_factor);
-            SEGGER_RTT_WriteString(0, print_buf);
-
-            RTT_PrintWave(3,
-                          &zero_line,
-                          &global_vision_info.vision_control.yaw_angle,
-                          &global_vision_info.vision_control.pitch_angle);
+//            SEGGER_RTT_SetTerminal(1);
+//            sprintf(print_buf,
+//                    "vision_yaw=%f,vision_pitch=%f\r\n",
+//                    global_vision_info.vision_control.yaw_angle,
+//                    global_vision_info.vision_control.pitch_angle);
+//            SEGGER_RTT_WriteString(0, print_buf);
+//
+//            SEGGER_RTT_SetTerminal(2);
+//            sprintf(print_buf,
+//                    "p_dead_sen=%f,y_dead_sen=%f,p_contr_sen=%f,y_contr_sen=%f,p_lpf=%f,y_lpf=%f\r\n",
+//                    &vision_pitch_angle_deadband_sen,
+//                    &vision_yaw_angle_deadband_sen,
+//                    &vision_pitch_control_sen,
+//                    &vision_yaw_control_sen,
+//                    &vision_pitch_lpf_factor,
+//                    &vision_yaw_control_lpf_factor);
+//            SEGGER_RTT_WriteString(0, print_buf);
+//
+//            RTT_PrintWave(3,
+//                          &zero_line,
+//                          &global_vision_info.vision_control.yaw_angle,
+//                          &global_vision_info.vision_control.pitch_angle);
 
 //            SEGGER_RTT_SetTerminal(2);
 //            sprintf(print_buf,
@@ -386,8 +386,9 @@ referee usart:%s\r\n\
 //                          &gimbal_control.gimbal_pitch_motor.motor_speed);
 
 //            //YAW
-//            SEGGER_RTT_SetTerminal(2);
+
 //            //pid
+//            SEGGER_RTT_SetTerminal(1);
 //            sprintf(print_buf,
 //                    "LpfFactor=%f,rekp=%f,reki=%f,rekd=%f,spkp=%f,spki=%f,spkd=%f,spIS=%f,maxiout=%f,maxout=%f\r\n",
 //                    gimbal_control.gimbal_yaw_motor.LpfFactor,
@@ -401,8 +402,8 @@ referee usart:%s\r\n\
 //                    gimbal_control.gimbal_yaw_motor.gimbal_motor_relative_angle_pid_temp.max_iout,
 //                    gimbal_control.gimbal_yaw_motor.gimbal_motor_relative_angle_pid_temp.max_out);
 //            SEGGER_RTT_WriteString(0, print_buf);
-//            //PID功能控制
-//            SEGGER_RTT_SetTerminal(3);
+////            //PID功能控制
+//            SEGGER_RTT_SetTerminal(2);
 //            sprintf(print_buf,
 //                    "re_D_First_on=%d,re_D_First_Ratio=%f,sp_D_First_on=%d,sp_D_First_Ratio=%f,re_NF_D_on=%d,re_D_Alpha=%f,sp_NF_D_on=%d,sp_D_Alpha=%f\r\n",
 //                    gimbal_control.gimbal_yaw_motor.gimbal_motor_relative_angle_pid_temp.D_First,
@@ -414,7 +415,8 @@ referee usart:%s\r\n\
 //                    gimbal_control.gimbal_yaw_motor.gimbal_motor_gyro_pid.NF_D,
 //                    gimbal_control.gimbal_yaw_motor.gimbal_motor_gyro_pid.D_Alpha);
 //            SEGGER_RTT_WriteString(0, print_buf);
-//            SEGGER_RTT_SetTerminal(4);
+//
+//            SEGGER_RTT_SetTerminal(3);
 //            sprintf(print_buf,
 //                    "sp_err=%f,sp_Var_I_on=%d,sp_I_ratio=%f,sp_I_Down=%f,sp_I_Up=%f,re_err=%f,re_Var_I_on=%d,re_I_ratio=%f,re_I_Down=%f,I_Up=%f\r\n",
 //                    sp_err,
@@ -428,8 +430,8 @@ referee usart:%s\r\n\
 //                    gimbal_control.gimbal_yaw_motor.gimbal_motor_relative_angle_pid_temp.Variable_I_Down,
 //                    gimbal_control.gimbal_yaw_motor.gimbal_motor_relative_angle_pid_temp.Variable_I_UP);
 //            SEGGER_RTT_WriteString(0, print_buf);
-//            //卡尔曼系数
-//            SEGGER_RTT_SetTerminal(5);
+////            //卡尔曼系数
+//            SEGGER_RTT_SetTerminal(4);
 //            sprintf(print_buf,
 //                    "err_kalman_MR=%f,err_kalman_SQ=%f\r\n",
 //                    gimbal_control.gimbal_yaw_motor.Cloud_MotorAngle_Error_Kalman.R,
@@ -447,23 +449,14 @@ referee usart:%s\r\n\
 //            SEGGER_RTT_WriteString(0, print_buf);
             //电流数据
 //            SEGGER_RTT_SetTerminal(7);
-//            sprintf(print_buf, "current=%f,motor_gyro_set=%f,lms=%f,given_current=%d\r\n",
-//                    gimbal_control.gimbal_yaw_motor.current_set,
-//                    gimbal_control.gimbal_yaw_motor.motor_gyro_set,
-//                    gimbal_control.gimbal_yaw_motor.gimbal_motor_relative_angle_pid_temp.PID_lms.outputF32,
-//                    gimbal_control.gimbal_yaw_motor.given_current);
-//            SEGGER_RTT_WriteString(0, print_buf);
-////            //遥控器数据
-////            SEGGER_RTT_SetTerminal(8);
-////            sprintf(print_buf, "ch1=%d,ch2=%d,ch3=%d,ch4=%d,ch5=%d\r\n",
-////                    rc_ctrl.rc.ch[0],
-////                    rc_ctrl.rc.ch[1],
-////                    rc_ctrl.rc.ch[2],
-////                    rc_ctrl.rc.ch[3],
-////                    rc_ctrl.rc.ch[4]);
+////            sprintf(print_buf, "current=%f,motor_gyro_set=%f,lms=%f,given_current=%d\r\n",
+////                    gimbal_control.gimbal_yaw_motor.current_set,
+////                    gimbal_control.gimbal_yaw_motor.motor_gyro_set,
+////                    gimbal_control.gimbal_yaw_motor.gimbal_motor_relative_angle_pid_temp.PID_lms.outputF32,
+////                    gimbal_control.gimbal_yaw_motor.given_current);
 ////            SEGGER_RTT_WriteString(0, print_buf);
-////            通道值监控
-//            SEGGER_RTT_SetTerminal(9);
+            //遥控器数据
+//            SEGGER_RTT_SetTerminal(8);
 //            sprintf(print_buf, "ch1=%d,ch2=%d,ch3=%d,ch4=%d,ch5=%d\r\n",
 //                    rc_ctrl.rc.ch[0],
 //                    rc_ctrl.rc.ch[1],
@@ -471,8 +464,8 @@ referee usart:%s\r\n\
 //                    rc_ctrl.rc.ch[3],
 //                    rc_ctrl.rc.ch[4]);
 //            SEGGER_RTT_WriteString(0, print_buf);
-//
-////            波形显示
+
+//            波形显示
 //            RTT_PrintWave(6,
 //                          &gimbal_control.gimbal_yaw_motor.relative_angle_set,
 //                          &gimbal_control.gimbal_yaw_motor.relative_angle,
@@ -480,6 +473,14 @@ referee usart:%s\r\n\
 //                          &gimbal_control.gimbal_yaw_motor.motor_gyro_set,
 //                          &gimbal_control.gimbal_yaw_motor.motor_gyro,
 //                          &gimbal_control.gimbal_yaw_motor.motor_speed);
+//遥控器波形打印
+//            RTT_PrintWave_np(5,
+//                             (float) rc_ctrl.rc.ch[0],
+//                             (float) rc_ctrl.rc.ch[1],
+//                             (float) rc_ctrl.rc.ch[2],
+//                             (float) rc_ctrl.rc.ch[3],
+//                             (float) rc_ctrl.rc.ch[4]);
+
 //
 ////            RTT_PrintWave(2,
 ////                          &gimbal_control.gimbal_yaw_motor.current_set,
@@ -535,7 +536,7 @@ referee usart:%s\r\n\
 //                          &gimbal_control.gimbal_pitch_motor.motor_gyro_set,
 //                          &gimbal_control.gimbal_pitch_motor.motor_gyro);
             //FreeRTOS 任务栈打印
-//            SEGGER_RTT_SetTerminal(1);
+//            SEGGER_RTT_SetTerminal(9);
 //            sprintf(print_buf,
 //                    "******************************\r\nAllStack_min_size=%d\r\ncalibrate_task=%d\r\ndetect_task=%d\r\nchassis_task=%d\r\ngimbal_task=%d\r\nINS_task=%d\r\nvision_rx_task=%d\r\nservo_task=%d\r\nreferee_rx_task=%d\r\nUSART6TX_active_task=%d\r\nUSART1TX_active_task=%d\r\nreferee_tx_task=%d\r\nvision_tx_task=%d\r\nmatlab_sync_task=%d\r\nprint_task=%d\r\nPC_receive_task=%d\r\nbattery_voltage_task=%d\r\nled_RGB_flow_task=%d\r\n",
 //                    (int)xPortGetMinimumEverFreeHeapSize(),
@@ -625,7 +626,7 @@ referee usart:%s\r\n\
 #if INCLUDE_uxTaskGetStackHighWaterMark
             print_task_stack = uxTaskGetStackHighWaterMark(NULL);
 #endif
-            vTaskDelayUntil(&LoopStartTime, pdMS_TO_TICKS(50));
+            vTaskDelayUntil(&LoopStartTime, pdMS_TO_TICKS(60));
         }
     }
 }
@@ -653,36 +654,11 @@ static void usb_printf(const char *fmt, ...) {
     CDC_Transmit_FS(print_buf, len);
 }
 
-static void Print_RTT_ReadBuffer(void) {
-    unsigned NumBytes = sizeof(read_buf);
-    NumBytes = SEGGER_RTT_Read(0, &read_buf[0], NumBytes);
-    if (NumBytes) {
-        int i;
-        for (i = 0; i < NumBytes; i++)
-            printf("%c", read_buf[i]);
-        printf("\n");
-    }
-}
-
-static void Use_RTT_SetConfig(void *const variable) {
-    unsigned NumBytes = sizeof(read_buf);
-    NumBytes = SEGGER_RTT_Read(0, &read_buf[0], NumBytes);
-    if (NumBytes) {
-        char *rest;
-        int32_t var = strtol(&read_buf[0], &rest, 10);
-        memcpy(variable, &var, sizeof(var));
-    }
-}
-
-
-//void RTT_PrintWave(fp32 *param1, fp32 *param2, fp32 *param3, fp32 *param4, fp32 *param5, fp32 *param6) {
-//    SEGGER_RTT_SetTerminal(0);
-//    char buf[256];
-//    sprintf(buf, "%f,%f,%f,%f,%f,%f\r\n", *(float *) param1, *(float *) param2,
-//            *(float *) param3, *(float *) param4, *(float *) param5, *(float *) param6);
-//    SEGGER_RTT_WriteString(0, buf);
-//}
-
+/**
+  * @brief          RTT波形打印，格式为富莱安H7-tool显示格式，参数为浮点数指针
+  * @param[in]      num_args : 参数数目
+  * @retval         none
+  */
 void RTT_PrintWave(int num_args, ...) {
     fp32 *param_point[num_args];
     int i;
@@ -703,3 +679,62 @@ void RTT_PrintWave(int num_args, ...) {
     SEGGER_RTT_SetTerminal(0);
     SEGGER_RTT_WriteString(0, buf);
 }
+
+/**
+  * @brief          RTT波形打印(整形用)，格式为富莱安H7-tool显示格式，参数为整形转浮点数非指针
+  * @param[in]      num_args : 参数数目
+  * @retval         none
+  */
+void RTT_PrintWave_np(int num_args, ...) {
+    fp32 param_point[num_args];
+    int i;
+    char buf[256];
+    va_list arg;
+    va_start(arg, num_args);
+    int len = 0;
+    for (i = 0; i < num_args; i++) {
+        param_point[i] = va_arg(arg, double);
+
+        if (i == (num_args - 1)) {
+            len += sprintf((buf + len), "%f\r\n", (float) param_point[i]);
+        } else {
+            len += sprintf((buf + len), "%f,", (float) param_point[i]);
+        }
+    }
+    va_end(arg);
+    SEGGER_RTT_SetTerminal(0);
+    SEGGER_RTT_WriteString(0, buf);
+}
+
+/**
+  * @brief          Timer7溢出中断调用打印，Timer7配置务必在STM32Cubemx调节，APB1 82Mhz,建议时间不小于60us
+  * @param[in]      none
+  * @retval         none
+  */
+void RTT_timer_trigger(void) {
+    RTT_PrintWave_np(1,
+                     (float) rc_ctrl.rc.ch[2]);
+}
+
+//for_test
+//static void Print_RTT_ReadBuffer(void) {
+//    unsigned NumBytes = sizeof(read_buf);
+//    NumBytes = SEGGER_RTT_Read(0, &read_buf[0], NumBytes);
+//    if (NumBytes) {
+//        int i;
+//        for (i = 0; i < NumBytes; i++)
+//            printf("%c", read_buf[i]);
+//        printf("\n");
+//    }
+//}
+
+//not_use Now place in PC_receive_task
+//static void Use_RTT_SetConfig(void *const variable) {
+//    unsigned NumBytes = sizeof(read_buf);
+//    NumBytes = SEGGER_RTT_Read(0, &read_buf[0], NumBytes);
+//    if (NumBytes) {
+//        char *rest;
+//        int32_t var = strtol(&read_buf[0], &rest, 10);
+//        memcpy(variable, &var, sizeof(var));
+//    }
+//}

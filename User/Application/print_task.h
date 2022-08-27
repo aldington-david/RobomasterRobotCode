@@ -32,12 +32,30 @@ extern void print_task(void const *argument);
 
 static void usb_printf(const char *fmt, ...);
 
-static void Print_RTT_ReadBuffer(void);
+//static void Print_RTT_ReadBuffer(void);
 
-static void Use_RTT_SetConfig(void *const variable);
+//static void Use_RTT_SetConfig(void *const variable);
 
-//extern void RTT_PrintWave(fp32 *param1, fp32 *param2, fp32 *param3, fp32 *param4, fp32 *param5, fp32 *param6);
+/**
+  * @brief          RTT波形打印，格式为富莱安H7-tool显示格式，参数为浮点数指针
+  * @param[in]      num_args : 参数数目
+  * @retval         none
+  */
 extern void RTT_PrintWave(int num_args, ...);
+
+/**
+  * @brief          RTT波形打印(整形用)，格式为富莱安H7-tool显示格式，参数为整形转浮点数非指针
+  * @param[in]      num_args : 参数数目
+  * @retval         none
+  */
+extern void RTT_PrintWave_np(int num_args, ...);
+
+/**
+  * @brief          Timer7溢出中断调用打印，Timer7配置务必在STM32Cubemx调节，APB1 82Mhz,建议时间不小于60us
+  * @param[in]      none
+  * @retval         none
+  */
+extern void RTT_timer_trigger(void);
 
 extern fp32 bias_angle_test;
 extern fp32 add_angle_test;

@@ -62,6 +62,7 @@ Revision: $Rev: 21386 $
 #include <intrinsics.h>
 #endif
 
+#include "FreeRTOSConfig.h"
 /*********************************************************************
 *
 *       Defines, configurable
@@ -92,7 +93,7 @@ Revision: $Rev: 21386 $
 #endif
 
 #ifndef   BUFFER_SIZE_UP
-#define BUFFER_SIZE_UP                            (2048)  // Size of the buffer for terminal output of target, up to host (Default: 1k)
+#define BUFFER_SIZE_UP                            (3072)  // Size of the buffer for terminal output of target, up to host (Default: 1k)
 #endif
 
 #ifndef   BUFFER_SIZE_DOWN
@@ -144,7 +145,7 @@ Revision: $Rev: 21386 $
 // or define SEGGER_RTT_LOCK() to completely disable interrupts.
 //
 #ifndef   SEGGER_RTT_MAX_INTERRUPT_PRIORITY
-#define SEGGER_RTT_MAX_INTERRUPT_PRIORITY         (0x20)   // Interrupt priority to lock on SEGGER_RTT_LOCK on Cortex-M3/4 (Default: 0x20)
+#define SEGGER_RTT_MAX_INTERRUPT_PRIORITY         (configMAX_SYSCALL_INTERRUPT_PRIORITY)   // Interrupt priority to lock on SEGGER_RTT_LOCK on Cortex-M3/4 (Default: 0x20)
 #endif
 
 /*********************************************************************

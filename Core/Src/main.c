@@ -147,11 +147,13 @@ int main(void)
   MX_USART6_UART_Init();
   MX_CRC_Init();
   MX_RNG_Init();
+  MX_TIM7_Init();
   /* USER CODE BEGIN 2 */
     can_filter_init();
     delay_init();
     cali_param_init();
     remote_control_init();
+    HAL_TIM_Base_Start_IT(&htim7);
 //    usart1_tx_dma_init();//abundant
 //    HAL_TIM_Base_Start_IT(&htim2);
   /* USER CODE END 2 */
@@ -239,7 +241,9 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
     HAL_IncTick();
   }
   /* USER CODE BEGIN Callback 1 */
-
+  if (htim->Instance == TIM7) {
+      RTT_timer_trigger();
+  }
   /* USER CODE END Callback 1 */
 }
 
