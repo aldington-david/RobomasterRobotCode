@@ -33,7 +33,7 @@
 
 #define SHOOT_CONTROL_TIME          GIMBAL_CONTROL_TIME
 
-#define SHOOT_FRIC_PWM_ADD_VALUE    20
+#define SHOOT_FRIC_PWM_ADD_VALUE    80
 
 //射击摩擦轮激光打开 关闭
 #define SHOOT_ON_KEYBOARD           KEY_PRESSED_OFFSET_Q
@@ -56,7 +56,8 @@
 #define FULL_COUNT                  18
 //拨弹速度
 #define TRIGGER_SPEED               10.0f
-#define CONTINUE_TRIGGER_SPEED      12.0f
+//#define CONTINUE_TRIGGER_SPEED      12.0f
+#define CONTINUE_TRIGGER_SPEED      10.0f
 #define READY_TRIGGER_SPEED         5.0f
 
 #define KEY_OFF_JUGUE_TIME          500
@@ -103,11 +104,11 @@ typedef enum
 
 typedef struct {
     shoot_mode_e shoot_mode;
-    const RC_ctrl_t *shoot_rc;
+    const volatile RC_ctrl_t *shoot_rc;
     const motor_measure_t *shoot_motor_measure;
 
-    const motor_measure_t *fric1_motor_measure;
-    const motor_measure_t *fric2_motor_measure;
+//    const motor_measure_t *fric1_motor_measure;
+//    const motor_measure_t *fric2_motor_measure;
 
     ramp_function_source_t fric1_ramp;
     uint16_t fric_pwm1;
@@ -116,14 +117,14 @@ typedef struct {
     pid_type_def trigger_motor_speed_pid;
     pid_type_def trigger_motor_angle_pid;
 
-    pid_type_def fric1_motor_pid;
-    pid_type_def fric2_motor_pid;
+//    pid_type_def fric1_motor_pid;
+//    pid_type_def fric2_motor_pid;
 
-    fp32 fric_all_speed;
-    fp32 fric1_speed_set;
-    fp32 fric2_speed_set;
-    fp32 fric1_speed;
-    fp32 fric2_speed;
+//    fp32 fric_all_speed;
+//    fp32 fric1_speed_set;
+//    fp32 fric2_speed_set;
+//    fp32 fric1_speed;
+//    fp32 fric2_speed;
 
     fp32 trigger_speed_set;
     fp32 speed;

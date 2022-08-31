@@ -448,13 +448,14 @@ referee usart:%s\r\n\
 //                    gimbal_control.gimbal_yaw_motor.offset_ecd);
 //            SEGGER_RTT_WriteString(0, print_buf);
             //电流数据
-//            SEGGER_RTT_SetTerminal(7);
-////            sprintf(print_buf, "current=%f,motor_gyro_set=%f,lms=%f,given_current=%d\r\n",
-////                    gimbal_control.gimbal_yaw_motor.current_set,
-////                    gimbal_control.gimbal_yaw_motor.motor_gyro_set,
-////                    gimbal_control.gimbal_yaw_motor.gimbal_motor_relative_angle_pid_temp.PID_lms.outputF32,
-////                    gimbal_control.gimbal_yaw_motor.given_current);
-////            SEGGER_RTT_WriteString(0, print_buf);
+            SEGGER_RTT_SetTerminal(7);
+            sprintf(print_buf, "current=%f,motor_gyro_set=%f,relative_angle_set=%f,relative_angle=%f,given_current=%d\r\n",
+                    gimbal_control.gimbal_yaw_motor.current_set,
+                    gimbal_control.gimbal_yaw_motor.motor_gyro_set,
+                    gimbal_control.gimbal_yaw_motor.relative_angle_set,
+                    gimbal_control.gimbal_yaw_motor.relative_angle,
+                    gimbal_control.gimbal_yaw_motor.given_current);
+            SEGGER_RTT_WriteString(0, print_buf);
             //遥控器数据
 //            SEGGER_RTT_SetTerminal(8);
 //            sprintf(print_buf, "ch1=%d,ch2=%d,ch3=%d,ch4=%d,ch5=%d\r\n",
@@ -712,8 +713,8 @@ void RTT_PrintWave_np(int num_args, ...) {
   * @retval         none
   */
 void RTT_timer_trigger(void) {
-    RTT_PrintWave_np(1,
-                     (float) rc_ctrl.rc.ch[2]);
+//    RTT_PrintWave_np(1,
+//                     (float) rc_ctrl.rc.ch[2]);
 }
 
 //for_test

@@ -727,9 +727,9 @@ float ALL_PID(pid_type_def *pid, fp32 ref, fp32 set) {
     if (pid == &gimbal_control.gimbal_yaw_motor.gimbal_motor_gyro_pid) {//for_test
         sp_err = pid->error[0];
     }
-    if (pid == &gimbal_control.gimbal_yaw_motor.gimbal_motor_relative_angle_pid_temp) {//for_test
-        re_err = pid->error[0];
-    }
+//    if (pid == &gimbal_control.gimbal_yaw_motor.gimbal_motor_relative_angle_pid_temp) {//for_test
+//        re_err = pid->error[0];
+//    }
 
     pid->Pout = pid->Kp * pid->error[0];
     if (pid->Variable_I) {
@@ -778,15 +778,18 @@ float ALL_PID(pid_type_def *pid, fp32 ref, fp32 set) {
 //        KF_Dout2_test = KalmanFilter(&pid->D_Kalman, pid->Dout);
 //    }
 
-    if (pid == &gimbal_control.gimbal_yaw_motor.gimbal_motor_gyro_pid) {
-        Dout1_test = pid->Dout;
-    }
+//for_test
+//    if (pid == &gimbal_control.gimbal_yaw_motor.gimbal_motor_gyro_pid) {
+//        Dout1_test = pid->Dout;
+//    }
+
     fp32 KF_temp;
     if (pid->D_Kalman.A == 1) {
         KF_temp = KalmanFilter(&pid->D_Kalman, pid->Dout);
     }
     if (pid->D_Kalman.A == 1 && pid->D_KF) {
-        KF_Dout1_test = pid->Dout = KF_temp;
+        pid->Dout = KF_temp;
+//        KF_Dout1_test = pid->Dout; //for_test
     }
 
 

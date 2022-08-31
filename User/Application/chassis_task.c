@@ -176,14 +176,14 @@ void chassis_task(void const *pvParameters)
             //当遥控器掉线的时候，发送给底盘电机零电流.
             if (toe_is_error(DBUS_TOE))
             {
-                CAN_cmd_chassis(0, 0, 0, 0);
+                CAN1_cmd_0x200(0, 0, 0, 0);
             }
             else
             {
                 //send control current
                 //发送控制电流
-                CAN_cmd_chassis(chassis_move.motor_chassis[0].give_current, chassis_move.motor_chassis[1].give_current,
-                                chassis_move.motor_chassis[2].give_current, chassis_move.motor_chassis[3].give_current);
+                CAN1_cmd_0x200(chassis_move.motor_chassis[0].give_current, chassis_move.motor_chassis[1].give_current,
+                               chassis_move.motor_chassis[2].give_current, chassis_move.motor_chassis[3].give_current);
             }
         }
 #if INCLUDE_uxTaskGetStackHighWaterMark
