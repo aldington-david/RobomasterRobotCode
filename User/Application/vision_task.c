@@ -226,7 +226,7 @@ void vision_update(uint8_t *rxBuf) {
   * @param[in]      none
   * @retval         视觉数据指针
   */
-const vision_control_t *get_vision_control_point(void) {
+const volatile vision_control_t *get_vision_control_point(void) {
     return &global_vision_info.vision_control;
 }
 

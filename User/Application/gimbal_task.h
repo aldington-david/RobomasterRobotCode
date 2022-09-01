@@ -127,9 +127,6 @@
 //云台测试模式 宏定义 0 为不使用测试模式
 #define GIMBAL_TEST_MODE 0
 
-#define PITCH_TURN  0
-#define YAW_TURN    1
-
 //电机码盘值最大以及中值
 #define HALF_ECD_RANGE  4096
 #define ECD_RANGE       8191
@@ -254,8 +251,8 @@ typedef struct
 } gimbal_step_cali_t;
 
 typedef struct {
-    const vision_control_t *gimbal_vision_ctrl;
-    const RC_ctrl_t *gimbal_rc_ctrl;
+    const volatile vision_control_t *gimbal_vision_ctrl;
+    const volatile RC_ctrl_t *gimbal_rc_ctrl;
     const fp32 *gimbal_INT_angle_point;
     const fp32 *gimbal_INT_gyro_point;
     gimbal_motor_t gimbal_yaw_motor;

@@ -47,6 +47,7 @@
 #include "kalman_filter.h"
 #include "arm_math.h"
 #include "arm_const_structs.h"
+#include "global_control_define.h"
 
 //motor enconde value format, range[0-8191]
 //电机编码值规整 0—8191
@@ -73,7 +74,7 @@
 #if INCLUDE_uxTaskGetStackHighWaterMark
 uint32_t gimbal_task_stack;
 #endif
-#define NUM_TAPS 4
+#define NUM_TAPS 4 //lms滤波器系数
 
 /**
   * @brief          "gimbal_control" valiable initialization, include pid initialization, remote control data point initialization, gimbal motors

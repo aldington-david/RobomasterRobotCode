@@ -103,7 +103,7 @@ typedef enum
 
 typedef struct {
     shoot_mode_e shoot_mode;
-    const RC_ctrl_t *shoot_rc;
+    const volatile RC_ctrl_t *shoot_rc;
     const motor_measure_t *shoot_motor_measure;
 
     const motor_measure_t *fric1_motor_measure;

@@ -221,7 +221,7 @@ uint32_t calibrate_task_stack;
 #endif
 
 
-static const RC_ctrl_t *calibrate_RC;   //remote control point
+static const volatile RC_ctrl_t *calibrate_RC;   //remote control point
 static head_cali_t head_cali;       //head cali data
 static gimbal_cali_t gimbal_cali;     //gimbal cali data
 static imu_cali_t accel_cali;      //accel cali data

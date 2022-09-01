@@ -615,7 +615,7 @@ fp32 Cloud_OPID(gimbal_PID_t *pid, fp32 set, fp32 get) {
     } else {
         pid->Dout = pid->kd * (pid->err - pid->error_last);
     }
-    pid->Dout = KalmanFilter(&pid->Cloud_OCKalman, pid->Dout);
+//    pid->Dout = KalmanFilter(&pid->Cloud_OCKalman, pid->Dout); //not_use need to init Cloud_OCKalman!!
     //积分限幅
     abs_limit(&pid->Iout, pid->max_iout); //取消积分输出的限幅。
 
@@ -778,15 +778,18 @@ float ALL_PID(pid_type_def *pid, fp32 ref, fp32 set) {
 //        KF_Dout2_test = KalmanFilter(&pid->D_Kalman, pid->Dout);
 //    }
 
-    if (pid == &gimbal_control.gimbal_yaw_motor.gimbal_motor_gyro_pid) {
-        Dout1_test = pid->Dout;
-    }
+//for_test
+//    if (pid == &gimbal_control.gimbal_yaw_motor.gimbal_motor_gyro_pid) {
+//        Dout1_test = pid->Dout;
+//    }
+
     fp32 KF_temp;
     if (pid->D_Kalman.A == 1) {
         KF_temp = KalmanFilter(&pid->D_Kalman, pid->Dout);
     }
     if (pid->D_Kalman.A == 1 && pid->D_KF) {
-        KF_Dout1_test = pid->Dout = KF_temp;
+        pid->Dout = KF_temp;
+        KF_Dout1_test = pid->Dout;
     }
 
 

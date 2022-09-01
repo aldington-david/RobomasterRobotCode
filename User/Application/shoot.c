@@ -32,6 +32,7 @@
 #include "pid.h"
 #include "print_task.h"
 #include "SEGGER_RTT.h"
+#include "global_control_define.h"
 
 
 #define shoot_fric1_on(pwm) fric1_on((pwm)) //摩擦轮1pwm宏定义
@@ -157,9 +158,13 @@ int16_t shoot_control_loop(void) {
         shoot_bullet_control();
     } else if (shoot_control.shoot_mode == SHOOT_CONTINUE_BULLET) {
         //设置拨弹轮的拨动速度,并开启堵转反转处理
+#if SHOOT_TRIGGER_TURN
         shoot_control.trigger_speed_set = -CONTINUE_TRIGGER_SPEED;
+#else
+        shoot_control.trigger_speed_set = CONTINUE_TRIGGER_SPEED;
+#endif
 //        trigger_motor_turn_back();
-        shoot_control.speed_set = -shoot_control.trigger_speed_set;
+        shoot_control.speed_set = shoot_control.trigger_speed_set;
 //        shoot_control.angle_set = shoot_control.angle;
     } else if (shoot_control.shoot_mode == SHOOT_DONE) {
         shoot_control.angle_set = shoot_control.angle;
@@ -185,9 +190,10 @@ int16_t shoot_control_loop(void) {
         shoot_control.fric2_speed_set = -shoot_control.fric_all_speed;
         shoot_laser_on(); //激光开启
         //计算拨弹轮电机PID
-        if(shoot_control.shoot_mode != SHOOT_CONTINUE_BULLET){
-        shoot_control.speed_set = ALL_PID(&shoot_control.trigger_motor_angle_pid, shoot_control.angle, shoot_control.angle_set);
-        } else{
+        if (shoot_control.shoot_mode != SHOOT_CONTINUE_BULLET) {
+            shoot_control.speed_set = ALL_PID(&shoot_control.trigger_motor_angle_pid, shoot_control.angle,
+                                              shoot_control.angle_set);
+        } else {
             shoot_control.angle_set = shoot_control.angle;
         }
         ALL_PID(&shoot_control.trigger_motor_speed_pid, shoot_control.speed, shoot_control.speed_set);
@@ -230,7 +236,7 @@ static void shoot_set_mode(void) {
          switch_is_up(shoot_control.shoot_rc->rc.s[RADIO_CONTROL_SWITCH_R]) && !switch_is_up(last_s) &&
          !switch_is_up(last_s_switch) &&
          shoot_control.shoot_mode == SHOOT_STOP)) {
-            SEGGER_RTT_WriteString(0, "inloop\r\n");
+//            SEGGER_RTT_WriteString(0, "inloop\r\n");
         shoot_control.shoot_mode = SHOOT_START;
     } else if ((switch_is_down(shoot_control.shoot_rc->rc.s[RADIO_CONTROL_SWITCH_L]) &&
                 switch_is_up(shoot_control.shoot_rc->rc.s[RADIO_CONTROL_SWITCH_R]) && !switch_is_up(last_s) &&
@@ -427,7 +433,11 @@ static void shoot_bullet_control(void) {
     //每次拨动 1/4PI的角度
     if (shoot_control.move_flag == 0) {
 //        shoot_control.angle_set = rad_format(shoot_control.angle + PI_TEN);
+#if SHOOT_TRIGGER_TURN
+        shoot_control.angle_set = shoot_control.angle - PI_FOUR;
+#else
         shoot_control.angle_set = shoot_control.angle + PI_FOUR;
+#endif
         shoot_control.move_flag = 1;
     }
 //    if (shoot_control.key == SWITCH_TRIGGER_OFF) {

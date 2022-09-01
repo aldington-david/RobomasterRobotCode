@@ -7,6 +7,11 @@
 
 #endif //STANDARDROBOTBASICCODE_GLOBAL_CONTROL_DEFINE_H
 
+/************ Motor turn define Start*******************/
+#define PITCH_TURN  0
+#define YAW_TURN    1
+#define SHOOT_TRIGGER_TURN    0
+/************ Motor turn define End*******************/
 
 /************ Choose Print Mode Start*******************/
 #define USB_MODE 0
