@@ -37,6 +37,7 @@
 /************ Choose UART1 TX Target End*******************/
 
 /************ Choose Detect Block Device Start*******************/
+#define Block_Buzzer 1
 #define Block_None_Device 0
 #define Block_All_Device 1
 #define Block_All_Device_ecp_Control 2
