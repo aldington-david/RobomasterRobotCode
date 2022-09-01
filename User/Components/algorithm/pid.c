@@ -615,7 +615,7 @@ fp32 Cloud_OPID(gimbal_PID_t *pid, fp32 set, fp32 get) {
     } else {
         pid->Dout = pid->kd * (pid->err - pid->error_last);
     }
-    pid->Dout = KalmanFilter(&pid->Cloud_OCKalman, pid->Dout);
+//    pid->Dout = KalmanFilter(&pid->Cloud_OCKalman, pid->Dout); //not_use
     //积分限幅
     abs_limit(&pid->Iout, pid->max_iout); //取消积分输出的限幅。
 

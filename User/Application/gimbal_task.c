@@ -185,7 +185,7 @@ static void gimbal_motor_absolute_angle_control(gimbal_motor_t *gimbal_motor);
   */
 static void gimbal_motor_relative_angle_control(gimbal_motor_t *gimbal_motor);
 
-static void gimbal_motor_relative_angle_control_temp(gimbal_motor_t *gimbal_motor);
+//static void gimbal_motor_relative_angle_control_temp(gimbal_motor_t *gimbal_motor);
 /**
   * @brief          gimbal control mode :GIMBAL_MOTOR_RAW, current  is sent to CAN bus. 
   * @param[out]     gimbal_motor: yaw motor or pitch motor
@@ -356,7 +356,7 @@ void gimbal_task(void const *pvParameters) {
         gimbal_control_loop(&gimbal_control);                //云台控制PID计算
         shoot_can_set_current = shoot_control_loop();        //射击任务控制循环
 #if YAW_TURN
-        yaw_can_set_current = (int16_t)-gimbal_control.gimbal_yaw_motor.given_current;
+        yaw_can_set_current = (int16_t) -gimbal_control.gimbal_yaw_motor.given_current;
 #else
         yaw_can_set_current = gimbal_control.gimbal_yaw_motor.given_current;
 #endif
@@ -691,9 +691,9 @@ static void gimbal_init(gimbal_control_t *init) {
 //    KalmanCreate(&Cloud_PITCHODKalman, init->gimbal_pitch_motor.gimbal_motor_relative_angle_pid.out_kal_Q,
 //                 init->gimbal_pitch_motor.gimbal_motor_relative_angle_pid.out_kal_R);
     KalmanCreate(&init->gimbal_pitch_motor.Cloud_MotorAngle_Error_Kalman, 0.1f, 0.1f);
-    KalmanCreate(&init->gimbal_pitch_motor.gimbal_motor_relative_angle_pid.Cloud_OCKalman, 0.0001f, 40.0f);//not_use
+//    KalmanCreate(&init->gimbal_pitch_motor.gimbal_motor_relative_angle_pid.Cloud_OCKalman, 0.0001f, 40.0f);//not_use
     KalmanCreate(&init->gimbal_yaw_motor.Cloud_MotorAngle_Error_Kalman, 1.0f, 200.0f);
-//    KalmanCreate(&init->gimbal_yaw_motor.gimbal_motor_relative_angle_pid_temp.D_Kalman, 1.0, 1.0);
+//    KalmanCreate(&init->gimbal_yaw_motor.gimbal_motor_relative_angle_pid.Cloud_OCKalman, 1.0f, 1.0f);
     KalmanCreate(&init->gimbal_yaw_motor.gimbal_motor_gyro_pid.D_Kalman, 10.0f, 10.0f);
 
     first_order_filter_init(&init->gimbal_yaw_motor.gimbal_motor_gyro_pid.D_Low_Pass_Filter, 0.001f, 0.1f);//not_use
@@ -811,7 +811,7 @@ static void gimbal_feedback_update(gimbal_control_t *feedback_update) {
 #else
     //    feedback_update->gimbal_yaw_motor.relative_angle = motor_ecd_to_angle_change(feedback_update->gimbal_yaw_motor.gimbal_motor_measure->ecd,
     //                                                                                 feedback_update->gimbal_yaw_motor.offset_ecd);
-    feedback_update->gimbal_yaw_motor.relative_angle = -(
+    feedback_update->gimbal_yaw_motor.relative_angle = (
             (feedback_update->gimbal_yaw_motor.gimbal_motor_measure->total_ecd -
              feedback_update->gimbal_yaw_motor.offset_ecd) * MOTOR_ECD_TO_RAD);
 //    feedback_update->gimbal_yaw_motor.relative_angle = (
@@ -1118,6 +1118,9 @@ static void gimbal_motor_relative_angle_control(gimbal_motor_t *gimbal_motor) {
     AngleErr = KalmanFilter(&gimbal_motor->Cloud_MotorAngle_Error_Kalman, AngleErr);
     gimbal_motor->motor_gyro_set = Cloud_OPID(&gimbal_motor->gimbal_motor_relative_angle_pid,
                                               0, AngleErr);
+//    if (gimbal_motor == &gimbal_control.gimbal_yaw_motor) {
+//        SEGGER_RTT_printf(0, "%f\r\n", gimbal_motor->motor_gyro_set);
+//    }
     gimbal_motor->current_set = Cloud_IPID(&gimbal_motor->gimbal_motor_gyro_pid, -gimbal_motor->motor_speed,
                                            gimbal_motor->motor_gyro_set);
     //控制值赋值
@@ -1144,8 +1147,8 @@ static void gimbal_motor_relative_angle_control(gimbal_motor_t *gimbal_motor) {
 ////                     &gimbal_motor->gimbal_motor_relative_angle_pid_temp.PID_lms.outputF32,
 ////                     &gimbal_motor->gimbal_motor_relative_angle_pid_temp.PID_lms.outputERR, 1);
 ////    gimbal_motor->relative_angle = gimbal_motor->gimbal_motor_relative_angle_pid_temp.PID_lms.outputF32;
-//    gimbal_motor->motor_gyro_set = ALL_PID(&gimbal_motor->gimbal_motor_relative_angle_pid_temp,
-//                                           gimbal_motor->gimbal_motor_relative_angle_pid_temp.PID_lms.outputF32,
+//    gimbal_motor->motor_gyro_set = ALL_PID(&gimbal_motor->gimbal_motor_relative_angle_pid,
+//                                           gimbal_motor->relative_angle,
 //                                           gimbal_motor->relative_angle_set);
 //
 //

@@ -388,19 +388,28 @@ referee usart:%s\r\n\
 //            //YAW
 
 //            //pid
-//            SEGGER_RTT_SetTerminal(1);
+            SEGGER_RTT_SetTerminal(9);
+            sprintf(print_buf,
+                    "Pout=%f,Iout=%f,Dout=%f,out=%f\r\n",
+                    gimbal_control.gimbal_yaw_motor.gimbal_motor_relative_angle_pid.Pout,
+                    gimbal_control.gimbal_yaw_motor.gimbal_motor_relative_angle_pid.Iout,
+                    gimbal_control.gimbal_yaw_motor.gimbal_motor_relative_angle_pid.Dout,
+                    gimbal_control.gimbal_yaw_motor.gimbal_motor_relative_angle_pid.out);
+            SEGGER_RTT_WriteString(0, print_buf);
+
+//            SEGGER_RTT_SetTerminal(7);
 //            sprintf(print_buf,
 //                    "LpfFactor=%f,rekp=%f,reki=%f,rekd=%f,spkp=%f,spki=%f,spkd=%f,spIS=%f,maxiout=%f,maxout=%f\r\n",
 //                    gimbal_control.gimbal_yaw_motor.LpfFactor,
-//                    gimbal_control.gimbal_yaw_motor.gimbal_motor_relative_angle_pid_temp.Kp,
-//                    gimbal_control.gimbal_yaw_motor.gimbal_motor_relative_angle_pid_temp.Ki,
-//                    gimbal_control.gimbal_yaw_motor.gimbal_motor_relative_angle_pid_temp.Kd,
+//                    gimbal_control.gimbal_yaw_motor.gimbal_motor_relative_angle_pid.kp,
+//                    gimbal_control.gimbal_yaw_motor.gimbal_motor_relative_angle_pid.ki,
+//                    gimbal_control.gimbal_yaw_motor.gimbal_motor_relative_angle_pid.kd,
 //                    gimbal_control.gimbal_yaw_motor.gimbal_motor_gyro_pid.Kp,
 //                    gimbal_control.gimbal_yaw_motor.gimbal_motor_gyro_pid.Ki,
 //                    gimbal_control.gimbal_yaw_motor.gimbal_motor_gyro_pid.Kd,
 //                    gimbal_control.gimbal_yaw_motor.gimbal_motor_gyro_pid.Integral_Separation,
-//                    gimbal_control.gimbal_yaw_motor.gimbal_motor_relative_angle_pid_temp.max_iout,
-//                    gimbal_control.gimbal_yaw_motor.gimbal_motor_relative_angle_pid_temp.max_out);
+//                    gimbal_control.gimbal_yaw_motor.gimbal_motor_relative_angle_pid.max_iout,
+//                    gimbal_control.gimbal_yaw_motor.gimbal_motor_relative_angle_pid.max_out);
 //            SEGGER_RTT_WriteString(0, print_buf);
 ////            //PID功能控制
 //            SEGGER_RTT_SetTerminal(2);
@@ -448,7 +457,7 @@ referee usart:%s\r\n\
 //                    gimbal_control.gimbal_yaw_motor.offset_ecd);
 //            SEGGER_RTT_WriteString(0, print_buf);
             //电流数据
-            SEGGER_RTT_SetTerminal(7);
+            SEGGER_RTT_SetTerminal(1);
             sprintf(print_buf, "current=%f,motor_gyro_set=%f,relative_angle_set=%f,relative_angle=%f,given_current=%d\r\n",
                     gimbal_control.gimbal_yaw_motor.current_set,
                     gimbal_control.gimbal_yaw_motor.motor_gyro_set,
