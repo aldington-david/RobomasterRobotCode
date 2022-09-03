@@ -74,13 +74,7 @@ const uint16_t wCRC_table[256] = {
 };
 
 
-/**
-  * @brief          calculate the crc8  
-  * @param[in]      pch_message: data
-  * @param[in]      dw_length: stream length = data + checksum
-  * @param[in]      ucCRC8: init CRC8
-  * @retval         calculated crc8
-  */
+
 /**
   * @brief          计算CRC8
   * @param[in]      pch_message: 数据
@@ -142,13 +136,6 @@ void append_CRC8_check_sum(unsigned char *pch_message, unsigned int dw_length) {
 }
 
 
-/**
-  * @brief          calculate the crc16  
-  * @param[in]      pch_message: data
-  * @param[in]      dw_length: stream length = data + checksum
-  * @param[in]      wCRC: init CRC16
-  * @retval         calculated crc16
-  */
 /**
   * @brief          计算CRC16
   * @param[in]      pch_message: 数据

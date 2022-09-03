@@ -371,14 +371,14 @@ void gimbal_task(void const *pvParameters) {
         if (!(toe_is_error(YAW_GIMBAL_MOTOR_TOE) && toe_is_error(PITCH_GIMBAL_MOTOR_TOE) &&
               toe_is_error(TRIGGER_MOTOR_TOE))) {
             if (toe_is_error(DBUS_TOE)) {
-                CAN_cmd_gimbal(0, 0, 0, 0);
-                CAN_cmd_gimbal_can1(0, 0, 0, 0);
+                CAN2_cmd_0x1ff(0, 0, 0, 0);
+                CAN1_cmd_0x1ff(0, 0, 0, 0);
 //                gimbal_control.gimbal_yaw_motor.offset_ecd = gimbal_control.gimbal_yaw_motor.gimbal_motor_measure->total_ecd;
 
             } else {
-                CAN_cmd_gimbal(pitch_can_set_current, 0, shoot_can_set_current, 0);
-                CAN_cmd_gimbal_can1(yaw_can_set_current, 0, 0, 0);
-                CAN_cmd_gimbal_can2(gimbal_control.fric1_give_current, 0, 0, gimbal_control.fric2_give_current);
+                CAN2_cmd_0x1ff(pitch_can_set_current, 0, shoot_can_set_current, 0);
+                CAN1_cmd_0x1ff(yaw_can_set_current, 0, 0, 0);
+                CAN2_cmd_0x200(gimbal_control.fric1_give_current, 0, 0, gimbal_control.fric2_give_current);
             }
         }
 
