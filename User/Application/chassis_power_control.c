@@ -103,7 +103,7 @@ void chassis_power_control(chassis_move_t *chassis_power_control) {
     //calculate the original motor current set
     //计算原本电机电流设定
     for (uint8_t i = 0; i < 4; i++) {
-        total_current += fabs(chassis_power_control->motor_speed_pid[i].out);
+        total_current += fabsf(chassis_power_control->motor_speed_pid[i].out);
     }
 
 

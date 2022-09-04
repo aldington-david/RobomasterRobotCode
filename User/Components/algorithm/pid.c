@@ -24,13 +24,13 @@
 #define abs(x) ((x) > 0 ? (x) : (-x))
 #define LimitMax(input, max)   \
     {                          \
-        if (input > max)       \
+        if ((input) > (max))       \
         {                      \
-            input = max;       \
+            (input) = (max);       \
         }                      \
-        else if (input < -max) \
+        else if ((input) < -(max)) \
         {                      \
-            input = -max;      \
+            (input) = -(max);      \
         }                      \
     }
 
@@ -277,15 +277,15 @@ float FollowKp[6] = {2500, 2700, 3500, 4800, 7000, 9000}; //跟随Kp变化值
 float FollowFactor[4] = {0.75f, 1.0f, 0.7f, 0.65f};       //跟随Kp变化因子
 //底盘跟随PID
 float ClassisFollow_PID(positionpid_t *pid_t, float target, float measured) {
-    if (fabs(target) > AngleTs[0]) {
+    if (fabsf(target) > AngleTs[0]) {
         pid_t->Kp = FollowKp[0];
-    } else if (fabs(target) > AngleTs[1]) {
+    } else if (fabsf(target) > AngleTs[1]) {
         pid_t->Kp = FollowKp[1];
-    } else if (fabs(target) > AngleTs[2]) {
+    } else if (fabsf(target) > AngleTs[2]) {
         pid_t->Kp = FollowKp[2];
-    } else if (fabs(target) > AngleTs[3]) {
+    } else if (fabsf(target) > AngleTs[3]) {
         pid_t->Kp = FollowKp[3];
-    } else if (fabs(target) > AngleTs[4]) {
+    } else if (fabsf(target) > AngleTs[4]) {
         pid_t->Kp = FollowKp[4];
     } else {
         pid_t->Kp = FollowKp[5];
@@ -653,13 +653,13 @@ float Cloud_IPID(pid_type_def *pid, fp32 ref, fp32 set) {
     if (pid->Variable_I) {
         if ((pid->Variable_I_Down != 0.0 || pid->Variable_I_UP != 0.0) &&
             (pid->Variable_I_UP - pid->Variable_I_Down > 0)) {
-            if (fabs(1000.0 * pid->error[0]) < (1000.0 * pid->Variable_I_Down)) {
-                pid->I_ratio = 1.0;
-            } else if (fabs(pid->error[0]) > pid->Variable_I_UP) {
-                pid->I_ratio = 0.0;
+            if (fabsf(1000.0f * pid->error[0]) < (1000.0f * pid->Variable_I_Down)) {
+                pid->I_ratio = 1.0f;
+            } else if (fabsf(pid->error[0]) > pid->Variable_I_UP) {
+                pid->I_ratio = 0.0f;
             } else {
-                pid->I_ratio = ((1000.0 * pid->Variable_I_UP) - fabs(1000.0 * pid->error[0])) /
-                               ((1000.0 * pid->Variable_I_UP) - (1000.0 * pid->Variable_I_Down));
+                pid->I_ratio = ((1000.0f * pid->Variable_I_UP) - fabsf(1000.0f * pid->error[0])) /
+                               ((1000.0f * pid->Variable_I_UP) - (1000.0f * pid->Variable_I_Down));
             }
         } else {
             pid->Iout += pid->Ki * pid->error[0];
@@ -698,7 +698,7 @@ float Cloud_IPID(pid_type_def *pid, fp32 ref, fp32 set) {
     //积分限幅
     LimitMax(pid->Iout, pid->max_iout); //取消积分输出的限幅。
 
-    if (fabs(pid->error[0]) >= pid->Integral_Separation) {
+    if (fabsf(pid->error[0]) >= pid->Integral_Separation) {
         pid->Iout = 0;
         pid->out = (pid->Pout + pid->Dout);
     } else {
@@ -735,13 +735,13 @@ float ALL_PID(pid_type_def *pid, fp32 ref, fp32 set) {
     if (pid->Variable_I) {
         if ((pid->Variable_I_Down != 0.0 || pid->Variable_I_UP != 0.0) &&
             (pid->Variable_I_UP - pid->Variable_I_Down > 0)) {
-            if (fabs(1000.0 * pid->error[0]) < (1000.0 * pid->Variable_I_Down)) {
-                pid->I_ratio = 1.0;
-            } else if (fabs(pid->error[0]) > pid->Variable_I_UP) {
-                pid->I_ratio = 0.0;
+            if (fabsf(1000.0f * pid->error[0]) < (1000.0f * pid->Variable_I_Down)) {
+                pid->I_ratio = 1.0f;
+            } else if (fabsf(pid->error[0]) > pid->Variable_I_UP) {
+                pid->I_ratio = 0.0f;
             } else {
-                pid->I_ratio = ((1000.0 * pid->Variable_I_UP) - fabs(1000.0 * pid->error[0])) /
-                               ((1000.0 * pid->Variable_I_UP) - (1000.0 * pid->Variable_I_Down));
+                pid->I_ratio = ((1000.0f * pid->Variable_I_UP) - fabsf(1000.0f * pid->error[0])) /
+                               ((1000.0f * pid->Variable_I_UP) - (1000.0f * pid->Variable_I_Down));
             }
         } else {
             pid->Iout += pid->Ki * (pid->error[0] + pid->error[1]) / 2.0f;
@@ -798,7 +798,7 @@ float ALL_PID(pid_type_def *pid, fp32 ref, fp32 set) {
     //积分限幅
     LimitMax(pid->Iout, pid->max_iout); //取消积分输出的限幅。
 
-    if (fabs(pid->error[0]) >= pid->Integral_Separation) {
+    if (fabsf(pid->error[0]) >= pid->Integral_Separation) {
         pid->Iout = 0;
         pid->out = (pid->Pout + pid->Dout);
     } else {

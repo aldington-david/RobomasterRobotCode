@@ -231,7 +231,7 @@ const volatile vision_control_t *get_vision_control_point(void) {
 }
 
 /**
-  * @brief  裁判系统数据内存空间初始化
+  * @brief  视觉数据内存空间初始化
   * @param  None
   * @retval None
   */

@@ -389,7 +389,7 @@ referee usart:%s\r\n\
 
 //            //YAW
 
-//            //pid
+            //pid
 //            SEGGER_RTT_SetTerminal(1);
 //            sprintf(print_buf,
 //                    "LpfFactor=%f,rekp=%f,reki=%f,rekd=%f,spkp=%f,spki=%f,spkd=%f,spIS=%f,maxiout=%f,maxout=%f\r\n",
@@ -440,7 +440,7 @@ referee usart:%s\r\n\
 //                    gimbal_control.gimbal_yaw_motor.Cloud_MotorAngle_Error_Kalman.Q);
 //            SEGGER_RTT_WriteString(0, print_buf);
 //            rad角度数据
-//            SEGGER_RTT_SetTerminal(6);
+//            SEGGER_RTT_SetTerminal(5);
 //            sprintf(print_buf, "setangle=%f,maxangle=%f,nowangle=%f,minangle=%f,total_ecd=%d,offset_ecd=%d\r\n",
 //                    gimbal_control.gimbal_yaw_motor.relative_angle_set,
 //                    gimbal_control.gimbal_yaw_motor.max_relative_angle,
@@ -450,7 +450,7 @@ referee usart:%s\r\n\
 //                    gimbal_control.gimbal_yaw_motor.offset_ecd);
 //            SEGGER_RTT_WriteString(0, print_buf);
             //电流数据
-//            SEGGER_RTT_SetTerminal(7);
+//            SEGGER_RTT_SetTerminal(6);
 ////            sprintf(print_buf, "current=%f,motor_gyro_set=%f,lms=%f,given_current=%d\r\n",
 ////                    gimbal_control.gimbal_yaw_motor.current_set,
 ////                    gimbal_control.gimbal_yaw_motor.motor_gyro_set,
@@ -458,7 +458,7 @@ referee usart:%s\r\n\
 ////                    gimbal_control.gimbal_yaw_motor.given_current);
 ////            SEGGER_RTT_WriteString(0, print_buf);
             //遥控器数据
-//            SEGGER_RTT_SetTerminal(8);
+//            SEGGER_RTT_SetTerminal(7);
 //            sprintf(print_buf, "ch1=%d,ch2=%d,ch3=%d,ch4=%d,ch5=%d\r\n",
 //                    rc_ctrl.rc.ch[0],
 //                    rc_ctrl.rc.ch[1],
@@ -475,6 +475,11 @@ referee usart:%s\r\n\
 //                          &gimbal_control.gimbal_yaw_motor.motor_gyro_set,
 //                          &gimbal_control.gimbal_yaw_motor.motor_gyro,
 //                          &gimbal_control.gimbal_yaw_motor.motor_speed);
+//            RTT_PrintWave_np(4,
+//                          gimbal_control.gimbal_yaw_motor.relative_angle_set,
+//                          gimbal_control.gimbal_yaw_motor.relative_angle,
+//                          gimbal_control.gimbal_yaw_motor.gimbal_motor_relative_angle_pid_temp.PID_lms.outputF32,
+//                          (float)rc_ctrl.rc.ch[2]);
 //遥控器波形打印
 //            RTT_PrintWave_np(5,
 //                             (float) rc_ctrl.rc.ch[0],

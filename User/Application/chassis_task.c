@@ -612,7 +612,7 @@ static void chassis_control_loop(chassis_move_t *chassis_move_control_loop) {
     //计算轮子控制最大速度，并限制其最大速度
     for (i = 0; i < 4; i++) {
         chassis_move_control_loop->motor_chassis[i].speed_set = wheel_speed[i];
-        temp = fabs(chassis_move_control_loop->motor_chassis[i].speed_set);
+        temp = fabsf(chassis_move_control_loop->motor_chassis[i].speed_set);
         if (max_vector < temp) {
             max_vector = temp;
         }

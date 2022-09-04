@@ -35,7 +35,7 @@ uint32_t servo_task_stack;
 #endif
 
 static servo_mode_e Bullet_Box_Mode = Bullet_Box_Min;
-const RC_ctrl_t *servo_rc;
+const volatile RC_ctrl_t *servo_rc;
 //const static uint16_t servo_key[4] = {SERVO1_ADD_PWM_KEY, SERVO2_ADD_PWM_KEY, SERVO3_ADD_PWM_KEY, SERVO4_ADD_PWM_KEY};
 //uint16_t servo_pwm[4] = {SERVO_MIN_PWM, SERVO_MIN_PWM, SERVO_MIN_PWM, SERVO_MIN_PWM};
 uint16_t volatile bullet_box_pwm = SERVO_MIN_PWM;

@@ -106,8 +106,8 @@ void shoot_init(void) {
              TRIGGER_READY_PID_MAX_IOUT, 100, 0, 0, 0, 0, 0, 1, 0, 0, 0);
     PID_init(&shoot_control.fric2_motor_pid, PID_POSITION, fric2_speed_pid, TRIGGER_READY_PID_MAX_OUT,
              TRIGGER_READY_PID_MAX_IOUT, 100, 0, 0, 0, 0, 0, 1, 0, 0, 0);
-    first_order_filter_init(&shoot_control.fric1_motor_pid.D_Low_Pass_Filter, 0.001, 0.3);
-    first_order_filter_init(&shoot_control.fric2_motor_pid.D_Low_Pass_Filter, 0.001, 0.3);
+    first_order_filter_init(&shoot_control.fric1_motor_pid.D_Low_Pass_Filter, 0.001f, 0.3f);
+    first_order_filter_init(&shoot_control.fric2_motor_pid.D_Low_Pass_Filter, 0.001f, 0.3f);
 //    shoot_control.pwm = SHOOT_FRIC_PWM_ADD_VALUE;
 
     //更新数据
@@ -255,8 +255,8 @@ static void shoot_set_mode(void) {
     }
 
     if (shoot_control.shoot_mode == SHOOT_START &&
-        (fabs(100 * shoot_control.fric1_speed_set - 100 * shoot_control.fric1_speed) < 0.5 * 100) &&
-        (fabs(100 * shoot_control.fric2_speed_set - 100 * shoot_control.fric2_speed) < 0.5 * 100)) {
+        (fabsf(100 * shoot_control.fric1_speed_set - 100 * shoot_control.fric1_speed) < 0.5f * 100) &&
+        (fabsf(100 * shoot_control.fric2_speed_set - 100 * shoot_control.fric2_speed) < 0.5f * 100)) {
         shoot_control.shoot_mode = SHOOT_READY;
     } else if (shoot_control.shoot_mode == SHOOT_READY) {
         //下拨一次或者鼠标按下一次，进入射击状态
@@ -413,7 +413,7 @@ static void trigger_motor_turn_back(void) {
         shoot_control.speed_set = -shoot_control.trigger_speed_set;
     }
 
-    if (fabs(shoot_control.speed) < BLOCK_TRIGGER_SPEED && shoot_control.block_time < BLOCK_TIME) {
+    if (fabsf(shoot_control.speed) < BLOCK_TRIGGER_SPEED && shoot_control.block_time < BLOCK_TIME) {
         shoot_control.block_time++;
         shoot_control.reverse_time = 0;
     } else if (shoot_control.block_time == BLOCK_TIME && shoot_control.reverse_time < REVERSE_TIME) {
@@ -445,8 +445,8 @@ static void shoot_bullet_control(void) {
 //        shoot_control.shoot_mode = SHOOT_DONE;
 //    }
     //到达角度判断
-//    if (fabs(rad_format(shoot_control.angle_set - shoot_control.angle)) > 0.05f) {
-    if (fabs(shoot_control.angle_set - shoot_control.angle) > 0.005f) {
+//    if (fabsf(rad_format(shoot_control.angle_set - shoot_control.angle)) > 0.05f) {
+    if (fabsf(shoot_control.angle_set - shoot_control.angle) > 0.005f) {
 //        //没到达一直设置旋转速度
 //        shoot_control.trigger_speed_set = -10.0f;
 ////        trigger_motor_turn_back();

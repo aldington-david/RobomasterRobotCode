@@ -60,8 +60,8 @@ FusionVector3 FusionBiasUpdate(FusionBias *const fusionBias, FusionVector3 gyros
     gyroscope = FusionVectorSubtract(gyroscope, fusionBias->gyroscopeBias);
 
     // Reset stationary timer if gyroscope not stationary
-    if ((fabs(gyroscope.axis.x) > fusionBias->threshold) || (fabs(gyroscope.axis.y) > fusionBias->threshold) ||
-        (fabs(gyroscope.axis.z) > fusionBias->threshold)) {
+    if ((fabsf(gyroscope.axis.x) > fusionBias->threshold) || (fabsf(gyroscope.axis.y) > fusionBias->threshold) ||
+        (fabsf(gyroscope.axis.z) > fusionBias->threshold)) {
         fusionBias->stationaryTimer = 0.0f;
         return gyroscope;
     }
