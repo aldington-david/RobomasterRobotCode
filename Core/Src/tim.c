@@ -31,6 +31,7 @@ TIM_HandleTypeDef htim5;
 TIM_HandleTypeDef htim7;
 TIM_HandleTypeDef htim8;
 TIM_HandleTypeDef htim10;
+TIM_HandleTypeDef htim11;
 
 /* TIM1 init function */
 void MX_TIM1_Init(void)
@@ -300,7 +301,7 @@ void MX_TIM7_Init(void)
   htim7.Instance = TIM7;
   htim7.Init.Prescaler = 839;
   htim7.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim7.Init.Period = 174;
+  htim7.Init.Period = 50;
   htim7.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_ENABLE;
   if (HAL_TIM_Base_Init(&htim7) != HAL_OK)
   {
@@ -432,6 +433,32 @@ void MX_TIM10_Init(void)
   HAL_TIM_MspPostInit(&htim10);
 
 }
+/* TIM11 init function */
+void MX_TIM11_Init(void)
+{
+
+  /* USER CODE BEGIN TIM11_Init 0 */
+
+  /* USER CODE END TIM11_Init 0 */
+
+  /* USER CODE BEGIN TIM11_Init 1 */
+
+  /* USER CODE END TIM11_Init 1 */
+  htim11.Instance = TIM11;
+  htim11.Init.Prescaler = 1679;
+  htim11.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim11.Init.Period = 200;
+  htim11.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+  htim11.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_ENABLE;
+  if (HAL_TIM_Base_Init(&htim11) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN TIM11_Init 2 */
+
+  /* USER CODE END TIM11_Init 2 */
+
+}
 
 void HAL_TIM_Base_MspInit(TIM_HandleTypeDef* tim_baseHandle)
 {
@@ -443,6 +470,10 @@ void HAL_TIM_Base_MspInit(TIM_HandleTypeDef* tim_baseHandle)
   /* USER CODE END TIM1_MspInit 0 */
     /* TIM1 clock enable */
     __HAL_RCC_TIM1_CLK_ENABLE();
+
+    /* TIM1 interrupt Init */
+    HAL_NVIC_SetPriority(TIM1_TRG_COM_TIM11_IRQn, 5, 0);
+    HAL_NVIC_EnableIRQ(TIM1_TRG_COM_TIM11_IRQn);
   /* USER CODE BEGIN TIM1_MspInit 1 */
 
   /* USER CODE END TIM1_MspInit 1 */
@@ -516,6 +547,21 @@ void HAL_TIM_Base_MspInit(TIM_HandleTypeDef* tim_baseHandle)
   /* USER CODE BEGIN TIM10_MspInit 1 */
 
   /* USER CODE END TIM10_MspInit 1 */
+  }
+  else if(tim_baseHandle->Instance==TIM11)
+  {
+  /* USER CODE BEGIN TIM11_MspInit 0 */
+
+  /* USER CODE END TIM11_MspInit 0 */
+    /* TIM11 clock enable */
+    __HAL_RCC_TIM11_CLK_ENABLE();
+
+    /* TIM11 interrupt Init */
+    HAL_NVIC_SetPriority(TIM1_TRG_COM_TIM11_IRQn, 5, 0);
+    HAL_NVIC_EnableIRQ(TIM1_TRG_COM_TIM11_IRQn);
+  /* USER CODE BEGIN TIM11_MspInit 1 */
+
+  /* USER CODE END TIM11_MspInit 1 */
   }
 }
 void HAL_TIM_MspPostInit(TIM_HandleTypeDef* timHandle)
@@ -686,6 +732,16 @@ void HAL_TIM_Base_MspDeInit(TIM_HandleTypeDef* tim_baseHandle)
   /* USER CODE END TIM1_MspDeInit 0 */
     /* Peripheral clock disable */
     __HAL_RCC_TIM1_CLK_DISABLE();
+
+    /* TIM1 interrupt Deinit */
+  /* USER CODE BEGIN TIM1:TIM1_TRG_COM_TIM11_IRQn disable */
+    /**
+    * Uncomment the line below to disable the "TIM1_TRG_COM_TIM11_IRQn" interrupt
+    * Be aware, disabling shared interrupt may affect other IPs
+    */
+    /* HAL_NVIC_DisableIRQ(TIM1_TRG_COM_TIM11_IRQn); */
+  /* USER CODE END TIM1:TIM1_TRG_COM_TIM11_IRQn disable */
+
   /* USER CODE BEGIN TIM1_MspDeInit 1 */
 
   /* USER CODE END TIM1_MspDeInit 1 */
@@ -758,6 +814,27 @@ void HAL_TIM_Base_MspDeInit(TIM_HandleTypeDef* tim_baseHandle)
   /* USER CODE BEGIN TIM10_MspDeInit 1 */
 
   /* USER CODE END TIM10_MspDeInit 1 */
+  }
+  else if(tim_baseHandle->Instance==TIM11)
+  {
+  /* USER CODE BEGIN TIM11_MspDeInit 0 */
+
+  /* USER CODE END TIM11_MspDeInit 0 */
+    /* Peripheral clock disable */
+    __HAL_RCC_TIM11_CLK_DISABLE();
+
+    /* TIM11 interrupt Deinit */
+  /* USER CODE BEGIN TIM11:TIM1_TRG_COM_TIM11_IRQn disable */
+    /**
+    * Uncomment the line below to disable the "TIM1_TRG_COM_TIM11_IRQn" interrupt
+    * Be aware, disabling shared interrupt may affect other IPs
+    */
+    /* HAL_NVIC_DisableIRQ(TIM1_TRG_COM_TIM11_IRQn); */
+  /* USER CODE END TIM11:TIM1_TRG_COM_TIM11_IRQn disable */
+
+  /* USER CODE BEGIN TIM11_MspDeInit 1 */
+
+  /* USER CODE END TIM11_MspDeInit 1 */
   }
 }
 

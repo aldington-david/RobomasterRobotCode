@@ -315,6 +315,8 @@ gimbal_control_t gimbal_control;
 //发送的电机电流
 static int16_t yaw_can_set_current = 0, pitch_can_set_current = 0, shoot_can_set_current = 0;
 
+
+
 /**
   * @brief          gimbal task, osDelay GIMBAL_CONTROL_TIME (1ms) 
   * @param[in]      pvParameters: null

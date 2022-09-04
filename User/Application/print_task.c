@@ -721,6 +721,12 @@ void RTT_PrintWave_np(int num_args, ...) {
 void RTT_timer_trigger(void) {
 //    RTT_PrintWave_np(1,
 //                     (float) rc_ctrl.rc.ch[2]);
+    static uint16_t i = 0;
+    if (i > 42) {
+        i = 0;
+    }
+    RTT_PrintWave_np(1,ynpos[i]);
+    i++;
 }
 
 //for_test

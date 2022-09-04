@@ -51,6 +51,7 @@
 #include "voltage_task.h"
 #include "referee_task.h"
 #include "SEGGER_RTT.h"
+
 #if __CC_ARM
 #if EventRecorder_MODE == Enable_EventRecorder
 #include "EventRecorder.h"
@@ -113,12 +114,12 @@ int main(void)
   SystemClock_Config();
 
   /* USER CODE BEGIN SysInit */
-  HAL_RTC_MspInit(&hrtc);
+    HAL_RTC_MspInit(&hrtc);
 
 #if __CC_ARM
 #if EventRecorder_MODE == Enable_EventRecorder
     /* EventRecorder Initializes */
-	EventRecorderInitialize(EventRecordAll, 1U);
+    EventRecorderInitialize(EventRecordAll, 1U);
 #endif
 #endif
   /* USER CODE END SysInit */
@@ -148,12 +149,14 @@ int main(void)
   MX_CRC_Init();
   MX_RNG_Init();
   MX_TIM7_Init();
+  MX_TIM11_Init();
   /* USER CODE BEGIN 2 */
     can_filter_init();
     delay_init();
     cali_param_init();
     remote_control_init();
     HAL_TIM_Base_Start_IT(&htim7);
+    HAL_TIM_Base_Start_IT(&htim11);
 //    usart1_tx_dma_init();//abundant
 //    HAL_TIM_Base_Start_IT(&htim2);
   /* USER CODE END 2 */
@@ -241,9 +244,12 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
     HAL_IncTick();
   }
   /* USER CODE BEGIN Callback 1 */
-  if (htim->Instance == TIM7) {
-      RTT_timer_trigger();
-  }
+    if (htim->Instance == TIM7) {
+        RTT_timer_trigger();
+    }
+    if (htim->Instance == TIM11) {
+        spline_time_trigger();
+    }
   /* USER CODE END Callback 1 */
 }
 

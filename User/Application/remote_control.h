@@ -19,8 +19,12 @@
   */
 #ifndef REMOTE_CONTROL_H
 #define REMOTE_CONTROL_H
+
 #include "struct_typedef.h"
 #include "bsp_rc.h"
+#include "stdbool.h"
+#include "arm_math.h"
+#include "arm_math_types.h"
 
 #define SBUS_RX_BUF_NUM 36u
 
@@ -29,6 +33,26 @@
 #define RC_CH_VALUE_MIN         ((uint16_t)364)
 #define RC_CH_VALUE_OFFSET      ((uint16_t)1024)
 #define RC_CH_VALUE_MAX         ((uint16_t)1684)
+
+//样条补插测试
+extern bool RC_UPDATE_FLAG;
+
+extern arm_spline_instance_f32 S;
+#define INPUT_TEST_LENGTH_SAMPLES    3    /* 输入数据个数 */
+#define OUT_TEST_LENGTH_SAMPLES    42   /* 输出数据个数 */
+
+#define SpineTab (OUT_TEST_LENGTH_SAMPLES/INPUT_TEST_LENGTH_SAMPLES)  /* 插补末尾的8个坐标值不使用 */
+
+
+extern float32_t xn[INPUT_TEST_LENGTH_SAMPLES];   /* 输入数据x轴坐标 */
+extern float32_t yn[INPUT_TEST_LENGTH_SAMPLES];   /* 输入数据y轴坐标 */
+
+extern float32_t coeffs[3 * (INPUT_TEST_LENGTH_SAMPLES - 1)];     /* 插补系数缓冲 */
+extern float32_t tempBuffer[2 * INPUT_TEST_LENGTH_SAMPLES - 1]; /* 插补临时缓冲 */
+
+extern float32_t xnpos[OUT_TEST_LENGTH_SAMPLES];  /* 插补计算后X轴坐标值 */
+extern float32_t ynpos[OUT_TEST_LENGTH_SAMPLES];  /* 插补计算后Y轴数值 */
+
 
 /* ----------------------- RC Switch Definition----------------------------- */
 #define RC_SW_UP                ((uint16_t)1)
@@ -55,35 +79,39 @@
 #define KEY_PRESSED_OFFSET_V            ((uint16_t)1 << 14)
 #define KEY_PRESSED_OFFSET_B            ((uint16_t)1 << 15)
 /* ----------------------- Data Struct ------------------------------------- */
-typedef struct __attribute__((packed))
-{
-        struct __attribute__((packed))
-        {
-                int16_t ch[5];
-                char s[2];
-        } rc;
-        struct __attribute__((packed))
-        {
-                int16_t x;
-                int16_t y;
-                int16_t z;
-                uint8_t press_l;
-                uint8_t press_r;
-        } mouse;
-        struct __attribute__((packed))
-        {
-                uint16_t v;
-        } key;
+typedef struct __attribute__((packed)) {
+    struct __attribute__((packed)) {
+        int16_t ch[5];
+        char s[2];
+    } rc;
+    struct __attribute__((packed)) {
+        int16_t x;
+        int16_t y;
+        int16_t z;
+        uint8_t press_l;
+        uint8_t press_r;
+    } mouse;
+    struct __attribute__((packed)) {
+        uint16_t v;
+    } key;
 
 } RC_ctrl_t;
 
 /* ----------------------- Internal Data ----------------------------------- */
 
 extern void remote_control_init(void);
+
 extern const volatile RC_ctrl_t *get_remote_control_point(void);
+
 extern uint8_t RC_data_is_error(void);
+
 extern void slove_RC_lost(void);
+
 extern void slove_data_error(void);
+
 extern void sbus_to_usart1(uint8_t *sbus);
+
 extern volatile RC_ctrl_t rc_ctrl;
+
+extern void spline_time_trigger(void);
 #endif
