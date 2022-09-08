@@ -468,13 +468,13 @@ referee usart:%s\r\n\
 //            SEGGER_RTT_WriteString(0, print_buf);
 
 //            波形显示
-//            RTT_PrintWave(6,
-//                          &gimbal_control.gimbal_yaw_motor.relative_angle_set,
-//                          &gimbal_control.gimbal_yaw_motor.relative_angle,
-//                          &gimbal_control.gimbal_yaw_motor.gimbal_motor_relative_angle_pid_temp.PID_lms.outputF32,
-//                          &gimbal_control.gimbal_yaw_motor.motor_gyro_set,
-//                          &gimbal_control.gimbal_yaw_motor.motor_gyro,
-//                          &gimbal_control.gimbal_yaw_motor.motor_speed);
+            RTT_PrintWave(6,
+                          &gimbal_control.gimbal_yaw_motor.relative_angle_set,
+                          &gimbal_control.gimbal_yaw_motor.relative_angle,
+                          &gimbal_control.gimbal_yaw_motor.gimbal_motor_relative_angle_pid_temp.PID_lms.outputF32,
+                          &gimbal_control.gimbal_yaw_motor.motor_gyro_set,
+                          &gimbal_control.gimbal_yaw_motor.motor_gyro,
+                          &gimbal_control.gimbal_yaw_motor.motor_speed);
 //            RTT_PrintWave_np(4,
 //                          gimbal_control.gimbal_yaw_motor.relative_angle_set,
 //                          gimbal_control.gimbal_yaw_motor.relative_angle,

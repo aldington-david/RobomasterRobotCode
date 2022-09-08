@@ -758,7 +758,7 @@ void gimbal_rc_to_control_vector(fp32 *yaw, fp32 *pitch, gimbal_control_t *gimba
         rc_deadband_limit(gimbal_move_rc_to_vector->gimbal_rc_ctrl->rc.ch[YAW_CHANNEL], yaw_channel, RC_DEADBAND);
         rc_deadband_limit(gimbal_move_rc_to_vector->gimbal_rc_ctrl->rc.ch[PITCH_CHANNEL], pitch_channel, RC_DEADBAND);
         //for_test
-        yaw_channel = test_control(UNARY_FUN, 1.491, -1.6298, 3000, 300, 1, 0, 1);
+        yaw_channel = test_control(CONSTANT, 10.491, -1.6298, 300, 600, 1, 0, 1);
 
         //视觉控制
         rc_deadband_limit(gimbal_move_rc_to_vector->gimbal_vision_ctrl->yaw_angle, lim_vision_yaw,
@@ -851,8 +851,7 @@ int16_t test_control(int16_t mode, fp32 re_angle_pr_up, fp32 re_angle_pr_down, i
             }
             if (mode == CONSTANT) {
                 rc_control_variable = const_set;
-                if (count == time_ms) {
-                    count = 0;
+                if (count >= time_ms) {
                     rc_control_variable = 0;
                 }
                 count++;
@@ -888,6 +887,6 @@ int16_t test_control(int16_t mode, fp32 re_angle_pr_up, fp32 re_angle_pr_down, i
         }
         delay_count++;
     }
-    SEGGER_RTT_printf(0,"%d\r\n",rc_control_variable);//for_test
+//    SEGGER_RTT_printf(0,"%d\r\n",rc_control_variable);//for_test
     return rc_control_variable;
 }
