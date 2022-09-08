@@ -87,6 +87,13 @@
 #define RADIO_CONTROL_SWITCH_R       0
 #define RADIO_CONTROL_SWITCH_L       1
 
+#define STEP_FUNC 0
+#define QUADRATIC_FUNC 1
+#define UNARY_FUN 2
+#define CONSTANT 3
+
+#define DELAY_GAIN(x) (x) <= 400 ? (0.001714f * (x) + 2) : 2.7f
+
 
 typedef enum
 {
@@ -169,5 +176,8 @@ extern bool_t gimbal_cmd_to_shoot_stop(void);
   * @retval         none
   */
 extern void gimbal_rc_to_control_vector(fp32 *yaw, fp32 *pitch, gimbal_control_t *gimbal_move_rc_to_vector);
+
+int16_t test_control(int16_t mode, fp32 re_angle_pr_up, fp32 re_angle_pr_down, int16_t time_ms,
+                     int16_t const_set ,int16_t delay_ms, bool keep, int16_t keep_ms);
 
 #endif

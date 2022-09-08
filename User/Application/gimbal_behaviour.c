@@ -86,6 +86,8 @@
 #include "user_lib.h"
 #include "USER_Filter.h"
 #include "vision_task.h"
+#include "SEGGER_RTT.h"
+#include "math.h"
 
 //when gimbal is in calibrating, set buzzer frequency and strenght
 //当云台在校准, 设置蜂鸣器频率和强度
@@ -747,18 +749,22 @@ void gimbal_rc_to_control_vector(fp32 *yaw, fp32 *pitch, gimbal_control_t *gimba
     }
 
     int16_t yaw_channel, pitch_channel;
-    fp32 yaw_set_channel, pitch_set_channel, add_vision_yaw, add_vision_pitch,lim_vision_yaw, lim_vision_pitch;
-    yaw_set_channel = pitch_set_channel = add_vision_yaw = add_vision_pitch = yaw_channel = pitch_channel= 0;
+    fp32 yaw_set_channel, pitch_set_channel, add_vision_yaw, add_vision_pitch, lim_vision_yaw, lim_vision_pitch;
+    yaw_set_channel = pitch_set_channel = add_vision_yaw = add_vision_pitch = yaw_channel = pitch_channel = 0;
     if (!switch_is_up(gimbal_move_rc_to_vector->gimbal_rc_ctrl->rc.s[RADIO_CONTROL_SWITCH_L])) {
 
         //deadline, because some remote control need be calibrated,  the value of rocker is not zero in middle place,
         //死区限制，因为遥控器可能存在差异 摇杆在中间，其值不为0
         rc_deadband_limit(gimbal_move_rc_to_vector->gimbal_rc_ctrl->rc.ch[YAW_CHANNEL], yaw_channel, RC_DEADBAND);
         rc_deadband_limit(gimbal_move_rc_to_vector->gimbal_rc_ctrl->rc.ch[PITCH_CHANNEL], pitch_channel, RC_DEADBAND);
+        //for_test
+        yaw_channel = test_control(UNARY_FUN, 1.491, -1.6298, 3000, 300, 1, 0, 1);
 
         //视觉控制
-        rc_deadband_limit(gimbal_move_rc_to_vector->gimbal_vision_ctrl->yaw_angle, lim_vision_yaw, vision_pitch_angle_deadband_sen)
-        rc_deadband_limit(gimbal_move_rc_to_vector->gimbal_vision_ctrl->pitch_angle, lim_vision_pitch, vision_yaw_angle_deadband_sen)
+        rc_deadband_limit(gimbal_move_rc_to_vector->gimbal_vision_ctrl->yaw_angle, lim_vision_yaw,
+                          vision_pitch_angle_deadband_sen)
+        rc_deadband_limit(gimbal_move_rc_to_vector->gimbal_vision_ctrl->pitch_angle, lim_vision_pitch,
+                          vision_yaw_angle_deadband_sen)
         float temp_yaw = lim_vision_yaw * vision_yaw_control_sen;
         float temp_pitch = lim_vision_pitch * vision_pitch_control_sen;
         Filter_IIRLPF(&temp_yaw, &add_vision_yaw, vision_pitch_lpf_factor);
@@ -797,4 +803,91 @@ void gimbal_rc_to_control_vector(fp32 *yaw, fp32 *pitch, gimbal_control_t *gimba
 
     *yaw = yaw_set_channel;
     *pitch = pitch_set_channel;
+}
+
+int16_t test_control(int16_t mode, fp32 re_angle_pr_up, fp32 re_angle_pr_down, int16_t time_ms,
+                     int16_t const_set, int16_t delay_ms, bool keep, int16_t keep_ms) {
+    static uint32_t count = 0;
+    static uint32_t delay_count = 0;
+    static uint32_t keep_count = 0;
+    static bool first_flag = 1;
+    static bool set_flag = 0;
+    static int16_t rc_control_variable = 0;
+    static int16_t rc_control_variable_ps = 0;
+//    SEGGER_RTT_printf(0,"c=%d，d=%d,k=%d\r\n",count,delay_count,keep_count);
+    if (!toe_is_error(DBUS_TOE)) {
+        if (!keep) {
+            rc_control_variable = 0;
+        } else {
+            if ((keep_ms != 0) && (set_flag == 1)) {
+                if ((keep_count) % keep_ms == (keep_ms - 1)) {
+                    rc_control_variable = 0;
+                    set_flag = 0;
+                }
+                keep_count++;
+            }
+        }
+        if ((delay_count) % delay_ms == (delay_ms - 1)) {
+            set_flag = 1;
+
+            if (mode == STEP_FUNC) {
+
+                time_ms = (int16_t) ((float) (DELAY_GAIN(const_set)) * (fabsf(re_angle_pr_up - re_angle_pr_down) /
+                                                                        ((float) const_set * YAW_RC_SEN) + 0.5f));
+                if (first_flag == 1) {
+                    rc_control_variable_ps = const_set;
+                }
+                if ((first_flag == 1) && (count > (time_ms / 2))) {
+                    rc_control_variable_ps = -rc_control_variable_ps;
+                    first_flag = 0;
+                    count = 0;
+                }
+                if (count == time_ms) {
+                    rc_control_variable_ps = -rc_control_variable_ps;
+                    count = 0;
+                }
+                rc_control_variable = rc_control_variable_ps;
+                count++;
+            }
+            if (mode == CONSTANT) {
+                rc_control_variable = const_set;
+                if (count == time_ms) {
+                    count = 0;
+                    rc_control_variable = 0;
+                }
+                count++;
+            }
+            if (mode == QUADRATIC_FUNC) {
+                rc_control_variable = (int16_t) (const_set * arm_sin_f32(((2 * PI) / time_ms) * count));
+                count++;
+            }
+            if (mode == UNARY_FUN) {
+                if (first_flag == 1) {
+                    rc_control_variable_ps = const_set;
+                    first_flag = 0;
+                }
+                if (count <= time_ms) {
+                    rc_control_variable = (int16_t) (count * ((float) rc_control_variable_ps / (float) time_ms));
+                }
+
+                if (count > time_ms) {
+                    rc_control_variable = rc_control_variable_ps;
+                }
+
+                if (count > (2 * time_ms)) {
+                    rc_control_variable =
+                            (int16_t) ((float) rc_control_variable_ps -
+                                       ((count - 2*time_ms) * ((float) rc_control_variable_ps / (float) time_ms)));
+                    if (rc_control_variable ==0) {
+                        rc_control_variable_ps = -rc_control_variable_ps;
+                        count = 0;
+                    }
+                }
+                count++;
+            }
+        }
+        delay_count++;
+    }
+    SEGGER_RTT_printf(0,"%d\r\n",rc_control_variable);//for_test
+    return rc_control_variable;
 }

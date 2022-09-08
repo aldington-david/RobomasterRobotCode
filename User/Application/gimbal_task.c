@@ -1026,8 +1026,14 @@ static void gimbal_relative_angle_yaw_unlimit(gimbal_motor_t *gimbal_motor, fp32
         return;
     }
 //    gimbal_motor->relative_angle_set += add;
-    fp32 relative_angle_set_tmp = gimbal_motor->relative_angle_set + add;
-    Filter_IIRLPF(&relative_angle_set_tmp, &gimbal_motor->relative_angle_set, gimbal_motor->LpfFactor);
+//static uint32_t i = 0;
+//    i++;
+//    if((i%27) >0){
+        fp32 relative_angle_set_tmp = gimbal_motor->relative_angle_set + add;
+        Filter_IIRLPF(&relative_angle_set_tmp, &gimbal_motor->relative_angle_set, gimbal_motor->LpfFactor);
+//        i = 0;
+//    }
+
 //    //是否超过最大 最小值
 //    if (gimbal_motor->relative_angle_set > gimbal_motor->max_relative_angle) {
 //        gimbal_motor->relative_angle_set = gimbal_motor->max_relative_angle;

@@ -364,7 +364,7 @@ referee usart:%s\r\n\
 //                    gimbal_control.gimbal_pitch_motor.gimbal_motor_relative_angle_pid.Cloud_OCKalman.R,
 //                    gimbal_control.gimbal_pitch_motor.gimbal_motor_relative_angle_pid.Cloud_OCKalman.Q);
 //            SEGGER_RTT_WriteString(0, print_buf);
-//            //rad角度数据
+            //rad角度数据
 //            SEGGER_RTT_SetTerminal(4);
 //            sprintf(print_buf, "setangle=%f,maxangle=%f,nowangle=%f,minangle=%f\r\n",
 //                    gimbal_control.gimbal_pitch_motor.relative_angle_set,
@@ -389,7 +389,7 @@ referee usart:%s\r\n\
 
 //            //YAW
 
-            //pid
+//            pid
 //            SEGGER_RTT_SetTerminal(1);
 //            sprintf(print_buf,
 //                    "LpfFactor=%f,rekp=%f,reki=%f,rekd=%f,spkp=%f,spki=%f,spkd=%f,spIS=%f,maxiout=%f,maxout=%f\r\n",
