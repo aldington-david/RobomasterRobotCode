@@ -70,9 +70,6 @@ typedef struct {
     fp32 Dout_Last;
     fp32 D_Alpha;//0-1
 
-    lms_filter_type_t PID_lms;
-    lms_filter_type_t PID_lms_2;
-
     bool D_KF;
     extKalman_t D_Kalman;
 } pid_type_def;

@@ -130,6 +130,7 @@ void vision_unpack_fifo_data(void) {
                     p_obj->protocol_packet[p_obj->index++] = byte;
                 } else {
                     p_obj->index = 0;
+                    p_obj->separate_index = 0;
                     p_obj->head_sof_cnt = p_obj->separate_sof_cnt = p_obj->end_sof_cnt = 0;
                 }
             }
@@ -142,9 +143,21 @@ void vision_unpack_fifo_data(void) {
                 } else if (byte == VISION_SEPARATE_SOF) {
                     p_obj->data1_len = p_obj->index - p_obj->head_index - 1;
                     p_obj->separate_sof_cnt++;
+                    p_obj->separate_index = p_obj->index;
                     p_obj->protocol_packet[p_obj->index++] = byte;
-                    p_obj->separate_index = p_obj->index - 1;
                     p_obj->unpack_step = VISION_STEP_DATA_2;
+                }
+            }
+            case VISION_STEP_DATA_2: {
+//                SEGGER_RTT_WriteString(0, "have_date2\r\n");
+                if (byte != VISION_SEPARATE_SOF) {
+                    p_obj->protocol_packet[p_obj->index++] = byte;
+                } else if (byte == VISION_SEPARATE_SOF) {
+                    p_obj->data2_len = p_obj->index - p_obj->separate_index - 1;
+                    p_obj->separate_sof_cnt++;
+                    p_obj->separate_index = p_obj->index;
+                    p_obj->protocol_packet[p_obj->index++] = byte;
+                    p_obj->unpack_step = VISION_STEP_DATA_3;
                 }
             }
                 break;
@@ -156,12 +169,12 @@ void vision_unpack_fifo_data(void) {
 //
 //            }
 //                break;
-            case VISION_STEP_DATA_2: {
+            case VISION_STEP_DATA_3: {
 //                SEGGER_RTT_WriteString(0, "have_date2\r\n");
                 if (byte != VISION_END_SOF) {
                     p_obj->protocol_packet[p_obj->index++] = byte;
                 } else if (byte == VISION_END_SOF) {
-                    p_obj->data2_len = p_obj->index - p_obj->separate_index - 1;
+                    p_obj->data3_len = p_obj->index - p_obj->separate_index - 1;
                     p_obj->unpack_step = VISION_STEP_END_SOF;
                 }
             }
@@ -172,13 +185,14 @@ void vision_unpack_fifo_data(void) {
 //                SEGGER_RTT_WriteString(0, "have_end\r\n");
                 p_obj->protocol_packet[p_obj->index++] = byte;
                 p_obj->end_sof_cnt++;
-                if ((p_obj->head_sof_cnt == 1) && (p_obj->separate_sof_cnt == 1) && (p_obj->end_sof_cnt == 1)) {
+                if ((p_obj->head_sof_cnt == 1) && (p_obj->separate_sof_cnt == 2) && (p_obj->end_sof_cnt == 1)) {
 //                    SEGGER_RTT_WriteString(0, "vision_update\r\n");
                     vision_update(p_obj->protocol_packet);
                     p_obj->head_sof_cnt = p_obj->separate_sof_cnt = p_obj->end_sof_cnt = 0;
                 } else {
                     p_obj->unpack_step = VISION_STEP_HEADER_SOF;
                     p_obj->index = 0;
+                    p_obj->separate_index = 0;
                     p_obj->head_sof_cnt = p_obj->separate_sof_cnt = p_obj->end_sof_cnt = 0;
                 }
             }
@@ -187,6 +201,7 @@ void vision_unpack_fifo_data(void) {
             default: {
                 p_obj->unpack_step = VISION_STEP_HEADER_SOF;
                 p_obj->index = 0;
+                p_obj->separate_index = 0;
             }
                 break;
         }
@@ -198,24 +213,30 @@ void vision_update(uint8_t *rxBuf) {
     vision_info_t *vision_info = &global_vision_info;
     vision_info->pack_info = &vision_unpack_obj;
     if (rxBuf[0] == VISION_HEADER_SOF) {
-        if ((vision_info->pack_info->data1_len <= 128) && (vision_info->pack_info->data2_len <= 128)) {
+        if ((vision_info->pack_info->data1_len <= 128) && (vision_info->pack_info->data2_len <= 128) &&
+            (vision_info->pack_info->data3_len <= 128)) {
 //            SEGGER_RTT_WriteString(0, "vision_in\r\n");
-//            memcpy(vision_or_probe, rxBuf, (vision_info->pack_info->data1_len + vision_info->pack_info->data2_len+2));
+            memcpy(vision_or_probe, rxBuf, (vision_info->pack_info->data1_len + vision_info->pack_info->data2_len+vision_info->pack_info->data3_len+3));
             memcpy(vision_info->pack_info->Original_yaw_angle, (rxBuf + 1), vision_info->pack_info->data1_len);
             memcpy(vision_info->pack_info->Original_pitch_angle, (rxBuf + 2 + vision_info->pack_info->data1_len),
                    vision_info->pack_info->data2_len);
+            memcpy(vision_info->pack_info->Original_fps, (rxBuf + 3 + vision_info->pack_info->data1_len + vision_info->pack_info->data2_len),
+                   vision_info->pack_info->data3_len);
             global_vision_info.vision_control.pitch_angle = strtof(vision_info->pack_info->Original_pitch_angle, NULL);
             global_vision_info.vision_control.yaw_angle = strtof(vision_info->pack_info->Original_yaw_angle, NULL);
-            //for_test
-//            vision_pitch_probe = global_vision_info.vision_control.pitch_angle;
-//            vision_yaw_probe = global_vision_info.vision_control.yaw_angle;
+            global_vision_info.vision_control.fps = strtof(vision_info->pack_info->Original_fps, NULL);
+//            for_test
+            vision_pitch_probe = global_vision_info.vision_control.pitch_angle;
+            vision_yaw_probe = global_vision_info.vision_control.yaw_angle;
             memset(&vision_info->pack_info->Original_pitch_angle, 0,
                    sizeof(vision_info->pack_info->Original_pitch_angle));
             memset(&vision_info->pack_info->Original_yaw_angle, 0, sizeof(vision_info->pack_info->Original_yaw_angle));
+            memset(&vision_info->pack_info->Original_fps, 0, sizeof(vision_info->pack_info->Original_fps));
         }
     } else {
         memset(&vision_info->pack_info->Original_pitch_angle, 0, sizeof(vision_info->pack_info->Original_pitch_angle));
         memset(&vision_info->pack_info->Original_yaw_angle, 0, sizeof(vision_info->pack_info->Original_yaw_angle));
+        memset(&vision_info->pack_info->Original_fps, 0, sizeof(vision_info->pack_info->Original_fps));
     }
 
 }

@@ -747,7 +747,8 @@ void gimbal_rc_to_control_vector(fp32 *yaw, fp32 *pitch, gimbal_control_t *gimba
     if (gimbal_move_rc_to_vector == NULL || yaw == NULL || pitch == NULL) {
         return;
     }
-
+    static int16_t yaw_rc_last;
+    int16_t err; //for_test
     int16_t yaw_channel, pitch_channel;
     fp32 yaw_set_channel, pitch_set_channel, add_vision_yaw, add_vision_pitch, lim_vision_yaw, lim_vision_pitch;
     yaw_set_channel = pitch_set_channel = add_vision_yaw = add_vision_pitch = yaw_channel = pitch_channel = 0;
@@ -758,7 +759,12 @@ void gimbal_rc_to_control_vector(fp32 *yaw, fp32 *pitch, gimbal_control_t *gimba
         rc_deadband_limit(gimbal_move_rc_to_vector->gimbal_rc_ctrl->rc.ch[YAW_CHANNEL], yaw_channel, RC_DEADBAND);
         rc_deadband_limit(gimbal_move_rc_to_vector->gimbal_rc_ctrl->rc.ch[PITCH_CHANNEL], pitch_channel, RC_DEADBAND);
         //for_test
-        yaw_channel = test_control(CONSTANT, 10.491, -1.6298, 300, 600, 1, 0, 1);
+//        yaw_channel = test_control(CONSTANT, 10.491f, -1.6298f, 2000, 600, 1, 0, 1);
+        err = gimbal_move_rc_to_vector->gimbal_rc_ctrl->rc.ch[YAW_CHANNEL] - yaw_rc_last;
+//        SEGGER_RTT_printf(0,"%d\r\n",err);//for_test
+        if (abs(err) > 40) {
+            yaw_channel = Filter_IIRLPF_np(yaw_channel,yaw_rc_last,0.005f);
+        }
 
         //视觉控制
         rc_deadband_limit(gimbal_move_rc_to_vector->gimbal_vision_ctrl->yaw_angle, lim_vision_yaw,
@@ -800,7 +806,7 @@ void gimbal_rc_to_control_vector(fp32 *yaw, fp32 *pitch, gimbal_control_t *gimba
 //    {
 //        chassis_move_rc_to_vector->chassis_cmd_slow_set_vy.out = 0.0f;
 //    }
-
+    yaw_rc_last = yaw_channel;
     *yaw = yaw_set_channel;
     *pitch = pitch_set_channel;
 }
@@ -876,8 +882,8 @@ int16_t test_control(int16_t mode, fp32 re_angle_pr_up, fp32 re_angle_pr_down, i
                 if (count > (2 * time_ms)) {
                     rc_control_variable =
                             (int16_t) ((float) rc_control_variable_ps -
-                                       ((count - 2*time_ms) * ((float) rc_control_variable_ps / (float) time_ms)));
-                    if (rc_control_variable ==0) {
+                                       ((count - 2 * time_ms) * ((float) rc_control_variable_ps / (float) time_ms)));
+                    if (rc_control_variable == 0) {
                         rc_control_variable_ps = -rc_control_variable_ps;
                         count = 0;
                     }

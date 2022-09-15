@@ -26,6 +26,7 @@ typedef enum {
     VISION_STEP_END_SOF = 2,
     VISION_STEP_DATA_1,
     VISION_STEP_DATA_2,
+    VISION_STEP_DATA_3,
 } vision_unpack_step_e;
 
 
@@ -35,6 +36,7 @@ typedef struct {
     bool data_valid;
     char Original_pitch_angle[128];
     char Original_yaw_angle[128];
+    char Original_fps[128];
 
     uint8_t protocol_packet[Vision_PROTOCOL_FRAME_MAX_SIZE];
     vision_unpack_step_e unpack_step;
@@ -44,6 +46,7 @@ typedef struct {
     uint16_t end_index;
     uint16_t data1_len;
     uint16_t data2_len;
+    uint16_t data3_len;
     uint8_t head_sof_cnt;
     uint8_t separate_sof_cnt;
     uint8_t end_sof_cnt;
@@ -52,6 +55,7 @@ typedef struct {
 typedef volatile struct{
     fp32 pitch_angle;
     fp32 yaw_angle;
+    fp32 fps;
 } vision_control_t;
 
 typedef volatile struct{

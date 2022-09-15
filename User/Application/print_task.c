@@ -80,7 +80,7 @@ fp32 vision_pitch_probe = 0;
 fp32 vision_yaw_probe = 0;
 
 fp32 zero_line = 0;
-//char vision_or_probe[128]={0};
+char vision_or_probe[128]={0};
 
 void print_task(void const *argument) {
     if (PRINTF_MODE == USB_MODE) {
@@ -163,12 +163,13 @@ referee usart:%s\r\n\
 
             //视觉
 
-//            SEGGER_RTT_SetTerminal(1);
-//            sprintf(print_buf,
-//                    "vision_yaw=%f,vision_pitch=%f\r\n",
-//                    global_vision_info.vision_control.yaw_angle,
-//                    global_vision_info.vision_control.pitch_angle);
-//            SEGGER_RTT_WriteString(0, print_buf);
+            SEGGER_RTT_SetTerminal(1);
+            sprintf(print_buf,
+                    "vision_yaw=%f,vision_pitch=%f,fps=%f\r\n",
+                    global_vision_info.vision_control.yaw_angle,
+                    global_vision_info.vision_control.pitch_angle,
+                    global_vision_info.vision_control.fps);
+            SEGGER_RTT_WriteString(0, print_buf);
 //
 //            SEGGER_RTT_SetTerminal(2);
 //            sprintf(print_buf,
@@ -186,12 +187,12 @@ referee usart:%s\r\n\
 //                          &global_vision_info.vision_control.yaw_angle,
 //                          &global_vision_info.vision_control.pitch_angle);
 
-//            SEGGER_RTT_SetTerminal(2);
-//            sprintf(print_buf,
-//                    "vision_yaw=%f,vision_pitch=%f\r\n",
-//                    vision_yaw_probe,
-//                    vision_pitch_probe);
-//            SEGGER_RTT_WriteString(0, print_buf);
+            SEGGER_RTT_SetTerminal(2);
+            sprintf(print_buf,
+                    "vision_yaw=%f,vision_pitch=%f\r\n",
+                    vision_yaw_probe,
+                    vision_pitch_probe);
+            SEGGER_RTT_WriteString(0, print_buf);
 //
 //            SEGGER_RTT_SetTerminal(3);
 //            sprintf(print_buf,
@@ -201,11 +202,11 @@ referee usart:%s\r\n\
 //            SEGGER_RTT_WriteString(0, print_buf);
 
 //缓冲区
-//            SEGGER_RTT_SetTerminal(4);
-//            sprintf(print_buf,
-//                    "vision_info=%s\r\n",
-//                    vision_or_probe);
-//            SEGGER_RTT_WriteString(0, print_buf);
+            SEGGER_RTT_SetTerminal(4);
+            sprintf(print_buf,
+                    "vision_info=%s\r\n",
+                    vision_or_probe);
+            SEGGER_RTT_WriteString(0, print_buf);
 //接收进度调试
 //            SEGGER_RTT_SetTerminal(2);
 //            sprintf(print_buf,
@@ -389,7 +390,7 @@ referee usart:%s\r\n\
 
 //            //YAW
 
-//            pid
+////            pid
 //            SEGGER_RTT_SetTerminal(1);
 //            sprintf(print_buf,
 //                    "LpfFactor=%f,rekp=%f,reki=%f,rekd=%f,spkp=%f,spki=%f,spkd=%f,spIS=%f,maxiout=%f,maxout=%f\r\n",
@@ -468,13 +469,13 @@ referee usart:%s\r\n\
 //            SEGGER_RTT_WriteString(0, print_buf);
 
 //            波形显示
-            RTT_PrintWave(6,
-                          &gimbal_control.gimbal_yaw_motor.relative_angle_set,
-                          &gimbal_control.gimbal_yaw_motor.relative_angle,
-                          &gimbal_control.gimbal_yaw_motor.gimbal_motor_relative_angle_pid_temp.PID_lms.outputF32,
-                          &gimbal_control.gimbal_yaw_motor.motor_gyro_set,
-                          &gimbal_control.gimbal_yaw_motor.motor_gyro,
-                          &gimbal_control.gimbal_yaw_motor.motor_speed);
+//            RTT_PrintWave(6,
+//                          &gimbal_control.gimbal_yaw_motor.relative_angle_set,
+//                          &gimbal_control.gimbal_yaw_motor.relative_angle,
+//                          &gimbal_control.gimbal_yaw_motor.gimbal_motor_relative_angle_pid_temp.PID_lms.outputF32,
+//                          &gimbal_control.gimbal_yaw_motor.motor_gyro_set,
+//                          &gimbal_control.gimbal_yaw_motor.motor_gyro,
+//                          &gimbal_control.gimbal_yaw_motor.motor_speed);
 //            RTT_PrintWave_np(4,
 //                          gimbal_control.gimbal_yaw_motor.relative_angle_set,
 //                          gimbal_control.gimbal_yaw_motor.relative_angle,
@@ -677,9 +678,9 @@ void RTT_PrintWave(int num_args, ...) {
         param_point[i] = va_arg(arg, fp32 *);
 
         if (i == (num_args - 1)) {
-            len += sprintf((buf + len), "%f\r\n", *(float *) param_point[i]);
+            len += sprintf((buf + len), "%.3f\r\n", *(float *) param_point[i]);
         } else {
-            len += sprintf((buf + len), "%f,", *(float *) param_point[i]);
+            len += sprintf((buf + len), "%.3f,", *(float *) param_point[i]);
         }
     }
     va_end(arg);
@@ -703,9 +704,9 @@ void RTT_PrintWave_np(int num_args, ...) {
         param_point[i] = va_arg(arg, double);
 
         if (i == (num_args - 1)) {
-            len += sprintf((buf + len), "%f\r\n", (float) param_point[i]);
+            len += sprintf((buf + len), "%.3f\r\n", (float) param_point[i]);
         } else {
-            len += sprintf((buf + len), "%f,", (float) param_point[i]);
+            len += sprintf((buf + len), "%.3f,", (float) param_point[i]);
         }
     }
     va_end(arg);
@@ -719,6 +720,36 @@ void RTT_PrintWave_np(int num_args, ...) {
   * @retval         none
   */
 void RTT_timer_trigger(void) {
+//                RTT_PrintWave(3,
+//                          &gimbal_control.gimbal_yaw_motor.motor_gyro_set,
+//                          &gimbal_control.gimbal_yaw_motor.motor_gyro,
+//                          &gimbal_control.gimbal_yaw_motor.motor_speed);
+
+//                RTT_PrintWave_np(2,
+//                              gimbal_control.gimbal_yaw_motor.relative_angle_set,
+//                                 (float)gimbal_control.gimbal_rc_ctrl->rc.ch[YAW_CHANNEL]*YAW_RC_SEN);
+
+//                RTT_PrintWave(2,
+//                          &gimbal_control.gimbal_yaw_motor.motor_gyro_set,
+//                          &gimbal_control.gimbal_yaw_motor.motor_speed);
+//    RTT_PrintWave(2,
+//                  &gimbal_control.gimbal_yaw_motor.relative_angle_set,
+//                  &gimbal_control.gimbal_yaw_motor.relative_angle);
+
+//    RTT_PrintWave(2,
+//                  &kalman_test,
+//                  &gimbal_control.gimbal_yaw_motor.motor_speed);
+
+//    RTT_PrintWave(3,
+//                  &gimbal_control.gimbal_yaw_motor.gimbal_motor_relative_angle_pid_temp.Pout,
+//                  &gimbal_control.gimbal_yaw_motor.gimbal_motor_relative_angle_pid_temp.Iout,
+//                  &gimbal_control.gimbal_yaw_motor.gimbal_motor_relative_angle_pid_temp.Dout);
+
+
+//    RTT_PrintWave(2,
+//                  &kalman_test,
+//                  &gimbal_control.gimbal_yaw_motor.current_set);
+
 //    RTT_PrintWave_np(1,
 //                     (float) rc_ctrl.rc.ch[2]);
 }

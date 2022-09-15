@@ -366,4 +366,7 @@ extern fp32 Cloud_IPID(pid_type_def *pid, fp32 ref, fp32 set);
 extern gimbal_control_t gimbal_control;
 extern extKalman_t Cloud_PitchMotorAngle_Error_Kalman;
 extern extKalman_t Cloud_YawMotorAngle_Error_Kalman;
+
+extern extKalman_t YawMotorSpeed_Kalman;
+
 #endif

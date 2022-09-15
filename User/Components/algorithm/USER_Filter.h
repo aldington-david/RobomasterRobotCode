@@ -17,7 +17,7 @@
 
 
 void Filter_IIRLPF(float *in, float *out, float LpfAttFactor);
-
+int16_t Filter_IIRLPF_np(int16_t in, int16_t out, float LpfAttFactor);
 
 #endif /* __FILTER_H */
 
