@@ -148,6 +148,7 @@ void vision_unpack_fifo_data(void) {
                     p_obj->unpack_step = VISION_STEP_DATA_2;
                 }
             }
+                break;
             case VISION_STEP_DATA_2: {
 //                SEGGER_RTT_WriteString(0, "have_date2\r\n");
                 if (byte != VISION_SEPARATE_SOF) {
@@ -202,6 +203,7 @@ void vision_unpack_fifo_data(void) {
                 p_obj->unpack_step = VISION_STEP_HEADER_SOF;
                 p_obj->index = 0;
                 p_obj->separate_index = 0;
+                p_obj->head_sof_cnt = p_obj->separate_sof_cnt = p_obj->end_sof_cnt = 0;
             }
                 break;
         }
