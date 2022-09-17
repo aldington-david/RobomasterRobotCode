@@ -163,13 +163,13 @@ referee usart:%s\r\n\
 
             //视觉
 
-            SEGGER_RTT_SetTerminal(1);
-            sprintf(print_buf,
-                    "vision_yaw=%f,vision_pitch=%f,fps=%f\r\n",
-                    global_vision_info.vision_control.yaw_angle,
-                    global_vision_info.vision_control.pitch_angle,
-                    global_vision_info.vision_control.fps);
-            SEGGER_RTT_WriteString(0, print_buf);
+//            SEGGER_RTT_SetTerminal(1);
+//            sprintf(print_buf,
+//                    "vision_yaw=%f,vision_pitch=%f,fps=%f\r\n",
+//                    global_vision_info.vision_control.yaw_angle,
+//                    global_vision_info.vision_control.pitch_angle,
+//                    global_vision_info.vision_control.fps);
+//            SEGGER_RTT_WriteString(0, print_buf);
 //
 //            SEGGER_RTT_SetTerminal(2);
 //            sprintf(print_buf,
@@ -187,12 +187,12 @@ referee usart:%s\r\n\
 //                          &global_vision_info.vision_control.yaw_angle,
 //                          &global_vision_info.vision_control.pitch_angle);
 
-            SEGGER_RTT_SetTerminal(2);
-            sprintf(print_buf,
-                    "vision_yaw=%f,vision_pitch=%f\r\n",
-                    vision_yaw_probe,
-                    vision_pitch_probe);
-            SEGGER_RTT_WriteString(0, print_buf);
+//            SEGGER_RTT_SetTerminal(2);
+//            sprintf(print_buf,
+//                    "vision_yaw=%f,vision_pitch=%f\r\n",
+//                    vision_yaw_probe,
+//                    vision_pitch_probe);
+//            SEGGER_RTT_WriteString(0, print_buf);
 //
 //            SEGGER_RTT_SetTerminal(3);
 //            sprintf(print_buf,

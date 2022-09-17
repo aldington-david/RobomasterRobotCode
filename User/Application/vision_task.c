@@ -125,18 +125,19 @@ void vision_unpack_fifo_data(void) {
                 if (byte == VISION_HEADER_SOF) {
                     p_obj->head_sof_cnt++;
 //                    SEGGER_RTT_printf(0,"head=%d,sep=%d,end=%d\r\n",p_obj->head_sof_cnt,p_obj->separate_sof_cnt,p_obj->end_sof_cnt);
-                    p_obj->head_index = p_obj->index;
-                    p_obj->unpack_step = VISION_STEP_DATA_1;
                     p_obj->protocol_packet[p_obj->index++] = byte;
+                    if(fifo_s_preread(&vision_rx_fifo,0) != VISION_HEADER_SOF){
+                        p_obj->unpack_step = VISION_STEP_LEN;
+                    }else{
+                        p_obj->index = 0;
+                    }
                 } else {
                     p_obj->index = 0;
-                    p_obj->separate_index = 0;
-                    p_obj->head_sof_cnt = p_obj->separate_sof_cnt = p_obj->end_sof_cnt = 0;
                 }
             }
                 break;
 
-            case VISION_STEP_DATA_1: {
+            case VISION_STEP_LEN: {
 //                SEGGER_RTT_WriteString(0, "have_date1\r\n");
                 if (byte != VISION_SEPARATE_SOF) {
                     p_obj->protocol_packet[p_obj->index++] = byte;
@@ -148,6 +149,7 @@ void vision_unpack_fifo_data(void) {
                     p_obj->unpack_step = VISION_STEP_DATA_2;
                 }
             }
+                break;
             case VISION_STEP_DATA_2: {
 //                SEGGER_RTT_WriteString(0, "have_date2\r\n");
                 if (byte != VISION_SEPARATE_SOF) {
@@ -186,14 +188,22 @@ void vision_unpack_fifo_data(void) {
                 p_obj->protocol_packet[p_obj->index++] = byte;
                 p_obj->end_sof_cnt++;
                 if ((p_obj->head_sof_cnt == 1) && (p_obj->separate_sof_cnt == 2) && (p_obj->end_sof_cnt == 1)) {
-//                    SEGGER_RTT_WriteString(0, "vision_update\r\n");
+                    memcpy(vision_or_probe, p_obj->protocol_packet,
+                           (p_obj->data1_len + p_obj->data2_len + p_obj->data3_len + 4));
+                    SEGGER_RTT_WriteString(0, "vision_update\r\n");
                     vision_update(p_obj->protocol_packet);
+                    p_obj->index = 0;
+                    p_obj->separate_index = 0;
                     p_obj->head_sof_cnt = p_obj->separate_sof_cnt = p_obj->end_sof_cnt = 0;
+                    memset(p_obj->protocol_packet, 0, sizeof(p_obj->protocol_packet));
+                    fifo_s_flush(&vision_rx_fifo);
                 } else {
                     p_obj->unpack_step = VISION_STEP_HEADER_SOF;
                     p_obj->index = 0;
                     p_obj->separate_index = 0;
                     p_obj->head_sof_cnt = p_obj->separate_sof_cnt = p_obj->end_sof_cnt = 0;
+                    memset(p_obj->protocol_packet, 0, sizeof(p_obj->protocol_packet));
+                    fifo_s_flush(&vision_rx_fifo);
                 }
             }
                 break;
@@ -202,6 +212,9 @@ void vision_unpack_fifo_data(void) {
                 p_obj->unpack_step = VISION_STEP_HEADER_SOF;
                 p_obj->index = 0;
                 p_obj->separate_index = 0;
+                p_obj->head_sof_cnt = p_obj->separate_sof_cnt = p_obj->end_sof_cnt = 0;
+                memset(p_obj->protocol_packet, 0, sizeof(p_obj->protocol_packet));
+                fifo_s_flush(&vision_rx_fifo);
             }
                 break;
         }
@@ -216,18 +229,19 @@ void vision_update(uint8_t *rxBuf) {
         if ((vision_info->pack_info->data1_len <= 128) && (vision_info->pack_info->data2_len <= 128) &&
             (vision_info->pack_info->data3_len <= 128)) {
 //            SEGGER_RTT_WriteString(0, "vision_in\r\n");
-            memcpy(vision_or_probe, rxBuf, (vision_info->pack_info->data1_len + vision_info->pack_info->data2_len+vision_info->pack_info->data3_len+3));
+//            memcpy(vision_or_probe, rxBuf, (vision_info->pack_info->data1_len + vision_info->pack_info->data2_len+vision_info->pack_info->data3_len+3));
             memcpy(vision_info->pack_info->Original_yaw_angle, (rxBuf + 1), vision_info->pack_info->data1_len);
             memcpy(vision_info->pack_info->Original_pitch_angle, (rxBuf + 2 + vision_info->pack_info->data1_len),
                    vision_info->pack_info->data2_len);
-            memcpy(vision_info->pack_info->Original_fps, (rxBuf + 3 + vision_info->pack_info->data1_len + vision_info->pack_info->data2_len),
+            memcpy(vision_info->pack_info->Original_fps,
+                   (rxBuf + 3 + vision_info->pack_info->data1_len + vision_info->pack_info->data2_len),
                    vision_info->pack_info->data3_len);
             global_vision_info.vision_control.pitch_angle = strtof(vision_info->pack_info->Original_pitch_angle, NULL);
             global_vision_info.vision_control.yaw_angle = strtof(vision_info->pack_info->Original_yaw_angle, NULL);
             global_vision_info.vision_control.fps = strtof(vision_info->pack_info->Original_fps, NULL);
 //            for_test
-            vision_pitch_probe = global_vision_info.vision_control.pitch_angle;
-            vision_yaw_probe = global_vision_info.vision_control.yaw_angle;
+//            vision_pitch_probe = global_vision_info.vision_control.pitch_angle;
+//            vision_yaw_probe = global_vision_info.vision_control.yaw_angle;
             memset(&vision_info->pack_info->Original_pitch_angle, 0,
                    sizeof(vision_info->pack_info->Original_pitch_angle));
             memset(&vision_info->pack_info->Original_yaw_angle, 0, sizeof(vision_info->pack_info->Original_yaw_angle));

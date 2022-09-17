@@ -16,40 +16,42 @@
 #define VISION_FIFO_BUF_LENGTH 1024
 /*************define for unpack start*********************/
 #define VISION_HEADER_SOF 0x24
-#define VISION_SEPARATE_SOF 0x2C
-#define VISION_END_SOF 0x40
 #define Vision_PROTOCOL_FRAME_MAX_SIZE         128
 
 typedef enum {
     VISION_STEP_HEADER_SOF = 0,
-    VISION_STEP_SEPARATE_SOF = 1,
-    VISION_STEP_END_SOF = 2,
-    VISION_STEP_DATA_1,
-    VISION_STEP_DATA_2,
-    VISION_STEP_DATA_3,
+    VISION_STEP_LEN,
+    VISION_STEP_FRAME_CRC16,
 } vision_unpack_step_e;
 
 
 #pragma pack(push, 1)
 
+
+typedef struct {
+    char sof;
+    uint8_t data_len;
+} vision_frame_header;
+
+typedef struct {
+    float data1;
+    float data2;
+    uint16_t data3;
+} vision_frame_data;
+
+typedef struct {
+    uint16_t data_CRC16;
+} vision__frame_tail;
+
 typedef struct {
     bool data_valid;
-    char Original_pitch_angle[128];
-    char Original_yaw_angle[128];
-    char Original_fps[128];
-
+    vision_frame_header head;
+    vision_frame_data data;
+    vision__frame_tail tail;
     uint8_t protocol_packet[Vision_PROTOCOL_FRAME_MAX_SIZE];
     vision_unpack_step_e unpack_step;
     uint16_t index;
-    uint16_t head_index;
-    uint16_t separate_index;
-    uint16_t end_index;
-    uint16_t data1_len;
-    uint16_t data2_len;
-    uint16_t data3_len;
     uint8_t head_sof_cnt;
-    uint8_t separate_sof_cnt;
-    uint8_t end_sof_cnt;
 } vision_unpack_data_t;
 
 typedef volatile struct{
