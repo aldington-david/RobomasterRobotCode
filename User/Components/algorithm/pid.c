@@ -791,7 +791,11 @@ float ALL_PID(pid_type_def *pid, fp32 ref, fp32 set) {
         pid->Dout = KF_temp;
         KF_Dout1_test = pid->Dout;
     }
-
+//for_test
+    pid_out_probe += pid->out;
+    pid_pout_probe += pid->Pout;
+    pid_iout_probe += pid->Iout;
+    pid_dout_probe += pid->Dout;
 
 
 

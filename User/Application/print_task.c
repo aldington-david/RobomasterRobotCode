@@ -80,7 +80,12 @@ fp32 vision_pitch_probe = 0;
 fp32 vision_yaw_probe = 0;
 
 fp32 zero_line = 0;
-char vision_or_probe[128]={0};
+char vision_or_probe[128] = {0};
+
+fp32 pid_out_probe = 0;
+fp32 pid_pout_probe = 0;
+fp32 pid_iout_probe = 0;
+fp32 pid_dout_probe = 0;
 
 void print_task(void const *argument) {
     if (PRINTF_MODE == USB_MODE) {
@@ -163,13 +168,13 @@ referee usart:%s\r\n\
 
             //视觉
 
-            SEGGER_RTT_SetTerminal(1);
-            sprintf(print_buf,
-                    "vision_yaw=%f,vision_pitch=%f,fps=%f\r\n",
-                    global_vision_info.vision_control.yaw_angle,
-                    global_vision_info.vision_control.pitch_angle,
-                    global_vision_info.vision_control.fps);
-            SEGGER_RTT_WriteString(0, print_buf);
+//            SEGGER_RTT_SetTerminal(1);
+//            sprintf(print_buf,
+//                    "vision_yaw=%f,vision_pitch=%f,fps=%f\r\n",
+//                    global_vision_info.vision_control.yaw_angle,
+//                    global_vision_info.vision_control.pitch_angle,
+//                    global_vision_info.vision_control.fps);
+//            SEGGER_RTT_WriteString(0, print_buf);
 //
 //            SEGGER_RTT_SetTerminal(2);
 //            sprintf(print_buf,
@@ -187,12 +192,12 @@ referee usart:%s\r\n\
 //                          &global_vision_info.vision_control.yaw_angle,
 //                          &global_vision_info.vision_control.pitch_angle);
 
-            SEGGER_RTT_SetTerminal(2);
-            sprintf(print_buf,
-                    "vision_yaw=%f,vision_pitch=%f\r\n",
-                    vision_yaw_probe,
-                    vision_pitch_probe);
-            SEGGER_RTT_WriteString(0, print_buf);
+//            SEGGER_RTT_SetTerminal(2);
+//            sprintf(print_buf,
+//                    "vision_yaw=%f,vision_pitch=%f\r\n",
+//                    vision_yaw_probe,
+//                    vision_pitch_probe);
+//            SEGGER_RTT_WriteString(0, print_buf);
 //
 //            SEGGER_RTT_SetTerminal(3);
 //            sprintf(print_buf,
@@ -202,11 +207,11 @@ referee usart:%s\r\n\
 //            SEGGER_RTT_WriteString(0, print_buf);
 
 //缓冲区
-            SEGGER_RTT_SetTerminal(4);
-            sprintf(print_buf,
-                    "vision_info=%s\r\n",
-                    vision_or_probe);
-            SEGGER_RTT_WriteString(0, print_buf);
+//            SEGGER_RTT_SetTerminal(4);
+//            sprintf(print_buf,
+//                    "vision_info=%s\r\n",
+//                    vision_or_probe);
+//            SEGGER_RTT_WriteString(0, print_buf);
 //接收进度调试
 //            SEGGER_RTT_SetTerminal(2);
 //            sprintf(print_buf,
@@ -469,6 +474,12 @@ referee usart:%s\r\n\
 //            SEGGER_RTT_WriteString(0, print_buf);
 
 //            波形显示
+            //pid累计数据
+//            RTT_PrintWave(4,
+//                          &pid_out_probe,
+//                          &pid_pout_probe,
+//                          &pid_iout_probe,
+//                          &pid_dout_probe);
 //            RTT_PrintWave(6,
 //                          &gimbal_control.gimbal_yaw_motor.relative_angle_set,
 //                          &gimbal_control.gimbal_yaw_motor.relative_angle,

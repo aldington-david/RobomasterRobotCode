@@ -218,7 +218,7 @@ void vision_update(uint8_t *rxBuf) {
         if ((vision_info->pack_info->data1_len <= 128) && (vision_info->pack_info->data2_len <= 128) &&
             (vision_info->pack_info->data3_len <= 128)) {
 //            SEGGER_RTT_WriteString(0, "vision_in\r\n");
-            memcpy(vision_or_probe, rxBuf, (vision_info->pack_info->data1_len + vision_info->pack_info->data2_len+vision_info->pack_info->data3_len+3));
+//            memcpy(vision_or_probe, rxBuf, (vision_info->pack_info->data1_len + vision_info->pack_info->data2_len+vision_info->pack_info->data3_len+3));
             memcpy(vision_info->pack_info->Original_yaw_angle, (rxBuf + 1), vision_info->pack_info->data1_len);
             memcpy(vision_info->pack_info->Original_pitch_angle, (rxBuf + 2 + vision_info->pack_info->data1_len),
                    vision_info->pack_info->data2_len);
@@ -228,12 +228,13 @@ void vision_update(uint8_t *rxBuf) {
             global_vision_info.vision_control.yaw_angle = strtof(vision_info->pack_info->Original_yaw_angle, NULL);
             global_vision_info.vision_control.fps = strtof(vision_info->pack_info->Original_fps, NULL);
 //            for_test
-            vision_pitch_probe = global_vision_info.vision_control.pitch_angle;
-            vision_yaw_probe = global_vision_info.vision_control.yaw_angle;
+//            vision_pitch_probe = global_vision_info.vision_control.pitch_angle;
+//            vision_yaw_probe = global_vision_info.vision_control.yaw_angle;
             memset(&vision_info->pack_info->Original_pitch_angle, 0,
                    sizeof(vision_info->pack_info->Original_pitch_angle));
             memset(&vision_info->pack_info->Original_yaw_angle, 0, sizeof(vision_info->pack_info->Original_yaw_angle));
             memset(&vision_info->pack_info->Original_fps, 0, sizeof(vision_info->pack_info->Original_fps));
+            global_vision_info.vision_control.update_flag = 1;
         }
     } else {
         memset(&vision_info->pack_info->Original_pitch_angle, 0, sizeof(vision_info->pack_info->Original_pitch_angle));
@@ -260,6 +261,11 @@ const volatile vision_control_t *get_vision_control_point(void) {
   */
 void init_vision_struct_data(void) {
     memset(&global_vision_info, 0, sizeof(vision_info_t));
+    global_vision_info.vision_control.fps = 1.0f;
+}
+
+void clear_vision_update_flag(void) {
+    global_vision_info.vision_control.update_flag = 0;
 }
 
 /**

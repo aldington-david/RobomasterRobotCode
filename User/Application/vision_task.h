@@ -56,6 +56,7 @@ typedef volatile struct{
     fp32 pitch_angle;
     fp32 yaw_angle;
     fp32 fps;
+    volatile bool update_flag;
 } vision_control_t;
 
 typedef volatile struct{
@@ -85,6 +86,8 @@ void DMA2_Stream7_IRQHandler(void);
   * @retval         vision_tx_task_stack:任务堆栈大小
   */
 extern uint32_t get_stack_of_vision_tx_task(void);
+
+extern void clear_vision_update_flag(void);
 
 /**
   * @brief          获取vision_rx_task栈大小
