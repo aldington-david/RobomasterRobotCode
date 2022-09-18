@@ -41,17 +41,20 @@ typedef struct {
 
 typedef struct {
     uint16_t data_CRC16;
-} vision__frame_tail;
+} vision_frame_tail;
+
+typedef struct {
+    vision_frame_header header;
+    vision_frame_data data;
+    vision_frame_tail tail;
+} vision_sync_struct;
 
 typedef struct {
     bool data_valid;
-    vision_frame_header head;
-    vision_frame_data data;
-    vision__frame_tail tail;
+    vision_sync_struct frame;
     uint8_t protocol_packet[Vision_PROTOCOL_FRAME_MAX_SIZE];
     vision_unpack_step_e unpack_step;
     uint16_t index;
-    uint8_t head_sof_cnt;
 } vision_unpack_data_t;
 
 typedef volatile struct{
