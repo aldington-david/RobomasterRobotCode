@@ -99,15 +99,13 @@ void shoot_init(void) {
 
     //初始化PID
     PID_init(&shoot_control.trigger_motor_speed_pid, PID_POSITION, Trigger_speed_pid, TRIGGER_READY_PID_MAX_OUT,
-             TRIGGER_READY_PID_MAX_IOUT, 100, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+             TRIGGER_READY_PID_MAX_IOUT, 100, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
     PID_init(&shoot_control.trigger_motor_angle_pid, PID_POSITION, Trigger_angle_pid, CONTINUE_TRIGGER_SPEED,
-             TRIGGER_READY_PID_MAX_IOUT, 100, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+             TRIGGER_READY_PID_MAX_IOUT, 100, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
     PID_init(&shoot_control.fric1_motor_pid, PID_POSITION, fric1_speed_pid, TRIGGER_READY_PID_MAX_OUT,
-             TRIGGER_READY_PID_MAX_IOUT, 100, 0, 0, 0, 0, 0, 1, 0, 0, 0);
+             TRIGGER_READY_PID_MAX_IOUT, 100, 0, 0, 0, 0, 0, 1, 0.003f, 0, 0, 0);
     PID_init(&shoot_control.fric2_motor_pid, PID_POSITION, fric2_speed_pid, TRIGGER_READY_PID_MAX_OUT,
-             TRIGGER_READY_PID_MAX_IOUT, 100, 0, 0, 0, 0, 0, 1, 0, 0, 0);
-    first_order_filter_init(&shoot_control.fric1_motor_pid.D_Low_Pass_Filter, 0.001f, 0.3f);
-    first_order_filter_init(&shoot_control.fric2_motor_pid.D_Low_Pass_Filter, 0.001f, 0.3f);
+             TRIGGER_READY_PID_MAX_IOUT, 100, 0, 0, 0, 0, 0, 1, 0.003f, 0, 0, 0);
 //    shoot_control.pwm = SHOOT_FRIC_PWM_ADD_VALUE;
 
     //更新数据
@@ -198,6 +196,8 @@ int16_t shoot_control_loop(void) {
         }
         ALL_PID(&shoot_control.trigger_motor_speed_pid, shoot_control.speed, shoot_control.speed_set);
         shoot_control.given_current = (int16_t) (shoot_control.trigger_motor_speed_pid.out);
+        shoot_control.given_current = KalmanFilter(&shoot_control.Trigger_Motor_Current_Kalman_Filter,
+                                                   shoot_control.given_current);
         if (shoot_control.shoot_mode < SHOOT_READY) {
             shoot_control.given_current = 0;
         }
@@ -206,10 +206,10 @@ int16_t shoot_control_loop(void) {
 //        ramp_calc(&shoot_control.fric2_ramp, shoot_control.pwm);
 //        gimbal_control.fric1_current_set = Cloud_IPID(&shoot_control.fric1_motor_pid, shoot_control.fric1_speed,
 //                                                      shoot_control.fric1_speed_set);
-        gimbal_control.fric1_current_set = Cloud_IPID(&shoot_control.fric1_motor_pid, shoot_control.fric1_speed,
-                                                      shoot_control.fric1_speed_set);
-        gimbal_control.fric2_current_set = Cloud_IPID(&shoot_control.fric2_motor_pid, shoot_control.fric2_speed,
-                                                      shoot_control.fric2_speed_set);
+        gimbal_control.fric1_current_set = ALL_PID(&shoot_control.fric1_motor_pid, shoot_control.fric1_speed,
+                                                   shoot_control.fric1_speed_set);
+        gimbal_control.fric2_current_set = ALL_PID(&shoot_control.fric2_motor_pid, shoot_control.fric2_speed,
+                                                   shoot_control.fric2_speed_set);
 
     }
 

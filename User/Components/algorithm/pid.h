@@ -39,8 +39,7 @@ typedef struct {
     fp32 max_iout; //最大积分输出
 
     fp32 set;
-    fp32 fdb;
-    fp32 err;
+    fp32 get;
 
     fp32 out;
     fp32 Pout;
@@ -49,7 +48,6 @@ typedef struct {
     fp32 Dbuf[3];  //微分项 0最新 1上一次 2上上次
     fp32 error[3]; //误差项 0最新 1上一次 2上上次
     fp32 Integral_Separation;
-    fp32 ekDeadZone;
 
     bool Variable_I;
     fp32 I_ratio;
@@ -58,23 +56,20 @@ typedef struct {
 
     bool D_First;
     fp32 D_Filter_Ratio;
-    fp32 last_fdb;
+    fp32 last_get;
     fp32 D3;
     fp32 D2;
     fp32 D1;
-
-    bool D_Low_Pass;//not_use
-    first_order_filter_type_t D_Low_Pass_Filter;//not_use
 
     bool NF_D;
     fp32 Dout_Last;
     fp32 D_Alpha;//0-1
 
-    lms_filter_type_t PID_lms;
-    lms_filter_type_t PID_lms_2;
-
     bool D_KF;
     extKalman_t D_Kalman;
+
+    bool D_Low_Pass;
+    fp32 D_Low_Pass_Factor;
 } pid_type_def;
 
 /**
@@ -99,7 +94,7 @@ typedef struct {
   */
 extern void PID_init(pid_type_def *pid, uint8_t mode, const fp32 PID[3], fp32 max_out, fp32 max_iout, fp32 Integral,
                      bool Variable_I_Switch, fp32 Variable_I_Down, fp32 Variable_I_UP, bool D_First,
-                     fp32 D_Filter_Ratio, bool D_Low_Pass, bool NF_D, fp32 D_Alpha, bool D_KF);
+                     fp32 D_Filter_Ratio, bool D_Low_Pass, fp32 D_Low_Pass_Factor, bool NF_D, fp32 D_Alpha, bool D_KF);
 
 /**
   * @brief          pid calculate 
@@ -167,47 +162,7 @@ typedef struct positionpid_t {
     float IntegralLimit;       //积分限幅
 } positionpid_t;
 
-extern float Incremental_PID(incrementalpid_t *pid_t, float target, float measured);
-
-extern float Position_PID(positionpid_t *pid_t, float target, float measured);
-
-//extern float ClassisTwister_PID(positionpid_t *pid_t, float target, float measured);
-extern void
-Incremental_PIDInit(incrementalpid_t *pid_t, float Kp, float Kd, float Ki, uint32_t MaxOutput, uint32_t IntegralLimit);
-
-extern void Position_PIDInit(positionpid_t *pid_t, float Kp, float Kd, float Ki, float MaxOutput, float IntegralLimit,
-                             float Integral_Separation);
-
-//extern float Vision_AutoTracPID(positionpid_t *pid_t, float target, float measured);
-//extern float Cloud_IMUYAWOPID(positionpid_t *pid_t, float target, float measured);
-
-extern float Cloud_IMUYAWIPID(positionpid_t *pid_t, float target, float measured);
-
-//extern float Cloud_IMUPITCHOPID(positionpid_t *pid_t, float target, float measured);
-
-extern float Cloud_IMUPITCHIPID(positionpid_t *pid_t, float target, float measured);
-
-extern float ClassisFollow_PID(positionpid_t *pid_t, float target, float measured);
-
-//extern float Cloud_VisionIMUYAWOPID(positionpid_t *pid_t, float target, float measured);
-//extern float Cloud_VisionIMUYAWIPID(positionpid_t *pid_t, float target, float measured);
-//extern float Cloud_VisionIMUPITCHOPID(positionpid_t *pid_t, float target, float measured);
-//extern float Cloud_VisionIMUPITCHIPID(positionpid_t *pid_t, float target, float measured);
-extern void Clear_PositionPIDData(positionpid_t *pid_t);
-
-extern void Clear_IncrementalPIDData(incrementalpid_t *pid_t);
-
-//extern float Cloud_YAWOPID(positionpid_t *pid_t, float target, float measured);
-
-extern float Cloud_YAWIPID(positionpid_t *pid_t, float target, float measured);
-
 extern float ALL_PID(pid_type_def *pid, fp32 ref, fp32 set);
-//extern float Vision_YAWIPID(positionpid_t *pid_t, float target, float measured);
-//extern float Vision_YAWOPID(positionpid_t *pid_t, float target, float measured);
-//extern float Vision_PITCHOPID(positionpid_t *pid_t, float target, float measured);
-//extern float Vision_PITCHIPID(positionpid_t *pid_t, float target, float measured);
-//extern extKalman_t Cloud_YAWODKalman;
-//extern extKalman_t Cloud_PITCHODKalman;
 
 
 #endif

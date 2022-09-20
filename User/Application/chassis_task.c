@@ -246,12 +246,12 @@ static void chassis_init(chassis_move_t *chassis_move_init) {
     for (i = 0; i < 4; i++) {
         chassis_move_init->motor_chassis[i].chassis_motor_measure = get_chassis_motor_measure_point(i);
         PID_init(&chassis_move_init->motor_speed_pid[i], PID_POSITION, motor_speed_pid, M3505_MOTOR_SPEED_PID_MAX_OUT,
-                 M3505_MOTOR_SPEED_PID_MAX_IOUT, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+                 M3505_MOTOR_SPEED_PID_MAX_IOUT, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
     }
     //initialize angle PID
     //初始化角度PID
     PID_init(&chassis_move_init->chassis_angle_pid, PID_POSITION, chassis_yaw_pid, CHASSIS_FOLLOW_GIMBAL_PID_MAX_OUT,
-             CHASSIS_FOLLOW_GIMBAL_PID_MAX_IOUT, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+             CHASSIS_FOLLOW_GIMBAL_PID_MAX_IOUT, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
 
     //first order low-pass filter  replace ramp function
     //用一阶滤波代替斜波函数生成
@@ -511,7 +511,7 @@ static void chassis_set_contorl(chassis_move_t *chassis_move_control) {
         delat_angle = rad_format(chassis_move_control->chassis_yaw_set - chassis_move_control->chassis_yaw);
         //calculate rotation speed
         //计算旋转的角速度
-        chassis_move_control->wz_set = PID_calc(&chassis_move_control->chassis_angle_pid, 0.0f, delat_angle);
+        chassis_move_control->wz_set = ALL_PID(&chassis_move_control->chassis_angle_pid, 0.0f, delat_angle);
         //speed limit
         //速度限幅
         chassis_move_control->vx_set = fp32_constrain(vx_set, chassis_move_control->vx_min_speed,
@@ -628,8 +628,8 @@ static void chassis_control_loop(chassis_move_t *chassis_move_control_loop) {
     //calculate pid
     //计算pid
     for (i = 0; i < 4; i++) {
-        PID_calc(&chassis_move_control_loop->motor_speed_pid[i], chassis_move_control_loop->motor_chassis[i].speed,
-                 chassis_move_control_loop->motor_chassis[i].speed_set);
+        ALL_PID(&chassis_move_control_loop->motor_speed_pid[i], chassis_move_control_loop->motor_chassis[i].speed,
+                chassis_move_control_loop->motor_chassis[i].speed_set);
     }
 
 

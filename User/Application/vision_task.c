@@ -123,72 +123,47 @@ void vision_unpack_fifo_data(void) {
         switch (p_obj->unpack_step) {
             case VISION_STEP_HEADER_SOF: {
                 if (byte == VISION_HEADER_SOF) {
-                    p_obj->head_sof_cnt++;
 //                    SEGGER_RTT_printf(0,"head=%d,sep=%d,end=%d\r\n",p_obj->head_sof_cnt,p_obj->separate_sof_cnt,p_obj->end_sof_cnt);
-                    p_obj->head_index = p_obj->index;
-                    p_obj->unpack_step = VISION_STEP_DATA_1;
                     p_obj->protocol_packet[p_obj->index++] = byte;
+                    if (fifo_s_preread(&vision_rx_fifo, 0) != VISION_HEADER_SOF) {
+                        p_obj->unpack_step = VISION_STEP_LEN;
+                    } else {
+                        p_obj->index = 0;
+                    }
                 } else {
                     p_obj->index = 0;
-                    p_obj->head_sof_cnt = p_obj->separate_sof_cnt = p_obj->end_sof_cnt = 0;
                 }
             }
                 break;
 
-            case VISION_STEP_DATA_1: {
+            case VISION_STEP_LEN: {
 //                SEGGER_RTT_WriteString(0, "have_date1\r\n");
-                if (byte != VISION_SEPARATE_SOF) {
-                    p_obj->protocol_packet[p_obj->index++] = byte;
-                } else if (byte == VISION_SEPARATE_SOF) {
-                    p_obj->data1_len = p_obj->index - p_obj->head_index - 1;
-                    p_obj->separate_sof_cnt++;
-                    p_obj->protocol_packet[p_obj->index++] = byte;
-                    p_obj->separate_index = p_obj->index - 1;
-                    p_obj->unpack_step = VISION_STEP_DATA_2;
-                }
-            }
-                break;
-
-//            case VISION_STEP_SEPARATE_SOF: {
-//
-////                SEGGER_RTT_printf(0,"head=%d,sep=%d,end=%d\r\n",p_obj->head_sof_cnt,p_obj->separate_sof_cnt,p_obj->end_sof_cnt);
-////                SEGGER_RTT_WriteString(0, "have_point\r\n");
-//
-//            }
-//                break;
-            case VISION_STEP_DATA_2: {
-//                SEGGER_RTT_WriteString(0, "have_date2\r\n");
-                if (byte != VISION_END_SOF) {
-                    p_obj->protocol_packet[p_obj->index++] = byte;
-                } else if (byte == VISION_END_SOF) {
-                    p_obj->data2_len = p_obj->index - p_obj->separate_index - 1;
-                    p_obj->unpack_step = VISION_STEP_END_SOF;
-                }
-            }
-                break;
-
-            case VISION_STEP_END_SOF: {
-//                SEGGER_RTT_printf(0,"head=%d,sep=%d,end=%d\r\n",p_obj->head_sof_cnt,p_obj->separate_sof_cnt,p_obj->end_sof_cnt);
-//                SEGGER_RTT_WriteString(0, "have_end\r\n");
+                p_obj->frame.header.data_len = byte;
                 p_obj->protocol_packet[p_obj->index++] = byte;
-                p_obj->end_sof_cnt++;
-                if ((p_obj->head_sof_cnt == 1) && (p_obj->separate_sof_cnt == 1) && (p_obj->end_sof_cnt == 1)) {
-//                    SEGGER_RTT_WriteString(0, "vision_update\r\n");
-                    vision_update(p_obj->protocol_packet);
-                    p_obj->head_sof_cnt = p_obj->separate_sof_cnt = p_obj->end_sof_cnt = 0;
-                } else {
+                p_obj->unpack_step = VISION_STEP_FRAME_CRC16;
+            }
+                break;
+            case VISION_STEP_FRAME_CRC16: {
+//                SEGGER_RTT_WriteString(0, "have_date2\r\n");
+                if (p_obj->index < (sizeof(vision_sync_struct))) {
+                    p_obj->protocol_packet[p_obj->index++] = byte;
+                }
+                if (p_obj->index >= (sizeof(vision_sync_struct))) {
                     p_obj->unpack_step = VISION_STEP_HEADER_SOF;
                     p_obj->index = 0;
-                    p_obj->head_sof_cnt = p_obj->separate_sof_cnt = p_obj->end_sof_cnt = 0;
                 }
-            }
+                if (verify_CRC16_check_sum(p_obj->protocol_packet,
+                                           (sizeof(vision_sync_struct)))) {
+                    vision_update(p_obj->protocol_packet);
+                }
                 break;
 
-            default: {
-                p_obj->unpack_step = VISION_STEP_HEADER_SOF;
-                p_obj->index = 0;
-            }
+                default: {
+                    p_obj->unpack_step = VISION_STEP_HEADER_SOF;
+                    p_obj->index = 0;
+                }
                 break;
+            }
         }
     }
 }
@@ -198,26 +173,18 @@ void vision_update(uint8_t *rxBuf) {
     vision_info_t *vision_info = &global_vision_info;
     vision_info->pack_info = &vision_unpack_obj;
     if (rxBuf[0] == VISION_HEADER_SOF) {
-        if ((vision_info->pack_info->data1_len <= 128) && (vision_info->pack_info->data2_len <= 128)) {
-//            SEGGER_RTT_WriteString(0, "vision_in\r\n");
-//            memcpy(vision_or_probe, rxBuf, (vision_info->pack_info->data1_len + vision_info->pack_info->data2_len+2));
-            memcpy(vision_info->pack_info->Original_yaw_angle, (rxBuf + 1), vision_info->pack_info->data1_len);
-            memcpy(vision_info->pack_info->Original_pitch_angle, (rxBuf + 2 + vision_info->pack_info->data1_len),
-                   vision_info->pack_info->data2_len);
-            global_vision_info.vision_control.pitch_angle = strtof(vision_info->pack_info->Original_pitch_angle, NULL);
-            global_vision_info.vision_control.yaw_angle = strtof(vision_info->pack_info->Original_yaw_angle, NULL);
-            //for_test
-//            vision_pitch_probe = global_vision_info.vision_control.pitch_angle;
-//            vision_yaw_probe = global_vision_info.vision_control.yaw_angle;
-            memset(&vision_info->pack_info->Original_pitch_angle, 0,
-                   sizeof(vision_info->pack_info->Original_pitch_angle));
-            memset(&vision_info->pack_info->Original_yaw_angle, 0, sizeof(vision_info->pack_info->Original_yaw_angle));
+        if (verify_CRC16_check_sum(rxBuf, (sizeof(vision_frame_header) + vision_info->pack_info->frame.header.data_len +
+                                           sizeof(vision_frame_tail))) == true) {
+            res = true;
+            memcpy(&global_vision_info.vision_control, (rxBuf + sizeof(vision_frame_header)),
+                   vision_info->pack_info->frame.header.data_len);
         }
-    } else {
-        memset(&vision_info->pack_info->Original_pitch_angle, 0, sizeof(vision_info->pack_info->Original_pitch_angle));
-        memset(&vision_info->pack_info->Original_yaw_angle, 0, sizeof(vision_info->pack_info->Original_yaw_angle));
-    }
+        if (rxBuf[sizeof(vision_sync_struct)] == VISION_HEADER_SOF) {
+            vision_update(&rxBuf[sizeof(vision_sync_struct)]);
+        }
 
+    }
+    vision_info->pack_info->data_valid = res;
 }
 
 
@@ -237,6 +204,11 @@ const volatile vision_control_t *get_vision_control_point(void) {
   */
 void init_vision_struct_data(void) {
     memset(&global_vision_info, 0, sizeof(vision_info_t));
+    global_vision_info.vision_control.fps = 1.0f;
+}
+
+void clear_vision_update_flag(void) {
+    global_vision_info.vision_control.update_flag = 0;
 }
 
 /**

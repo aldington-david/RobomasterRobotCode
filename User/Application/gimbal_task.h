@@ -37,17 +37,11 @@
 
 //pitch speed close-loop PID params, max out and max iout
 //pitch 速度环 PID参数以及 PID最大输出，积分输出
-#define PITCH_SPEED_PID_KP        2900.0f
-#define PITCH_SPEED_PID_KI        60.0f
-#define PITCH_SPEED_PID_KD        0.0f
 #define PITCH_SPEED_PID_MAX_OUT   30000.0f
 #define PITCH_SPEED_PID_MAX_IOUT  10000.0f
 
 //yaw speed close-loop PID params, max out and max iout
 //yaw 速度环 PID参数以及 PID最大输出，积分输出
-#define YAW_SPEED_PID_KP        3600.0f
-#define YAW_SPEED_PID_KI        20.0f
-#define YAW_SPEED_PID_KD        0.0f
 #define YAW_SPEED_PID_MAX_OUT   30000.0f
 #define YAW_SPEED_PID_MAX_IOUT  15000.0f
 
@@ -71,18 +65,12 @@
 
 //pitch encode angle close-loop PID params, max out and max iout
 //pitch 角度环 角度由编码器 PID参数以及 PID最大输出，积分输出
-#define PITCH_ENCODE_RELATIVE_PID_KP 200.0f
-#define PITCH_ENCODE_RELATIVE_PID_KI 0.00f
-#define PITCH_ENCODE_RELATIVE_PID_KD 400.0f
 
 #define PITCH_ENCODE_RELATIVE_PID_MAX_OUT 10.0f
 #define PITCH_ENCODE_RELATIVE_PID_MAX_IOUT 0.0f
 
 //yaw encode angle close-loop PID params, max out and max iout
 //yaw 角度环 角度由编码器 PID参数以及 PID最大输出，积分输出
-#define YAW_ENCODE_RELATIVE_PID_KP        1.0f
-#define YAW_ENCODE_RELATIVE_PID_KI        0.0f
-#define YAW_ENCODE_RELATIVE_PID_KD        0.0f
 #define YAW_ENCODE_RELATIVE_PID_MAX_OUT   10.0f
 #define YAW_ENCODE_RELATIVE_PID_MAX_IOUT  0.0f
 
@@ -109,7 +97,7 @@
 
 
 #define YAW_RC_SEN    0.00003f
-#define PITCH_RC_SEN  0.000005f
+#define PITCH_RC_SEN  0.000015f
 
 #define YAW_MOUSE_SEN   0.00084f
 #define PITCH_MOUSE_SEN 0.0021f
@@ -123,10 +111,6 @@
 
 #define GIMBAL_CONTROL_TIME 1
 
-//test mode, 0 close, 1 open
-//云台测试模式 宏定义 0 为不使用测试模式
-#define GIMBAL_TEST_MODE 0
-
 //电机码盘值最大以及中值
 #define HALF_ECD_RANGE  4096
 #define ECD_RANGE       8191
@@ -134,7 +118,7 @@
 #define GIMBAL_INIT_ANGLE_ERROR     0.1f
 #define GIMBAL_INIT_STOP_TIME       100
 #define GIMBAL_INIT_TIME            6000
-#define GIMBAL_CALI_REDUNDANT_ANGLE 0.1f
+#define GIMBAL_CALI_REDUNDANT_ANGLE 0.25f
 //云台初始化回中值的速度以及控制到的角度
 #define GIMBAL_INIT_PITCH_SPEED     0.001f
 #define GIMBAL_INIT_YAW_SPEED       0.001f
@@ -164,15 +148,13 @@
 #define MOTOR_ECD_TO_RAD 0.000766990394f //      2*  PI  /8192
 #endif
 
-typedef enum
-{
+typedef enum {
     GIMBAL_MOTOR_RAW = 0, //电机原始值控制
     GIMBAL_MOTOR_GYRO,    //电机陀螺仪角度控制
     GIMBAL_MOTOR_ENCONDE, //电机编码值角度控制
 } gimbal_motor_mode_e;
-
-typedef struct
-{
+//not_use
+typedef struct {
     fp32 kp;
     fp32 ki;
     fp32 kd;
@@ -192,9 +174,7 @@ typedef struct
 
     fp32 error_last;
     fp32 Integral_Separation;
-    fp32 ekDeadZone;
 
-    extKalman_t Cloud_OCKalman;
 
     bool D_First;
     fp32 D_Filter_Ratio;
@@ -207,12 +187,11 @@ typedef struct
 
 typedef struct {
     const motor_measure_t *gimbal_motor_measure;
-    gimbal_PID_t gimbal_motor_absolute_angle_pid;
-    gimbal_PID_t gimbal_motor_relative_angle_pid;
 
-    pid_type_def gimbal_motor_relative_angle_pid_temp;
-
+    pid_type_def gimbal_motor_absolute_angle_pid;
+    pid_type_def gimbal_motor_relative_angle_pid;
     pid_type_def gimbal_motor_gyro_pid;
+
     gimbal_motor_mode_e gimbal_motor_mode;
     gimbal_motor_mode_e last_gimbal_motor_mode;
     uint16_t offset_ecd;
@@ -232,13 +211,12 @@ typedef struct {
 
     float LpfFactor;
 
-    extKalman_t Cloud_MotorAngle_Error_Kalman;
-    extKalman_t Cloud_PID_Kalman;
+    extKalman_t MotorSpeed_Kalman;
+    extKalman_t Cloud_Motor_Current_Kalman_Filter;
 
 } gimbal_motor_t;
 
-typedef struct
-{
+typedef struct {
     fp32 max_yaw;
     fp32 min_yaw;
     fp32 max_pitch;
@@ -332,7 +310,9 @@ extern void gimbal_task(void const *pvParameters) __attribute__((noreturn));
   * @retval         返回1 代表成功校准完毕， 返回0 代表未校准完
   * @waring         这个函数使用到gimbal_control 静态变量导致函数不适用以上通用指针复用
   */
-extern bool_t cmd_cali_gimbal_hook(uint16_t *yaw_offset, uint16_t *pitch_offset, fp32 *max_yaw, fp32 *min_yaw, fp32 *max_pitch, fp32 *min_pitch);
+extern bool_t
+cmd_cali_gimbal_hook(uint16_t *yaw_offset, uint16_t *pitch_offset, fp32 *max_yaw, fp32 *min_yaw, fp32 *max_pitch,
+                     fp32 *min_pitch);
 
 /**
   * @brief          gimbal cali data, set motor offset encode, max and min relative angle
@@ -359,11 +339,5 @@ extern void
 set_cali_gimbal_hook(const uint16_t yaw_offset, const uint16_t pitch_offset, const fp32 max_yaw, const fp32 min_yaw,
                      const fp32 max_pitch, const fp32 min_pitch);
 
-extern fp32 Cloud_OPID(gimbal_PID_t *pid, fp32 set, fp32 get);
-
-extern fp32 Cloud_IPID(pid_type_def *pid, fp32 ref, fp32 set);
-
 extern gimbal_control_t gimbal_control;
-extern extKalman_t Cloud_PitchMotorAngle_Error_Kalman;
-extern extKalman_t Cloud_YawMotorAngle_Error_Kalman;
 #endif

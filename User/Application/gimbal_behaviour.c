@@ -88,6 +88,7 @@
 #include "vision_task.h"
 #include "SEGGER_RTT.h"
 #include "math.h"
+#include "print_task.h"
 
 //when gimbal is in calibrating, set buzzer frequency and strenght
 //当云台在校准, 设置蜂鸣器频率和强度
@@ -96,12 +97,6 @@
 
 #define int_abs(x) ((x) > 0 ? (x) : (-x))
 
-fp32 vision_pitch_angle_deadband_sen = 0.05f;
-fp32 vision_yaw_angle_deadband_sen = 0.0015f;
-fp32 vision_pitch_control_sen = 0.35f;
-fp32 vision_yaw_control_sen = 0.15f;
-fp32 vision_pitch_lpf_factor = 0.03f;
-fp32 vision_yaw_control_lpf_factor = 0.07f;
 
 
 /**
@@ -549,8 +544,8 @@ static void gimbal_init_control(fp32 *yaw, fp32 *pitch, gimbal_control_t *gimbal
         *yaw = 0.0f;
     } else {
         *pitch = (INIT_PITCH_SET - gimbal_control_set->gimbal_pitch_motor.relative_angle) * GIMBAL_INIT_PITCH_SPEED;
-//        *yaw = (INIT_YAW_SET - gimbal_control_set->gimbal_yaw_motor.relative_angle) * GIMBAL_INIT_YAW_SPEED;
-        *yaw = 0.0f;//for_test
+        *yaw = (INIT_YAW_SET - gimbal_control_set->gimbal_yaw_motor.relative_angle) * GIMBAL_INIT_YAW_SPEED;
+//        *yaw = 0.0f;//for_test
     }
 }
 
@@ -747,7 +742,10 @@ void gimbal_rc_to_control_vector(fp32 *yaw, fp32 *pitch, gimbal_control_t *gimba
     if (gimbal_move_rc_to_vector == NULL || yaw == NULL || pitch == NULL) {
         return;
     }
-
+    static uint16_t count;
+    static int16_t yaw_rc_last;
+    static fp32 yaw_vision_last;
+    int16_t err;
     int16_t yaw_channel, pitch_channel;
     fp32 yaw_set_channel, pitch_set_channel, add_vision_yaw, add_vision_pitch, lim_vision_yaw, lim_vision_pitch;
     yaw_set_channel = pitch_set_channel = add_vision_yaw = add_vision_pitch = yaw_channel = pitch_channel = 0;
@@ -758,18 +756,37 @@ void gimbal_rc_to_control_vector(fp32 *yaw, fp32 *pitch, gimbal_control_t *gimba
         rc_deadband_limit(gimbal_move_rc_to_vector->gimbal_rc_ctrl->rc.ch[YAW_CHANNEL], yaw_channel, RC_DEADBAND);
         rc_deadband_limit(gimbal_move_rc_to_vector->gimbal_rc_ctrl->rc.ch[PITCH_CHANNEL], pitch_channel, RC_DEADBAND);
         //for_test
-        yaw_channel = test_control(CONSTANT, 10.491, -1.6298, 300, 600, 1, 0, 1);
+//        yaw_channel = test_control(CONSTANT, 10.491f, -1.6298f, 2000, 600, 1, 0, 1);
+        err = gimbal_move_rc_to_vector->gimbal_rc_ctrl->rc.ch[YAW_CHANNEL] - yaw_rc_last;
+//        SEGGER_RTT_printf(0,"%d\r\n",err);//for_test
+        if (abs(err) > 38) {
+            yaw_channel = Filter_IIRLPF_np(yaw_channel, yaw_rc_last, 0.005f);
+        }else {
+            yaw_channel = Filter_IIRLPF_np(yaw_channel, yaw_rc_last, 0.8f);
+        }
 
         //视觉控制
-        rc_deadband_limit(gimbal_move_rc_to_vector->gimbal_vision_ctrl->yaw_angle, lim_vision_yaw,
-                          vision_pitch_angle_deadband_sen)
-        rc_deadband_limit(gimbal_move_rc_to_vector->gimbal_vision_ctrl->pitch_angle, lim_vision_pitch,
-                          vision_yaw_angle_deadband_sen)
-        float temp_yaw = lim_vision_yaw * vision_yaw_control_sen;
-        float temp_pitch = lim_vision_pitch * vision_pitch_control_sen;
-        Filter_IIRLPF(&temp_yaw, &add_vision_yaw, vision_pitch_lpf_factor);
-        Filter_IIRLPF(&temp_pitch, &add_vision_pitch, vision_yaw_control_lpf_factor);
+        if (gimbal_move_rc_to_vector->gimbal_vision_ctrl->fps == 0) {
+            global_vision_info.vision_control.fps = 1.0f;
+        }
 
+        if (gimbal_move_rc_to_vector->gimbal_vision_ctrl->update_flag) {
+            count = 0;
+            clear_vision_update_flag();
+        }
+//有延时系数
+        if (count <= (GIMBAL_TASK_CONTROL_DELAY_SEN/gimbal_move_rc_to_vector->gimbal_vision_ctrl->fps*1000)) {
+            add_vision_yaw = (gimbal_move_rc_to_vector->gimbal_vision_ctrl->yaw_angle /
+                    (GIMBAL_TASK_CONTROL_DELAY_SEN/gimbal_move_rc_to_vector->gimbal_vision_ctrl->fps*1000));
+            add_vision_pitch = (gimbal_move_rc_to_vector->gimbal_vision_ctrl->pitch_angle /
+                    (GIMBAL_TASK_CONTROL_DELAY_SEN/gimbal_move_rc_to_vector->gimbal_vision_ctrl->fps*1000));
+            count++;
+        }
+//for_test
+//        RTT_PrintWave_np(2,
+//                         add_vision_yaw,
+//                         yaw_vision_last);
+//        SEGGER_RTT_printf(0,"%d\r\n",count);//for_test
         yaw_set_channel = yaw_channel * YAW_RC_SEN + add_vision_yaw;
         pitch_set_channel = pitch_channel * PITCH_RC_SEN + add_vision_pitch;
     } else {
@@ -779,8 +796,8 @@ void gimbal_rc_to_control_vector(fp32 *yaw, fp32 *pitch, gimbal_control_t *gimba
         rc_deadband_limit(gimbal_move_rc_to_vector->gimbal_rc_ctrl->mouse.y, pitch_channel, 2)
         float temp_yaw = yaw_channel * YAW_MOUSE_SEN;
         float temp_pitch = pitch_channel * PITCH_MOUSE_SEN;
-        Filter_IIRLPF(&temp_yaw, &yaw_set_channel, 0.1f);
-        Filter_IIRLPF(&temp_pitch, &pitch_set_channel, 0.1f);
+        Filter_IIRLPF(temp_yaw, &yaw_set_channel, 0.1f);
+        Filter_IIRLPF(temp_pitch, &pitch_set_channel, 0.1f);
 //        yaw_set_channel = gimbal_move_rc_to_vector->gimbal_rc_ctrl->mouse.x * YAW_MOUSE_SEN;
 //        pitch_set_channel = gimbal_move_rc_to_vector->gimbal_rc_ctrl->mouse.y * PITCH_MOUSE_SEN;
     }
@@ -800,7 +817,7 @@ void gimbal_rc_to_control_vector(fp32 *yaw, fp32 *pitch, gimbal_control_t *gimba
 //    {
 //        chassis_move_rc_to_vector->chassis_cmd_slow_set_vy.out = 0.0f;
 //    }
-
+    yaw_rc_last = yaw_channel;
     *yaw = yaw_set_channel;
     *pitch = pitch_set_channel;
 }
@@ -876,8 +893,8 @@ int16_t test_control(int16_t mode, fp32 re_angle_pr_up, fp32 re_angle_pr_down, i
                 if (count > (2 * time_ms)) {
                     rc_control_variable =
                             (int16_t) ((float) rc_control_variable_ps -
-                                       ((count - 2*time_ms) * ((float) rc_control_variable_ps / (float) time_ms)));
-                    if (rc_control_variable ==0) {
+                                       ((count - 2 * time_ms) * ((float) rc_control_variable_ps / (float) time_ms)));
+                    if (rc_control_variable == 0) {
                         rc_control_variable_ps = -rc_control_variable_ps;
                         count = 0;
                     }

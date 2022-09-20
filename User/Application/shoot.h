@@ -17,6 +17,7 @@
 
 #ifndef SHOOT_H
 #define SHOOT_H
+
 #include "struct_typedef.h"
 
 #include "CAN_receive.h"
@@ -90,8 +91,7 @@
 
 #define SHOOT_HEAT_REMAIN_VALUE     80
 
-typedef enum
-{
+typedef enum {
     SHOOT_STOP = 0,
     SHOOT_START,
     SHOOT_READY,
@@ -115,6 +115,7 @@ typedef struct {
     uint16_t fric_pwm2;
     pid_type_def trigger_motor_speed_pid;
     pid_type_def trigger_motor_angle_pid;
+    extKalman_t Trigger_Motor_Current_Kalman_Filter;
 
     pid_type_def fric1_motor_pid;
     pid_type_def fric2_motor_pid;

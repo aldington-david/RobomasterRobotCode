@@ -27,6 +27,8 @@
   * @retval none
   * @attention R固定，Q越大，代表越信任侧量值，Q无穷代表只用测量值
   *		       	反之，Q越小代表越信任模型预测值，Q为零则是只用模型预测
+  * @other 	Q：过程噪声，Q增大，动态响应变快，收敛稳定性变坏
+	R：测量噪声，R增大，动态响应变慢，收敛稳定性变好
   */
 void KalmanCreate(extKalman_t *p, float T_Q, float T_R) {
     p->X_last = (float) 0;

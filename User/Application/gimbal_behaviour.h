@@ -93,7 +93,8 @@
 #define CONSTANT 3
 
 #define DELAY_GAIN(x) (x) <= 400 ? (0.001714f * (x) + 2) : 2.7f
-
+//will_replace_to_accurate_value
+#define GIMBAL_TASK_CONTROL_DELAY_SEN       3.3f
 
 typedef enum
 {

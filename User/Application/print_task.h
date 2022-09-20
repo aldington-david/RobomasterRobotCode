@@ -72,6 +72,11 @@ extern fp32 KF_Dout2_test;
 extern fp32 tracer1;
 extern fp32 vision_pitch_probe;
 extern fp32 vision_yaw_probe;
-//extern char vision_or_probe[128];
+extern char vision_or_probe[128];
 
+
+extern fp32 pid_out_probe;
+extern fp32 pid_pout_probe;
+extern fp32 pid_iout_probe;
+extern fp32 pid_dout_probe;
 #endif

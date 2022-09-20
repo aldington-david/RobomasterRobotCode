@@ -61,20 +61,17 @@
 
 #define gimbal_total_pid_clear(gimbal_clear)                                                   \
     {                                                                                          \
-        gimbal_PID_clear(&(gimbal_clear)->gimbal_yaw_motor.gimbal_motor_absolute_angle_pid);   \
-        gimbal_PID_clear(&(gimbal_clear)->gimbal_yaw_motor.gimbal_motor_relative_angle_pid);   \
         PID_clear(&(gimbal_clear)->gimbal_yaw_motor.gimbal_motor_gyro_pid);                    \
-        PID_clear(&(gimbal_clear)->gimbal_yaw_motor.gimbal_motor_relative_angle_pid_temp);                    \
+        PID_clear(&(gimbal_clear)->gimbal_yaw_motor.gimbal_motor_relative_angle_pid);          \
                                                                                                \
-        gimbal_PID_clear(&(gimbal_clear)->gimbal_pitch_motor.gimbal_motor_absolute_angle_pid); \
-        gimbal_PID_clear(&(gimbal_clear)->gimbal_pitch_motor.gimbal_motor_relative_angle_pid); \
+        PID_clear(&(gimbal_clear)->gimbal_pitch_motor.gimbal_motor_relative_angle_pid);        \
         PID_clear(&(gimbal_clear)->gimbal_pitch_motor.gimbal_motor_gyro_pid);                  \
     }
 
 #if INCLUDE_uxTaskGetStackHighWaterMark
 uint32_t gimbal_task_stack;
 #endif
-#define NUM_TAPS 4 //lms滤波器系数
+
 
 /**
   * @brief          "gimbal_control" valiable initialization, include pid initialization, remote control data point initialization, gimbal motors
@@ -186,7 +183,6 @@ static void gimbal_motor_absolute_angle_control(gimbal_motor_t *gimbal_motor);
   */
 static void gimbal_motor_relative_angle_control(gimbal_motor_t *gimbal_motor);
 
-static void gimbal_motor_relative_angle_control_temp(gimbal_motor_t *gimbal_motor);
 /**
   * @brief          gimbal control mode :GIMBAL_MOTOR_RAW, current  is sent to CAN bus. 
   * @param[out]     gimbal_motor: yaw motor or pitch motor
@@ -645,13 +641,12 @@ const gimbal_motor_t *get_pitch_motor_point(void) {
   */
 static void gimbal_init(gimbal_control_t *init) {
 
-    static float32_t lmsStateF32[NUM_TAPS] = {0};        /* 状态缓存，大小numTaps + blockSize - 1 */
-    static float32_t lmsCoeffs32[NUM_TAPS] = {0};                       /* 滤波器系数 */
 
-    static const fp32 Pitch_speed_pid[3] = {350, 0, 500};
-    static const fp32 Yaw_speed_pid[3] = {5000, 14, 0};
+    static const fp32 Pitch_speed_pid[3] = {350.0f, 0.0f, 100.0f};
+    static const fp32 Yaw_speed_pid[3] = {5000.0f, 0.0f, 0.0f};
 
-    static const fp32 Yaw_angle_pid[3] = {9.4, 25, 500};
+    static const fp32 Yaw_angle_pid[3] = {14.5f, 0.0f, 75.0f};
+    static const fp32 Pitch_angle_pid[3] = {50.0f, 0.0f, 100.0f};
     //电机数据指针获取
     init->gimbal_yaw_motor.gimbal_motor_measure = get_yaw_gimbal_motor_measure_point();
     init->gimbal_pitch_motor.gimbal_motor_measure = get_pitch_gimbal_motor_measure_point();
@@ -666,52 +661,32 @@ static void gimbal_init(gimbal_control_t *init) {
     init->gimbal_yaw_motor.gimbal_motor_mode = init->gimbal_yaw_motor.last_gimbal_motor_mode = GIMBAL_MOTOR_RAW;
     init->gimbal_pitch_motor.gimbal_motor_mode = init->gimbal_pitch_motor.last_gimbal_motor_mode = GIMBAL_MOTOR_RAW;
     //初始化yaw电机pid
-    gimbal_PID_init(&init->gimbal_yaw_motor.gimbal_motor_absolute_angle_pid, YAW_GYRO_ABSOLUTE_PID_MAX_OUT,
-                    YAW_GYRO_ABSOLUTE_PID_MAX_IOUT, YAW_GYRO_ABSOLUTE_PID_KP, YAW_GYRO_ABSOLUTE_PID_KI,
-                    YAW_GYRO_ABSOLUTE_PID_KD);
-    gimbal_PID_init(&init->gimbal_yaw_motor.gimbal_motor_relative_angle_pid, YAW_ENCODE_RELATIVE_PID_MAX_OUT,
-                    YAW_ENCODE_RELATIVE_PID_MAX_IOUT, YAW_ENCODE_RELATIVE_PID_KP, YAW_ENCODE_RELATIVE_PID_KI,
-                    YAW_ENCODE_RELATIVE_PID_KD);
-    PID_init(&init->gimbal_yaw_motor.gimbal_motor_gyro_pid, PID_POSITION, Yaw_speed_pid, YAW_SPEED_PID_MAX_OUT,
-             YAW_SPEED_PID_MAX_IOUT, 100, 1, 0.15, 3.0, 0, 0, 0, 0, 0, 0);
-    PID_init(&init->gimbal_yaw_motor.gimbal_motor_relative_angle_pid_temp, PID_POSITION, Yaw_angle_pid,
+    PID_init(&init->gimbal_yaw_motor.gimbal_motor_relative_angle_pid, PID_POSITION, Yaw_angle_pid,
              YAW_ENCODE_RELATIVE_PID_MAX_OUT,
-             YAW_ENCODE_RELATIVE_PID_MAX_IOUT, 100, 1, 0.01, 2.0, 0, 0, 0, 1, 0.1, 1);
+             YAW_ENCODE_RELATIVE_PID_MAX_IOUT, 100, 1, 0.01f, 2.0f, 0, 0, 0, 0, 0, 0, 0);
+    PID_init(&init->gimbal_yaw_motor.gimbal_motor_gyro_pid, PID_POSITION, Yaw_speed_pid, YAW_SPEED_PID_MAX_OUT,
+             YAW_SPEED_PID_MAX_IOUT, 100, 1, 0.15f, 3.0f, 0, 0, 0, 0, 0, 0, 0);
+
 
     //初始化pitch电机pid
-    gimbal_PID_init(&init->gimbal_pitch_motor.gimbal_motor_absolute_angle_pid, PITCH_GYRO_ABSOLUTE_PID_MAX_OUT,
-                    PITCH_GYRO_ABSOLUTE_PID_MAX_IOUT, PITCH_GYRO_ABSOLUTE_PID_KP, PITCH_GYRO_ABSOLUTE_PID_KI,
-                    PITCH_GYRO_ABSOLUTE_PID_KD);
-    gimbal_PID_init(&init->gimbal_pitch_motor.gimbal_motor_relative_angle_pid, PITCH_ENCODE_RELATIVE_PID_MAX_OUT,
-                    PITCH_ENCODE_RELATIVE_PID_MAX_IOUT, PITCH_ENCODE_RELATIVE_PID_KP, PITCH_ENCODE_RELATIVE_PID_KI,
-                    PITCH_ENCODE_RELATIVE_PID_KD);
+    PID_init(&init->gimbal_pitch_motor.gimbal_motor_relative_angle_pid, PID_POSITION, Pitch_angle_pid,
+             PITCH_ENCODE_RELATIVE_PID_MAX_OUT,
+             PITCH_ENCODE_RELATIVE_PID_MAX_IOUT, 100, 1, 0.01f, 2.0f, 0, 0, 0, 0, 0, 0, 0);
+
     PID_init(&init->gimbal_pitch_motor.gimbal_motor_gyro_pid, PID_POSITION, Pitch_speed_pid, PITCH_SPEED_PID_MAX_OUT,
-             PITCH_SPEED_PID_MAX_IOUT, 100, 0, 0, 0, 0, 0, 0, 0, 0, 0);
-//    KalmanCreate(&Cloud_PitchMotorAngle_Error_Kalman, init->gimbal_pitch_motor.gimbal_motor_relative_angle_pid.err_kal_Q,
-//                 init->gimbal_pitch_motor.gimbal_motor_relative_angle_pid.err_kal_R);
-//    KalmanCreate(&Cloud_PITCHODKalman, init->gimbal_pitch_motor.gimbal_motor_relative_angle_pid.out_kal_Q,
-//                 init->gimbal_pitch_motor.gimbal_motor_relative_angle_pid.out_kal_R);
-    KalmanCreate(&init->gimbal_pitch_motor.Cloud_MotorAngle_Error_Kalman, 10.0, 0.00001);
-    KalmanCreate(&init->gimbal_pitch_motor.gimbal_motor_relative_angle_pid.Cloud_OCKalman, 0.0001, 40.0);//not_use
-    KalmanCreate(&init->gimbal_yaw_motor.Cloud_MotorAngle_Error_Kalman, 0.001, 10.0);
-    KalmanCreate(&init->gimbal_yaw_motor.gimbal_motor_relative_angle_pid_temp.D_Kalman, 1.0, 1.0);
-    KalmanCreate(&init->gimbal_yaw_motor.gimbal_motor_gyro_pid.D_Kalman, 1.0, 1.0);
+             PITCH_SPEED_PID_MAX_IOUT, 100, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+    KalmanCreate(&init->gimbal_pitch_motor.Cloud_Motor_Current_Kalman_Filter, 10.0f, 0.00001f);
+    KalmanCreate(&init->gimbal_yaw_motor.Cloud_Motor_Current_Kalman_Filter, 0.001f, 1.0f);
+    KalmanCreate(&init->gimbal_yaw_motor.gimbal_motor_relative_angle_pid.D_Kalman, 1.0f, 1.0f);
+    KalmanCreate(&init->gimbal_yaw_motor.gimbal_motor_gyro_pid.D_Kalman, 1.0f, 1.0f);
+    KalmanCreate(&init->gimbal_pitch_motor.gimbal_motor_relative_angle_pid.D_Kalman, 1.0f, 1.0f);
+    KalmanCreate(&init->gimbal_pitch_motor.gimbal_motor_gyro_pid.D_Kalman, 1.0f, 1.0f);
+    KalmanCreate(&init->gimbal_yaw_motor.MotorSpeed_Kalman, 0.001f, 0.4f);
+    KalmanCreate(&init->gimbal_pitch_motor.MotorSpeed_Kalman, 0.001f, 0.4f);
 
-    first_order_filter_init(&init->gimbal_yaw_motor.gimbal_motor_gyro_pid.D_Low_Pass_Filter, 0.001, 1);//not_use
-
-    lms_filter_init(&init->gimbal_yaw_motor.gimbal_motor_relative_angle_pid_temp.PID_lms, 0.0045f, lmsStateF32,
-                    lmsCoeffs32);
-    /* 归一化LMS初始化 */
-    arm_lms_norm_init_f32(
-            &init->gimbal_yaw_motor.gimbal_motor_relative_angle_pid_temp.PID_lms.lmsS,                         /* LMS结构体 */
-            NUM_TAPS,                      /* 滤波器系数个数 */
-            init->gimbal_yaw_motor.gimbal_motor_relative_angle_pid_temp.PID_lms.lmsCoeffs32, /* 滤波 */
-            init->gimbal_yaw_motor.gimbal_motor_relative_angle_pid_temp.PID_lms.lmsStateF32,              /* 滤波器系数 */
-            init->gimbal_yaw_motor.gimbal_motor_relative_angle_pid_temp.PID_lms.step_len,                          /* 步长 */
-            1);                   /* 处理的数据个数 */
 
     init->gimbal_pitch_motor.LpfFactor = 1.0;
-    init->gimbal_yaw_motor.LpfFactor = 0.5;
+    init->gimbal_yaw_motor.LpfFactor = 1.0;
 
 
     //清除所有PID
@@ -761,6 +736,8 @@ static void gimbal_feedback_update(gimbal_control_t *feedback_update) {
     if (feedback_update == NULL) {
         return;
     }
+    static fp32 yaw_motor_speed_last = 0;
+    static fp32 yaw_relative_angle_last = 0;
     //云台数据更新
     feedback_update->gimbal_pitch_motor.absolute_angle = *(feedback_update->gimbal_INT_angle_point +
                                                            INS_PITCH_ADDRESS_OFFSET);
@@ -788,25 +765,23 @@ static void gimbal_feedback_update(gimbal_control_t *feedback_update) {
                                                          INS_YAW_ADDRESS_OFFSET);
 
 #if YAW_TURN
-    fp32 relative_angle_last = feedback_update->gimbal_yaw_motor.relative_angle;
+    yaw_relative_angle_last = feedback_update->gimbal_yaw_motor.relative_angle;
 //    feedback_update->gimbal_yaw_motor.relative_angle = -motor_ecd_to_angle_change(
 //            feedback_update->gimbal_yaw_motor.gimbal_motor_measure->ecd,
 //            feedback_update->gimbal_yaw_motor.offset_ecd);
     feedback_update->gimbal_yaw_motor.relative_angle = -(
             (feedback_update->gimbal_yaw_motor.gimbal_motor_measure->total_ecd -
              feedback_update->gimbal_yaw_motor.offset_ecd) * MOTOR_ECD_TO_RAD);
-    arm_lms_norm_f32(&feedback_update->gimbal_yaw_motor.gimbal_motor_relative_angle_pid_temp.PID_lms.lmsS,
-                     &relative_angle_last,
-                     &feedback_update->gimbal_yaw_motor.relative_angle,
-                     &feedback_update->gimbal_yaw_motor.gimbal_motor_relative_angle_pid_temp.PID_lms.outputF32,
-                     &feedback_update->gimbal_yaw_motor.gimbal_motor_relative_angle_pid_temp.PID_lms.outputERR, 1);
-//    static uint8_t k;
-//    if (k < 255) {
-//        k++;
-//    }
-//    if (k == 255 && (fabs(feedback_update->gimbal_yaw_motor.gimbal_motor_relative_angle_pid_temp.PID_lms.outputF32*1000) > 0.0005*1000)) {
-//        feedback_update->gimbal_yaw_motor.relative_angle = feedback_update->gimbal_yaw_motor.gimbal_motor_relative_angle_pid_temp.PID_lms.outputF32;
-//    }
+    feedback_update->gimbal_yaw_motor.motor_speed = KalmanFilter(&feedback_update->gimbal_yaw_motor.MotorSpeed_Kalman,
+                                                                 feedback_update->gimbal_yaw_motor.motor_speed);
+    feedback_update->gimbal_pitch_motor.motor_speed = KalmanFilter(
+            &feedback_update->gimbal_pitch_motor.MotorSpeed_Kalman,
+            feedback_update->gimbal_pitch_motor.motor_speed);
+//for_test
+//    kalman_test = feedback_update->gimbal_yaw_motor.motor_speed;
+//    kalman_test = KalmanFilter(&MotorSpeed_Kalman,
+//                               kalman_test);
+
 
 #else
     //    feedback_update->gimbal_yaw_motor.relative_angle = motor_ecd_to_angle_change(feedback_update->gimbal_yaw_motor.gimbal_motor_measure->ecd,
@@ -996,7 +971,7 @@ static void gimbal_relative_angle_limit(gimbal_motor_t *gimbal_motor, fp32 add) 
     }
 //    gimbal_motor->relative_angle_set += add;
     fp32 relative_angle_set_tmp = gimbal_motor->relative_angle_set + add;
-    Filter_IIRLPF(&relative_angle_set_tmp, &gimbal_motor->relative_angle_set, gimbal_motor->LpfFactor);
+    Filter_IIRLPF(relative_angle_set_tmp, &gimbal_motor->relative_angle_set, gimbal_motor->LpfFactor);
     //是否超过最大 最小值
     if (gimbal_motor->relative_angle_set > gimbal_motor->max_relative_angle) {
         gimbal_motor->relative_angle_set = gimbal_motor->max_relative_angle;
@@ -1029,8 +1004,8 @@ static void gimbal_relative_angle_yaw_unlimit(gimbal_motor_t *gimbal_motor, fp32
 //static uint32_t i = 0;
 //    i++;
 //    if((i%27) >0){
-        fp32 relative_angle_set_tmp = gimbal_motor->relative_angle_set + add;
-        Filter_IIRLPF(&relative_angle_set_tmp, &gimbal_motor->relative_angle_set, gimbal_motor->LpfFactor);
+    fp32 relative_angle_set_tmp = gimbal_motor->relative_angle_set + add;
+    Filter_IIRLPF(relative_angle_set_tmp, &gimbal_motor->relative_angle_set, gimbal_motor->LpfFactor);
 //        i = 0;
 //    }
 
@@ -1064,7 +1039,7 @@ static void gimbal_control_loop(gimbal_control_t *control_loop) {
     } else if (control_loop->gimbal_yaw_motor.gimbal_motor_mode == GIMBAL_MOTOR_GYRO) {
         gimbal_motor_absolute_angle_control(&control_loop->gimbal_yaw_motor);
     } else if (control_loop->gimbal_yaw_motor.gimbal_motor_mode == GIMBAL_MOTOR_ENCONDE) {
-        gimbal_motor_relative_angle_control_temp(&control_loop->gimbal_yaw_motor);
+        gimbal_motor_relative_angle_control(&control_loop->gimbal_yaw_motor);
     }
 
     if (control_loop->gimbal_pitch_motor.gimbal_motor_mode == GIMBAL_MOTOR_RAW) {
@@ -1110,59 +1085,20 @@ static void gimbal_motor_relative_angle_control(gimbal_motor_t *gimbal_motor) {
     if (gimbal_motor == NULL) {
         return;
     }
-
-    //角度环，速度环串级pid调试
-//    gimbal_motor->motor_gyro_set = gimbal_PID_calc(&gimbal_motor->gimbal_motor_relative_angle_pid, gimbal_motor->relative_angle, gimbal_motor->relative_angle_set, (gimbal_motor->relative_angle_set-gimbal_motor->relative_angle));
-//    gimbal_motor->motor_gyro_set = KalmanFilter(&Cloud_PitchMotorAngle_Error_Kalman, gimbal_motor->motor_gyro_set);
-//    gimbal_motor->current_set = PID_calc(&gimbal_motor->gimbal_motor_gyro_pid, gimbal_motor->motor_gyro, gimbal_motor->motor_gyro_set);
-    float AngleErr;
-//    gimbal_motor->relative_angle_set = KalmanFilter(&gimbal_motor->Cloud_MotorAngle_Error_Kalman, gimbal_motor->relative_angle_set);
-    AngleErr = gimbal_motor->relative_angle - gimbal_motor->relative_angle_set;
-    AngleErr = KalmanFilter(&gimbal_motor->Cloud_MotorAngle_Error_Kalman, AngleErr);
-    gimbal_motor->motor_gyro_set = Cloud_OPID(&gimbal_motor->gimbal_motor_relative_angle_pid,
-                                              0, AngleErr);
-    gimbal_motor->current_set = Cloud_IPID(&gimbal_motor->gimbal_motor_gyro_pid, -gimbal_motor->motor_speed,
-                                           gimbal_motor->motor_gyro_set);
-    //控制值赋值
-    gimbal_motor->given_current = (int16_t) (gimbal_motor->current_set);
-}
-
-static void gimbal_motor_relative_angle_control_temp(gimbal_motor_t *gimbal_motor) {
-    if (gimbal_motor == NULL) {
-        return;
-    }
-
-    //角度环，速度环串级pid调试
-//    gimbal_motor->motor_gyro_set = gimbal_PID_calc(&gimbal_motor->gimbal_motor_relative_angle_pid, gimbal_motor->relative_angle, gimbal_motor->relative_angle_set, (gimbal_motor->relative_angle_set-gimbal_motor->relative_angle));
-//    gimbal_motor->motor_gyro_set = KalmanFilter(&Cloud_PitchMotorAngle_Error_Kalman, gimbal_motor->motor_gyro_set);
-//    gimbal_motor->current_set = PID_calc(&gimbal_motor->gimbal_motor_gyro_pid, gimbal_motor->motor_gyro, gimbal_motor->motor_gyro_set);
-//    float AngleErr;
-
-//    gimbal_motor->relative_angle_set = KalmanFilter(&gimbal_motor->Cloud_MotorAngle_Error_Kalman, gimbal_motor->relative_angle_set);
-//    AngleErr = gimbal_motor->relative_angle - gimbal_motor->relative_angle_set;
-//    AngleErr = KalmanFilter_test(&gimbal_motor->Cloud_MotorAngle_Error_Kalman, AngleErr);
-//    fp32 relative_angle_last = gimbal_motor->relative_angle;
-//    arm_lms_norm_f32(&gimbal_motor->gimbal_motor_relative_angle_pid_temp.PID_lms.lmsS, &relative_angle_last,
-//                     &gimbal_motor->relative_angle,
-//                     &gimbal_motor->gimbal_motor_relative_angle_pid_temp.PID_lms.outputF32,
-//                     &gimbal_motor->gimbal_motor_relative_angle_pid_temp.PID_lms.outputERR, 1);
-//    gimbal_motor->relative_angle = gimbal_motor->gimbal_motor_relative_angle_pid_temp.PID_lms.outputF32;
-    gimbal_motor->motor_gyro_set = ALL_PID(&gimbal_motor->gimbal_motor_relative_angle_pid_temp,
-                                           gimbal_motor->gimbal_motor_relative_angle_pid_temp.PID_lms.outputF32,
-                                           gimbal_motor->relative_angle_set);
-
-
-//    gimbal_motor->motor_gyro_set = gimbal_motor->gimbal_motor_relative_angle_pid_temp.PID_lms.outputF32;
+    gimbal_motor->motor_gyro_set = ALL_PID(&gimbal_motor->gimbal_motor_relative_angle_pid,
+                                           gimbal_motor->relative_angle, gimbal_motor->relative_angle_set);
     gimbal_motor->current_set = ALL_PID(&gimbal_motor->gimbal_motor_gyro_pid, -gimbal_motor->motor_speed,
                                         gimbal_motor->motor_gyro_set);
-//    kalman_test = KalmanFilter(&gimbal_motor->Cloud_MotorAngle_Error_Kalman,
-//                                                  gimbal_motor->current_set);
-    gimbal_motor->current_set = KalmanFilter(&gimbal_motor->Cloud_MotorAngle_Error_Kalman,
+    gimbal_motor->current_set = KalmanFilter(&gimbal_motor->Cloud_Motor_Current_Kalman_Filter,
                                              gimbal_motor->current_set);
+
+//for_test
+//    kalman_test = KalmanFilter(&gimbal_motor->Cloud_Motor_Current_Kalman_Filter,
+//                               gimbal_motor->current_set);
+//    kalman_test = gimbal_motor->current_set;
     //控制值赋值
     gimbal_motor->given_current = (int16_t) (gimbal_motor->current_set);
 }
-
 
 /**
   * @brief          gimbal control mode :GIMBAL_MOTOR_RAW, current  is sent to CAN bus. 
@@ -1208,6 +1144,7 @@ static void gimbal_PID_init(gimbal_PID_t *pid, fp32 maxout, fp32 max_iout, fp32 
     pid->max_out = maxout;
 }
 
+//not_use
 static fp32 gimbal_PID_calc(gimbal_PID_t *pid, fp32 get, fp32 set, fp32 error_delta) {
     fp32 err;
     if (pid == NULL) {
@@ -1226,7 +1163,7 @@ static fp32 gimbal_PID_calc(gimbal_PID_t *pid, fp32 get, fp32 set, fp32 error_de
     abs_limit(&pid->out, pid->max_out);
     return pid->out;
 }
-
+//not_use
 /**
   * @brief          gimbal PID clear, clear pid.out, iout.
   * @param[out]     gimbal_pid_clear: "gimbal_control" valiable point
