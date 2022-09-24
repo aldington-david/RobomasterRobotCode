@@ -744,7 +744,8 @@ void gimbal_rc_to_control_vector(fp32 *yaw, fp32 *pitch, gimbal_control_t *gimba
     }
     static uint16_t count;
     static int16_t yaw_rc_last;
-    static fp32 yaw_vision_last;
+    static fp32 vision_yaw;
+//    static fp32 yaw_vision_last;
     int16_t err;
     int16_t yaw_channel, pitch_channel;
     fp32 yaw_set_channel, pitch_set_channel, add_vision_yaw, add_vision_pitch, lim_vision_yaw, lim_vision_pitch;
@@ -759,10 +760,10 @@ void gimbal_rc_to_control_vector(fp32 *yaw, fp32 *pitch, gimbal_control_t *gimba
 //        yaw_channel = test_control(CONSTANT, 10.491f, -1.6298f, 2000, 600, 1, 0, 1);
         err = gimbal_move_rc_to_vector->gimbal_rc_ctrl->rc.ch[YAW_CHANNEL] - yaw_rc_last;
 //        SEGGER_RTT_printf(0,"%d\r\n",err);//for_test
-        if (abs(err) > 38) {
+        if (abs(err) > 33) {
             yaw_channel = Filter_IIRLPF_np(yaw_channel, yaw_rc_last, 0.005f);
         }else {
-            yaw_channel = Filter_IIRLPF_np(yaw_channel, yaw_rc_last, 0.8f);
+            yaw_channel = Filter_IIRLPF_np(yaw_channel, yaw_rc_last, 0.53f);
         }
 
         //视觉控制
@@ -775,20 +776,24 @@ void gimbal_rc_to_control_vector(fp32 *yaw, fp32 *pitch, gimbal_control_t *gimba
             clear_vision_update_flag();
         }
 //有延时系数
-        if (count <= (GIMBAL_TASK_CONTROL_DELAY_SEN/gimbal_move_rc_to_vector->gimbal_vision_ctrl->fps*1000)) {
+        if (count <= ((0.054*gimbal_move_rc_to_vector->gimbal_vision_ctrl->fps+2.22)/gimbal_move_rc_to_vector->gimbal_vision_ctrl->fps*1000)) {
             add_vision_yaw = (gimbal_move_rc_to_vector->gimbal_vision_ctrl->yaw_angle /
-                    (GIMBAL_TASK_CONTROL_DELAY_SEN/gimbal_move_rc_to_vector->gimbal_vision_ctrl->fps*1000));
+                    ((0.054*gimbal_move_rc_to_vector->gimbal_vision_ctrl->fps+2.22)/gimbal_move_rc_to_vector->gimbal_vision_ctrl->fps*1000));
             add_vision_pitch = (gimbal_move_rc_to_vector->gimbal_vision_ctrl->pitch_angle /
-                    (GIMBAL_TASK_CONTROL_DELAY_SEN/gimbal_move_rc_to_vector->gimbal_vision_ctrl->fps*1000));
+                    ((0.054*gimbal_move_rc_to_vector->gimbal_vision_ctrl->fps+2.22)/gimbal_move_rc_to_vector->gimbal_vision_ctrl->fps*1000));
             count++;
         }
+        Filter_IIRLPF(add_vision_yaw,&vision_yaw,0.8f);
 //for_test
 //        RTT_PrintWave_np(2,
 //                         add_vision_yaw,
-//                         yaw_vision_last);
+//                         add_vision_pitch);
 //        SEGGER_RTT_printf(0,"%d\r\n",count);//for_test
-        yaw_set_channel = yaw_channel * YAW_RC_SEN + add_vision_yaw;
+
+        yaw_set_channel = yaw_channel * YAW_RC_SEN + (vision_yaw*(((660 -abs(yaw_channel))* YAW_RC_SEN)/(660 * YAW_RC_SEN)));
         pitch_set_channel = pitch_channel * PITCH_RC_SEN + add_vision_pitch;
+//        yaw_set_channel = yaw_channel * YAW_RC_SEN;
+//        pitch_set_channel = pitch_channel * PITCH_RC_SEN;
     } else {
         //keyboard set speed set-point
         //键盘控制
@@ -801,22 +806,10 @@ void gimbal_rc_to_control_vector(fp32 *yaw, fp32 *pitch, gimbal_control_t *gimba
 //        yaw_set_channel = gimbal_move_rc_to_vector->gimbal_rc_ctrl->mouse.x * YAW_MOUSE_SEN;
 //        pitch_set_channel = gimbal_move_rc_to_vector->gimbal_rc_ctrl->mouse.y * PITCH_MOUSE_SEN;
     }
-    //maybe_useful
-//    //first order low-pass replace ramp function, calculate chassis speed set-point to improve control performance
-//    //一阶低通滤波代替斜波作为底盘速度输入
-//    first_order_filter_cali(&chassis_move_rc_to_vector->chassis_cmd_slow_set_vx, vx_set_channel);
-//    first_order_filter_cali(&chassis_move_rc_to_vector->chassis_cmd_slow_set_vy, vy_set_channel);
-//    //stop command, need not slow change, set zero derectly
-//    //停止信号，不需要缓慢加速，直接减速到零
-//    if (vx_set_channel < CHASSIS_RC_DEADLINE * CHASSIS_VX_RC_SEN && vx_set_channel > -CHASSIS_RC_DEADLINE * CHASSIS_VX_RC_SEN)
-//    {
-//        chassis_move_rc_to_vector->chassis_cmd_slow_set_vx.out = 0.0f;
-//    }
-//
-//    if (vy_set_channel < CHASSIS_RC_DEADLINE * CHASSIS_VY_RC_SEN && vy_set_channel > -CHASSIS_RC_DEADLINE * CHASSIS_VY_RC_SEN)
-//    {
-//        chassis_move_rc_to_vector->chassis_cmd_slow_set_vy.out = 0.0f;
-//    }
+//for_test
+//    RTT_PrintWave(2,
+//                  &gimbal_control.gimbal_yaw_motor.relative_angle_set,
+//                  &gimbal_control.gimbal_yaw_motor.relative_angle);
     yaw_rc_last = yaw_channel;
     *yaw = yaw_set_channel;
     *pitch = pitch_set_channel;

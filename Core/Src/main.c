@@ -51,6 +51,7 @@
 #include "voltage_task.h"
 #include "referee_task.h"
 #include "SEGGER_RTT.h"
+#include "DWT.h"
 #if __CC_ARM
 #if EventRecorder_MODE == Enable_EventRecorder
 #include "EventRecorder.h"
@@ -156,6 +157,7 @@ int main(void)
     HAL_TIM_Base_Start_IT(&htim7);
 //    usart1_tx_dma_init();//abundant
 //    HAL_TIM_Base_Start_IT(&htim2);
+    DWT_init();
   /* USER CODE END 2 */
 
   /* Call init function for freertos objects (in freertos.c) */

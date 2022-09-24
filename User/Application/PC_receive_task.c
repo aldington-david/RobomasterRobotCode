@@ -18,6 +18,7 @@
 #include "shoot.h"
 #include "vision_task.h"
 #include "gimbal_behaviour.h"
+#include "DWT.h"
 
 #if INCLUDE_uxTaskGetStackHighWaterMark
 uint32_t PC_receive_task_stack;
@@ -128,6 +129,7 @@ void PC_receive_task(void const *argument) {
     /********trigger end***********/
     TickType_t LoopStartTime;
     while (1) {
+        DWT_update_task_time_us(&global_task_time.tim_PC_receive_task);
         LoopStartTime = xTaskGetTickCount();
 //        SEGGER_RTT_printf(0,"%d",i);
         if (SEGGER_RTT_HasKey()) {

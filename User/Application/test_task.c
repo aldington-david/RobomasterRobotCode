@@ -21,6 +21,7 @@
 #include "bsp_buzzer.h"
 #include "detect_task.h"
 #include "global_control_define.h"
+#include "DWT.h"
 
 static void buzzer_warn_error(uint8_t num);
 
@@ -44,6 +45,7 @@ void test_task(void const *argument) {
     error_list_test_local = get_error_list_point();
     TickType_t LoopStartTime;
     while (1) {
+        DWT_update_task_time_us(&global_task_time.tim_test_task);
         LoopStartTime = xTaskGetTickCount();
         error = 0;
 

@@ -20,6 +20,7 @@
 
 #include "ist8310driver.h"
 #include "ist8310driver_middleware.h"
+#include "SEGGER_RTT.h"
 
 #define MAG_SEN 0.3f //转换成 uT
 
@@ -27,13 +28,20 @@
 #define IST8310_WHO_AM_I_VALUE 0x10 //设备 ID
 
 #define IST8310_WRITE_REG_NUM 4 //IST8310需要设置的寄存器数目
+//average 2 times
+//static const uint8_t ist8310_write_reg_data_error[IST8310_WRITE_REG_NUM][3] =
+//    {
+//        {0x0B, 0x08, 0x01},
+//        {0x41, 0x09, 0x02},
+//        {0x42, 0xC0, 0x03},
+//        {0x0A, 0x0B, 0x04}};
 
 static const uint8_t ist8310_write_reg_data_error[IST8310_WRITE_REG_NUM][3] =
-    {
-        {0x0B, 0x08, 0x01},
-        {0x41, 0x09, 0x02},
-        {0x42, 0xC0, 0x03},
-        {0x0A, 0x0B, 0x04}};
+        {
+                {0x0B, 0x08, 0x01},
+                {0x41, 0x24, 0x02},
+                {0x42, 0xC0, 0x03},
+                {0x0A, 0x02, 0x04}};
 
 uint8_t ist8310_init(void)
 {

@@ -36,6 +36,7 @@
 
 #include "calibrate_task.h"
 #include "detect_task.h"
+#include "DWT.h"
 
 
 #define IMU_temp_PWM(pwm)  imu_pwm_set(pwm)                    //pwm给定
@@ -211,6 +212,7 @@ void INS_task(void const *pvParameters) {
     imu_start_dma_flag = 1;
 
     while (1) {
+        DWT_update_task_time_us(&global_task_time.tim_INS_task);
         //wait spi DMA tansmit done
         //等待SPI DMA传输
         while (ulTaskNotifyTake(pdTRUE, portMAX_DELAY) != pdPASS) {
@@ -267,11 +269,11 @@ void INS_task(void const *pvParameters) {
 
 
         //because no use ist8310 and save time, no use
-        if (mag_update_flag &= 1 << IMU_DR_SHFITS) {
-            mag_update_flag &= ~(1 << IMU_DR_SHFITS);
-            mag_update_flag |= (1 << IMU_SPI_SHFITS);
-            ist8310_read_mag(ist8310_real_data.mag);
-        }
+//        if (mag_update_flag &= 1 << IMU_DR_SHFITS) {
+//            mag_update_flag &= ~(1 << IMU_DR_SHFITS);
+//            mag_update_flag |= (1 << IMU_SPI_SHFITS);
+//            ist8310_read_mag(ist8310_real_data.mag);
+//        }
 
 #if INCLUDE_uxTaskGetStackHighWaterMark
         INS_task_stack = uxTaskGetStackHighWaterMark(NULL);
@@ -522,7 +524,6 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
 
         if (mag_update_flag &= 1 << IMU_DR_SHFITS) {
             mag_update_flag &= ~(1 << IMU_DR_SHFITS);
-            mag_update_flag |= (1 << IMU_SPI_SHFITS);
 
             ist8310_read_mag(ist8310_real_data.mag);
         }

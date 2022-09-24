@@ -28,6 +28,7 @@
 #include "detect_task.h"
 #include "INS_task.h"
 #include "chassis_power_control.h"
+#include "DWT.h"
 
 #define rc_deadband_limit(input, output, dealine)        \
     {                                                    \
@@ -149,6 +150,7 @@ void chassis_task(void const *pvParameters) {
     TickType_t LoopStartTime;
 
     while (1) {
+        DWT_update_task_time_us(&global_task_time.tim_chassis_task);
         LoopStartTime = xTaskGetTickCount();
         //set chassis control mode
         //设置底盘控制模式

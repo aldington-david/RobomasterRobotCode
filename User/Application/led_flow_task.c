@@ -18,6 +18,7 @@
 #include "bsp_led.h"
 #include "cmsis_os.h"
 #include "main.h"
+#include "DWT.h"
 
 
 #define RGB_FLOW_COLOR_CHANGE_TIME  1000
@@ -50,6 +51,7 @@ void led_RGB_flow_task(void const *argument) {
     uint32_t aRGB;
     TickType_t LoopStartTime;
     while (1) {
+        DWT_update_task_time_us(&global_task_time.tim_led_RGB_flow_task);
         LoopStartTime = xTaskGetTickCount();
         for (i = 0; i < RGB_FLOW_COLOR_LENGHT; i++) {
             alpha = (RGB_flow_color[i] & 0xFF000000) >> 24;

@@ -109,6 +109,7 @@
 #include "gimbal_task.h"
 #include "print_task.h"
 #include "global_control_define.h"
+#include "DWT.h"
 
 
 //include head,gimbal,gyro,accel,mag. gyro,accel and mag have the same data struct. total 5(CALI_LIST_LENGHT) devices, need data lenght + 5 * 4 bytes(name[3]+cali)
@@ -268,6 +269,7 @@ void calibrate_task(void const *pvParameters) {
     calibrate_RC = get_remote_ctrl_point_cali();
     TickType_t LoopStartTime;
     while (1) {
+        DWT_update_task_time_us(&global_task_time.tim_calibrate_task);
         LoopStartTime = xTaskGetTickCount();
         RC_cmd_to_calibrate();
 

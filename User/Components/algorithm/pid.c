@@ -279,20 +279,6 @@ float ALL_PID(pid_type_def *pid, fp32 ref, fp32 set) {
     } else {
         Filter_IIRLPF(Dout_temp, &pid->Dout, 1.0f);
     }
-////for_test
-//    if (pid == &gimbal_control.gimbal_yaw_motor.gimbal_motor_gyro_pid) {
-//        Dout1_test = pid->Dout;
-//        KF_Dout1_test = KalmanFilter(&pid->D_Kalman, pid->Dout);
-//    }
-//    if (pid == &gimbal_control.gimbal_yaw_motor.gimbal_motor_relative_angle_pid) {
-//        Dout2_test = pid->Dout;
-//        KF_Dout2_test = KalmanFilter(&pid->D_Kalman, pid->Dout);
-//    }
-
-//for_test
-//    if (pid == &gimbal_control.gimbal_yaw_motor.gimbal_motor_gyro_pid) {
-//        Dout1_test = pid->Dout;
-//    }
 
     fp32 KF_temp;
     if (pid->D_Kalman.A == 1) {
@@ -300,15 +286,12 @@ float ALL_PID(pid_type_def *pid, fp32 ref, fp32 set) {
     }
     if (pid->D_Kalman.A == 1 && pid->D_KF) {
         pid->Dout = KF_temp;
-        KF_Dout1_test = pid->Dout;//for_test
     }
 //for_test
 //    pid_out_probe += pid->out;
 //    pid_pout_probe += pid->Pout;
 //    pid_iout_probe += pid->Iout;
 //    pid_dout_probe += pid->Dout;
-
-
 
     //积分限幅
     LimitMax(pid->Iout, pid->max_iout); //取消积分输出的限幅。
@@ -320,9 +303,22 @@ float ALL_PID(pid_type_def *pid, fp32 ref, fp32 set) {
         pid->out = (pid->Pout + pid->Iout + pid->Dout);
     }
 
-
     //输出限幅
     LimitMax(pid->out, pid->max_out);
+
+    ////for_test
+//    if (pid == &gimbal_control.gimbal_yaw_motor.gimbal_motor_gyro_pid) {
+//        Dout1_test = pid->Dout;
+//        KF_Dout1_test = KalmanFilter(&pid->D_Kalman, pid->Dout);
+//    }
+//    if (pid == &gimbal_control.gimbal_yaw_motor.gimbal_motor_relative_angle_pid) {
+//        Dout2_test = pid->Dout;
+//        KF_Dout2_test = KalmanFilter(&pid->D_Kalman, pid->Dout);
+//        RTT_PrintWave_np(2,
+//                         Dout2_test,
+//                         KF_Dout2_test);
+//    }
+
 
     pid->last_get = pid->get;
 

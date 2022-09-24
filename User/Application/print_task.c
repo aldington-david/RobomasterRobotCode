@@ -38,6 +38,7 @@
 #include "PC_receive_task.h"
 #include "led_flow_task.h"
 #include "gimbal_behaviour.h"
+#include "DWT.h"
 
 
 #if PRINTF_MODE == RTT_MODE
@@ -93,6 +94,7 @@ void print_task(void const *argument) {
         vTaskDelay(pdMS_TO_TICKS(500));
         TickType_t LoopStartTime;
         while (1) {
+            DWT_update_task_time_us(&global_task_time.tim_print_task);
             LoopStartTime = xTaskGetTickCount();
             usb_printf(
                     "******************************\r\n\
@@ -131,9 +133,23 @@ referee usart:%s\r\n\
         vTaskDelay(pdMS_TO_TICKS(500));
         TickType_t LoopStartTime;
         while (1) {
+            DWT_update_task_time_us(&global_task_time.tim_print_task);
             LoopStartTime = xTaskGetTickCount();
 //            SEGGER_RTT_printf(0,"testfunction\n");
             /***********************打印数据 Start *****************************/
+            //执行时间
+//            SEGGER_RTT_SetTerminal(1);
+//            sprintf(print_buf,
+//                    "test=%d\r\ncali=%d\r\ndetect=%d\r\nchassis=%d\r\ngimbal=%d\r\nINS=%d\r\nvision_rx=%d\r\nservo=%d\r\nreferee_rx=%d\r\nreferee_tx=%d\r\nvision_tx=%d\r\nmatlab=%d\r\nprint=%d\r\nPC_receive=%d\r\nbattery_voltage=%d\r\nled_RGB_flow=%d\r\n",
+//                    global_task_time.tim_test_task.time, global_task_time.tim_calibrate_task.time,
+//                    global_task_time.tim_detect_task.time, global_task_time.tim_chassis_task.time,
+//                    global_task_time.tim_gimbal_task.time, global_task_time.tim_INS_task.time,
+//                    global_task_time.tim_vision_rx_task.time, global_task_time.tim_servo_task.time,
+//                    global_task_time.tim_referee_rx_task.time, global_task_time.tim_referee_tx_task.time,
+//                    global_task_time.tim_vision_tx_task.time, global_task_time.tim_matlab_sync_task.time,
+//                    global_task_time.tim_print_task.time, global_task_time.tim_PC_receive_task.time,
+//                    global_task_time.tim_battery_voltage_task.time, global_task_time.tim_led_RGB_flow_task.time);
+//            SEGGER_RTT_WriteString(0, print_buf);
             //裁判系统
             //裁判系统限速
 //            SEGGER_RTT_SetTerminal(1);
@@ -170,7 +186,7 @@ referee usart:%s\r\n\
 
 //            SEGGER_RTT_SetTerminal(1);
 //            sprintf(print_buf,
-//                    "vision_yaw=%f,vision_pitch=%f,fps=%f\r\n",
+//                    "vision_yaw=%f,vision_pitch=%f,fps=%d\r\n",
 //                    global_vision_info.vision_control.yaw_angle,
 //                    global_vision_info.vision_control.pitch_angle,
 //                    global_vision_info.vision_control.fps);
@@ -260,19 +276,19 @@ referee usart:%s\r\n\
 //                    gimbal_control.gimbal_cali.min_yaw_ecd);
 //            SEGGER_RTT_WriteString(0, print_buf);
 //
-            SEGGER_RTT_SetTerminal(2);
-            sprintf(print_buf,
-                    "Pitch_max_ang=%f,Pitch_min_ang=%f,Pitch_now_ang=%f,Pitch_now_ecd=%d,Pitch_total_ecd=%d,Pitch_turncount=%d,Pitch_offset_ecd=%d,Pitch_cl_max_ecd=%d,Pitch_cl_min_ecd=%d\r\n",
-                    gimbal_control.gimbal_pitch_motor.max_relative_angle,
-                    gimbal_control.gimbal_pitch_motor.min_relative_angle,
-                    gimbal_control.gimbal_pitch_motor.relative_angle,
-                    gimbal_control.gimbal_pitch_motor.gimbal_motor_measure->ecd,
-                    gimbal_control.gimbal_pitch_motor.gimbal_motor_measure->total_ecd,
-                    gimbal_control.gimbal_pitch_motor.gimbal_motor_measure->turnCount,
-                    gimbal_control.gimbal_pitch_motor.offset_ecd,
-                    gimbal_control.gimbal_cali.max_pitch_ecd,
-                    gimbal_control.gimbal_cali.min_pitch_ecd);
-            SEGGER_RTT_WriteString(0, print_buf);
+//            SEGGER_RTT_SetTerminal(2);
+//            sprintf(print_buf,
+//                    "Pitch_max_ang=%f,Pitch_min_ang=%f,Pitch_now_ang=%f,Pitch_now_ecd=%d,Pitch_total_ecd=%d,Pitch_turncount=%d,Pitch_offset_ecd=%d,Pitch_cl_max_ecd=%d,Pitch_cl_min_ecd=%d\r\n",
+//                    gimbal_control.gimbal_pitch_motor.max_relative_angle,
+//                    gimbal_control.gimbal_pitch_motor.min_relative_angle,
+//                    gimbal_control.gimbal_pitch_motor.relative_angle,
+//                    gimbal_control.gimbal_pitch_motor.gimbal_motor_measure->ecd,
+//                    gimbal_control.gimbal_pitch_motor.gimbal_motor_measure->total_ecd,
+//                    gimbal_control.gimbal_pitch_motor.gimbal_motor_measure->turnCount,
+//                    gimbal_control.gimbal_pitch_motor.offset_ecd,
+//                    gimbal_control.gimbal_cali.max_pitch_ecd,
+//                    gimbal_control.gimbal_cali.min_pitch_ecd);
+//            SEGGER_RTT_WriteString(0, print_buf);
 
             //拨盘pid
 //            拨盘数据
