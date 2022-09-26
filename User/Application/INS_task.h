@@ -25,6 +25,7 @@
 #define INS_Task_H
 #include <stdint.h>
 #include "struct_typedef.h"
+#include "fifo.h"
 
 
 #define SPI_DMA_GYRO_LENGHT       8
@@ -73,7 +74,12 @@
 #define INS_MAG_Y_ADDRESS_OFFSET 1
 #define INS_MAG_Z_ADDRESS_OFFSET 2
 
+#define MEG_FIFO_DATA_BUF_LENGTH 480
+#define MEG_UNIT_SIZE 12
+#define MEG_UNIT_CNT 40
+
 extern fp32 INS_angle[3];
+extern fifo_t meg_data_fifo;
 
 /**
   * @brief          获取INS_task栈大小
@@ -186,5 +192,6 @@ extern const fp32 *get_accel_data_point(void);
   * @retval         INS_mag的指针
   */
 extern const fp32 *get_mag_data_point(void);
+
 
 #endif

@@ -15,13 +15,14 @@
 #include "task.h"
 #include "vision_task.h"
 #include "DWT.h"
+#include "INS_task.h"
 
 #if INCLUDE_uxTaskGetStackHighWaterMark
 uint32_t matlab_sync_task_stack;
 #endif
 
-uint8_t matlab_fifo_tx_len_buf[MATLAB_FIFO_BUF_LENGTH];
-uint8_t matlab_fifo_tx_buf[MATLAB_FIFO_BUF_LENGTH];
+uint8_t matlab_fifo_tx_len_buf[MATLAB_FIFO_DATA_BUF_LENGTH];
+uint8_t matlab_fifo_tx_buf[MATLAB_FIFO_DATA_BUF_LENGTH];
 fifo_s_t matlab_tx_len_fifo;
 fifo_s_t matlab_tx_fifo;
 uint8_t usart1_matlab_tx_buf[2][USART1_MATLAB_TX_BUF_LENGHT];
@@ -30,9 +31,10 @@ volatile uint8_t matlab_dma_send_data_len = 0;
 volatile uint8_t Matlab_IRQ_Return_Before = 0;
 TaskHandle_t matlab_tx_task_local_handler;
 /* 发送数据包缓存区，最大128字节 */
-uint8_t matlab_transmit_pack[128];
+uint8_t matlab_transmit_pack[512];
+uint8_t meg_data_buffer[MEG_FIFO_DATA_BUF_LENGTH / 2];
 static char sync_char = '$';
-Matlab_SyncStruct test1;
+Matlab_SyncStruct meg_sync;
 
 /**
   * @brief          matlab发送任务
@@ -41,8 +43,8 @@ Matlab_SyncStruct test1;
   */
 void matlab_sync_task(void const *argument) {
     init_matlab_struct_data();
-    fifo_s_init(&matlab_tx_len_fifo, matlab_fifo_tx_len_buf, MATLAB_FIFO_BUF_LENGTH);
-    fifo_s_init(&matlab_tx_fifo, matlab_fifo_tx_buf, MATLAB_FIFO_BUF_LENGTH);
+    fifo_s_init(&matlab_tx_len_fifo, matlab_fifo_tx_len_buf, MATLAB_FIFO_DATA_BUF_LENGTH);
+    fifo_s_init(&matlab_tx_fifo, matlab_fifo_tx_buf, MATLAB_FIFO_DATA_BUF_LENGTH);
     usart1_tx_init(usart1_matlab_tx_buf[0], usart1_matlab_tx_buf[1], USART1_MATLAB_TX_BUF_LENGHT);
     matlab_tx_task_local_handler = xTaskGetCurrentTaskHandle();
 //    TickType_t LoopStartTime;
@@ -54,19 +56,26 @@ void matlab_sync_task(void const *argument) {
 //        matlab_sync_task_stack = uxTaskGetStackHighWaterMark(NULL);
 //#endif
 //        LoopStartTime = xTaskGetTickCount();
-        test1.data.data1 = 10;
-        test1.data.data2 = 20;
-        test1.data.data3 = 30;
-        test1.data.data4 = 40;
-        test1.data.data5 = 50;
-        test1.header.data_len = sizeof(test1.data);
-//        SEGGER_RTT_printf(0, "test1=%p\r\ntest2=%p\r\ntest3=%p\r\n", &test1,&test1.data,&test1.data.data2);
-        append_CRC16_check_sum((uint8_t *) &test1.data, sizeof(test1.data) + sizeof(test1.tail));
-        memcpy((void *) matlab_transmit_pack, &test1, sizeof(test1));
-        data_sync(sizeof(test1));
-//        data_sync(sizeof(test1));
-//        data_sync(sizeof(test1));
-//        data_sync(sizeof(test1));
+        if (fifo_used(&meg_data_fifo) >= 20) {
+            for(int i =0;i<20;i++){
+                fifo_get(&meg_data_fifo, &meg_data_buffer[i*3]);
+            }
+        }
+//        meg_sync.data.Data = (uint8_t *) &meg_data_buffer;
+        meg_sync.header.data_len = MEG_FIFO_DATA_BUF_LENGTH / 2;
+//        SEGGER_RTT_printf(0, "meg_sync=%p\r\ntest2=%p\r\ntest3=%p\r\n", &meg_sync,&meg_sync.data,&meg_sync.data.data2);
+        meg_sync.tail.data_CRC16 = get_CRC16_check_sum((uint8_t *) meg_data_buffer,
+                                                       MEG_FIFO_DATA_BUF_LENGTH / 2 + sizeof(meg_sync.tail), 0xffff);
+//        append_CRC16_check_sum((uint8_t *) &meg_sync.data.Data, MEG_FIFO_DATA_BUF_LENGTH/2 + sizeof(meg_sync.tail));
+        memcpy((void *) matlab_transmit_pack, &meg_sync.header, sizeof(meg_sync.header));
+        memcpy((void *) (matlab_transmit_pack + sizeof(meg_sync.header)), &meg_data_buffer,
+               MEG_FIFO_DATA_BUF_LENGTH / 2);
+        memcpy((void *) (matlab_transmit_pack + sizeof(meg_sync.header) + (MEG_FIFO_DATA_BUF_LENGTH / 2)),
+               &meg_sync.tail, sizeof(meg_sync.tail));
+        data_sync(sizeof(meg_sync.header) + (MEG_FIFO_DATA_BUF_LENGTH / 2) + sizeof(meg_sync.tail));
+//        data_sync(sizeof(meg_sync));
+//        data_sync(sizeof(meg_sync));
+//        data_sync(sizeof(meg_sync));
 //        referee_unpack_fifo_data();
 //        vTaskDelayUntil(&LoopStartTime, pdMS_TO_TICKS(10));
     }
@@ -82,11 +91,11 @@ uint32_t get_stack_of_matlab_sync_task(void) {
 }
 
 void init_matlab_struct_data(void) {
-    memset(&matlab_fifo_tx_len_buf, 0, MATLAB_FIFO_BUF_LENGTH);
-    memset(&matlab_fifo_tx_buf, 0, MATLAB_FIFO_BUF_LENGTH);
+    memset(&matlab_fifo_tx_len_buf, 0, MATLAB_FIFO_DATA_BUF_LENGTH);
+    memset(&matlab_fifo_tx_buf, 0, MATLAB_FIFO_DATA_BUF_LENGTH);
     memset(&matlab_transmit_pack, 0, 128);
     memset(&usart1_matlab_tx_buf, 0, 2 * USART1_MATLAB_TX_BUF_LENGHT);
-    test1.header.sync_char = '$';
+    meg_sync.header.sync_char = '$';
 }
 
 //not_use

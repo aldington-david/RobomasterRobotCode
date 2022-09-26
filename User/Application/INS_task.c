@@ -37,6 +37,7 @@
 #include "calibrate_task.h"
 #include "detect_task.h"
 #include "DWT.h"
+#include "fifo.h"
 
 
 #define IMU_temp_PWM(pwm)  imu_pwm_set(pwm)                    //pwm给定
@@ -159,8 +160,8 @@ fp32 INS_mag[3] = {0.0f, 0.0f, 0.0f};
 fp32 INS_quat[4] = {0.0f, 0.0f, 0.0f, 0.0f};
 fp32 INS_angle[3] = {0.0f, 0.0f, 0.0f};      //euler angle, unit rad.欧拉角 单位 rad
 
-
-
+fifo_t meg_data_fifo;
+uint8_t meg_fifo_data_buf[MEG_FIFO_DATA_BUF_LENGTH];
 
 
 /**
@@ -183,7 +184,7 @@ void INS_task(void const *pvParameters) {
     while (ist8310_init()) {
         osDelay(100);
     }
-
+    fifo_init(&meg_data_fifo, meg_fifo_data_buf, MEG_UNIT_SIZE,MEG_UNIT_CNT);
     BMI088_read(bmi088_real_data.gyro, bmi088_real_data.accel, &bmi088_real_data.temp);
     //rotate and zero drift 
     imu_cali_slove(INS_gyro, INS_accel, INS_mag, &bmi088_real_data, &ist8310_real_data);
@@ -526,6 +527,7 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
             mag_update_flag &= ~(1 << IMU_DR_SHFITS);
 
             ist8310_read_mag(ist8310_real_data.mag);
+            fifo_put(&meg_data_fifo,ist8310_real_data.mag);
         }
     } else if (GPIO_Pin == GPIO_PIN_0) {
 

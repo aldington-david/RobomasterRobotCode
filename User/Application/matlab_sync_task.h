@@ -10,9 +10,13 @@
 #include "struct_typedef.h"
 #include "fifo.h"
 #include "cmsis_os.h"
+#include "INS_task.h"
 
 #define USART1_MATLAB_TX_BUF_LENGHT     128
-#define MATLAB_FIFO_BUF_LENGTH 1024
+#define MATLAB_FIFO_DATA_BUF_LENGTH 1024
+#define MATLAB_FIFO_DATA_BUF_LENGTH 1024
+
+#define MEG_DATA_NUM 30
 
 extern volatile uint8_t Matlab_No_DMA_IRQHandler;
 extern volatile uint8_t matlab_dma_send_data_len;
@@ -38,13 +42,9 @@ typedef struct {
     uint8_t data_len;
 } Matlab_Sync_frame_header;
 
-typedef struct {
-    uint16_t data1;
-    uint16_t data2;
-    uint16_t data3;
-    uint16_t data4;
-    uint16_t data5;
-} Matlab_Sync_frame_data;
+//typedef struct {
+//    uint8_t *Data;
+//} Matlab_Sync_frame_data;
 
 typedef struct {
     uint16_t data_CRC16;
@@ -52,7 +52,7 @@ typedef struct {
 
 typedef struct {
     Matlab_Sync_frame_header header;
-    Matlab_Sync_frame_data data;
+//    Matlab_Sync_frame_data data;
     Matlab_Sync_frame_tail tail;
 } Matlab_SyncStruct;
 
@@ -79,5 +79,7 @@ void data_sync(int data_len);
   * @retval         matlab_sync_task_stack:任务堆栈大小
   */
 extern uint32_t get_stack_of_matlab_sync_task(void);
+
+extern void push_into_matlab_tx_fifo();
 
 #endif //ROBOMASTERROBOTCODE_MATLAB_SYNC_TASK_H
