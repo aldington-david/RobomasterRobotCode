@@ -4,12 +4,13 @@
 #include "arm_math.h"
 #include "matrix.h"
 #include <stdlib.h>
+#include "FreeRTOS.h"
 
 void Matrix_nodata_creat(matrix_f32_t *matrix_op, const int16_t _i16row, const int16_t _i16col, InitZero _init) {
     matrix_op->arm_matrix.numRows = _i16row;
     matrix_op->arm_matrix.numCols = _i16col;
     matrix_op->is_valid = true;
-
+    matrix_op->arm_matrix.pData = (float32_t *)pvPortMalloc(_i16row*_i16col*sizeof(float32_t));
     if (_init == InitMatWithZero) {
         Matrix_vSetHomogen(matrix_op, 0.0f);
     }
@@ -20,7 +21,7 @@ void Matrix_data_creat(matrix_f32_t *matrix_op, const int16_t _i16row, const int
     matrix_op->arm_matrix.numRows = _i16row;
     matrix_op->arm_matrix.numCols = _i16col;
     matrix_op->is_valid = true;
-
+    matrix_op->arm_matrix.pData = (float32_t *)pvPortMalloc(_i16row*_i16col*sizeof(float32_t));
     if (_init == InitMatWithZero) {
         Matrix_vSetHomogen(matrix_op, 0.0f);
     }
