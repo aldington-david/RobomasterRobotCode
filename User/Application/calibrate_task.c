@@ -48,7 +48,7 @@
   *             {
   *                 uint16_t xxx;
   *                 uint16_t yyy;
-  *                 fp32 zzz;
+  *                 float32_t zzz;
   *             } xxx_cali_t; //size: 8 bytes, must be 4, 8, 12, 16...
   *             3.in "FLASH_WRITE_BUF_LENGHT", add "sizeof(xxx_cali_t)", and implement new function.
   *             bool_t cali_xxx_hook(uint32_t *cali, bool_t cmd), and add the name in "cali_name[CALI_LIST_LENGHT][3]"
@@ -83,7 +83,7 @@
   *             {
   *                 uint16_t xxx;
   *                 uint16_t yyy;
-  *                 fp32 zzz;
+  *                 float32_t zzz;
   *             } xxx_cali_t; //长度:8字节 8 bytes, 必须是 4, 8, 12, 16...
   *             3.在 "FLASH_WRITE_BUF_LENGHT",添加"sizeof(xxx_cali_t)", 和实现新函数
   *             bool_t cali_xxx_hook(uint32_t *cali, bool_t cmd), 添加新名字在 "cali_name[CALI_LIST_LENGHT][3]"
@@ -325,7 +325,7 @@ int8_t get_control_temperature(void) {
 
 /**
   * @brief          get latitude, default 22.0f
-  * @param[out]     latitude: the point to fp32 
+  * @param[out]     latitude: the point to float32_t
   * @retval         none
   */
 /**

@@ -61,32 +61,32 @@ static uint8_t print_buf[256];
 static uint8_t read_buf[256];
 static const char status[2][7] = {"OK", "ERROR!"};
 const error_t *error_list_print_local;
-fp32 bias_angle_test = 0.0;
-fp32 add_angle_test = 0.0;
+float32_t bias_angle_test = 0.0;
+float32_t add_angle_test = 0.0;
 int8_t imu_temp = 0;
-fp32 sp_err = 0.0;
-fp32 re_err = 0.0;
-fp32 kalman_test = 0.0;
+float32_t sp_err = 0.0;
+float32_t re_err = 0.0;
+float32_t kalman_test = 0.0;
 char switch_test = 0;
 uint32_t id_test = 0;
 
-fp32 Dout1_test = 0;
-fp32 Dout2_test = 0;
-fp32 KF_Dout1_test = 0;
-fp32 KF_Dout2_test = 0;
+float32_t Dout1_test = 0;
+float32_t Dout2_test = 0;
+float32_t KF_Dout1_test = 0;
+float32_t KF_Dout2_test = 0;
 
-fp32 tracer1 = 0;
+float32_t tracer1 = 0;
 
-fp32 vision_pitch_probe = 0;
-fp32 vision_yaw_probe = 0;
+float32_t vision_pitch_probe = 0;
+float32_t vision_yaw_probe = 0;
 
-fp32 zero_line = 0;
+float32_t zero_line = 0;
 char vision_or_probe[128] = {0};
 
-fp32 pid_out_probe = 0;
-fp32 pid_pout_probe = 0;
-fp32 pid_iout_probe = 0;
-fp32 pid_dout_probe = 0;
+float32_t pid_out_probe = 0;
+float32_t pid_pout_probe = 0;
+float32_t pid_iout_probe = 0;
+float32_t pid_dout_probe = 0;
 
 void print_task(void const *argument) {
     if (PRINTF_MODE == USB_MODE) {
@@ -695,14 +695,14 @@ static void usb_printf(const char *fmt, ...) {
   * @retval         none
   */
 void RTT_PrintWave(int num_args, ...) {
-    fp32 *param_point[num_args];
+    float32_t *param_point[num_args];
     int i;
     char buf[256];
     va_list arg;
     va_start(arg, num_args);
     int len = 0;
     for (i = 0; i < num_args; i++) {
-        param_point[i] = va_arg(arg, fp32 *);
+        param_point[i] = va_arg(arg, float32_t *);
 
         if (i == (num_args - 1)) {
             len += sprintf((buf + len), "%.3f\r\n", *(float *) param_point[i]);
@@ -721,7 +721,7 @@ void RTT_PrintWave(int num_args, ...) {
   * @retval         none
   */
 void RTT_PrintWave_np(int num_args, ...) {
-    fp32 param_point[num_args];
+    float32_t param_point[num_args];
     int i;
     char buf[256];
     va_list arg;

@@ -48,7 +48,7 @@
   *             {
   *                 uint16_t xxx;
   *                 uint16_t yyy;
-  *                 fp32 zzz;
+  *                 float32_t zzz;
   *             } xxx_cali_t; //size: 8 bytes, must be 4, 8, 12, 16...
   *             3.in "FLASH_WRITE_BUF_LENGHT", add "sizeof(xxx_cali_t)", and implement new function.
   *             bool_t cali_xxx_hook(uint32_t *cali, bool_t cmd), and add the name in "cali_name[CALI_LIST_LENGHT][3]"
@@ -83,7 +83,7 @@
   *             {
   *                 uint16_t xxx;
   *                 uint16_t yyy;
-  *                 fp32 zzz;
+  *                 float32_t zzz;
   *             } xxx_cali_t; //长度:8字节 8 bytes, 必须是 4, 8, 12, 16...
   *             3.在 "FLASH_WRITE_BUF_LENGHT",添加"sizeof(xxx_cali_t)", 和实现新函数
   *             bool_t cali_xxx_hook(uint32_t *cali, bool_t cmd), 添加新名字在 "cali_name[CALI_LIST_LENGHT][3]"
@@ -189,21 +189,21 @@ typedef struct {
     //'temperature' and 'latitude' should not be in the head_cali, because don't want to create a new sensor
     //'temperature' and 'latitude'不应该在head_cali,因为不想创建一个新的设备就放这了
     int8_t temperature;         // imu control temperature
-    fp32 latitude;              // latitude
+    float32_t latitude;              // latitude
 } head_cali_t;
 //gimbal device
 typedef struct {
     uint16_t yaw_offset;
     uint16_t pitch_offset;
-    fp32 yaw_max_angle;
-    fp32 yaw_min_angle;
-    fp32 pitch_max_angle;
-    fp32 pitch_min_angle;
+    float32_t yaw_max_angle;
+    float32_t yaw_min_angle;
+    float32_t pitch_max_angle;
+    float32_t pitch_min_angle;
 } gimbal_cali_t;
 //gyro, accel, mag device
 typedef struct {
-    fp32 offset[3]; //x,y,z
-    fp32 scale[3];  //x,y,z
+    float32_t offset[3]; //x,y,z
+    float32_t scale[3];  //x,y,z
 } imu_cali_t;
 #pragma pack(pop)
 
@@ -239,7 +239,7 @@ extern int8_t get_control_temperature(void);
 
 /**
   * @brief          get latitude, default 22.0f
-  * @param[out]     latitude: the point to fp32 
+  * @param[out]     latitude: the point to float32_t
   * @retval         none
   */
 /**

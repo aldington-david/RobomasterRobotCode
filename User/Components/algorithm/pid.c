@@ -55,9 +55,9 @@
   * @param[in]      max_iout: pid最大积分输出
   * @retval         none
   */
-void PID_init(pid_type_def *pid, uint8_t mode, const fp32 PID[3], fp32 max_out, fp32 max_iout, fp32 Integral,
-              bool Variable_I_Switch, fp32 Variable_I_Down, fp32 Variable_I_UP, bool D_First, fp32 D_Filter_Ratio,
-              bool D_Low_Pass, fp32 D_Low_Pass_Factor, bool NF_D, fp32 D_Alpha, bool D_KF) {
+void PID_init(pid_type_def *pid, uint8_t mode, const float32_t PID[3], float32_t max_out, float32_t max_iout, float32_t Integral,
+              bool Variable_I_Switch, float32_t Variable_I_Down, float32_t Variable_I_UP, bool D_First, float32_t D_Filter_Ratio,
+              bool D_Low_Pass, float32_t D_Low_Pass_Factor, bool NF_D, float32_t D_Alpha, bool D_KF) {
     if (pid == NULL || PID == NULL) {
         return;
     }
@@ -102,7 +102,7 @@ void PID_init(pid_type_def *pid, uint8_t mode, const fp32 PID[3], fp32 max_out, 
   * @param[in]      set: 设定值
   * @retval         pid输出
   */
-fp32 PID_calc(pid_type_def *pid, fp32 ref, fp32 set) {
+float32_t PID_calc(pid_type_def *pid, float32_t ref, float32_t set) {
     if (pid == NULL) {
         return 0.0f;
     }
@@ -216,8 +216,8 @@ float ClassisFollow_PID(positionpid_t *pid_t, float target, float measured) {
 
 /**************************************************/
 
-float ALL_PID(pid_type_def *pid, fp32 ref, fp32 set) {
-    fp32 Dout_temp;
+float ALL_PID(pid_type_def *pid, float32_t ref, float32_t set) {
+    float32_t Dout_temp;
     if (pid == NULL) {
         return 0.0f;
     }
@@ -263,7 +263,7 @@ float ALL_PID(pid_type_def *pid, fp32 ref, fp32 set) {
 
 
     if (pid->D_First && !pid->NF_D) {
-        fp32 D_operator = pid->D_Filter_Ratio * pid->Kd + pid->Kp;
+        float32_t D_operator = pid->D_Filter_Ratio * pid->Kd + pid->Kp;
         pid->D3 = pid->Kd / D_operator;
         pid->D2 = (pid->Kd + pid->Kp) / D_operator;
         pid->D1 = pid->D_Filter_Ratio * pid->D3;
@@ -280,7 +280,7 @@ float ALL_PID(pid_type_def *pid, fp32 ref, fp32 set) {
         Filter_IIRLPF(Dout_temp, &pid->Dout, 1.0f);
     }
 
-    fp32 KF_temp;
+    float32_t KF_temp;
     if (pid->D_Kalman.A == 1) {
         KF_temp = KalmanFilter(&pid->D_Kalman, pid->Dout);
     }

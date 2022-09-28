@@ -34,11 +34,11 @@
 uint32_t battery_voltage_task_stack;
 #endif
 
-static fp32 calc_battery_percentage(float voltage);
+static float32_t calc_battery_percentage(float voltage);
 
 
-fp32 battery_voltage;
-fp32 electricity_percentage;
+float32_t battery_voltage;
+float32_t electricity_percentage;
 
 /**
   * @brief          power ADC and calculate electricity percentage
@@ -76,10 +76,10 @@ uint32_t get_stack_of_battery_voltage_task(void) {
     return battery_voltage_task_stack;
 }
 
-static fp32 calc_battery_percentage(float voltage) {
-    fp32 percentage;
-    fp32 voltage_2 = voltage * voltage;
-    fp32 voltage_3 = voltage_2 * voltage;
+static float32_t calc_battery_percentage(float voltage) {
+    float32_t percentage;
+    float32_t voltage_2 = voltage * voltage;
+    float32_t voltage_3 = voltage_2 * voltage;
 
     if (voltage < 19.5f) {
         percentage = 0.0f;

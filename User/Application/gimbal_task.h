@@ -155,33 +155,33 @@ typedef enum {
 } gimbal_motor_mode_e;
 //not_use
 typedef struct {
-    fp32 kp;
-    fp32 ki;
-    fp32 kd;
+    float32_t kp;
+    float32_t ki;
+    float32_t kd;
 
-    fp32 set;
-    fp32 get;
-    fp32 err;
+    float32_t set;
+    float32_t get;
+    float32_t err;
 
-    fp32 max_out;
-    fp32 max_iout;
+    float32_t max_out;
+    float32_t max_iout;
 
-    fp32 Pout;
-    fp32 Iout;
-    fp32 Dout;
+    float32_t Pout;
+    float32_t Iout;
+    float32_t Dout;
 
-    fp32 out;
+    float32_t out;
 
-    fp32 error_last;
-    fp32 Integral_Separation;
+    float32_t error_last;
+    float32_t Integral_Separation;
 
 
     bool D_First;
-    fp32 D_Filter_Ratio;
-    fp32 last_get;
-    fp32 D3;
-    fp32 D2;
-    fp32 D1;
+    float32_t D_Filter_Ratio;
+    float32_t last_get;
+    float32_t D3;
+    float32_t D2;
+    float32_t D1;
 
 } gimbal_PID_t;
 
@@ -195,18 +195,18 @@ typedef struct {
     gimbal_motor_mode_e gimbal_motor_mode;
     gimbal_motor_mode_e last_gimbal_motor_mode;
     uint16_t offset_ecd;
-    fp32 max_relative_angle; //rad
-    fp32 min_relative_angle; //rad
+    float32_t max_relative_angle; //rad
+    float32_t min_relative_angle; //rad
 
-    fp32 relative_angle;     //rad
-    fp32 relative_angle_set; //rad
-    fp32 absolute_angle;     //rad
-    fp32 absolute_angle_set; //rad
-    fp32 motor_gyro;         //rad/s
-    fp32 motor_gyro_set;
-    fp32 motor_speed;
-    fp32 raw_cmd_current;
-    fp32 current_set;
+    float32_t relative_angle;     //rad
+    float32_t relative_angle_set; //rad
+    float32_t absolute_angle;     //rad
+    float32_t absolute_angle_set; //rad
+    float32_t motor_gyro;         //rad/s
+    float32_t motor_gyro_set;
+    float32_t motor_speed;
+    float32_t raw_cmd_current;
+    float32_t current_set;
     int16_t given_current;
 
     float LpfFactor;
@@ -217,10 +217,10 @@ typedef struct {
 } gimbal_motor_t;
 
 typedef struct {
-    fp32 max_yaw;
-    fp32 min_yaw;
-    fp32 max_pitch;
-    fp32 min_pitch;
+    float32_t max_yaw;
+    float32_t min_yaw;
+    float32_t max_pitch;
+    float32_t min_pitch;
     uint16_t max_yaw_ecd;
     uint16_t min_yaw_ecd;
     uint16_t max_pitch_ecd;
@@ -231,16 +231,16 @@ typedef struct {
 typedef struct {
     const volatile vision_control_t *gimbal_vision_ctrl;
     const volatile RC_ctrl_t *gimbal_rc_ctrl;
-    const fp32 *gimbal_INT_angle_point;
-    const fp32 *gimbal_INT_gyro_point;
+    const float32_t *gimbal_INT_angle_point;
+    const float32_t *gimbal_INT_gyro_point;
     gimbal_motor_t gimbal_yaw_motor;
     gimbal_motor_t gimbal_pitch_motor;
     gimbal_step_cali_t gimbal_cali;
 
 
-    fp32 fric1_current_set;
+    float32_t fric1_current_set;
     int16_t fric1_give_current;
-    fp32 fric2_current_set;
+    float32_t fric2_current_set;
     int16_t fric2_give_current;
 
 } gimbal_control_t;
@@ -311,8 +311,8 @@ extern void gimbal_task(void const *pvParameters) __attribute__((noreturn));
   * @waring         这个函数使用到gimbal_control 静态变量导致函数不适用以上通用指针复用
   */
 extern bool_t
-cmd_cali_gimbal_hook(uint16_t *yaw_offset, uint16_t *pitch_offset, fp32 *max_yaw, fp32 *min_yaw, fp32 *max_pitch,
-                     fp32 *min_pitch);
+cmd_cali_gimbal_hook(uint16_t *yaw_offset, uint16_t *pitch_offset, float32_t *max_yaw, float32_t *min_yaw, float32_t *max_pitch,
+                     float32_t *min_pitch);
 
 /**
   * @brief          gimbal cali data, set motor offset encode, max and min relative angle
@@ -336,8 +336,8 @@ cmd_cali_gimbal_hook(uint16_t *yaw_offset, uint16_t *pitch_offset, fp32 *max_yaw
   * @waring         这个函数使用到gimbal_control 静态变量导致函数不适用以上通用指针复用
   */
 extern void
-set_cali_gimbal_hook(const uint16_t yaw_offset, const uint16_t pitch_offset, const fp32 max_yaw, const fp32 min_yaw,
-                     const fp32 max_pitch, const fp32 min_pitch);
+set_cali_gimbal_hook(const uint16_t yaw_offset, const uint16_t pitch_offset, const float32_t max_yaw, const float32_t min_yaw,
+                     const float32_t max_pitch, const float32_t min_pitch);
 
 extern gimbal_control_t gimbal_control;
 #endif

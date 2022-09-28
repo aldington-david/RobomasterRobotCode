@@ -153,7 +153,7 @@ void detect_task(void const *pvParameters) {
                 //计算频率
                 if (error_list[i].new_time > error_list[i].last_time) {
                     error_list[i].frequency =
-                            configTICK_RATE_HZ / (fp32) (error_list[i].new_time - error_list[i].last_time);
+                            configTICK_RATE_HZ / (float32_t) (error_list[i].new_time - error_list[i].last_time);
                 }
             }
         }

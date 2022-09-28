@@ -19,7 +19,7 @@
         ...
         CHASSIS_XXX_XXX, // new add
     }chassis_behaviour_e,
-    2. implement new function. chassis_xxx_xxx_control(fp32 *vx, fp32 *vy, fp32 *wz, chassis_move_t * chassis )
+    2. implement new function. chassis_xxx_xxx_control(float32_t *vx, float32_t *vy, float32_t *wz, chassis_move_t * chassis )
         "vx, vy, wz" param is chassis movement contorl input. 
         first param: 'vx' usually means  vertical speed,
             positive value means forward speed, negative value means backward speed.
@@ -53,7 +53,7 @@
         CHASSIS_XXX_XXX, // 新添加的
     }chassis_behaviour_e,
 
-    2. 实现一个新的函数 chassis_xxx_xxx_control(fp32 *vx, fp32 *vy, fp32 *wz, chassis_move_t * chassis )
+    2. 实现一个新的函数 chassis_xxx_xxx_control(float32_t *vx, float32_t *vy, float32_t *wz, chassis_move_t * chassis )
         "vx,vy,wz" 参数是底盘运动控制输入量
         第一个参数: 'vx' 通常控制纵向移动,正值 前进， 负值 后退
         第二个参数: 'vy' 通常控制横向移动,正值 左移, 负值 右移
@@ -134,6 +134,6 @@ extern void chassis_behaviour_mode_set(chassis_move_t *chassis_move_mode);
   * @retval         none
   */
 
-extern void chassis_behaviour_control_set(fp32 *vx_set, fp32 *vy_set, fp32 *angle_set, chassis_move_t *chassis_move_rc_to_vector);
+extern void chassis_behaviour_control_set(float32_t *vx_set, float32_t *vy_set, float32_t *angle_set, chassis_move_t *chassis_move_rc_to_vector);
 
 #endif

@@ -58,8 +58,8 @@ typedef struct {
 } vision_unpack_data_t;
 
 typedef volatile struct {
-    fp32 yaw_angle;
-    fp32 pitch_angle;
+    float32_t yaw_angle;
+    float32_t pitch_angle;
     uint16_t fps;
     volatile bool update_flag;
 } vision_control_t;

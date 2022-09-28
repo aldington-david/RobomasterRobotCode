@@ -84,10 +84,10 @@ shoot_control_t shoot_control;          //射击数据
   */
 void shoot_init(void) {
 
-    static const fp32 Trigger_speed_pid[3] = {TRIGGER_SPEED_PID_KP, TRIGGER_SPEED_PID_KI, TRIGGER_SPEED_PID_KD};
-    static const fp32 Trigger_angle_pid[3] = {TRIGGER_ANGLE_PID_KP, TRIGGER_ANGLE_PID_KI, TRIGGER_ANGLE_PID_KD};
-    static const fp32 fric1_speed_pid[3] = {500, 0, 0};
-    static const fp32 fric2_speed_pid[3] = {500, 0, 0};
+    static const float32_t Trigger_speed_pid[3] = {TRIGGER_SPEED_PID_KP, TRIGGER_SPEED_PID_KI, TRIGGER_SPEED_PID_KD};
+    static const float32_t Trigger_angle_pid[3] = {TRIGGER_ANGLE_PID_KP, TRIGGER_ANGLE_PID_KI, TRIGGER_ANGLE_PID_KD};
+    static const float32_t fric1_speed_pid[3] = {500, 0, 0};
+    static const float32_t fric2_speed_pid[3] = {500, 0, 0};
     shoot_control.shoot_mode = SHOOT_STOP;
     //遥控器指针
     shoot_control.shoot_rc = get_remote_control_point();
@@ -317,12 +317,12 @@ static void shoot_set_mode(void) {
   */
 static void shoot_feedback_update(void) {
     static char last_s = RC_SW_UP;
-    static fp32 speed_fliter_1 = 0.0f;
-    static fp32 speed_fliter_2 = 0.0f;
-    static fp32 speed_fliter_3 = 0.0f;
+    static float32_t speed_fliter_1 = 0.0f;
+    static float32_t speed_fliter_2 = 0.0f;
+    static float32_t speed_fliter_3 = 0.0f;
 
     //拨弹轮电机速度滤波一下
-    static const fp32 fliter_num[3] = {1.725709860247969f, -0.75594777109163436f, 0.030237910843665373f};
+    static const float32_t fliter_num[3] = {1.725709860247969f, -0.75594777109163436f, 0.030237910843665373f};
 
     //二阶低通滤波
     speed_fliter_1 = speed_fliter_2;

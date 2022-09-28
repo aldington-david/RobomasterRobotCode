@@ -27,7 +27,7 @@
         ...
         GIMBAL_XXX_XXX, // new add
     }gimbal_behaviour_e,
-    2. implement new function. gimbal_xxx_xxx_control(fp32 *yaw, fp32 *pitch, gimbal_control_t *gimbal_control_set);
+    2. implement new function. gimbal_xxx_xxx_control(float32_t *yaw, float32_t *pitch, gimbal_control_t *gimbal_control_set);
         "yaw, pitch" param is gimbal movement contorl input. 
         first param: 'yaw' usually means  yaw axis move,usaully means increment angle.
             positive value means counterclockwise move, negative value means clockwise move.
@@ -58,7 +58,7 @@
         GIMBAL_XXX_XXX, // 新添加的
     }gimbal_behaviour_e,
 
-    2. 实现一个新的函数 gimbal_xxx_xxx_control(fp32 *yaw, fp32 *pitch, gimbal_control_t *gimbal_control_set);
+    2. 实现一个新的函数 gimbal_xxx_xxx_control(float32_t *yaw, float32_t *pitch, gimbal_control_t *gimbal_control_set);
         "yaw, pitch" 参数是云台运动控制输入量
         第一个参数: 'yaw' 通常控制yaw轴移动,通常是角度增量,正值是逆时针运动,负值是顺时针
         第二个参数: 'pitch' 通常控制pitch轴移动,通常是角度增量,正值是逆时针运动,负值是顺时针
@@ -188,7 +188,7 @@ static void gimbal_behavour_set(gimbal_control_t *gimbal_mode_set);
   * @param[in]      gimbal_control_set: 云台数据指针
   * @retval         none
   */
-static void gimbal_zero_force_control(fp32 *yaw, fp32 *pitch, gimbal_control_t *gimbal_control_set);
+static void gimbal_zero_force_control(float32_t *yaw, float32_t *pitch, gimbal_control_t *gimbal_control_set);
 
 /**
   * @brief          when gimbal behaviour mode is GIMBAL_INIT, the function is called
@@ -206,7 +206,7 @@ static void gimbal_zero_force_control(fp32 *yaw, fp32 *pitch, gimbal_control_t *
   * @param[in]      云台数据指针
   * @retval         返回空
   */
-static void gimbal_init_control(fp32 *yaw, fp32 *pitch, gimbal_control_t *gimbal_control_set);
+static void gimbal_init_control(float32_t *yaw, float32_t *pitch, gimbal_control_t *gimbal_control_set);
 
 /**
   * @brief          when gimbal behaviour mode is GIMBAL_CALI, the function is called
@@ -226,7 +226,7 @@ static void gimbal_init_control(fp32 *yaw, fp32 *pitch, gimbal_control_t *gimbal
   * @param[in]      gimbal_control_set:云台数据指针
   * @retval         none
   */
-static void gimbal_cali_control(fp32 *yaw, fp32 *pitch, gimbal_control_t *gimbal_control_set);
+static void gimbal_cali_control(float32_t *yaw, float32_t *pitch, gimbal_control_t *gimbal_control_set);
 
 /**
   * @brief          when gimbal behaviour mode is GIMBAL_ABSOLUTE_ANGLE, the function is called
@@ -243,7 +243,7 @@ static void gimbal_cali_control(fp32 *yaw, fp32 *pitch, gimbal_control_t *gimbal
   * @param[in]      gimbal_control_set:云台数据指针
   * @retval         none
   */
-static void gimbal_absolute_angle_control(fp32 *yaw, fp32 *pitch, gimbal_control_t *gimbal_control_set);
+static void gimbal_absolute_angle_control(float32_t *yaw, float32_t *pitch, gimbal_control_t *gimbal_control_set);
 
 /**
   * @brief          when gimbal behaviour mode is GIMBAL_RELATIVE_ANGLE, the function is called
@@ -260,7 +260,7 @@ static void gimbal_absolute_angle_control(fp32 *yaw, fp32 *pitch, gimbal_control
   * @param[in]      gimbal_control_set: 云台数据指针
   * @retval         none
   */
-static void gimbal_relative_angle_control(fp32 *yaw, fp32 *pitch, gimbal_control_t *gimbal_control_set);
+static void gimbal_relative_angle_control(float32_t *yaw, float32_t *pitch, gimbal_control_t *gimbal_control_set);
 
 /**
   * @brief          when gimbal behaviour mode is GIMBAL_MOTIONLESS, the function is called
@@ -278,7 +278,7 @@ static void gimbal_relative_angle_control(fp32 *yaw, fp32 *pitch, gimbal_control
   * @param[in]      gimbal_control_set:云台数据指针
   * @retval         none
   */
-static void gimbal_motionless_control(fp32 *yaw, fp32 *pitch, gimbal_control_t *gimbal_control_set);
+static void gimbal_motionless_control(float32_t *yaw, float32_t *pitch, gimbal_control_t *gimbal_control_set);
 
 //云台行为状态机
 static gimbal_behaviour_e gimbal_behaviour = GIMBAL_ZERO_FORCE;
@@ -341,7 +341,7 @@ void gimbal_behaviour_mode_set(gimbal_control_t *gimbal_mode_set) {
   * @param[in]      gimbal_mode_set:云台数据指针
   * @retval         none
   */
-void gimbal_behaviour_control_set(fp32 *add_yaw, fp32 *add_pitch, gimbal_control_t *gimbal_control_set) {
+void gimbal_behaviour_control_set(float32_t *add_yaw, float32_t *add_pitch, gimbal_control_t *gimbal_control_set) {
 
     if (add_yaw == NULL || add_pitch == NULL || gimbal_control_set == NULL) {
         return;
@@ -508,7 +508,7 @@ static void gimbal_behavour_set(gimbal_control_t *gimbal_mode_set) {
   * @param[in]      gimbal_control_set: 云台数据指针
   * @retval         none
   */
-static void gimbal_zero_force_control(fp32 *yaw, fp32 *pitch, gimbal_control_t *gimbal_control_set) {
+static void gimbal_zero_force_control(float32_t *yaw, float32_t *pitch, gimbal_control_t *gimbal_control_set) {
     if (yaw == NULL || pitch == NULL || gimbal_control_set == NULL) {
         return;
     }
@@ -533,7 +533,7 @@ static void gimbal_zero_force_control(fp32 *yaw, fp32 *pitch, gimbal_control_t *
   * @param[in]      云台数据指针
   * @retval         返回空
   */
-static void gimbal_init_control(fp32 *yaw, fp32 *pitch, gimbal_control_t *gimbal_control_set) {
+static void gimbal_init_control(float32_t *yaw, float32_t *pitch, gimbal_control_t *gimbal_control_set) {
     if (yaw == NULL || pitch == NULL || gimbal_control_set == NULL) {
         return;
     }
@@ -567,7 +567,7 @@ static void gimbal_init_control(fp32 *yaw, fp32 *pitch, gimbal_control_t *gimbal
   * @param[in]      gimbal_control_set:云台数据指针
   * @retval         none
   */
-static void gimbal_cali_control(fp32 *yaw, fp32 *pitch, gimbal_control_t *gimbal_control_set) {
+static void gimbal_cali_control(float32_t *yaw, float32_t *pitch, gimbal_control_t *gimbal_control_set) {
     if (yaw == NULL || pitch == NULL || gimbal_control_set == NULL) {
         return;
     }
@@ -636,7 +636,7 @@ static void gimbal_cali_control(fp32 *yaw, fp32 *pitch, gimbal_control_t *gimbal
   * @param[in]      gimbal_control_set:云台数据指针
   * @retval         none
   */
-static void gimbal_absolute_angle_control(fp32 *yaw, fp32 *pitch, gimbal_control_t *gimbal_control_set) {
+static void gimbal_absolute_angle_control(float32_t *yaw, float32_t *pitch, gimbal_control_t *gimbal_control_set) {
     if (yaw == NULL || pitch == NULL || gimbal_control_set == NULL) {
         return;
     }
@@ -647,7 +647,7 @@ static void gimbal_absolute_angle_control(fp32 *yaw, fp32 *pitch, gimbal_control
 //    {
 //        static uint16_t last_turn_keyboard = 0;
 //        static uint8_t gimbal_turn_flag = 0;
-//        static fp32 gimbal_end_angle = 0.0f;
+//        static float32_t gimbal_end_angle = 0.0f;
 //
 //        if ((gimbal_control_set->gimbal_rc_ctrl->key.v & TURN_KEYBOARD) && !(last_turn_keyboard & TURN_KEYBOARD))
 //        {
@@ -696,7 +696,7 @@ static void gimbal_absolute_angle_control(fp32 *yaw, fp32 *pitch, gimbal_control
   * @param[in]      gimbal_control_set: 云台数据指针
   * @retval         none
   */
-static void gimbal_relative_angle_control(fp32 *yaw, fp32 *pitch, gimbal_control_t *gimbal_control_set) {
+static void gimbal_relative_angle_control(float32_t *yaw, float32_t *pitch, gimbal_control_t *gimbal_control_set) {
     if (yaw == NULL || pitch == NULL || gimbal_control_set == NULL) {
         return;
     }
@@ -721,7 +721,7 @@ static void gimbal_relative_angle_control(fp32 *yaw, fp32 *pitch, gimbal_control
   * @param[in]      gimbal_control_set:云台数据指针
   * @retval         none
   */
-static void gimbal_motionless_control(fp32 *yaw, fp32 *pitch, gimbal_control_t *gimbal_control_set) {
+static void gimbal_motionless_control(float32_t *yaw, float32_t *pitch, gimbal_control_t *gimbal_control_set) {
     if (yaw == NULL || pitch == NULL || gimbal_control_set == NULL) {
         return;
     }
@@ -738,17 +738,17 @@ static void gimbal_motionless_control(fp32 *yaw, fp32 *pitch, gimbal_control_t *
   * @param[out]     gimbal_control_set: 云台数据指针
   * @retval         none
   */
-void gimbal_rc_to_control_vector(fp32 *yaw, fp32 *pitch, gimbal_control_t *gimbal_move_rc_to_vector) {
+void gimbal_rc_to_control_vector(float32_t *yaw, float32_t *pitch, gimbal_control_t *gimbal_move_rc_to_vector) {
     if (gimbal_move_rc_to_vector == NULL || yaw == NULL || pitch == NULL) {
         return;
     }
     static uint16_t count;
     static int16_t yaw_rc_last;
-    static fp32 vision_yaw;
-//    static fp32 yaw_vision_last;
+    static float32_t vision_yaw;
+//    static float32_t yaw_vision_last;
     int16_t err;
     int16_t yaw_channel, pitch_channel;
-    fp32 yaw_set_channel, pitch_set_channel, add_vision_yaw, add_vision_pitch, lim_vision_yaw, lim_vision_pitch;
+    float32_t yaw_set_channel, pitch_set_channel, add_vision_yaw, add_vision_pitch, lim_vision_yaw, lim_vision_pitch;
     yaw_set_channel = pitch_set_channel = add_vision_yaw = add_vision_pitch = yaw_channel = pitch_channel = 0;
     if (!switch_is_up(gimbal_move_rc_to_vector->gimbal_rc_ctrl->rc.s[RADIO_CONTROL_SWITCH_L])) {
 
@@ -815,7 +815,7 @@ void gimbal_rc_to_control_vector(fp32 *yaw, fp32 *pitch, gimbal_control_t *gimba
     *pitch = pitch_set_channel;
 }
 
-int16_t test_control(int16_t mode, fp32 re_angle_pr_up, fp32 re_angle_pr_down, int16_t time_ms,
+int16_t test_control(int16_t mode, float32_t re_angle_pr_up, float32_t re_angle_pr_down, int16_t time_ms,
                      int16_t const_set, int16_t delay_ms, bool keep, int16_t keep_ms) {
     static uint32_t count = 0;
     static uint32_t delay_count = 0;

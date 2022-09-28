@@ -73,7 +73,7 @@
 #define INS_MAG_Y_ADDRESS_OFFSET 1
 #define INS_MAG_Z_ADDRESS_OFFSET 2
 
-extern fp32 INS_angle[3];
+extern float32_t INS_angle[3];
 
 /**
   * @brief          获取INS_task栈大小
@@ -108,7 +108,7 @@ extern void INS_task(void const *pvParameters);
   * @param[out]     陀螺仪的时刻，每次在gyro_offset调用会加1,
   * @retval         none
   */
-extern void INS_cali_gyro(fp32 cali_scale[3], fp32 cali_offset[3], uint16_t *time_count);
+extern void INS_cali_gyro(float32_t cali_scale[3], float32_t cali_offset[3], uint16_t *time_count);
 
 /**
   * @brief          get gyro zero drift from flash
@@ -122,7 +122,7 @@ extern void INS_cali_gyro(fp32 cali_scale[3], fp32 cali_offset[3], uint16_t *tim
   * @param[in]      陀螺仪的零漂
   * @retval         none
   */
-extern void INS_set_cali_gyro(fp32 cali_scale[3], fp32 cali_offset[3]);
+extern void INS_set_cali_gyro(float32_t cali_scale[3], float32_t cali_offset[3]);
 
 /**
   * @brief          get the quat
@@ -134,7 +134,7 @@ extern void INS_set_cali_gyro(fp32 cali_scale[3], fp32 cali_offset[3]);
   * @param[in]      none
   * @retval         INS_quat的指针
   */
-extern const fp32 *get_INS_quat_point(void);
+extern const float32_t *get_INS_quat_point(void);
 
 
 /**
@@ -147,7 +147,7 @@ extern const fp32 *get_INS_quat_point(void);
   * @param[in]      none
   * @retval         INS_angle的指针
   */
-extern const fp32 *get_INS_angle_point(void);
+extern const float32_t *get_INS_angle_point(void);
 
 
 /**
@@ -160,7 +160,7 @@ extern const fp32 *get_INS_angle_point(void);
   * @param[in]      none
   * @retval         INS_gyro的指针
   */
-extern const fp32 *get_gyro_data_point(void);
+extern const float32_t *get_gyro_data_point(void);
 
 
 /**
@@ -173,7 +173,7 @@ extern const fp32 *get_gyro_data_point(void);
   * @param[in]      none
   * @retval         INS_gyro的指针
   */
-extern const fp32 *get_accel_data_point(void);
+extern const float32_t *get_accel_data_point(void);
 
 /**
   * @brief          get mag, 0:x-axis, 1:y-axis, 2:roll-axis unit ut
@@ -185,6 +185,6 @@ extern const fp32 *get_accel_data_point(void);
   * @param[in]      none
   * @retval         INS_mag的指针
   */
-extern const fp32 *get_mag_data_point(void);
+extern const float32_t *get_mag_data_point(void);
 
 #endif

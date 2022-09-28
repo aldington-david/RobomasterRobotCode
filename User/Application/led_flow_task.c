@@ -46,8 +46,8 @@ uint32_t RGB_flow_color[
   */
 void led_RGB_flow_task(void const *argument) {
     uint16_t i, j;
-    fp32 delta_alpha, delta_red, delta_green, delta_blue;
-    fp32 alpha, red, green, blue;
+    float32_t delta_alpha, delta_red, delta_green, delta_blue;
+    float32_t alpha, red, green, blue;
     uint32_t aRGB;
     TickType_t LoopStartTime;
     while (1) {
@@ -59,14 +59,14 @@ void led_RGB_flow_task(void const *argument) {
             green = ((RGB_flow_color[i] & 0x0000FF00) >> 8);
             blue = ((RGB_flow_color[i] & 0x000000FF) >> 0);
 
-            delta_alpha = (fp32) ((RGB_flow_color[i + 1] & 0xFF000000) >> 24) -
-                          (fp32) ((RGB_flow_color[i] & 0xFF000000) >> 24);
-            delta_red = (fp32) ((RGB_flow_color[i + 1] & 0x00FF0000) >> 16) -
-                        (fp32) ((RGB_flow_color[i] & 0x00FF0000) >> 16);
+            delta_alpha = (float32_t) ((RGB_flow_color[i + 1] & 0xFF000000) >> 24) -
+                          (float32_t) ((RGB_flow_color[i] & 0xFF000000) >> 24);
+            delta_red = (float32_t) ((RGB_flow_color[i + 1] & 0x00FF0000) >> 16) -
+                        (float32_t) ((RGB_flow_color[i] & 0x00FF0000) >> 16);
             delta_green =
-                    (fp32) ((RGB_flow_color[i + 1] & 0x0000FF00) >> 8) - (fp32) ((RGB_flow_color[i] & 0x0000FF00) >> 8);
+                    (float32_t) ((RGB_flow_color[i + 1] & 0x0000FF00) >> 8) - (float32_t) ((RGB_flow_color[i] & 0x0000FF00) >> 8);
             delta_blue =
-                    (fp32) ((RGB_flow_color[i + 1] & 0x000000FF) >> 0) - (fp32) ((RGB_flow_color[i] & 0x000000FF) >> 0);
+                    (float32_t) ((RGB_flow_color[i + 1] & 0x000000FF) >> 0) - (float32_t) ((RGB_flow_color[i] & 0x000000FF) >> 0);
 
             delta_alpha /= RGB_FLOW_COLOR_CHANGE_TIME;
             delta_red /= RGB_FLOW_COLOR_CHANGE_TIME;

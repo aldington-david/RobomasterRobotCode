@@ -120,17 +120,17 @@ typedef struct {
     pid_type_def fric1_motor_pid;
     pid_type_def fric2_motor_pid;
 
-    fp32 fric_all_speed;
-    fp32 fric1_speed_set;
-    fp32 fric2_speed_set;
-    fp32 fric1_speed;
-    fp32 fric2_speed;
+    float32_t fric_all_speed;
+    float32_t fric1_speed_set;
+    float32_t fric2_speed_set;
+    float32_t fric1_speed;
+    float32_t fric2_speed;
 
-    fp32 trigger_speed_set;
-    fp32 speed;
-    fp32 speed_set;
-    fp32 angle;
-    fp32 angle_set;
+    float32_t trigger_speed_set;
+    float32_t speed;
+    float32_t speed_set;
+    float32_t angle;
+    float32_t angle_set;
     int16_t given_current;
     int8_t ecd_count;
 

@@ -31,45 +31,45 @@ enum PID_MODE {
 typedef struct {
     uint8_t mode;
     //PID 三参数
-    fp32 Kp;
-    fp32 Ki;
-    fp32 Kd;
+    float32_t Kp;
+    float32_t Ki;
+    float32_t Kd;
 
-    fp32 max_out;  //最大输出
-    fp32 max_iout; //最大积分输出
+    float32_t max_out;  //最大输出
+    float32_t max_iout; //最大积分输出
 
-    fp32 set;
-    fp32 get;
+    float32_t set;
+    float32_t get;
 
-    fp32 out;
-    fp32 Pout;
-    fp32 Iout;
-    fp32 Dout;
-    fp32 Dbuf[3];  //微分项 0最新 1上一次 2上上次
-    fp32 error[3]; //误差项 0最新 1上一次 2上上次
-    fp32 Integral_Separation;
+    float32_t out;
+    float32_t Pout;
+    float32_t Iout;
+    float32_t Dout;
+    float32_t Dbuf[3];  //微分项 0最新 1上一次 2上上次
+    float32_t error[3]; //误差项 0最新 1上一次 2上上次
+    float32_t Integral_Separation;
 
     bool Variable_I;
-    fp32 I_ratio;
-    fp32 Variable_I_UP;
-    fp32 Variable_I_Down;
+    float32_t I_ratio;
+    float32_t Variable_I_UP;
+    float32_t Variable_I_Down;
 
     bool D_First;
-    fp32 D_Filter_Ratio;
-    fp32 last_get;
-    fp32 D3;
-    fp32 D2;
-    fp32 D1;
+    float32_t D_Filter_Ratio;
+    float32_t last_get;
+    float32_t D3;
+    float32_t D2;
+    float32_t D1;
 
     bool NF_D;
-    fp32 Dout_Last;
-    fp32 D_Alpha;//0-1
+    float32_t Dout_Last;
+    float32_t D_Alpha;//0-1
 
     bool D_KF;
     extKalman_t D_Kalman;
 
     bool D_Low_Pass;
-    fp32 D_Low_Pass_Factor;
+    float32_t D_Low_Pass_Factor;
 } pid_type_def;
 
 /**
@@ -92,9 +92,9 @@ typedef struct {
   * @param[in]      max_iout: pid最大积分输出
   * @retval         none
   */
-extern void PID_init(pid_type_def *pid, uint8_t mode, const fp32 PID[3], fp32 max_out, fp32 max_iout, fp32 Integral,
-                     bool Variable_I_Switch, fp32 Variable_I_Down, fp32 Variable_I_UP, bool D_First,
-                     fp32 D_Filter_Ratio, bool D_Low_Pass, fp32 D_Low_Pass_Factor, bool NF_D, fp32 D_Alpha, bool D_KF);
+extern void PID_init(pid_type_def *pid, uint8_t mode, const float32_t PID[3], float32_t max_out, float32_t max_iout, float32_t Integral,
+                     bool Variable_I_Switch, float32_t Variable_I_Down, float32_t Variable_I_UP, bool D_First,
+                     float32_t D_Filter_Ratio, bool D_Low_Pass, float32_t D_Low_Pass_Factor, bool NF_D, float32_t D_Alpha, bool D_KF);
 
 /**
   * @brief          pid calculate 
@@ -110,7 +110,7 @@ extern void PID_init(pid_type_def *pid, uint8_t mode, const fp32 PID[3], fp32 ma
   * @param[in]      set: 设定值
   * @retval         pid输出
   */
-extern fp32 PID_calc(pid_type_def *pid, fp32 ref, fp32 set);
+extern float32_t PID_calc(pid_type_def *pid, float32_t ref, float32_t set);
 
 /**
   * @brief          pid out clear
@@ -162,7 +162,7 @@ typedef struct positionpid_t {
     float IntegralLimit;       //积分限幅
 } positionpid_t;
 
-extern float ALL_PID(pid_type_def *pid, fp32 ref, fp32 set);
+extern float ALL_PID(pid_type_def *pid, float32_t ref, float32_t set);
 
 
 #endif
