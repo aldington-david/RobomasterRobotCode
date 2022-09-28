@@ -31,8 +31,8 @@ typedef unsigned short int uint16_t;
 //typedef unsigned int uint32_t;
 typedef unsigned long long uint64_t;
 typedef unsigned char bool_t;
-typedef float fp32;
-typedef double fp64;
+typedef float float32_t;
+typedef double float64_t;
 
 //定义 NULL
 #ifndef NULL
@@ -54,13 +54,13 @@ typedef double fp64;
 #define RAD_TO_ANGLE 57.295779513082320876798154814105f
 #endif
 
-extern void AHRS_get_height(fp32 *high);
-extern void AHRS_get_latitude(fp32 *latitude);
-extern fp32 AHRS_invSqrt(fp32 num);
-extern fp32 AHRS_sinf(fp32 angle);
-extern fp32 AHRS_cosf(fp32 angle);
-extern fp32 AHRS_tanf(fp32 angle);
-extern fp32 AHRS_asinf(fp32 sin);
-extern fp32 AHRS_acosf(fp32 cos);
-extern fp32 AHRS_atan2f(fp32 y, fp32 x);
+extern void AHRS_get_height(float32_t *high);
+extern void AHRS_get_latitude(float32_t *latitude);
+extern float32_t AHRS_invSqrt(float32_t num);
+extern float32_t AHRS_sinf(float32_t angle);
+extern float32_t AHRS_cosf(float32_t angle);
+extern float32_t AHRS_tanf(float32_t angle);
+extern float32_t AHRS_asinf(float32_t sin);
+extern float32_t AHRS_acosf(float32_t cos);
+extern float32_t AHRS_atan2f(float32_t y, float32_t x);
 #endif

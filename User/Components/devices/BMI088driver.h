@@ -57,10 +57,10 @@ typedef __PACKED_STRUCT BMI088_RAW_DATA
 typedef struct BMI088_REAL_DATA
 {
     uint8_t status;
-    fp32 accel[3];
-    fp32 temp;
-    fp32 gyro[3];
-    fp32 time;
+    float32_t accel[3];
+    float32_t temp;
+    float32_t gyro[3];
+    float32_t time;
 } bmi088_real_data_t;
 
 
@@ -96,19 +96,19 @@ extern bool_t bmi088_gyro_self_test(void);
 extern bool_t bmi088_accel_init(void);
 extern bool_t bmi088_gyro_init(void);
 
-extern void BMI088_accel_read_over(uint8_t *rx_buf, fp32 accel[3], fp32 *time);
-extern void BMI088_gyro_read_over(uint8_t *rx_buf, fp32 gyro[3]);
-extern void BMI088_temperature_read_over(uint8_t *rx_buf, fp32 *temperate);
+extern void BMI088_accel_read_over(uint8_t *rx_buf, float32_t accel[3], float32_t *time);
+extern void BMI088_gyro_read_over(uint8_t *rx_buf, float32_t gyro[3]);
+extern void BMI088_temperature_read_over(uint8_t *rx_buf, float32_t *temperate);
 
-extern void BMI088_read(fp32 gyro[3], fp32 accel[3], fp32 *temperate);
+extern void BMI088_read(float32_t gyro[3], float32_t accel[3], float32_t *temperate);
 
 extern uint32_t get_BMI088_sensor_time(void);
 
-extern fp32 get_BMI088_temperate(void);
+extern float32_t get_BMI088_temperate(void);
 
 extern void get_BMI088_gyro(int16_t gyro[3]);
 
-extern void get_BMI088_accel(fp32 accel[3]);
+extern void get_BMI088_accel(float32_t accel[3]);
 
 
 extern void BMI088_read_gyro_who_am_i(void);

@@ -96,7 +96,7 @@ typedef struct __attribute__((packed))
     uint8_t is_lost : 1;
     uint8_t data_is_error : 1;
 
-    fp32 frequency;
+    float32_t frequency;
     bool_t (*data_is_error_fun)(void);
     void (*solve_lost_fun)(void);
     void (*solve_data_error_fun)(void);

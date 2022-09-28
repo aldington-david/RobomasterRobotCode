@@ -27,7 +27,7 @@
         ...
         GIMBAL_XXX_XXX, // new add
     }gimbal_behaviour_e,
-    2. implement new function. gimbal_xxx_xxx_control(fp32 *yaw, fp32 *pitch, gimbal_control_t *gimbal_control_set);
+    2. implement new function. gimbal_xxx_xxx_control(float32_t *yaw, float32_t *pitch, gimbal_control_t *gimbal_control_set);
         "yaw, pitch" param is gimbal movement contorl input. 
         first param: 'yaw' usually means  yaw axis move,usaully means increment angle.
             positive value means counterclockwise move, negative value means clockwise move.
@@ -58,7 +58,7 @@
         GIMBAL_XXX_XXX, // 新添加的
     }gimbal_behaviour_e,
 
-    2. 实现一个新的函数 gimbal_xxx_xxx_control(fp32 *yaw, fp32 *pitch, gimbal_control_t *gimbal_control_set);
+    2. 实现一个新的函数 gimbal_xxx_xxx_control(float32_t *yaw, float32_t *pitch, gimbal_control_t *gimbal_control_set);
         "yaw, pitch" 参数是云台运动控制输入量
         第一个参数: 'yaw' 通常控制yaw轴移动,通常是角度增量,正值是逆时针运动,负值是顺时针
         第二个参数: 'pitch' 通常控制pitch轴移动,通常是角度增量,正值是逆时针运动,负值是顺时针
@@ -106,12 +106,12 @@ typedef enum
   GIMBAL_MOTIONLESS,     
 } gimbal_behaviour_e;
 
-extern fp32 vision_pitch_angle_deadband_sen;
-extern fp32 vision_yaw_angle_deadband_sen;
-extern fp32 vision_pitch_control_sen;
-extern fp32 vision_yaw_control_sen;
-extern fp32 vision_pitch_lpf_factor;
-extern fp32 vision_yaw_control_lpf_factor;
+extern float32_t vision_pitch_angle_deadband_sen;
+extern float32_t vision_yaw_angle_deadband_sen;
+extern float32_t vision_pitch_control_sen;
+extern float32_t vision_yaw_control_sen;
+extern float32_t vision_pitch_lpf_factor;
+extern float32_t vision_yaw_control_lpf_factor;
 /**
   * @brief          the function is called by gimbal_set_mode function in gimbal_task.c
   *                 the function set gimbal_behaviour variable, and set motor mode.
@@ -141,7 +141,7 @@ extern void gimbal_behaviour_mode_set(gimbal_control_t *gimbal_mode_set);
   * @param[in]      gimbal_mode_set:云台数据指针
   * @retval         none
   */
-extern void gimbal_behaviour_control_set(fp32 *add_yaw, fp32 *add_pitch, gimbal_control_t *gimbal_control_set);
+extern void gimbal_behaviour_control_set(float32_t *add_yaw, float32_t *add_pitch, gimbal_control_t *gimbal_control_set);
 
 /**
   * @brief          in some gimbal mode, need chassis keep no move
@@ -176,9 +176,9 @@ extern bool_t gimbal_cmd_to_shoot_stop(void);
   * @param[out]     gimbal_control_set: 云台数据指针
   * @retval         none
   */
-extern void gimbal_rc_to_control_vector(fp32 *yaw, fp32 *pitch, gimbal_control_t *gimbal_move_rc_to_vector);
+extern void gimbal_rc_to_control_vector(float32_t *yaw, float32_t *pitch, gimbal_control_t *gimbal_move_rc_to_vector);
 
-int16_t test_control(int16_t mode, fp32 re_angle_pr_up, fp32 re_angle_pr_down, int16_t time_ms,
-                     int16_t const_set ,int16_t delay_ms, bool keep, int16_t keep_ms);
+int16_t test_control(int16_t mode, float32_t re_angle_pr_up, float32_t re_angle_pr_down, int16_t time_ms,
+                     int16_t const_set , int16_t delay_ms, bool keep, int16_t keep_ms);
 
 #endif

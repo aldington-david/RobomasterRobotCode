@@ -217,16 +217,16 @@ static void chassis_init(chassis_move_t *chassis_move_init) {
 
     //chassis motor speed PID
     //底盘速度环pid值
-    const static fp32 motor_speed_pid[3] = {M3505_MOTOR_SPEED_PID_KP, M3505_MOTOR_SPEED_PID_KI,
-                                            M3505_MOTOR_SPEED_PID_KD};
+    const static float32_t motor_speed_pid[3] = {M3505_MOTOR_SPEED_PID_KP, M3505_MOTOR_SPEED_PID_KI,
+                                                 M3505_MOTOR_SPEED_PID_KD};
 
     //chassis angle PID
     //底盘角度pid值
-    const static fp32 chassis_yaw_pid[3] = {CHASSIS_FOLLOW_GIMBAL_PID_KP, CHASSIS_FOLLOW_GIMBAL_PID_KI,
-                                            CHASSIS_FOLLOW_GIMBAL_PID_KD};
+    const static float32_t chassis_yaw_pid[3] = {CHASSIS_FOLLOW_GIMBAL_PID_KP, CHASSIS_FOLLOW_GIMBAL_PID_KI,
+                                                 CHASSIS_FOLLOW_GIMBAL_PID_KD};
 
-//    const static fp32 chassis_x_order_filter[1] = {CHASSIS_ACCEL_X_NUM};
-//    const static fp32 chassis_y_order_filter[1] = {CHASSIS_ACCEL_Y_NUM};
+//    const static float32_t chassis_x_order_filter[1] = {CHASSIS_ACCEL_X_NUM};
+//    const static float32_t chassis_y_order_filter[1] = {CHASSIS_ACCEL_Y_NUM};
     uint8_t i;
 
     //in beginning， chassis mode is raw 
@@ -397,13 +397,13 @@ static void chassis_feedback_update(chassis_move_t *chassis_move_update) {
   * @param[out]     chassis_move_rc_to_vector: "chassis_move" 变量指针
   * @retval         none
   */
-void chassis_rc_to_control_vector(fp32 *vx_set, fp32 *vy_set, fp32 *wz_set, chassis_move_t *chassis_move_rc_to_vector) {
+void chassis_rc_to_control_vector(float32_t *vx_set, float32_t *vy_set, float32_t *wz_set, chassis_move_t *chassis_move_rc_to_vector) {
     if (chassis_move_rc_to_vector == NULL || vx_set == NULL || vy_set == NULL) {
         return;
     }
 
     int16_t vx_channel, vy_channel, wz_channel;
-    fp32 vx_set_channel, vy_set_channel, wz_set_channel;
+    float32_t vx_set_channel, vy_set_channel, wz_set_channel;
     vx_set_channel = vy_set_channel = wz_set_channel = vx_channel = vy_channel = wz_channel = 0;
     if (!switch_is_up(chassis_move_rc_to_vector->chassis_RC->rc.s[RADIO_CONTROL_SWITCH_L])) {
 
@@ -478,14 +478,14 @@ static void chassis_set_contorl(chassis_move_t *chassis_move_control) {
     }
 
 
-    fp32 vx_set = 0.0f, vy_set = 0.0f, angle_set = 0.0f;
+    float32_t vx_set = 0.0f, vy_set = 0.0f, angle_set = 0.0f;
     //get three control set-point, 获取三个控制设置值
     chassis_behaviour_control_set(&vx_set, &vy_set, &angle_set, chassis_move_control);
 
     //follow gimbal mode
     //跟随云台模式
     if (chassis_move_control->chassis_mode == CHASSIS_VECTOR_FOLLOW_GIMBAL_YAW) {
-        fp32 sin_yaw = 0.0f, cos_yaw = 0.0f;
+        float32_t sin_yaw = 0.0f, cos_yaw = 0.0f;
         //rotate chassis direction, make sure vertial direction follow gimbal 
         //旋转控制底盘速度方向，保证前进方向是云台方向，有利于运动平稳
         sin_yaw = arm_sin_f32(chassis_move_control->chassis_yaw_motor->relative_angle);
@@ -506,7 +506,7 @@ static void chassis_set_contorl(chassis_move_t *chassis_move_control) {
         chassis_move_control->vy_set = fp32_constrain(chassis_move_control->vy_set, chassis_move_control->vy_min_speed,
                                                       chassis_move_control->vy_max_speed);
     } else if (chassis_move_control->chassis_mode == CHASSIS_VECTOR_FOLLOW_CHASSIS_YAW) {
-        fp32 delat_angle = 0.0f;
+        float32_t delat_angle = 0.0f;
         //set chassis yaw angle set-point
         //设置底盘控制的角度
         chassis_move_control->chassis_yaw_set = rad_format(angle_set);
@@ -563,7 +563,7 @@ static void chassis_set_contorl(chassis_move_t *chassis_move_control) {
   * @retval         none
   */
 static void
-chassis_vector_to_mecanum_wheel_speed(const fp32 vx_set, const fp32 vy_set, const fp32 wz_set, fp32 wheel_speed[4]) {
+chassis_vector_to_mecanum_wheel_speed(const float32_t vx_set, const float32_t vy_set, const float32_t wz_set, float32_t wheel_speed[4]) {
     //because the gimbal is in front of chassis, when chassis rotates, wheel 0 and wheel 1 should be slower and wheel 2 and wheel 3 should be faster
     //旋转的时候， 由于云台靠前，所以是前面两轮 0 ，1 旋转的速度变慢， 后面两轮 2,3 旋转的速度变快
 //    wheel_speed[0] = -vx_set - vy_set + (CHASSIS_WZ_SET_SCALE - 1.0f) * MOTOR_DISTANCE_TO_CENTER * wz_set;
@@ -589,9 +589,9 @@ chassis_vector_to_mecanum_wheel_speed(const fp32 vx_set, const fp32 vy_set, cons
   * @retval         none
   */
 static void chassis_control_loop(chassis_move_t *chassis_move_control_loop) {
-    fp32 max_vector = 0.0f, vector_rate = 0.0f;
-    fp32 temp = 0.0f;
-    fp32 wheel_speed[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+    float32_t max_vector = 0.0f, vector_rate = 0.0f;
+    float32_t temp = 0.0f;
+    float32_t wheel_speed[4] = {0.0f, 0.0f, 0.0f, 0.0f};
     uint8_t i = 0;
 
     //mecanum wheel speed calculation

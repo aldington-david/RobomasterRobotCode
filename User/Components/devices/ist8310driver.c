@@ -101,7 +101,7 @@ void ist8310_read_over(uint8_t *status_buf, ist8310_real_data_t *ist8310_real_da
     }
 }
 
-void ist8310_read_mag(fp32 mag[3])
+void ist8310_read_mag(float32_t mag[3])
 {
     uint8_t buf[6];
     int16_t temp_ist8310_data = 0;

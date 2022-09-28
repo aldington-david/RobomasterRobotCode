@@ -355,7 +355,7 @@ void DMA2_Stream6_IRQHandler(void) {
 /*****************裁判系统接收功能 END**********************/
 /*****************裁判系统接收数据分析函数 START**********************/
 
-void get_chassis_power_and_buffer(fp32 *power, fp32 *buffer) {
+void get_chassis_power_and_buffer(float32_t *power, float32_t *buffer) {
     *power = global_judge_info.PowerHeatData.chassis_power;
     *buffer = global_judge_info.PowerHeatData.chassis_power_buffer;
 

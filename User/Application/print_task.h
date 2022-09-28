@@ -57,26 +57,26 @@ extern void RTT_PrintWave_np(int num_args, ...);
   */
 extern void RTT_timer_trigger(void);
 
-extern fp32 bias_angle_test;
-extern fp32 add_angle_test;
+extern float32_t bias_angle_test;
+extern float32_t add_angle_test;
 extern int8_t imu_temp;
-extern fp32 sp_err;
-extern fp32 re_err;
-extern fp32 kalman_test;
+extern float32_t sp_err;
+extern float32_t re_err;
+extern float32_t kalman_test;
 extern char switch_test;
 extern uint32_t id_test;
-extern fp32 Dout1_test;
-extern fp32 Dout2_test;
-extern fp32 KF_Dout1_test;
-extern fp32 KF_Dout2_test;
-extern fp32 tracer1;
-extern fp32 vision_pitch_probe;
-extern fp32 vision_yaw_probe;
+extern float32_t Dout1_test;
+extern float32_t Dout2_test;
+extern float32_t KF_Dout1_test;
+extern float32_t KF_Dout2_test;
+extern float32_t tracer1;
+extern float32_t vision_pitch_probe;
+extern float32_t vision_yaw_probe;
 extern char vision_or_probe[128];
 
 
-extern fp32 pid_out_probe;
-extern fp32 pid_pout_probe;
-extern fp32 pid_iout_probe;
-extern fp32 pid_dout_probe;
+extern float32_t pid_out_probe;
+extern float32_t pid_pout_probe;
+extern float32_t pid_iout_probe;
+extern float32_t pid_dout_probe;
 #endif

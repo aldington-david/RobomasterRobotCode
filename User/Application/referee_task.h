@@ -625,7 +625,7 @@ extern uint8_t get_robot_id(void);
 
 static void referee_unpack_fifo_data(void);
 
-extern void get_chassis_power_and_buffer(fp32 *power, fp32 *buffer);
+extern void get_chassis_power_and_buffer(float32_t *power, float32_t *buffer);
 
 extern void get_shoot_heat0_limit_and_heat0(uint16_t *heat0_limit, uint16_t *heat0);
 

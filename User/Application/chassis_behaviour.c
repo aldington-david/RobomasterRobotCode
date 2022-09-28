@@ -19,7 +19,7 @@
         ...
         CHASSIS_XXX_XXX, // new add
     }chassis_behaviour_e,
-    2. implement new function. chassis_xxx_xxx_control(fp32 *vx, fp32 *vy, fp32 *wz, chassis_move_t * chassis )
+    2. implement new function. chassis_xxx_xxx_control(float32_t *vx, float32_t *vy, float32_t *wz, chassis_move_t * chassis )
         "vx, vy, wz" param is chassis movement contorl input. 
         first param: 'vx' usually means  vertical speed,
             positive value means forward speed, negative value means backward speed.
@@ -55,7 +55,7 @@
         CHASSIS_XXX_XXX, // 新添加的
     }chassis_behaviour_e,
 
-    2. 实现一个新的函数 chassis_xxx_xxx_control(fp32 *vx, fp32 *vy, fp32 *wz, chassis_move_t * chassis )
+    2. 实现一个新的函数 chassis_xxx_xxx_control(float32_t *vx, float32_t *vy, float32_t *wz, chassis_move_t * chassis )
         "vx,vy,wz" 参数是底盘运动控制输入量
         第一个参数: 'vx' 通常控制纵向移动,正值 前进， 负值 后退
         第二个参数: 'vy' 通常控制横向移动,正值 左移, 负值 右移
@@ -106,7 +106,7 @@
   * @param[in]      chassis_move_rc_to_vector底盘数据
   * @retval         返回空
   */
-static void chassis_zero_force_control(fp32 *vx_can_set, fp32 *vy_can_set, fp32 *wz_can_set, chassis_move_t *chassis_move_rc_to_vector);
+static void chassis_zero_force_control(float32_t *vx_can_set, float32_t *vy_can_set, float32_t *wz_can_set, chassis_move_t *chassis_move_rc_to_vector);
 
 
 /**
@@ -127,7 +127,7 @@ static void chassis_zero_force_control(fp32 *vx_can_set, fp32 *vy_can_set, fp32 
   * @param[in]      chassis_move_rc_to_vector底盘数据
   * @retval         返回空
   */
-static void chassis_no_move_control(fp32 *vx_set, fp32 *vy_set, fp32 *wz_set, chassis_move_t *chassis_move_rc_to_vector);
+static void chassis_no_move_control(float32_t *vx_set, float32_t *vy_set, float32_t *wz_set, chassis_move_t *chassis_move_rc_to_vector);
 
 /**
   * @brief          when chassis behaviour mode is CHASSIS_INFANTRY_FOLLOW_GIMBAL_YAW, chassis control mode is speed control mode.
@@ -147,7 +147,7 @@ static void chassis_no_move_control(fp32 *vx_set, fp32 *vy_set, fp32 *wz_set, ch
   * @param[in]      chassis_move_rc_to_vector底盘数据
   * @retval         返回空
   */
-static void chassis_infantry_follow_gimbal_yaw_control(fp32 *vx_set, fp32 *vy_set, fp32 *angle_set, chassis_move_t *chassis_move_rc_to_vector);
+static void chassis_infantry_follow_gimbal_yaw_control(float32_t *vx_set, float32_t *vy_set, float32_t *angle_set, chassis_move_t *chassis_move_rc_to_vector);
 
 /**
   * @brief          when chassis behaviour mode is CHASSIS_ENGINEER_FOLLOW_CHASSIS_YAW, chassis control mode is speed control mode.
@@ -167,7 +167,7 @@ static void chassis_infantry_follow_gimbal_yaw_control(fp32 *vx_set, fp32 *vy_se
   * @param[in]      chassis_move_rc_to_vector底盘数据
   * @retval         返回空
   */
-static void chassis_engineer_follow_chassis_yaw_control(fp32 *vx_set, fp32 *vy_set, fp32 *angle_set, chassis_move_t *chassis_move_rc_to_vector);
+static void chassis_engineer_follow_chassis_yaw_control(float32_t *vx_set, float32_t *vy_set, float32_t *angle_set, chassis_move_t *chassis_move_rc_to_vector);
 
 /**
   * @brief          when chassis behaviour mode is CHASSIS_NO_FOLLOW_YAW, chassis control mode is speed control mode.
@@ -187,7 +187,7 @@ static void chassis_engineer_follow_chassis_yaw_control(fp32 *vx_set, fp32 *vy_s
   * @param[in]      chassis_move_rc_to_vector底盘数据
   * @retval         返回空
   */
-static void chassis_no_follow_yaw_control(fp32 *vx_set, fp32 *vy_set, fp32 *wz_set, chassis_move_t *chassis_move_rc_to_vector);
+static void chassis_no_follow_yaw_control(float32_t *vx_set, float32_t *vy_set, float32_t *wz_set, chassis_move_t *chassis_move_rc_to_vector);
 
 
 
@@ -209,7 +209,7 @@ static void chassis_no_follow_yaw_control(fp32 *vx_set, fp32 *vy_set, fp32 *wz_s
   * @retval         none
   */
 
-static void chassis_open_set_control(fp32 *vx_set, fp32 *vy_set, fp32 *wz_set, chassis_move_t *chassis_move_rc_to_vector);
+static void chassis_open_set_control(float32_t *vx_set, float32_t *vy_set, float32_t *wz_set, chassis_move_t *chassis_move_rc_to_vector);
 
 
 
@@ -337,7 +337,7 @@ void chassis_behaviour_mode_set(chassis_move_t *chassis_move_mode)
   * @retval         none
   */
 
-void chassis_behaviour_control_set(fp32 *vx_set, fp32 *vy_set, fp32 *angle_set, chassis_move_t *chassis_move_rc_to_vector)
+void chassis_behaviour_control_set(float32_t *vx_set, float32_t *vy_set, float32_t *angle_set, chassis_move_t *chassis_move_rc_to_vector)
 {
 
     if (vx_set == NULL || vy_set == NULL || angle_set == NULL || chassis_move_rc_to_vector == NULL)
@@ -391,7 +391,7 @@ void chassis_behaviour_control_set(fp32 *vx_set, fp32 *vy_set, fp32 *angle_set, 
   * @retval         返回空
   */
 
-static void chassis_zero_force_control(fp32 *vx_can_set, fp32 *vy_can_set, fp32 *wz_can_set, chassis_move_t *chassis_move_rc_to_vector)
+static void chassis_zero_force_control(float32_t *vx_can_set, float32_t *vy_can_set, float32_t *wz_can_set, chassis_move_t *chassis_move_rc_to_vector)
 {
     if (vx_can_set == NULL || vy_can_set == NULL || wz_can_set == NULL || chassis_move_rc_to_vector == NULL)
     {
@@ -421,7 +421,7 @@ static void chassis_zero_force_control(fp32 *vx_can_set, fp32 *vy_can_set, fp32 
   * @retval         返回空
   */
 
-static void chassis_no_move_control(fp32 *vx_set, fp32 *vy_set, fp32 *wz_set, chassis_move_t *chassis_move_rc_to_vector)
+static void chassis_no_move_control(float32_t *vx_set, float32_t *vy_set, float32_t *wz_set, chassis_move_t *chassis_move_rc_to_vector)
 {
     if (vx_set == NULL || vy_set == NULL || wz_set == NULL || chassis_move_rc_to_vector == NULL)
     {
@@ -451,7 +451,7 @@ static void chassis_no_move_control(fp32 *vx_set, fp32 *vy_set, fp32 *wz_set, ch
   * @retval         返回空
   */
 
-static void chassis_infantry_follow_gimbal_yaw_control(fp32 *vx_set, fp32 *vy_set, fp32 *angle_set, chassis_move_t *chassis_move_rc_to_vector)
+static void chassis_infantry_follow_gimbal_yaw_control(float32_t *vx_set, float32_t *vy_set, float32_t *angle_set, chassis_move_t *chassis_move_rc_to_vector)
 {
     if (vx_set == NULL || vy_set == NULL || angle_set == NULL || chassis_move_rc_to_vector == NULL)
     {
@@ -464,15 +464,15 @@ static void chassis_infantry_follow_gimbal_yaw_control(fp32 *vx_set, fp32 *vy_se
 
     //swing angle is generated by sin function, swing_time is the input time of sin
     //摇摆角度是利用sin函数生成，swing_time 是sin函数的输入值
-    static fp32 swing_time = 0.0f;
+    static float32_t swing_time = 0.0f;
     
-    static fp32 swing_angle = 0.0f;
+    static float32_t swing_angle = 0.0f;
     //max_angle is the max angle that chassis will ratate
     //max_angle 是sin函数的幅值
-    static fp32 max_angle = SWING_NO_MOVE_ANGLE;
+    static float32_t max_angle = SWING_NO_MOVE_ANGLE;
     //swing_time  plus the add_time in one control cycle
     //swing_time 在一个控制周期内，加上 add_time
-    static fp32 const add_time = PI * 0.5f * configTICK_RATE_HZ / CHASSIS_CONTROL_TIME_MS;
+    static float32_t const add_time = PI * 0.5f * configTICK_RATE_HZ / CHASSIS_CONTROL_TIME_MS;
     
     static uint8_t swing_flag = 0;
 
@@ -542,7 +542,7 @@ static void chassis_infantry_follow_gimbal_yaw_control(fp32 *vx_set, fp32 *vy_se
   * @retval         返回空
   */
 
-static void chassis_engineer_follow_chassis_yaw_control(fp32 *vx_set, fp32 *vy_set, fp32 *angle_set, chassis_move_t *chassis_move_rc_to_vector)
+static void chassis_engineer_follow_chassis_yaw_control(float32_t *vx_set, float32_t *vy_set, float32_t *angle_set, chassis_move_t *chassis_move_rc_to_vector)
 {
     if (vx_set == NULL || vy_set == NULL || angle_set == NULL || chassis_move_rc_to_vector == NULL)
     {
@@ -573,7 +573,7 @@ static void chassis_engineer_follow_chassis_yaw_control(fp32 *vx_set, fp32 *vy_s
   * @retval         返回空
   */
 
-static void chassis_no_follow_yaw_control(fp32 *vx_set, fp32 *vy_set, fp32 *wz_set, chassis_move_t *chassis_move_rc_to_vector)
+static void chassis_no_follow_yaw_control(float32_t *vx_set, float32_t *vy_set, float32_t *wz_set, chassis_move_t *chassis_move_rc_to_vector)
 {
     if (vx_set == NULL || vy_set == NULL || wz_set == NULL || chassis_move_rc_to_vector == NULL)
     {
@@ -603,7 +603,7 @@ static void chassis_no_follow_yaw_control(fp32 *vx_set, fp32 *vy_set, fp32 *wz_s
   * @retval         none
   */
 
-static void chassis_open_set_control(fp32 *vx_set, fp32 *vy_set, fp32 *wz_set, chassis_move_t *chassis_move_rc_to_vector)
+static void chassis_open_set_control(float32_t *vx_set, float32_t *vy_set, float32_t *wz_set, chassis_move_t *chassis_move_rc_to_vector)
 {
     if (vx_set == NULL || vy_set == NULL || wz_set == NULL || chassis_move_rc_to_vector == NULL)
     {

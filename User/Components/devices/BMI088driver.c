@@ -3,8 +3,8 @@
 #include "BMI088Middleware.h"
 
 
-fp32 BMI088_ACCEL_SEN = BMI088_ACCEL_3G_SEN;
-fp32 BMI088_GYRO_SEN = BMI088_GYRO_2000_SEN;
+float32_t BMI088_ACCEL_SEN = BMI088_ACCEL_3G_SEN;
+float32_t BMI088_GYRO_SEN = BMI088_GYRO_2000_SEN;
 
 
 
@@ -377,7 +377,7 @@ void BMI088_read_accel_who_am_i(void)
 
 
 
-void BMI088_temperature_read_over(uint8_t *rx_buf, fp32 *temperate)
+void BMI088_temperature_read_over(uint8_t *rx_buf, float32_t *temperate)
 {
     int16_t bmi088_raw_temp;
     bmi088_raw_temp = (int16_t)((rx_buf[0] << 3) | (rx_buf[1] >> 5));
@@ -390,7 +390,7 @@ void BMI088_temperature_read_over(uint8_t *rx_buf, fp32 *temperate)
 
 }
 
-void BMI088_accel_read_over(uint8_t *rx_buf, fp32 accel[3], fp32 *time)
+void BMI088_accel_read_over(uint8_t *rx_buf, float32_t accel[3], float32_t *time)
 {
     int16_t bmi088_raw_temp;
     uint32_t sensor_time;
@@ -405,7 +405,7 @@ void BMI088_accel_read_over(uint8_t *rx_buf, fp32 accel[3], fp32 *time)
 
 }
 
-void BMI088_gyro_read_over(uint8_t *rx_buf, fp32 gyro[3])
+void BMI088_gyro_read_over(uint8_t *rx_buf, float32_t gyro[3])
 {
     int16_t bmi088_raw_temp;
     bmi088_raw_temp = (int16_t)((rx_buf[1]) << 8) | rx_buf[0];
@@ -416,7 +416,7 @@ void BMI088_gyro_read_over(uint8_t *rx_buf, fp32 gyro[3])
     gyro[2] = bmi088_raw_temp * BMI088_GYRO_SEN;
 }
 
-void BMI088_read(fp32 gyro[3], fp32 accel[3], fp32 *temperate)
+void BMI088_read(float32_t gyro[3], float32_t accel[3], float32_t *temperate)
 {
     uint8_t buf[8] = {0, 0, 0, 0, 0, 0};
     int16_t bmi088_raw_temp;
@@ -463,10 +463,10 @@ uint32_t get_BMI088_sensor_time(void)
     return sensor_time;
 }
 
-fp32 get_BMI088_temperate(void)
+float32_t get_BMI088_temperate(void)
 {
     uint8_t buf[2];
-    fp32 temperate;
+    float32_t temperate;
     int16_t temperate_raw_temp;
 
     BMI088_accel_read_muli_reg(BMI088_TEMP_M, buf, 2);
@@ -498,7 +498,7 @@ void get_BMI088_gyro(int16_t gyro[3])
     gyro[2] = gyro_raw_temp ;
 }
 
-void get_BMI088_accel(fp32 accel[3])
+void get_BMI088_accel(float32_t accel[3])
 {
     uint8_t buf[6] = {0, 0, 0, 0, 0, 0};
     int16_t accel_raw_temp;

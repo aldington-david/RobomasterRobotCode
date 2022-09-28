@@ -5,7 +5,7 @@ extern ADC_HandleTypeDef hadc2;
 extern ADC_HandleTypeDef hadc3;
 
 
-volatile fp32 voltage_vrefint_proportion = 8.0586080586080586080586080586081e-4f;
+volatile float32_t voltage_vrefint_proportion = 8.0586080586080586080586080586081e-4f;
 static uint16_t adcx_get_chx_value(ADC_HandleTypeDef *ADCx, uint32_t ch)
 {
     static ADC_ChannelConfTypeDef sConfig = {0};
@@ -36,26 +36,26 @@ void init_vrefint_reciprocal(void)
     voltage_vrefint_proportion = 200 * 1.2f / total_adc;
 
 }
-fp32 get_temprate(void)
+float32_t get_temprate(void)
 {
     uint16_t adcx = 0;
-    fp32 temperate;
+    float32_t temperate;
 
     adcx = adcx_get_chx_value(&hadc1, ADC_CHANNEL_TEMPSENSOR);
-    temperate = (fp32)adcx * voltage_vrefint_proportion;
+    temperate = (float32_t)adcx * voltage_vrefint_proportion;
     temperate = (temperate - 0.76f) * 400.0f + 25.0f;
 
     return temperate;
 }
 
 
-fp32 get_battery_voltage(void)
+float32_t get_battery_voltage(void)
 {
-    fp32 voltage;
+    float32_t voltage;
     uint16_t adcx = 0;
 
     adcx = adcx_get_chx_value(&hadc3, ADC_CHANNEL_8);
-    voltage =  (fp32)adcx * voltage_vrefint_proportion * 10.090909090909090909090909090909f;
+    voltage = (float32_t)adcx * voltage_vrefint_proportion * 10.090909090909090909090909090909f;
 
     return voltage;
 }
