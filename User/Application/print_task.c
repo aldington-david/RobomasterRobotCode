@@ -39,6 +39,7 @@
 #include "led_flow_task.h"
 #include "gimbal_behaviour.h"
 #include "DWT.h"
+#include "arm_math.h"
 
 
 #if PRINTF_MODE == RTT_MODE
@@ -88,6 +89,11 @@ float32_t pid_pout_probe = 0;
 float32_t pid_iout_probe = 0;
 float32_t pid_dout_probe = 0;
 
+//for_test
+arm_matrix_instance_f32 testmatrix1;
+arm_matrix_instance_f32 testmatrix2;
+float matrixdata1[9] = {1,2,3,4,5,6,7,8,9};
+float matrixdata2[9] = {0};
 void print_task(void const *argument) {
     if (PRINTF_MODE == USB_MODE) {
         error_list_print_local = get_error_list_point();
@@ -131,6 +137,19 @@ referee usart:%s\r\n\
     if (PRINTF_MODE == RTT_MODE) {
         error_list_print_local = get_error_list_point();
         vTaskDelay(pdMS_TO_TICKS(500));
+        //for_test
+        arm_mat_init_f32(&testmatrix1,3,3,matrixdata1);
+        arm_mat_init_f32(&testmatrix2,3,3,matrixdata2);
+        for(int8_t i =0;i<9;i++){
+            SEGGER_RTT_printf(0,"1[%d] = %f\r\n", i, matrixdata1[i]);
+        }
+        for(int8_t i =0;i<9;i++){
+            SEGGER_RTT_printf(0,"2[%d] = %f\r\n", i, matrixdata2[i]);
+        }
+        arm_mat_trans_f32(&testmatrix1,&testmatrix2);
+        for(int8_t i =0;i<9;i++){
+            SEGGER_RTT_printf(0,"2[%d] = %f\r\n", i, matrixdata2[i]);
+        }
         TickType_t LoopStartTime;
         while (1) {
             DWT_update_task_time_us(&global_task_time.tim_print_task);
