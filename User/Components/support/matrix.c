@@ -63,6 +63,8 @@ void Matrix_vSetMatrixInvalid(matrix_f32_t *matrix_op) {
     matrix_op->arm_matrix.numRows = -1;
     matrix_op->arm_matrix.numCols = -1;
     matrix_op->is_valid = false;
+    matrix_op->arm_matrix.pData = NULL;
+    vPortFree(matrix_op->p2Data);
 
 }
 
@@ -105,6 +107,9 @@ bool Matrix_bMatrixIsEqual(matrix_f32_t *matrix_L, matrix_f32_t *matrix_R) {
 }
 
 extern void Matrix_vadd(matrix_f32_t *matrix_L, matrix_f32_t *matrix_R, matrix_f32_t *matrix_result) {
+    if (matrix_result->p2Data == NULL) {
+        Matrix_nodata_creat(matrix_result, matrix_L->arm_matrix.numRows, matrix_L->arm_matrix.numCols, InitMatWithZero);
+    }
     if ((matrix_L->arm_matrix.numRows != matrix_R->arm_matrix.numRows) ||
         (matrix_L->arm_matrix.numCols != matrix_R->arm_matrix.numCols)) {
         Matrix_vSetMatrixInvalid(matrix_result);
@@ -115,6 +120,9 @@ extern void Matrix_vadd(matrix_f32_t *matrix_L, matrix_f32_t *matrix_R, matrix_f
 }
 
 extern void Matrix_vsub(matrix_f32_t *matrix_L, matrix_f32_t *matrix_R, matrix_f32_t *matrix_result) {
+    if (matrix_result->p2Data == NULL) {
+        Matrix_nodata_creat(matrix_result, matrix_L->arm_matrix.numRows, matrix_L->arm_matrix.numCols, InitMatWithZero);
+    }
     if ((matrix_L->arm_matrix.numRows != matrix_R->arm_matrix.numRows) ||
         (matrix_L->arm_matrix.numCols != matrix_R->arm_matrix.numCols)) {
         Matrix_vSetMatrixInvalid(matrix_result);
@@ -131,8 +139,12 @@ void Matrix_vGetNegative(matrix_f32_t *matrix_op) {
 }
 
 void Matrix_vmult(matrix_f32_t *matrix_L, matrix_f32_t *matrix_R, matrix_f32_t *matrix_result) {
-    if ((matrix_L->arm_matrix.numRows != matrix_R->arm_matrix.numRows) ||
-        (matrix_L->arm_matrix.numCols != matrix_R->arm_matrix.numCols)) {
+    if (matrix_result->p2Data == NULL) {
+        Matrix_nodata_creat(matrix_result, matrix_L->arm_matrix.numRows, matrix_R->arm_matrix.numCols, InitMatWithZero);
+    }
+    if ((matrix_L->arm_matrix.numCols != matrix_R->arm_matrix.numRows) ||
+        (matrix_result->arm_matrix.numRows != matrix_L->arm_matrix.numRows) ||
+        (matrix_result->arm_matrix.numCols != matrix_R->arm_matrix.numCols)) {
         Matrix_vSetMatrixInvalid(matrix_result);
     }
     if (matrix_L->is_valid && matrix_R->is_valid && matrix_result->is_valid) {
@@ -186,12 +198,14 @@ void Matrix_vSetIdentity(matrix_f32_t *matrix_op) {
 
 void Matrix_vInsertVector(matrix_f32_t *matrix_op, matrix_f32_t *_vector, const int16_t _posColumn,
                           matrix_f32_t *matrix_result) {
+    if (matrix_result != matrix_op) {
+        Matrix_vCopy(matrix_op, matrix_result);
+    }
     if ((_vector->arm_matrix.numRows > matrix_op->arm_matrix.numRows) ||
         (_vector->arm_matrix.numCols + _posColumn > matrix_op->arm_matrix.numCols)) {
         /* Return false */
         Matrix_vSetMatrixInvalid(matrix_result);
     }
-    Matrix_vCopy(matrix_op, matrix_result);
     for (int16_t _i = 0; _i < _vector->arm_matrix.numRows; _i++) {
         (matrix_result->p2Data)[_i][_posColumn] = (_vector->p2Data)[_i][0];
     }
@@ -202,13 +216,15 @@ void Matrix_vInsertAllSubMatrix(matrix_f32_t *matrix_op, matrix_f32_t *_subMatri
                                 const int16_t _lenRow,
                                 const int16_t _lenColumn, matrix_f32_t
                                 *matrix_result) {
+    if (matrix_result != matrix_op) {
+        Matrix_vCopy(matrix_op, matrix_result);
+    }
     if (((_lenRow + _posRow) > matrix_op->arm_matrix.numRows) ||
         ((_lenColumn + _posColumn) > matrix_op->arm_matrix.numCols) ||
         (_lenRow > _subMatrix->arm_matrix.numRows) || (_lenColumn > _subMatrix->arm_matrix.numCols)) {
 /* Return false */
         Matrix_vSetMatrixInvalid(matrix_result);
     }
-    Matrix_vCopy(matrix_op, matrix_result);
     for (int16_t _i = 0; _i < _lenRow; _i++) {
         for (int16_t _j = 0; _j < _lenColumn; _j++) {
             (matrix_result->p2Data)[_i + _posRow][_j + _posColumn] = (_subMatrix->p2Data)[_i][_j];
@@ -220,6 +236,9 @@ void Matrix_vInsertPartSubMatrix(matrix_f32_t *matrix_op, matrix_f32_t *_subMatr
                                  const int16_t _posColumn, const int16_t _posRowSub, const int16_t _posColumnSub,
                                  const int16_t _lenRow, const int16_t _lenColumn,
                                  matrix_f32_t *matrix_result) {
+    if (matrix_result != matrix_op) {
+        Matrix_vCopy(matrix_op, matrix_result);
+    }
     if (((_lenRow + _posRow) > matrix_op->arm_matrix.numRows) ||
         ((_lenColumn + _posColumn) > matrix_op->arm_matrix.numCols) ||
         ((_posRowSub + _lenRow) > _subMatrix->arm_matrix.numRows) ||
@@ -227,7 +246,6 @@ void Matrix_vInsertPartSubMatrix(matrix_f32_t *matrix_op, matrix_f32_t *_subMatr
 /* Return false */
         Matrix_vSetMatrixInvalid(matrix_result);
     }
-    Matrix_vCopy(matrix_op, matrix_result);
     for (int16_t _i = 0; _i < _lenRow; _i++) {
         for (int16_t _j = 0; _j < _lenColumn; _j++) {
             (matrix_result->p2Data)[_i + _posRow][_j + _posColumn] = (_subMatrix->p2Data)[
