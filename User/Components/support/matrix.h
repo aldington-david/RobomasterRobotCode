@@ -144,6 +144,53 @@ extern void Matrix_vInsertPartSubMatrix(matrix_f32_t *matrix_op, matrix_f32_t *_
                                         const int16_t _lenRow, const int16_t _lenColumn,
                                         matrix_f32_t *matrix_result);
 
+extern void Matrix_vTranspose_nsame(matrix_f32_t *matrix_op, matrix_f32_t *matrix_result);
+
+extern bool Matrix_bNormVector(matrix_f32_t *matrix_op);
+
+/* Invers operation using Gauss-Jordan algorithm */
+extern void Matrix_vInverse_nsame(matrix_f32_t *matrix_op, matrix_f32_t *matrix_result);
+
+/* Use elemtary row operation to reduce the matrix into upper triangular form (like in the first phase of gauss-jordan algorithm).
+ *
+ * Useful if we want to check the matrix as positive definite or not (can be used before calling CholeskyDec function).
+ */
+extern bool Matrix_bMatrixIsPositiveDefinite(matrix_f32_t *matrix_op, bool checkPosSemidefinite);
+
+/* For square matrix 'this' with size MxM, return vector Mx1 with entries corresponding with diagonal entries of 'this'.
+ *  Example:    this = [a11 a12 a13]
+ *                     [a21 a22 a23]
+ *                     [a31 a32 a33]
+ *
+ * out = this.GetDiagonalEntries() = [a11]
+ *                                   [a22]
+ *                                   [a33]
+ */
+extern void Matrix_vGetDiagonalEntries(matrix_f32_t *matrix_op, matrix_f32_t *matrix_result);
+
+/* Do the Cholesky Decomposition using Cholesky-Crout algorithm.
+ *
+ *      A = L*L'     ; A = real, positive definite, and symmetry MxM matrix
+ *
+ *      L = A.CholeskyDec();
+ *
+ *      CATATAN! NOTE! The symmetry property is not checked at the beginning to lower
+ *          the computation cost. The processing is being done on the lower triangular
+ *          component of _A. Then it is assumed the upper triangular is inherently
+ *          equal to the lower end.
+ *          (as a side note, Scilab & MATLAB is using Lapack routines DPOTRF that process
+ *           the upper triangular of _A. The result should be equal mathematically if A
+ *           is symmetry).
+ */
+extern void Matrix_vCholeskyDec(matrix_f32_t *matrix_op, matrix_f32_t *matrix_result);
+
+/* Do the Householder Transformation for QR Decomposition operation.
+ *              out = HouseholderTransformQR(A, i, j)
+ */
+extern void
+Matrix_vHouseholderTransformQR(matrix_f32_t *matrix_op, const int16_t _rowTransform, const int16_t _columnTransform,
+                               matrix_f32_t *matrix_result);
+
 extern void Matrix_vCopy(matrix_f32_t *matrix_op, matrix_f32_t *matrix_result);
 
 extern void
