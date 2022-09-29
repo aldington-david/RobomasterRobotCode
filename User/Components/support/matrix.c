@@ -10,7 +10,11 @@ void Matrix_nodata_creat(matrix_f32_t *matrix_op, const int16_t _i16row, const i
     matrix_op->arm_matrix.numRows = _i16row;
     matrix_op->arm_matrix.numCols = _i16col;
     matrix_op->is_valid = true;
-    matrix_op->arm_matrix.pData = (float32_t *)pvPortMalloc(_i16row*_i16col*sizeof(float32_t));
+    matrix_op->p2Data = (float32_t **) pvPortMalloc(
+            sizeof(float32_t *) * _i16row + sizeof(float32_t) * _i16col * _i16row);
+    matrix_op->arm_matrix.pData = (float32_t *)(matrix_op->p2Data + _i16row);
+    for(int16_t i = 0; i < _i16row; i++)
+        matrix_op->p2Data[i] = (matrix_op->arm_matrix.pData + _i16col * i);
     if (_init == InitMatWithZero) {
         Matrix_vSetHomogen(matrix_op, 0.0f);
     }
@@ -21,13 +25,17 @@ void Matrix_data_creat(matrix_f32_t *matrix_op, const int16_t _i16row, const int
     matrix_op->arm_matrix.numRows = _i16row;
     matrix_op->arm_matrix.numCols = _i16col;
     matrix_op->is_valid = true;
-    matrix_op->arm_matrix.pData = (float32_t *)pvPortMalloc(_i16row*_i16col*sizeof(float32_t));
+    matrix_op->p2Data = (float32_t **) pvPortMalloc(
+            sizeof(float32_t *) * _i16row + sizeof(float32_t) * _i16col * _i16row);
+    matrix_op->arm_matrix.pData = (float32_t *)(matrix_op->p2Data + _i16row);
+    for(int16_t i = 0; i < _i16row; i++)
+        matrix_op->p2Data[i] = (matrix_op->arm_matrix.pData + _i16col * i);
     if (_init == InitMatWithZero) {
         Matrix_vSetHomogen(matrix_op, 0.0f);
     }
     for (int16_t _i = 0; _i < matrix_op->arm_matrix.numRows; _i++) {
         for (int16_t _j = 0; _j < matrix_op->arm_matrix.numCols; _j++) {
-            (&matrix_op->arm_matrix.pData)[_i][_j] = *initData;
+            (matrix_op->p2Data)[_i][_j] = *initData;
             initData++;
         }
     }
@@ -204,16 +212,18 @@ void Matrix_vInsertPartSubMatrix(matrix_f32_t *matrix_op, matrix_f32_t *_subMatr
                                  const int16_t _posColumn, const int16_t _posRowSub, const int16_t _posColumnSub,
                                  const int16_t _lenRow, const int16_t _lenColumn,
                                  matrix_f32_t *matrix_result) {
-    if (((_lenRow+_posRow) > matrix_op->arm_matrix.numRows) || ((_lenColumn+_posColumn) > matrix_op->arm_matrix.numCols) ||
-        ((_posRowSub+_lenRow) > _subMatrix->arm_matrix.numRows) || ((_posColumnSub+_lenColumn) > _subMatrix->arm_matrix.numCols))
-    {
+    if (((_lenRow + _posRow) > matrix_op->arm_matrix.numRows) ||
+        ((_lenColumn + _posColumn) > matrix_op->arm_matrix.numCols) ||
+        ((_posRowSub + _lenRow) > _subMatrix->arm_matrix.numRows) ||
+        ((_posColumnSub + _lenColumn) > _subMatrix->arm_matrix.numCols)) {
 /* Return false */
         Matrix_vSetMatrixInvalid(matrix_result);
     }
     Matrix_vCopy(matrix_op, matrix_result);
     for (int16_t _i = 0; _i < _lenRow; _i++) {
         for (int16_t _j = 0; _j < _lenColumn; _j++) {
-            (&matrix_result->arm_matrix.pData)[_i + _posRow][_j + _posColumn] = (&_subMatrix->arm_matrix.pData)[_posRowSub+_i][_posColumnSub+_j];
+            (&matrix_result->arm_matrix.pData)[_i + _posRow][_j + _posColumn] = (&_subMatrix->arm_matrix.pData)[
+                    _posRowSub + _i][_posColumnSub + _j];
         }
     }
 }
@@ -227,7 +237,7 @@ void Matrix_vSetHomogen(matrix_f32_t *matrix_op, const float32_t _val) {
     if (matrix_op->is_valid) {
         for (int16_t _i = 0; _i < matrix_op->arm_matrix.numRows; _i++) {
             for (int16_t _j = 0; _j < matrix_op->arm_matrix.numCols; _j++) {
-                (&matrix_op->arm_matrix.pData)[_i][_j] = _val;
+                (matrix_op->p2Data)[_i][_j] = _val;
             }
         }
     }

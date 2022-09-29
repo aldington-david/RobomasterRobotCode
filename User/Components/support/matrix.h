@@ -34,6 +34,7 @@ typedef enum {
 
 typedef struct {
     arm_matrix_instance_f32 arm_matrix;
+    float32_t **p2Data;
     bool is_valid;
 } matrix_f32_t;
 
