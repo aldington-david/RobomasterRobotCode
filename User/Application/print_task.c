@@ -140,20 +140,23 @@ referee usart:%s\r\n\
         error_list_print_local = get_error_list_point();
         vTaskDelay(pdMS_TO_TICKS(500));
         //for_test
-        Matrix_data_creat(&mymatrix1,3,3,matrixdata1,NoInitMatZero);
+//        Matrix_data_creat(&mymatrix1,3,3,matrixdata1,NoInitMatZero);
 //        arm_mat_init_f32(&testmatrix1,3,3,matrixdata1);
 //        arm_mat_init_f32(&testmatrix2,3,3,matrixdata2);
-        for(int8_t i =0;i<9;i++){
-            SEGGER_RTT_printf(0,"1[%d] = %f\r\n", i, matrixdata1[i]);
-        }
-        for(int8_t i =0;i<3;i++){
-            for(int8_t j =0;j<3;j++){
-            SEGGER_RTT_printf(0,"my1[%d][%d] = %f\r\n", i,j, mymatrix1.p2Data[i][j]);
-            }
-        }
-        for(int8_t i =0;i<3;i++){
-                SEGGER_RTT_printf(0,"my1[%d] = %f\r\n", i, mymatrix1.arm_matrix.pData[i]);
-        }
+if(mymatrix1.p2Data == NULL && mymatrix1.is_valid == 0){
+    SEGGER_RTT_WriteString(0,"YES");
+}
+//        for(int8_t i =0;i<9;i++){
+//            SEGGER_RTT_printf(0,"1[%d] = %f\r\n", i, matrixdata1[i]);
+//        }
+//        for(int8_t i =0;i<3;i++){
+//            for(int8_t j =0;j<3;j++){
+//            SEGGER_RTT_printf(0,"my1[%d][%d] = %f\r\n", i,j, mymatrix1.p2Data[i][j]);
+//            }
+//        }
+//        for(int8_t i =0;i<3;i++){
+//                SEGGER_RTT_printf(0,"my1[%d] = %f\r\n", i, mymatrix1.arm_matrix.pData[i]);
+//        }
 //        arm_mat_trans_f32(&testmatrix1,&testmatrix2);
 //        for(int8_t i =0;i<9;i++){
 //            SEGGER_RTT_printf(0,"2[%d] = %f\r\n", i, matrixdata2[i]);
