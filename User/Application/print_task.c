@@ -40,6 +40,7 @@
 #include "gimbal_behaviour.h"
 #include "DWT.h"
 #include "arm_math.h"
+#include "matrix.h"
 
 
 #if PRINTF_MODE == RTT_MODE
@@ -92,6 +93,7 @@ float32_t pid_dout_probe = 0;
 //for_test
 arm_matrix_instance_f32 testmatrix1;
 arm_matrix_instance_f32 testmatrix2;
+matrix_f32_t mymatrix1;
 float matrixdata1[9] = {1,2,3,4,5,6,7,8,9};
 float matrixdata2[9] = {0};
 void print_task(void const *argument) {
@@ -138,18 +140,24 @@ referee usart:%s\r\n\
         error_list_print_local = get_error_list_point();
         vTaskDelay(pdMS_TO_TICKS(500));
         //for_test
-        arm_mat_init_f32(&testmatrix1,3,3,matrixdata1);
-        arm_mat_init_f32(&testmatrix2,3,3,matrixdata2);
+        Matrix_data_creat(&mymatrix1,3,3,matrixdata1,NoInitMatZero);
+//        arm_mat_init_f32(&testmatrix1,3,3,matrixdata1);
+//        arm_mat_init_f32(&testmatrix2,3,3,matrixdata2);
         for(int8_t i =0;i<9;i++){
             SEGGER_RTT_printf(0,"1[%d] = %f\r\n", i, matrixdata1[i]);
         }
-        for(int8_t i =0;i<9;i++){
-            SEGGER_RTT_printf(0,"2[%d] = %f\r\n", i, matrixdata2[i]);
+        for(int8_t i =0;i<3;i++){
+            for(int8_t j =0;j<3;j++){
+            SEGGER_RTT_printf(0,"my1[%d][%d] = %f\r\n", i,j, mymatrix1.p2Data[i][j]);
+            }
         }
-        arm_mat_trans_f32(&testmatrix1,&testmatrix2);
-        for(int8_t i =0;i<9;i++){
-            SEGGER_RTT_printf(0,"2[%d] = %f\r\n", i, matrixdata2[i]);
+        for(int8_t i =0;i<3;i++){
+                SEGGER_RTT_printf(0,"my1[%d] = %f\r\n", i, mymatrix1.arm_matrix.pData[i]);
         }
+//        arm_mat_trans_f32(&testmatrix1,&testmatrix2);
+//        for(int8_t i =0;i<9;i++){
+//            SEGGER_RTT_printf(0,"2[%d] = %f\r\n", i, matrixdata2[i]);
+//        }
         TickType_t LoopStartTime;
         while (1) {
             DWT_update_task_time_us(&global_task_time.tim_print_task);
