@@ -70,7 +70,7 @@ extern void Matrix_vsub(matrix_f32_t *matrix_L, matrix_f32_t *matrix_R, matrix_f
 
 extern void Matrix_vGetNegative(matrix_f32_t *matrix_op);
 
-extern void Matrix_vmult(matrix_f32_t *matrix_L, matrix_f32_t *matrix_R, matrix_f32_t *matrix_result);
+extern void Matrix_vmult_nsame(matrix_f32_t *matrix_L, matrix_f32_t *matrix_R, matrix_f32_t *matrix_result);
 
 extern void Matrix_vRoundingElementToZero(matrix_f32_t *matrix_op, const int16_t _i, const int16_t _j);
 
@@ -203,8 +203,29 @@ Matrix_vHouseholderTransformQR(matrix_f32_t *matrix_op, const int16_t _rowTransf
  *                      Rx = Q'b    --> Afterward use back-subtitution to solve x
  */
 extern bool Matrix_bQRDec(matrix_f32_t *matrix_op, matrix_f32_t *Qt,matrix_f32_t *R);
-extern void Matrix_vCopy(matrix_f32_t *matrix_op, matrix_f32_t *matrix_result);
+/* Do the back-subtitution opeartion for upper triangular matrix A & column matrix B to solve x:
+ *                      Ax = B
+ *
+ * x = BackSubtitution(&A, &B);
+ *
+ * CATATAN! NOTE! To lower the computation cost, we don't check that A is a upper triangular
+ *  matrix (it's assumed that user already make sure before calling this routine).
+ */
+extern void Matrix_vBackSubtitution(matrix_f32_t * upper_tri_A, matrix_f32_t *matrix_B,matrix_f32_t *matrix_result);
+/*Not yet tested, but should be working (?)*/
 
+/* Melakukan operasi Forward-subtitution pada matrix triangular A & matrix kolom B.
+ *                      Ax = B
+ *
+ *  Untuk menghemat komputansi, matrix A tidak dilakukan pengecekan triangular
+ * (diasumsikan sudah lower-triangular).
+ */
+extern void Matrix_vForwardSubtitution(matrix_f32_t * lower_tri_A, matrix_f32_t *matrix_B,matrix_f32_t *matrix_result);
+extern void Matrix_vRoundingadd(matrix_f32_t *matrix_op, const float32_t _val);
+extern void Matrix_vRoundingsub(matrix_f32_t *matrix_op, const float32_t _val,bool minuend__val);
+extern void Matrix_vscale(matrix_f32_t *matrix_op, const float32_t _val);
+extern void Matrix_vCopy(matrix_f32_t *matrix_op, matrix_f32_t *matrix_result);
+extern void Matrix_vMove(matrix_f32_t *matrix_op, matrix_f32_t *matrix_result);
 extern void
 Matrix_vassignment(matrix_f32_t *matrix_op, const int16_t _i16row, const int16_t _i16col, const float32_t _val);
 
