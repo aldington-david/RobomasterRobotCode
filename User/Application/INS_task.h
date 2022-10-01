@@ -75,6 +75,14 @@
 
 extern float32_t INS_angle[3];
 
+//New_AHRS_Define
+/* ================================================= UKF Variables/function declaration ================================================= */
+/* UKF initialization constant */
+#define P_INIT       (10.0f)
+#define Rv_INIT      (1e-6f)
+#define Rn_INIT_ACC  (0.0015f/10.0f)
+#define Rn_INIT_MAG  (0.0015f/10.0f)
+
 /**
   * @brief          获取INS_task栈大小
   * @param[in]      none
@@ -186,5 +194,7 @@ extern const float32_t *get_accel_data_point(void);
   * @retval         INS_mag的指针
   */
 extern const float32_t *get_mag_data_point(void);
+
+static void New_AHRS_Init(void);
 
 #endif

@@ -21,7 +21,7 @@ void Matrix_nodata_creat(matrix_f32_t *matrix_op, const int16_t _i16row, const i
         }
         matrix_op->is_valid = true;
     }
-    if (_init == InitMatWithZero) {
+    if (_init == InitMatZero) {
         Matrix_vSetHomogen(matrix_op, 0.0f);
     }
 }
@@ -40,7 +40,7 @@ void Matrix_data_creat(matrix_f32_t *matrix_op, const int16_t _i16row, const int
         }
         matrix_op->is_valid = true;
     }
-    if (_init == InitMatWithZero) {
+    if (_init == InitMatZero) {
         Matrix_vSetHomogen(matrix_op, 0.0f);
     }
     for (int16_t _i = 0; _i < matrix_op->arm_matrix.numRows; _i++) {
@@ -112,7 +112,7 @@ extern void Matrix_vadd(matrix_f32_t *matrix_L, matrix_f32_t *matrix_R, matrix_f
     if (Matrix_bMatrixIsValid(matrix_L) && Matrix_bMatrixIsValid(matrix_R)) {
         if (matrix_result->p2Data == NULL) {
             Matrix_nodata_creat(matrix_result, matrix_L->arm_matrix.numRows, matrix_L->arm_matrix.numCols,
-                                InitMatWithZero);
+                                InitMatZero);
         }
         if ((matrix_L->arm_matrix.numRows != matrix_R->arm_matrix.numRows) ||
             (matrix_L->arm_matrix.numCols != matrix_R->arm_matrix.numCols)) {
@@ -128,7 +128,7 @@ extern void Matrix_vsub(matrix_f32_t *matrix_L, matrix_f32_t *matrix_R, matrix_f
     if (Matrix_bMatrixIsValid(matrix_L) && Matrix_bMatrixIsValid(matrix_R)) {
         if (matrix_result->p2Data == NULL) {
             Matrix_nodata_creat(matrix_result, matrix_L->arm_matrix.numRows, matrix_L->arm_matrix.numCols,
-                                InitMatWithZero);
+                                InitMatZero);
         }
         if ((matrix_L->arm_matrix.numRows != matrix_R->arm_matrix.numRows) ||
             (matrix_L->arm_matrix.numCols != matrix_R->arm_matrix.numCols)) {
@@ -150,7 +150,7 @@ void Matrix_vmult_nsame(matrix_f32_t *matrix_L, matrix_f32_t *matrix_R, matrix_f
     if (Matrix_bMatrixIsValid(matrix_L) && Matrix_bMatrixIsValid(matrix_R)) {
         if (matrix_result->p2Data == NULL) {
             Matrix_nodata_creat(matrix_result, matrix_L->arm_matrix.numRows, matrix_R->arm_matrix.numCols,
-                                InitMatWithZero);
+                                InitMatZero);
         }
         if ((matrix_L->arm_matrix.numCols != matrix_R->arm_matrix.numRows) ||
             (matrix_result->arm_matrix.numRows != matrix_L->arm_matrix.numRows) ||
@@ -287,7 +287,7 @@ void Matrix_vInsertPartSubMatrix(matrix_f32_t *matrix_op, matrix_f32_t *_subMatr
 void Matrix_vTranspose_nsame(matrix_f32_t *matrix_op, matrix_f32_t *matrix_result) {
     if (matrix_result->p2Data == NULL) {
         Matrix_nodata_creat(matrix_result, matrix_op->arm_matrix.numCols, matrix_op->arm_matrix.numRows,
-                            InitMatWithZero);
+                            InitMatZero);
     }
     if (Matrix_bMatrixIsValid(matrix_op) && Matrix_bMatrixIsValid(matrix_result)) {
         arm_mat_trans_f32(&matrix_op->arm_matrix, &matrix_result->arm_matrix);
@@ -325,7 +325,7 @@ bool Matrix_bNormVector(matrix_f32_t *matrix_op) {
 void Matrix_vInverse_nsame(matrix_f32_t *matrix_op, matrix_f32_t *matrix_result) {
     if (matrix_result->p2Data == NULL) {
         Matrix_nodata_creat(matrix_result, matrix_op->arm_matrix.numRows, matrix_op->arm_matrix.numCols,
-                            InitMatWithZero);
+                            InitMatZero);
     }
     if (Matrix_bMatrixIsValid(matrix_op) && Matrix_bMatrixIsValid(matrix_result)) {
         arm_mat_inverse_f32(&matrix_op->arm_matrix, &matrix_result->arm_matrix);
@@ -386,7 +386,7 @@ bool Matrix_bMatrixIsPositiveDefinite(matrix_f32_t *matrix_op, bool checkPosSemi
 void Matrix_vGetDiagonalEntries(matrix_f32_t *matrix_op, matrix_f32_t *matrix_result) {
     if (Matrix_bMatrixIsValid(matrix_op)) {
         if (matrix_result->p2Data == NULL) {
-            Matrix_nodata_creat(matrix_result, matrix_op->arm_matrix.numRows, 1, InitMatWithZero);
+            Matrix_nodata_creat(matrix_result, matrix_op->arm_matrix.numRows, 1, InitMatZero);
         }
         if (matrix_op->arm_matrix.numRows != matrix_op->arm_matrix.numCols) {
             Matrix_vSetMatrixInvalid(matrix_result);
@@ -400,7 +400,7 @@ void Matrix_vGetDiagonalEntries(matrix_f32_t *matrix_op, matrix_f32_t *matrix_re
 void Matrix_vCholeskyDec(matrix_f32_t *matrix_op, matrix_f32_t *matrix_result) {
     if (matrix_result->p2Data == NULL) {
         Matrix_nodata_creat(matrix_result, matrix_op->arm_matrix.numRows, matrix_op->arm_matrix.numCols,
-                            InitMatWithZero);
+                            InitMatZero);
     }
     if (Matrix_bMatrixIsValid(matrix_op) && Matrix_bMatrixIsValid(matrix_result)) {
         arm_mat_cholesky_f32(&matrix_op->arm_matrix, &matrix_result->arm_matrix);
@@ -419,10 +419,10 @@ Matrix_vHouseholderTransformQR(matrix_f32_t *matrix_op, const int16_t _rowTransf
 
         if (matrix_result->p2Data == NULL) {
             Matrix_nodata_creat(matrix_result, matrix_op->arm_matrix.numRows, matrix_op->arm_matrix.numRows,
-                                InitMatWithZero);
+                                InitMatZero);
         }
         matrix_f32_t _vectTemp;
-        Matrix_nodata_creat(&_vectTemp, matrix_op->arm_matrix.numRows, 1, InitMatWithZero);
+        Matrix_nodata_creat(&_vectTemp, matrix_op->arm_matrix.numRows, 1, InitMatZero);
         if ((_rowTransform >= matrix_op->arm_matrix.numRows) ||
             (_columnTransform >= matrix_op->arm_matrix.numCols)) {
             Matrix_vSetMatrixInvalid(matrix_result);
@@ -485,7 +485,7 @@ bool Matrix_bQRDec(matrix_f32_t *matrix_op, matrix_f32_t *Qt, matrix_f32_t *R) {
     if (Matrix_bMatrixIsValid(matrix_op) && Matrix_bMatrixIsValid(Qt)) {
         matrix_f32_t Qn;
         matrix_f32_t _temp;
-        Matrix_nodata_creat(&Qn, Qt->arm_matrix.numRows, Qt->arm_matrix.numCols, InitMatWithZero);
+        Matrix_nodata_creat(&Qn, Qt->arm_matrix.numRows, Qt->arm_matrix.numCols, InitMatZero);
         if ((matrix_op->arm_matrix.numRows < matrix_op->arm_matrix.numCols) || (!Matrix_bMatrixIsSquare(Qt)) ||
             (Qt->arm_matrix.numRows != matrix_op->arm_matrix.numRows) ||
             (R->arm_matrix.numRows != Qt->arm_matrix.numRows) ||
@@ -519,7 +519,7 @@ bool Matrix_bQRDec(matrix_f32_t *matrix_op, matrix_f32_t *Qt, matrix_f32_t *R) {
 
 void Matrix_vBackSubtitution(matrix_f32_t *upper_tri_A, matrix_f32_t *matrix_B, matrix_f32_t *matrix_result) {
     if (matrix_result->p2Data == NULL) {
-        Matrix_nodata_creat(matrix_result, upper_tri_A->arm_matrix.numRows, 1, InitMatWithZero);
+        Matrix_nodata_creat(matrix_result, upper_tri_A->arm_matrix.numRows, 1, InitMatZero);
     }
     if (Matrix_bMatrixIsValid(upper_tri_A) && Matrix_bMatrixIsValid(matrix_B) &&
         Matrix_bMatrixIsValid(matrix_result)) {
@@ -530,7 +530,7 @@ void Matrix_vBackSubtitution(matrix_f32_t *upper_tri_A, matrix_f32_t *matrix_B, 
 
 void Matrix_vForwardSubtitution(matrix_f32_t *lower_tri_A, matrix_f32_t *matrix_B, matrix_f32_t *matrix_result) {
     if (matrix_result->p2Data == NULL) {
-        Matrix_nodata_creat(matrix_result, lower_tri_A->arm_matrix.numRows, 1, InitMatWithZero);
+        Matrix_nodata_creat(matrix_result, lower_tri_A->arm_matrix.numRows, 1, InitMatZero);
     }
     if (Matrix_bMatrixIsValid(lower_tri_A) && Matrix_bMatrixIsValid(matrix_B) &&
         Matrix_bMatrixIsValid(matrix_result)) {

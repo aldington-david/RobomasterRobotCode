@@ -28,7 +28,7 @@
 
 
 typedef enum {
-    InitMatWithZero,    /* Initialize matrix with zero */
+    InitMatZero,    /* Initialize matrix with zero */
     NoInitMatZero
 } InitZero;
 

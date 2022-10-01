@@ -37,6 +37,7 @@
 #include "calibrate_task.h"
 #include "detect_task.h"
 #include "DWT.h"
+#include "matrix.h"
 
 
 #define IMU_temp_PWM(pwm)  imu_pwm_set(pwm)                    //pwm给定
@@ -73,7 +74,8 @@
   * @retval         none
   */
 static void
-imu_cali_slove(float32_t gyro[3], float32_t accel[3], float32_t mag[3], bmi088_real_data_t *bmi088, ist8310_real_data_t *ist8310);
+imu_cali_slove(float32_t gyro[3], float32_t accel[3], float32_t mag[3], bmi088_real_data_t *bmi088,
+               ist8310_real_data_t *ist8310);
 
 /**
   * @brief          control the temperature of bmi088
@@ -159,10 +161,47 @@ float32_t INS_mag[3] = {0.0f, 0.0f, 0.0f};
 float32_t INS_quat[4] = {0.0f, 0.0f, 0.0f, 0.0f};
 float32_t INS_angle[3] = {0.0f, 0.0f, 0.0f};      //euler angle, unit rad.欧拉角 单位 rad
 
+//new_AHRS_define
+float32_t RLS_lambda = 0.999f;/* Forgetting factor */
+matrix_f32_t RLS_theta;/* The variables we want to indentify */
+matrix_f32_t RLS_P;/* Inverse of correction estimation */
+matrix_f32_t RLS_in;/* Input data */
+matrix_f32_t RLS_out;/* Output data */
+matrix_f32_t RLS_gain;/* RLS gain */
+uint32_t RLS_u32iterData = 0;/* To track how much data we take */
+/* P(k=0) variable --------------------------------------------------------------------------------------------------------- */
+float32_t UKF_PINIT_data[SS_X_LEN * SS_X_LEN] = {P_INIT, 0, 0, 0,
+                                                 0, P_INIT, 0, 0,
+                                                 0, 0, P_INIT, 0,
+                                                 0, 0, 0, P_INIT};
+matrix_f32_t UKF_PINIT;
+/* Q constant -------------------------------------------------------------------------------------------------------------- */
+float UKF_Rv_data[SS_X_LEN * SS_X_LEN] = {Rv_INIT, 0, 0, 0,
+                                          0, Rv_INIT, 0, 0,
+                                          0, 0, Rv_INIT, 0,
+                                          0, 0, 0, Rv_INIT};
+matrix_f32_t UKF_Rv;
+/* R constant -------------------------------------------------------------------------------------------------------------- */
+float32_t UKF_Rn_data[SS_Z_LEN * SS_Z_LEN] = {Rn_INIT_ACC, 0, 0, 0, 0, 0,
+                                              0, Rn_INIT_ACC, 0, 0, 0, 0,
+                                              0, 0, Rn_INIT_ACC, 0, 0, 0,
+                                              0, 0, 0, Rn_INIT_MAG, 0, 0,
+                                              0, 0, 0, 0, Rn_INIT_MAG, 0,
+                                              0, 0, 0, 0, 0, Rn_INIT_MAG};
+matrix_f32_t UKF_Rn;
+void New_AHRS_Init(void) {
+    Matrix_nodata_creat(&RLS_theta, 4, 1, InitMatZero);
+    Matrix_nodata_creat(&RLS_P, 4, 4, InitMatZero);
+    Matrix_nodata_creat(&RLS_in, 4, 1, InitMatZero);
+    Matrix_nodata_creat(&RLS_out, 1, 1, InitMatZero);
+    Matrix_nodata_creat(&RLS_gain, 4, 1, InitMatZero);
 
+    Matrix_data_creat(&UKF_PINIT, SS_X_LEN, SS_X_LEN, UKF_PINIT_data, NoInitMatZero);
 
+    Matrix_data_creat(&UKF_Rv, SS_X_LEN, SS_X_LEN, UKF_Rv_data, NoInitMatZero);
 
-
+    Matrix_data_creat(&UKF_Rn, SS_Z_LEN, SS_Z_LEN, UKF_Rn_data, NoInitMatZero);
+}
 /**
   * @brief          imu task, init bmi088, ist8310, calculate the euler angle
   * @param[in]      pvParameters: NULL
@@ -311,7 +350,8 @@ uint32_t get_stack_of_INS_task(void) {
   * @retval         none
   */
 static void
-imu_cali_slove(float32_t gyro[3], float32_t accel[3], float32_t mag[3], bmi088_real_data_t *bmi088, ist8310_real_data_t *ist8310) {
+imu_cali_slove(float32_t gyro[3], float32_t accel[3], float32_t mag[3], bmi088_real_data_t *bmi088,
+               ist8310_real_data_t *ist8310) {
     for (uint8_t i = 0; i < 3; i++) {
         gyro[i] = bmi088->gyro[0] * gyro_scale_factor[i][0] + bmi088->gyro[1] * gyro_scale_factor[i][1] +
                   bmi088->gyro[2] * gyro_scale_factor[i][2] + gyro_offset[i];
