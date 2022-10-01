@@ -190,7 +190,19 @@ extern void Matrix_vCholeskyDec(matrix_f32_t *matrix_op, matrix_f32_t *matrix_re
 extern void
 Matrix_vHouseholderTransformQR(matrix_f32_t *matrix_op, const int16_t _rowTransform, const int16_t _columnTransform,
                                matrix_f32_t *matrix_result);
-
+/* Do the QR Decomposition for matrix using Householder Transformation.
+ *                      A = Q*R
+ *
+ * PERHATIAN! CAUTION! The matrix calculated by this function return Q' and R (Q transpose and R).
+ *  Because QR Decomposition usually used to calculate solution for least-squares equation (that
+ *  need Q'), we don't do the transpose of Q inside this routine to lower the computation cost).
+ *
+ * Example of using QRDec to solve least-squares:
+ *                      Ax = b
+ *                   (QR)x = b
+ *                      Rx = Q'b    --> Afterward use back-subtitution to solve x
+ */
+extern bool Matrix_bQRDec(matrix_f32_t *matrix_op, matrix_f32_t *Qt,matrix_f32_t *R);
 extern void Matrix_vCopy(matrix_f32_t *matrix_op, matrix_f32_t *matrix_result);
 
 extern void
