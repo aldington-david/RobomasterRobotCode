@@ -32,6 +32,12 @@ typedef enum {
     NoInitMatZero
 } InitZero;
 
+typedef enum {
+    Matrix,    /* Initialize matrix with zero */
+    Linear,
+    Linear_2D,
+} PrintWay;
+
 typedef struct {
     arm_matrix_instance_f32 arm_matrix;
     float32_t **p2Data;
@@ -228,5 +234,6 @@ extern void Matrix_vCopy(matrix_f32_t *matrix_op, matrix_f32_t *matrix_result);
 extern void Matrix_vMove(matrix_f32_t *matrix_op, matrix_f32_t *matrix_result);
 extern void
 Matrix_vassignment(matrix_f32_t *matrix_op, const int16_t _i16row, const int16_t _i16col, const float32_t _val);
+extern void Matrix_print(matrix_f32_t *matrix_op,PrintWay printway);
 
 #endif //ROBOMASTERROBOTCODE_MATRIX_H

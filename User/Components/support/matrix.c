@@ -5,6 +5,8 @@
 #include "matrix.h"
 #include <stdlib.h>
 #include "FreeRTOS.h"
+#include "SEGGER_RTT.h"
+#include "printf.h"
 
 void Matrix_nodata_creat(matrix_f32_t *matrix_op, const int16_t _i16row, const int16_t _i16col, InitZero _init) {
     matrix_op->arm_matrix.numRows = _i16row;
@@ -77,7 +79,7 @@ int16_t Matrix_i16getRow(matrix_f32_t *matrix_op) {
 }
 
 int16_t Matrix_i16getCol(matrix_f32_t *matrix_op) {
-        return matrix_op->arm_matrix.numCols;
+    return matrix_op->arm_matrix.numCols;
 }
 
 void Matrix_vassignment(matrix_f32_t *matrix_op, const int16_t _i16row, const int16_t _i16col, const float32_t _val) {
@@ -587,6 +589,34 @@ void Matrix_vSetHomogen(matrix_f32_t *matrix_op, const float32_t _val) {
         for (int16_t _i = 0; _i < matrix_op->arm_matrix.numRows; _i++) {
             for (int16_t _j = 0; _j < matrix_op->arm_matrix.numCols; _j++) {
                 (matrix_op->p2Data)[_i][_j] = _val;
+            }
+        }
+    }
+}
+
+void Matrix_print(matrix_f32_t *matrix_op, PrintWay printway) {
+    if (Matrix_bMatrixIsValid(matrix_op)) {
+        char print_buf[64];
+        int len = 0;
+        if (printway == Matrix) {
+            for (int8_t i = 0; i < matrix_op->arm_matrix.numRows; i++) {
+                SEGGER_RTT_WriteString(0, "[");
+                for (int8_t j = 0; j < matrix_op->arm_matrix.numCols; j++) {
+                    len += sprintf((print_buf + len), "%3.3f ", (matrix_op->p2Data)[i][j]);
+                    SEGGER_RTT_SetTerminal(0);
+                    SEGGER_RTT_WriteString(0, print_buf);
+                }
+                SEGGER_RTT_WriteString(0, "]\r\n");
+            }
+        } else if (printway == Linear) {
+            for (int8_t i = 0; i < (matrix_op->arm_matrix.numRows * matrix_op->arm_matrix.numCols); i++) {
+                SEGGER_RTT_printf(0, "[%d]%.3f\r\n", i, (matrix_op->p2Data)[i]);
+            }
+        } else if (printway == Linear_2D) {
+            for (int8_t i = 0; i < matrix_op->arm_matrix.numRows; i++) {
+                for (int8_t j = 0; j < matrix_op->arm_matrix.numCols; j++) {
+                    SEGGER_RTT_printf(0, "[%d][%d]%.3f\r\n", i, j, (matrix_op->p2Data)[i][j]);
+                }
             }
         }
     }
