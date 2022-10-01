@@ -142,23 +142,26 @@ referee usart:%s\r\n\
         error_list_print_local = get_error_list_point();
         vTaskDelay(pdMS_TO_TICKS(500));
         //for_test
-//        Matrix_data_creat(&mymatrix1,3,3,matrixdata1,NoInitMatZero);
-        arm_mat_init_f32(&testmatrix1,3,3,matrixdata1);
-        arm_mat_init_f32(&testmatrix2,3,3,matrixdata3);
-        arm_mat_init_f32(&testmatrix3,3,3,matrixdata2);
-        for(int8_t i =0;i<9;i++){
-            SEGGER_RTT_printf(0,"1[%d] = %f\r\n", i, testmatrix1.pData[i]);
-        }
-        for(int8_t i =0;i<9;i++){
-            SEGGER_RTT_printf(0,"2[%d] = %f\r\n", i, testmatrix2.pData[i]);
-        }
-        arm_mat_add_f32(&testmatrix1,&testmatrix2,&testmatrix1);
-        for(int8_t i =0;i<9;i++){
-            SEGGER_RTT_printf(0,"1[%d] = %f\r\n", i, testmatrix1.pData[i]);
-        }
-        for(int8_t i =0;i<9;i++){
-            SEGGER_RTT_printf(0,"2[%d] = %f\r\n", i, testmatrix2.pData[i]);
-        }
+        Matrix_data_creat(&mymatrix1,3,3,matrixdata1,NoInitMatZero);
+        Matrix_print(&mymatrix1,Matrix);
+        Matrix_print(&mymatrix1,Linear);
+        Matrix_print(&mymatrix1,Linear_2D);
+//        arm_mat_init_f32(&testmatrix1,3,3,matrixdata1);
+//        arm_mat_init_f32(&testmatrix2,3,3,matrixdata3);
+//        arm_mat_init_f32(&testmatrix3,3,3,matrixdata2);
+//        for(int8_t i =0;i<9;i++){
+//            SEGGER_RTT_printf(0,"1[%d] = %f\r\n", i, testmatrix1.pData[i]);
+//        }
+//        for(int8_t i =0;i<9;i++){
+//            SEGGER_RTT_printf(0,"2[%d] = %f\r\n", i, testmatrix2.pData[i]);
+//        }
+//        arm_mat_add_f32(&testmatrix1,&testmatrix2,&testmatrix1);
+//        for(int8_t i =0;i<9;i++){
+//            SEGGER_RTT_printf(0,"1[%d] = %f\r\n", i, testmatrix1.pData[i]);
+//        }
+//        for(int8_t i =0;i<9;i++){
+//            SEGGER_RTT_printf(0,"2[%d] = %f\r\n", i, testmatrix2.pData[i]);
+//        }
 //if(mymatrix1.p2Data == NULL && mymatrix1.is_valid == 0){
 //    SEGGER_RTT_WriteString(0,"YES");
 //}
