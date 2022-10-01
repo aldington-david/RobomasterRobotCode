@@ -596,21 +596,25 @@ void Matrix_vSetHomogen(matrix_f32_t *matrix_op, const float32_t _val) {
 
 void Matrix_print(matrix_f32_t *matrix_op, PrintWay printway) {
     if (Matrix_bMatrixIsValid(matrix_op)) {
-        char print_buf[64];
+        char print_buf[128];
         int len = 0;
         if (printway == Matrix) {
             for (int8_t i = 0; i < matrix_op->arm_matrix.numRows; i++) {
-                SEGGER_RTT_WriteString(0, "[");
+                len += sprintf((print_buf + len), "[");
                 for (int8_t j = 0; j < matrix_op->arm_matrix.numCols; j++) {
-                    len += sprintf((print_buf + len), "%3.3f ", (matrix_op->p2Data)[i][j]);
-                    SEGGER_RTT_SetTerminal(0);
-                    SEGGER_RTT_WriteString(0, print_buf);
+                    if (j == (matrix_op->arm_matrix.numCols - 1)) {
+                        len += sprintf((print_buf + len), "%8.3f", (matrix_op->p2Data)[i][j]);
+                    }else{
+                        len += sprintf((print_buf + len), "%8.3f", (matrix_op->p2Data)[i][j]);
+                    }
                 }
-                SEGGER_RTT_WriteString(0, "]\r\n");
+                len += sprintf((print_buf + len), "]\r\n");
             }
+            SEGGER_RTT_SetTerminal(0);
+            SEGGER_RTT_WriteString(0, print_buf);
         } else if (printway == Linear) {
             for (int8_t i = 0; i < (matrix_op->arm_matrix.numRows * matrix_op->arm_matrix.numCols); i++) {
-                SEGGER_RTT_printf(0, "[%d]%.3f\r\n", i, (matrix_op->p2Data)[i]);
+                SEGGER_RTT_printf(0, "[%d]%.3f\r\n", i, (matrix_op->arm_matrix.pData)[i]);
             }
         } else if (printway == Linear_2D) {
             for (int8_t i = 0; i < matrix_op->arm_matrix.numRows; i++) {
