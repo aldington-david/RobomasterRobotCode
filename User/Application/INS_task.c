@@ -190,11 +190,11 @@ float32_t UKF_Rn_data[SS_Z_LEN * SS_Z_LEN] = {Rn_INIT_ACC, 0, 0, 0, 0, 0,
                                               0, 0, 0, 0, 0, Rn_INIT_MAG};
 matrix_f32_t UKF_Rn;
 void New_AHRS_Init(void) {
-    Matrix_nodata_creat(&RLS_theta, 4, 1, InitMatZero);
-    Matrix_nodata_creat(&RLS_P, 4, 4, InitMatZero);
-    Matrix_nodata_creat(&RLS_in, 4, 1, InitMatZero);
-    Matrix_nodata_creat(&RLS_out, 1, 1, InitMatZero);
-    Matrix_nodata_creat(&RLS_gain, 4, 1, InitMatZero);
+    Matrix_nodata_creat(&RLS_theta, 4, 1, InitMatWithZero);
+    Matrix_nodata_creat(&RLS_P, 4, 4, InitMatWithZero);
+    Matrix_nodata_creat(&RLS_in, 4, 1, InitMatWithZero);
+    Matrix_nodata_creat(&RLS_out, 1, 1, InitMatWithZero);
+    Matrix_nodata_creat(&RLS_gain, 4, 1, InitMatWithZero);
 
     Matrix_data_creat(&UKF_PINIT, SS_X_LEN, SS_X_LEN, UKF_PINIT_data, NoInitMatZero);
 
