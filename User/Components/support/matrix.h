@@ -18,7 +18,7 @@
 #define SS_Z_LEN    (6)
 #define SS_U_LEN    (3)
 #define SS_DT_MILIS (20)                            /* 10 ms */
-#define SS_DT       float(SS_DT_MILIS/1000.)   /* Sampling time */
+#define SS_DT       (SS_DT_MILIS/1000.0f)   /* Sampling time */
 
 
 
@@ -70,8 +70,10 @@ extern int16_t Matrix_i16getCol(matrix_f32_t *matrix_op);
 
 extern bool Matrix_bMatrixIsEqual(matrix_f32_t *matrix_L, matrix_f32_t *matrix_R);
 
+/*Will overwrite matrix_resualt*/
 extern void Matrix_vadd(matrix_f32_t *matrix_L, matrix_f32_t *matrix_R, matrix_f32_t *matrix_result);
 
+/*Will overwrite matrix_resualt*/
 extern void Matrix_vsub(matrix_f32_t *matrix_L, matrix_f32_t *matrix_R, matrix_f32_t *matrix_result);
 
 extern void Matrix_vGetNegative(matrix_f32_t *matrix_op);
@@ -123,8 +125,27 @@ extern void Matrix_vInsertVector(matrix_f32_t *matrix_op, matrix_f32_t *_vector,
  *      [A30  A31  A32  A33]
  */
 extern void Matrix_vInsertAllSubMatrix(matrix_f32_t *matrix_op, matrix_f32_t *_subMatrix, const int16_t _posRow,
-                                       const int16_t _posColumn, const int16_t _lenRow, const int16_t _lenColumn,
-                                       matrix_f32_t *matrix_result);
+                                       const int16_t _posColumn, matrix_f32_t *matrix_result);
+
+/* Insert the first _lenRow-th and first _lenColumn-th submatrix into matrix; at the matrix's _posRow and _posColumn position.
+ * Example: A = Matrix 4x4, B = Matrix 2x3
+ *
+ *  C = A.InsertSubMatrix(B, 1, 1, 2, 2);
+ *
+ *  A = [A00  A01  A02  A03]    B = [B00  B01  B02]
+ *      [A10  A11  A12  A13]        [B10  B11  B12]
+ *      [A20  A21  A22  A23]
+ *      [A30  A31  A32  A33]
+ *
+ *
+ *  C = [A00  A01  A02  A03]
+ *      [A10  B00  B01  A13]
+ *      [A20  B10  B11  A23]
+ *      [A30  A31  A32  A33]
+ */
+extern void Matrix_vInsertPartSubMatrix_fixed(matrix_f32_t *matrix_op, matrix_f32_t *_subMatrix, const int16_t _posRow,
+                                              const int16_t _posColumn, const int16_t _lenRow, const int16_t _lenColumn,
+                                              matrix_f32_t *matrix_result);
 
 /* Insert the _lenRow & _lenColumn submatrix, start from _posRowSub & _posColumnSub submatrix;
  *  into matrix at the matrix's _posRow and _posColumn position.
@@ -145,10 +166,11 @@ extern void Matrix_vInsertAllSubMatrix(matrix_f32_t *matrix_op, matrix_f32_t *_s
  *      [A30  A31  A32  A33]
  */
 
-extern void Matrix_vInsertPartSubMatrix(matrix_f32_t *matrix_op, matrix_f32_t *_subMatrix, const int16_t _posRow,
-                                        const int16_t _posColumn, const int16_t _posRowSub, const int16_t _posColumnSub,
-                                        const int16_t _lenRow, const int16_t _lenColumn,
-                                        matrix_f32_t *matrix_result);
+extern void
+Matrix_vInsertPartSubMatrix_unstuck(matrix_f32_t *matrix_op, matrix_f32_t *_subMatrix, const int16_t _posRow,
+                                    const int16_t _posColumn, const int16_t _posRowSub, const int16_t _posColumnSub,
+                                    const int16_t _lenRow, const int16_t _lenColumn,
+                                    matrix_f32_t *matrix_result);
 
 extern void Matrix_vTranspose_nsame(matrix_f32_t *matrix_op, matrix_f32_t *matrix_result);
 
@@ -196,6 +218,7 @@ extern void Matrix_vCholeskyDec(matrix_f32_t *matrix_op, matrix_f32_t *matrix_re
 extern void
 Matrix_vHouseholderTransformQR(matrix_f32_t *matrix_op, const int16_t _rowTransform, const int16_t _columnTransform,
                                matrix_f32_t *matrix_result);
+
 /* Do the QR Decomposition for matrix using Householder Transformation.
  *                      A = Q*R
  *
@@ -208,7 +231,8 @@ Matrix_vHouseholderTransformQR(matrix_f32_t *matrix_op, const int16_t _rowTransf
  *                   (QR)x = b
  *                      Rx = Q'b    --> Afterward use back-subtitution to solve x
  */
-extern bool Matrix_bQRDec(matrix_f32_t *matrix_op, matrix_f32_t *Qt,matrix_f32_t *R);
+extern bool Matrix_bQRDec(matrix_f32_t *matrix_op, matrix_f32_t *Qt, matrix_f32_t *R);
+
 /* Do the back-subtitution opeartion for upper triangular matrix A & column matrix B to solve x:
  *                      Ax = B
  *
@@ -217,7 +241,7 @@ extern bool Matrix_bQRDec(matrix_f32_t *matrix_op, matrix_f32_t *Qt,matrix_f32_t
  * CATATAN! NOTE! To lower the computation cost, we don't check that A is a upper triangular
  *  matrix (it's assumed that user already make sure before calling this routine).
  */
-extern void Matrix_vBackSubtitution(matrix_f32_t * upper_tri_A, matrix_f32_t *matrix_B,matrix_f32_t *matrix_result);
+extern void Matrix_vBackSubtitution(matrix_f32_t *upper_tri_A, matrix_f32_t *matrix_B, matrix_f32_t *matrix_result);
 /*Not yet tested, but should be working (?)*/
 
 /* Melakukan operasi Forward-subtitution pada matrix triangular A & matrix kolom B.
@@ -226,14 +250,21 @@ extern void Matrix_vBackSubtitution(matrix_f32_t * upper_tri_A, matrix_f32_t *ma
  *  Untuk menghemat komputansi, matrix A tidak dilakukan pengecekan triangular
  * (diasumsikan sudah lower-triangular).
  */
-extern void Matrix_vForwardSubtitution(matrix_f32_t * lower_tri_A, matrix_f32_t *matrix_B,matrix_f32_t *matrix_result);
+extern void Matrix_vForwardSubtitution(matrix_f32_t *lower_tri_A, matrix_f32_t *matrix_B, matrix_f32_t *matrix_result);
+
 extern void Matrix_vRoundingadd(matrix_f32_t *matrix_op, const float32_t _val);
-extern void Matrix_vRoundingsub(matrix_f32_t *matrix_op, const float32_t _val,bool minuend__val);
+
+extern void Matrix_vRoundingsub(matrix_f32_t *matrix_op, const float32_t _val, bool minuend__val);
+
 extern void Matrix_vscale(matrix_f32_t *matrix_op, const float32_t _val);
+
 extern void Matrix_vCopy(matrix_f32_t *matrix_op, matrix_f32_t *matrix_result);
+
 extern void Matrix_vMove(matrix_f32_t *matrix_op, matrix_f32_t *matrix_result);
+
 extern void
 Matrix_vassignment(matrix_f32_t *matrix_op, const int16_t _i16row, const int16_t _i16col, const float32_t _val);
-extern void Matrix_print(matrix_f32_t *matrix_op,PrintWay printway);
+
+extern void Matrix_print(matrix_f32_t *matrix_op, PrintWay printway);
 
 #endif //ROBOMASTERROBOTCODE_MATRIX_H

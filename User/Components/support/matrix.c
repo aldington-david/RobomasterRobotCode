@@ -151,6 +151,11 @@ void Matrix_vmult_nsame(matrix_f32_t *matrix_L, matrix_f32_t *matrix_R, matrix_f
         if (matrix_result->p2Data == NULL) {
             Matrix_nodata_creat(matrix_result, matrix_L->arm_matrix.numRows, matrix_R->arm_matrix.numCols,
                                 InitMatWithZero);
+        } else if ((matrix_result->arm_matrix.numRows != matrix_L->arm_matrix.numRows) ||
+                   (matrix_result->arm_matrix.numCols != matrix_R->arm_matrix.numCols)) {
+            Matrix_vSetMatrixInvalid(matrix_result);
+            Matrix_nodata_creat(matrix_result, matrix_L->arm_matrix.numRows, matrix_R->arm_matrix.numCols,
+                                InitMatWithZero);
         }
         if ((matrix_L->arm_matrix.numCols != matrix_R->arm_matrix.numRows) ||
             (matrix_result->arm_matrix.numRows != matrix_L->arm_matrix.numRows) ||
@@ -231,17 +236,38 @@ void Matrix_vInsertVector(matrix_f32_t *matrix_op, matrix_f32_t *_vector, const 
             /* Return false */
             Matrix_vSetMatrixInvalid(matrix_result);
         }
-        for (int16_t _i = 0; _i < _vector->arm_matrix.numRows; _i++) {
-            (matrix_result->p2Data)[_i][_posColumn] = (_vector->p2Data)[_i][0];
+        if (matrix_result->is_valid) {
+            for (int16_t _i = 0; _i < _vector->arm_matrix.numRows; _i++) {
+                (matrix_result->p2Data)[_i][_posColumn] = (_vector->p2Data)[_i][0];
+            }
         }
     }
 }
 
 void Matrix_vInsertAllSubMatrix(matrix_f32_t *matrix_op, matrix_f32_t *_subMatrix, const int16_t _posRow,
-                                const int16_t _posColumn,
-                                const int16_t _lenRow,
-                                const int16_t _lenColumn, matrix_f32_t
-                                *matrix_result) {
+                                const int16_t _posColumn, matrix_f32_t *matrix_result) {
+    if (Matrix_bMatrixIsValid(matrix_op) && Matrix_bMatrixIsValid(_subMatrix)) {
+        if (matrix_result != matrix_op) {
+            Matrix_vCopy(matrix_op, matrix_result);
+        }
+        if (((_subMatrix->arm_matrix.numRows + _posRow) > matrix_op->arm_matrix.numRows) ||
+            ((_subMatrix->arm_matrix.numCols + _posColumn) > matrix_op->arm_matrix.numCols)) {
+            /* Return false */
+            Matrix_vSetMatrixInvalid(matrix_result);
+        }
+        for (int16_t _i = 0; _i < _subMatrix->arm_matrix.numRows; _i++) {
+            for (int16_t _j = 0; _j < _subMatrix->arm_matrix.numCols; _j++) {
+                (matrix_result->p2Data)[_i + _posRow][_j + _posColumn] = (_subMatrix->p2Data)[_i][_j];
+            }
+        }
+    }
+}
+
+void Matrix_vInsertPartSubMatrix_fixed(matrix_f32_t *matrix_op, matrix_f32_t *_subMatrix, const int16_t _posRow,
+                                       const int16_t _posColumn,
+                                       const int16_t _lenRow,
+                                       const int16_t _lenColumn, matrix_f32_t
+                                       *matrix_result) {
     if (Matrix_bMatrixIsValid(matrix_op) && Matrix_bMatrixIsValid(_subMatrix)) {
         if (matrix_result != matrix_op) {
             Matrix_vCopy(matrix_op, matrix_result);
@@ -252,18 +278,21 @@ void Matrix_vInsertAllSubMatrix(matrix_f32_t *matrix_op, matrix_f32_t *_subMatri
 /* Return false */
             Matrix_vSetMatrixInvalid(matrix_result);
         }
-        for (int16_t _i = 0; _i < _lenRow; _i++) {
-            for (int16_t _j = 0; _j < _lenColumn; _j++) {
-                (matrix_result->p2Data)[_i + _posRow][_j + _posColumn] = (_subMatrix->p2Data)[_i][_j];
+        if (matrix_result->is_valid) {
+            for (int16_t _i = 0; _i < _lenRow; _i++) {
+                for (int16_t _j = 0; _j < _lenColumn; _j++) {
+                    (matrix_result->p2Data)[_i + _posRow][_j + _posColumn] = (_subMatrix->p2Data)[_i][_j];
+                }
             }
         }
     }
 }
 
-void Matrix_vInsertPartSubMatrix(matrix_f32_t *matrix_op, matrix_f32_t *_subMatrix, const int16_t _posRow,
-                                 const int16_t _posColumn, const int16_t _posRowSub, const int16_t _posColumnSub,
-                                 const int16_t _lenRow, const int16_t _lenColumn,
-                                 matrix_f32_t *matrix_result) {
+void Matrix_vInsertPartSubMatrix_unstuck(matrix_f32_t *matrix_op, matrix_f32_t *_subMatrix, const int16_t _posRow,
+                                         const int16_t _posColumn, const int16_t _posRowSub,
+                                         const int16_t _posColumnSub,
+                                         const int16_t _lenRow, const int16_t _lenColumn,
+                                         matrix_f32_t *matrix_result) {
     if (Matrix_bMatrixIsValid(matrix_op) && Matrix_bMatrixIsValid(_subMatrix)) {
         if (matrix_result != matrix_op) {
             Matrix_vCopy(matrix_op, matrix_result);
@@ -275,10 +304,12 @@ void Matrix_vInsertPartSubMatrix(matrix_f32_t *matrix_op, matrix_f32_t *_subMatr
 /* Return false */
             Matrix_vSetMatrixInvalid(matrix_result);
         }
-        for (int16_t _i = 0; _i < _lenRow; _i++) {
-            for (int16_t _j = 0; _j < _lenColumn; _j++) {
-                (matrix_result->p2Data)[_i + _posRow][_j + _posColumn] = (_subMatrix->p2Data)[
-                        _posRowSub + _i][_posColumnSub + _j];
+        if (matrix_result->is_valid) {
+            for (int16_t _i = 0; _i < _lenRow; _i++) {
+                for (int16_t _j = 0; _j < _lenColumn; _j++) {
+                    (matrix_result->p2Data)[_i + _posRow][_j + _posColumn] = (_subMatrix->p2Data)[
+                            _posRowSub + _i][_posColumnSub + _j];
+                }
             }
         }
     }
@@ -286,6 +317,10 @@ void Matrix_vInsertPartSubMatrix(matrix_f32_t *matrix_op, matrix_f32_t *_subMatr
 
 void Matrix_vTranspose_nsame(matrix_f32_t *matrix_op, matrix_f32_t *matrix_result) {
     if (matrix_result->p2Data == NULL) {
+        Matrix_nodata_creat(matrix_result, matrix_op->arm_matrix.numCols, matrix_op->arm_matrix.numRows,
+                            InitMatWithZero);
+    } else {
+        Matrix_vSetMatrixInvalid(matrix_result);
         Matrix_nodata_creat(matrix_result, matrix_op->arm_matrix.numCols, matrix_op->arm_matrix.numRows,
                             InitMatWithZero);
     }
@@ -324,6 +359,10 @@ bool Matrix_bNormVector(matrix_f32_t *matrix_op) {
 
 void Matrix_vInverse_nsame(matrix_f32_t *matrix_op, matrix_f32_t *matrix_result) {
     if (matrix_result->p2Data == NULL) {
+        Matrix_nodata_creat(matrix_result, matrix_op->arm_matrix.numRows, matrix_op->arm_matrix.numCols,
+                            InitMatWithZero);
+    } else {
+        Matrix_vSetMatrixInvalid(matrix_result);
         Matrix_nodata_creat(matrix_result, matrix_op->arm_matrix.numRows, matrix_op->arm_matrix.numCols,
                             InitMatWithZero);
     }
@@ -391,8 +430,10 @@ void Matrix_vGetDiagonalEntries(matrix_f32_t *matrix_op, matrix_f32_t *matrix_re
         if (matrix_op->arm_matrix.numRows != matrix_op->arm_matrix.numCols) {
             Matrix_vSetMatrixInvalid(matrix_result);
         }
-        for (int16_t _i = 0; _i < matrix_op->arm_matrix.numRows; _i++) {
-            matrix_result->p2Data[_i][0] = (matrix_op->p2Data)[_i][_i];
+        if (matrix_result->is_valid) {
+            for (int16_t _i = 0; _i < matrix_op->arm_matrix.numRows; _i++) {
+                matrix_result->p2Data[_i][0] = (matrix_op->p2Data)[_i][_i];
+            }
         }
     }
 }
@@ -462,19 +503,21 @@ Matrix_vHouseholderTransformQR(matrix_f32_t *matrix_op, const int16_t _rowTransf
             /* x vector is collinear with basis vector e, return result = I */
             Matrix_vSetIdentity(matrix_result);
         } else {
-            /* P = -2*(u1*u1')/v_len2 + I */
-            /* PR TODO: We can do many optimization here */
-            for (int16_t _i = 0; _i < matrix_op->arm_matrix.numRows; _i++) {
-                _tempFloat = _vectTemp.p2Data[_i][0];
-                if (fabsf(_tempFloat) > float_prec_ZERO) {
-                    for (int16_t _j = 0; _j < matrix_op->arm_matrix.numRows; _j++) {
-                        if (fabsf(_vectTemp.p2Data[_j][0]) > float_prec_ZERO) {
-                            matrix_result->p2Data[_i][_j] =
-                                    _vectTemp.p2Data[_j][0] * _tempFloat * (-2.0f / _vLen2);//optimize_not_check
+            if (matrix_result->is_valid) {
+                /* P = -2*(u1*u1')/v_len2 + I */
+                /* PR TODO: We can do many optimization here */
+                for (int16_t _i = 0; _i < matrix_op->arm_matrix.numRows; _i++) {
+                    _tempFloat = _vectTemp.p2Data[_i][0];
+                    if (fabsf(_tempFloat) > float_prec_ZERO) {
+                        for (int16_t _j = 0; _j < matrix_op->arm_matrix.numRows; _j++) {
+                            if (fabsf(_vectTemp.p2Data[_j][0]) > float_prec_ZERO) {
+                                matrix_result->p2Data[_i][_j] =
+                                        _vectTemp.p2Data[_j][0] * _tempFloat * (-2.0f / _vLen2);//optimize_not_check
+                            }
                         }
                     }
+                    matrix_result->p2Data[_i][_i] = matrix_result->p2Data[_i][_i] + 1.0f;
                 }
-                matrix_result->p2Data[_i][_i] = matrix_result->p2Data[_i][_i] + 1.0f;
             }
         }
         Matrix_vSetMatrixInvalid(&_vectTemp);
@@ -549,6 +592,12 @@ void Matrix_vRoundingadd(matrix_f32_t *matrix_op, const float32_t _val) {
     }
 }
 
+void Matrix_vscale(matrix_f32_t *matrix_op, const float32_t _val) {
+    if (Matrix_bMatrixIsValid(matrix_op)) {
+        arm_mat_scale_f32(&matrix_op->arm_matrix, _val, &matrix_op->arm_matrix);
+    }
+}
+
 void Matrix_vRoundingsub(matrix_f32_t *matrix_op, const float32_t _val, bool minuend__val) {
     if (Matrix_bMatrixIsValid(matrix_op)) {
         if (minuend__val) {
@@ -604,7 +653,7 @@ void Matrix_print(matrix_f32_t *matrix_op, PrintWay printway) {
                 for (int8_t j = 0; j < matrix_op->arm_matrix.numCols; j++) {
                     if (j == (matrix_op->arm_matrix.numCols - 1)) {
                         len += sprintf((print_buf + len), "%8.3f", (matrix_op->p2Data)[i][j]);
-                    }else{
+                    } else {
                         len += sprintf((print_buf + len), "%8.3f", (matrix_op->p2Data)[i][j]);
                     }
                 }
