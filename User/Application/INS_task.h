@@ -25,6 +25,7 @@
 #define INS_Task_H
 #include <stdint.h>
 #include "struct_typedef.h"
+#include "DWT.h"
 
 
 #define SPI_DMA_GYRO_LENGHT       8
@@ -75,13 +76,7 @@
 
 extern float32_t INS_angle[3];
 
-//New_AHRS_Define
-/* ================================================= UKF Variables/function declaration ================================================= */
-/* UKF initialization constant */
-#define P_INIT       (10.0f)
-#define Rv_INIT      (1e-6f)
-#define Rn_INIT_ACC  (0.0015f/10.0f)
-#define Rn_INIT_MAG  (0.0015f/10.0f)
+
 
 /**
   * @brief          获取INS_task栈大小
@@ -195,6 +190,6 @@ extern const float32_t *get_accel_data_point(void);
   */
 extern const float32_t *get_mag_data_point(void);
 
-static void New_AHRS_Init(void);
+extern AHRS_time_record_t IMU_time_record;
 
 #endif

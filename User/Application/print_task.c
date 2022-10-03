@@ -138,6 +138,7 @@ referee usart:%s\r\n\
 //            SEGGER_RTT_printf(0,"testfunction\n");
             /***********************打印数据 Start *****************************/
             //执行时间
+            //task
 //            SEGGER_RTT_SetTerminal(1);
 //            sprintf(print_buf,
 //                    "test=%d\r\ncali=%d\r\ndetect=%d\r\nchassis=%d\r\ngimbal=%d\r\nINS=%d\r\nvision_rx=%d\r\nservo=%d\r\nreferee_rx=%d\r\nreferee_tx=%d\r\nvision_tx=%d\r\nmatlab=%d\r\nprint=%d\r\nPC_receive=%d\r\nbattery_voltage=%d\r\nled_RGB_flow=%d\r\n",
@@ -149,6 +150,13 @@ referee usart:%s\r\n\
 //                    global_task_time.tim_vision_tx_task.time, global_task_time.tim_matlab_sync_task.time,
 //                    global_task_time.tim_print_task.time, global_task_time.tim_PC_receive_task.time,
 //                    global_task_time.tim_battery_voltage_task.time, global_task_time.tim_led_RGB_flow_task.time);
+//            SEGGER_RTT_WriteString(0, print_buf);
+            //IMU
+//            SEGGER_RTT_SetTerminal(1);
+//            sprintf(print_buf,
+//                    "gyro=%d\r\naccel=%d\r\nmag=%d\r\n",
+//                    IMU_time_record.gyro.time, IMU_time_record.accel.time,
+//                    IMU_time_record.mag.time);
 //            SEGGER_RTT_WriteString(0, print_buf);
             //裁判系统
             //裁判系统限速

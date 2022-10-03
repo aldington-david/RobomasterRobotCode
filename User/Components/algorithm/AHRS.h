@@ -10,7 +10,7 @@
   * @param[in]      用于初始化的磁力计计,(x,y,z)不为空 单位 uT
   * @retval         返回空
   */
-extern void AHRS_init(float32_t quat[4], const float32_t accel[3], const float32_t mag[3]);
+//extern void NEWAHRS_init(float32_t quat[4], const float32_t accel[3], const float32_t mag[3]);
 
 /**
   * @brief          根据陀螺仪的数据，加速度的数据，磁力计的数据进行四元数更新

@@ -30,6 +30,7 @@
 #include "bsp_imu_pwm.h"
 #include "bsp_spi.h"
 #include "BMI088driver.h"
+#include "ist8310driver_middleware.h"
 #include "ist8310driver.h"
 #include "pid.h"
 #include "AHRS.h"
@@ -38,6 +39,8 @@
 #include "detect_task.h"
 #include "DWT.h"
 #include "matrix.h"
+#include "ahrs_ukf.h"
+#include "SEGGER_RTT.h"
 
 
 #define IMU_temp_PWM(pwm)  imu_pwm_set(pwm)                    //pwm给定
@@ -53,7 +56,7 @@
     {0.0f, 1.0f, 0.0f},                     \
     {0.0f, 0.0f, 1.0f}                      \
 
-
+AHRS_time_record_t IMU_time_record;
 /**
   * @brief          rotate the gyro, accel and mag, and calculate the zero drift, because sensors have 
   *                 different install derection.
@@ -161,47 +164,9 @@ float32_t INS_mag[3] = {0.0f, 0.0f, 0.0f};
 float32_t INS_quat[4] = {0.0f, 0.0f, 0.0f, 0.0f};
 float32_t INS_angle[3] = {0.0f, 0.0f, 0.0f};      //euler angle, unit rad.欧拉角 单位 rad
 
-//new_AHRS_define
-float32_t RLS_lambda = 0.999f;/* Forgetting factor */
-matrix_f32_t RLS_theta;/* The variables we want to indentify */
-matrix_f32_t RLS_P;/* Inverse of correction estimation */
-matrix_f32_t RLS_in;/* Input data */
-matrix_f32_t RLS_out;/* Output data */
-matrix_f32_t RLS_gain;/* RLS gain */
-uint32_t RLS_u32iterData = 0;/* To track how much data we take */
-/* P(k=0) variable --------------------------------------------------------------------------------------------------------- */
-float32_t UKF_PINIT_data[SS_X_LEN * SS_X_LEN] = {P_INIT, 0, 0, 0,
-                                                 0, P_INIT, 0, 0,
-                                                 0, 0, P_INIT, 0,
-                                                 0, 0, 0, P_INIT};
-matrix_f32_t UKF_PINIT;
-/* Q constant -------------------------------------------------------------------------------------------------------------- */
-float UKF_Rv_data[SS_X_LEN * SS_X_LEN] = {Rv_INIT, 0, 0, 0,
-                                          0, Rv_INIT, 0, 0,
-                                          0, 0, Rv_INIT, 0,
-                                          0, 0, 0, Rv_INIT};
-matrix_f32_t UKF_Rv;
-/* R constant -------------------------------------------------------------------------------------------------------------- */
-float32_t UKF_Rn_data[SS_Z_LEN * SS_Z_LEN] = {Rn_INIT_ACC, 0, 0, 0, 0, 0,
-                                              0, Rn_INIT_ACC, 0, 0, 0, 0,
-                                              0, 0, Rn_INIT_ACC, 0, 0, 0,
-                                              0, 0, 0, Rn_INIT_MAG, 0, 0,
-                                              0, 0, 0, 0, Rn_INIT_MAG, 0,
-                                              0, 0, 0, 0, 0, Rn_INIT_MAG};
-matrix_f32_t UKF_Rn;
-void New_AHRS_Init(void) {
-    Matrix_nodata_creat(&RLS_theta, 4, 1, InitMatWithZero);
-    Matrix_nodata_creat(&RLS_P, 4, 4, InitMatWithZero);
-    Matrix_nodata_creat(&RLS_in, 4, 1, InitMatWithZero);
-    Matrix_nodata_creat(&RLS_out, 1, 1, InitMatWithZero);
-    Matrix_nodata_creat(&RLS_gain, 4, 1, InitMatWithZero);
+//new_AHRS
+AHRS_t IMU;
 
-    Matrix_data_creat(&UKF_PINIT, SS_X_LEN, SS_X_LEN, UKF_PINIT_data, NoInitMatZero);
-
-    Matrix_data_creat(&UKF_Rv, SS_X_LEN, SS_X_LEN, UKF_Rv_data, NoInitMatZero);
-
-    Matrix_data_creat(&UKF_Rn, SS_Z_LEN, SS_Z_LEN, UKF_Rn_data, NoInitMatZero);
-}
 /**
   * @brief          imu task, init bmi088, ist8310, calculate the euler angle
   * @param[in]      pvParameters: NULL
@@ -229,8 +194,6 @@ void INS_task(void const *pvParameters) {
 
     PID_init(&imu_temp_pid, PID_POSITION, imu_temp_PID, TEMPERATURE_PID_MAX_OUT, TEMPERATURE_PID_MAX_IOUT, 0, 0, 0, 0,
              0, 0, 0, 0, 0, 0, 0);
-    AHRS_init(INS_quat, INS_accel, INS_mag);
-
     accel_fliter_1[0] = accel_fliter_2[0] = accel_fliter_3[0] = INS_accel[0];
     accel_fliter_1[1] = accel_fliter_2[1] = accel_fliter_3[1] = INS_accel[1];
     accel_fliter_1[2] = accel_fliter_2[2] = accel_fliter_3[2] = INS_accel[2];
@@ -249,9 +212,15 @@ void INS_task(void const *pvParameters) {
     SPI1_DMA_init((uint32_t) gyro_dma_tx_buf, (uint32_t) gyro_dma_rx_buf, SPI_DMA_GYRO_LENGHT);
 
     imu_start_dma_flag = 1;
-
+    //    NEWAHRS_init(INS_quat, INS_accel, INS_mag);
+    NEWAHRS_init(&IMU);
+    SEGGER_RTT_WriteString(0,"fuck1\r\n");
+    UKF_vReset(&UKF_IMU, &quaternionData, &UKF_PINIT, &UKF_Rv, &UKF_Rn);
+    SEGGER_RTT_WriteString(0,"fuck2\r\n");
+    TickType_t LoopStartTime;
     while (1) {
         DWT_update_task_time_us(&global_task_time.tim_INS_task);
+        LoopStartTime = xTaskGetTickCount();
         //wait spi DMA tansmit done
         //等待SPI DMA传输
         while (ulTaskNotifyTake(pdTRUE, portMAX_DELAY) != pdPASS) {
@@ -261,13 +230,14 @@ void INS_task(void const *pvParameters) {
         if (gyro_update_flag & (1 << IMU_NOTIFY_SHFITS)) {
             gyro_update_flag &= ~(1 << IMU_NOTIFY_SHFITS);
             BMI088_gyro_read_over(gyro_dma_rx_buf + BMI088_GYRO_RX_BUF_DATA_OFFSET, bmi088_real_data.gyro);
+            DWT_update_task_time_us(&IMU_time_record.gyro);
         }
 
         if (accel_update_flag & (1 << IMU_UPDATE_SHFITS)) {
             accel_update_flag &= ~(1 << IMU_UPDATE_SHFITS);
             BMI088_accel_read_over(accel_dma_rx_buf + BMI088_ACCEL_RX_BUF_DATA_OFFSET, bmi088_real_data.accel,
                                    &bmi088_real_data.time);
-
+            DWT_update_task_time_us(&IMU_time_record.accel);
         }
 
         if (accel_temp_update_flag & (1 << IMU_UPDATE_SHFITS)) {
@@ -277,46 +247,96 @@ void INS_task(void const *pvParameters) {
             imu_temp_control(bmi088_real_data.temp);
         }
 
+        if (mag_update_flag & (1 << IMU_DR_SHFITS)) {
+            mag_update_flag &= ~(1 << IMU_DR_SHFITS);
+            ist8310_read_over(mag_dma_rx_buf, ist8310_real_data.mag);
+            DWT_update_task_time_us(&IMU_time_record.mag);
+        }
+        float32_t Ax = bmi088_real_data.accel[0];
+        float32_t Ay = bmi088_real_data.accel[1];
+        float32_t Az = bmi088_real_data.accel[2];
+        float32_t Bx = ist8310_real_data.mag[0];
+        float32_t By = ist8310_real_data.mag[1];
+        float32_t Bz = ist8310_real_data.mag[2];
+//        float32_t Bx = ist8310_real_data.mag[0] - IMU.HARD_IRON_BIAS.p2Data[0][0];
+//        float32_t By = ist8310_real_data.mag[1] - IMU.HARD_IRON_BIAS.p2Data[1][0];
+//        float32_t Bz = ist8310_real_data.mag[2] - IMU.HARD_IRON_BIAS.p2Data[2][0];
+        float32_t p = bmi088_real_data.gyro[0];
+        float32_t q = bmi088_real_data.gyro[1];
+        float32_t r = bmi088_real_data.gyro[2];
+        Matrix_vassignment(&U, 1, 1, p);
+        Matrix_vassignment(&U, 2, 1, q);
+        Matrix_vassignment(&U, 3, 1, r);
+        Matrix_vassignment(&Y, 1, 1, Ax);
+        Matrix_vassignment(&Y, 2, 1, Ay);
+        Matrix_vassignment(&Y, 3, 1, Az);
+        Matrix_vassignment(&Y, 4, 1, Bx);
+        Matrix_vassignment(&Y, 5, 1, By);
+        Matrix_vassignment(&Y, 6, 1, Bz);
+
+        /* Normalizing the output vector */
+        float32_t _normG = sqrtf(Y.p2Data[0][0] * Y.p2Data[0][0]) + (Y.p2Data[1][0] * Y.p2Data[1][0]) +
+                           (Y.p2Data[2][0] * Y.p2Data[2][0]);
+        Y.p2Data[0][0] = Y.p2Data[0][0] / _normG;
+        Y.p2Data[1][0] = Y.p2Data[1][0] / _normG;
+        Y.p2Data[2][0] = Y.p2Data[2][0] / _normG;
+        float32_t _normM = sqrtf(Y.p2Data[3][0] * Y.p2Data[3][0]) + (Y.p2Data[4][0] * Y.p2Data[4][0]) +
+                           (Y.p2Data[5][0] * Y.p2Data[5][0]);
+        Y.p2Data[3][0] = Y.p2Data[3][0] / _normM;
+        Y.p2Data[4][0] = Y.p2Data[4][0] / _normM;
+        Y.p2Data[5][0] = Y.p2Data[5][0] / _normM;
+        /* ------------------ Read the sensor data / simulate the system here ------------------ */
+        /* ============================= Update the Kalman Filter ============================== */
+        SEGGER_RTT_WriteString(0,"fuck3\r\n");
+        if (!UKF_bUpdate(&UKF_IMU,&Y,&U,&IMU)) {
+            Matrix_vSetToZero(&quaternionData);
+            Matrix_vassignment(&quaternionData,1,1,1.0f);
+            UKF_vReset(&UKF_IMU,&quaternionData,&UKF_PINIT,&UKF_Rv,&UKF_Rn);
+            SEGGER_RTT_WriteString(0,"fuck4\r\n");
+        }
+        /* ----------------------------- Update the Kalman Filter ------------------------------ */
+        /* ================== Read the sensor data / simulate the system here ================== */
+//        RLS_in.p2Data[0][0] =  Bx;
+//        RLS_in.p2Data[1][0] =  By;
+//        RLS_in.p2Data[2][0] =  Bz;
+//        RLS_in.p2Data[3][0] =  1;
+//        RLS_out.p2Data[0][0] = (Bx*Bx) + (By*By) + (Bz*Bz);
+
+
         //rotate and zero drift 
-        imu_cali_slove(INS_gyro, INS_accel, INS_mag, &bmi088_real_data, &ist8310_real_data);
+//        imu_cali_slove(INS_gyro, INS_accel, INS_mag, &bmi088_real_data, &ist8310_real_data);
 
 
         //加速度计低通滤波
         //accel low-pass filter
-        accel_fliter_1[0] = accel_fliter_2[0];
-        accel_fliter_2[0] = accel_fliter_3[0];
+//        accel_fliter_1[0] = accel_fliter_2[0];
+//        accel_fliter_2[0] = accel_fliter_3[0];
+//
+//        accel_fliter_3[0] =
+//                accel_fliter_2[0] * fliter_num[0] + accel_fliter_1[0] * fliter_num[1] + INS_accel[0] * fliter_num[2];
+//
+//        accel_fliter_1[1] = accel_fliter_2[1];
+//        accel_fliter_2[1] = accel_fliter_3[1];
+//
+//        accel_fliter_3[1] =
+//                accel_fliter_2[1] * fliter_num[0] + accel_fliter_1[1] * fliter_num[1] + INS_accel[1] * fliter_num[2];
+//
+//        accel_fliter_1[2] = accel_fliter_2[2];
+//        accel_fliter_2[2] = accel_fliter_3[2];
+//
+//        accel_fliter_3[2] =
+//                accel_fliter_2[2] * fliter_num[0] + accel_fliter_1[2] * fliter_num[1] + INS_accel[2] * fliter_num[2];
 
-        accel_fliter_3[0] =
-                accel_fliter_2[0] * fliter_num[0] + accel_fliter_1[0] * fliter_num[1] + INS_accel[0] * fliter_num[2];
 
-        accel_fliter_1[1] = accel_fliter_2[1];
-        accel_fliter_2[1] = accel_fliter_3[1];
-
-        accel_fliter_3[1] =
-                accel_fliter_2[1] * fliter_num[0] + accel_fliter_1[1] * fliter_num[1] + INS_accel[1] * fliter_num[2];
-
-        accel_fliter_1[2] = accel_fliter_2[2];
-        accel_fliter_2[2] = accel_fliter_3[2];
-
-        accel_fliter_3[2] =
-                accel_fliter_2[2] * fliter_num[0] + accel_fliter_1[2] * fliter_num[1] + INS_accel[2] * fliter_num[2];
-
-
-        AHRS_update(INS_quat, timing_time, INS_gyro, accel_fliter_3, INS_mag);
-        get_angle(INS_quat, INS_angle + INS_YAW_ADDRESS_OFFSET, INS_angle + INS_PITCH_ADDRESS_OFFSET,
+//        AHRS_update(INS_quat, timing_time, INS_gyro, accel_fliter_3, INS_mag);
+        get_angle(quaternionData.arm_matrix.pData, INS_angle + INS_YAW_ADDRESS_OFFSET, INS_angle + INS_PITCH_ADDRESS_OFFSET,
                   INS_angle + INS_ROLL_ADDRESS_OFFSET);
 
-
-        //because no use ist8310 and save time, no use
-//        if (mag_update_flag &= 1 << IMU_DR_SHFITS) {
-//            mag_update_flag &= ~(1 << IMU_DR_SHFITS);
-//            mag_update_flag |= (1 << IMU_SPI_SHFITS);
-//            ist8310_read_mag(ist8310_real_data.mag);
-//        }
 
 #if INCLUDE_uxTaskGetStackHighWaterMark
         INS_task_stack = uxTaskGetStackHighWaterMark(NULL);
 #endif
+        vTaskDelayUntil(&LoopStartTime, pdMS_TO_TICKS(5));
     }
 }
 
@@ -561,12 +581,7 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
     } else if (GPIO_Pin == DRDY_IST8310_Pin) {
         detect_hook(BOARD_MAG_TOE);
         mag_update_flag |= 1 << IMU_DR_SHFITS;
-
-        if (mag_update_flag &= 1 << IMU_DR_SHFITS) {
-            mag_update_flag &= ~(1 << IMU_DR_SHFITS);
-
-            ist8310_read_mag(ist8310_real_data.mag);
-        }
+        ist8310_IIC_read_muli_reg(0x03, mag_dma_rx_buf, 6);
     } else if (GPIO_Pin == GPIO_PIN_0) {
 
         //wake up the task
