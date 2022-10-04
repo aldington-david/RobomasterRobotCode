@@ -121,26 +121,25 @@ bool UKF_bUpdate(UKF_t *UKF_op, matrix_f32_t *Y_matrix, matrix_f32_t *U_matrix, 
     matrix_f32_t _temp_T;
     matrix_f32_t _temp_M;
     matrix_f32_t _temp_M2;
+    Matrix_vinit(&_temp_T);
+    Matrix_vinit(&_temp_M);
+    Matrix_vinit(&_temp_M2);
     /* Run once every sampling time */
-    SEGGER_RTT_WriteString(0,"fuck5\r\n");
     /* XSigma(k-1) = [x(k-1) Xs(k-1)+GPsq Xs(k-1)-GPsq]                     ...{UKF_4}  */
     if (!UKF_bCalculateSigmaPoint(UKF_op)) {
         return false;
     }
-    SEGGER_RTT_WriteString(0,"fuck6\r\n");
 
     /* Unscented Transform XSigma [f,XSigma,u,Rv] -> [x,XSigma,P,DX]:       ...{UKF_5a} - {UKF_8a} */
     if (!UKF_bUnscentedTransform(UKF_op, &UKF_op->X_Est, &UKF_op->X_Sigma, &UKF_op->P, &UKF_op->DX,
                                  UKF_op->AHRS_bUpdateNonlinearX, &UKF_op->X_Sigma, U_matrix, &UKF_op->Rv, AHRS_op)) {
         return false;
     }
-    SEGGER_RTT_WriteString(0,"fuck7\r\n");
     /* Unscented Transform YSigma [h,XSigma,u,Rn] -> [y_est,YSigma,Py,DY]:  ...{UKF_5b} - {UKF_8b} */
     if (!UKF_bUnscentedTransform(UKF_op, &UKF_op->Y_Est, &UKF_op->Y_Sigma, &UKF_op->Py, &UKF_op->DY,
                                  UKF_op->AHRS_bUpdateNonlinearY, &UKF_op->X_Sigma, U_matrix, &UKF_op->Rn, AHRS_op)) {
         return false;
     }
-    SEGGER_RTT_WriteString(0,"fuck8\r\n");
 
     /* Calculate Cross-Covariance Matrix:
      *  Pxy(k) = sum(Wc(i)*DX*DY(i))            ; i = 1 ... (2N+1)          ...{UKF_9}
@@ -151,20 +150,18 @@ bool UKF_bUpdate(UKF_t *UKF_op, matrix_f32_t *Y_matrix, matrix_f32_t *U_matrix, 
         }
     }
     Matrix_vTranspose_nsame(&UKF_op->DY, &_temp_T);
-    SEGGER_RTT_WriteString(0,"fuck9\r\n");
     Matrix_vmult_nsame(&UKF_op->DX, &_temp_T, &UKF_op->Pxy);
 
-    SEGGER_RTT_WriteString(0,"fuck10\r\n");
     /* Calculate the Kalman Gain:
      *  K           = Pxy(k) * (Py(k)^-1)                                   ...{UKF_10}
      */
     matrix_f32_t PyInv;
+    Matrix_vinit(&PyInv);
     Matrix_vInverse_nsame(&UKF_op->Py, &PyInv);
     if (!Matrix_bMatrixIsValid(&PyInv)) {
         Matrix_vSetMatrixInvalid(&PyInv);
         return false;
     }
-    SEGGER_RTT_WriteString(0,"fuck11\r\n");
     Matrix_vmult_nsame(&UKF_op->Pxy, &PyInv, &UKF_op->Gain);
 
 
@@ -174,7 +171,6 @@ bool UKF_bUpdate(UKF_t *UKF_op, matrix_f32_t *Y_matrix, matrix_f32_t *U_matrix, 
     Matrix_vsub(Y_matrix, &UKF_op->Y_Est, &UKF_op->Err);
     Matrix_vmult_nsame(&UKF_op->Gain, &UKF_op->Err, &_temp_M);
     Matrix_vadd(&UKF_op->X_Est, &_temp_M, &UKF_op->X_Est);
-    SEGGER_RTT_WriteString(0,"fuck12\r\n");
 
     /* Update the Covariance Matrix:
      *  P(k|k)      = P(k|k-1) - K*Py(k)*K'                                 ...{UKF_12}
@@ -188,7 +184,6 @@ bool UKF_bUpdate(UKF_t *UKF_op, matrix_f32_t *Y_matrix, matrix_f32_t *U_matrix, 
     Matrix_vSetMatrixInvalid(&_temp_M);
     Matrix_vSetMatrixInvalid(&_temp_M2);
 
-    SEGGER_RTT_WriteString(0,"fuck13\r\n");
     return true;
 }
 
@@ -206,6 +201,7 @@ bool UKF_bCalculateSigmaPoint(UKF_t *UKF_op) {
      */
     /* Use Cholesky Decomposition to compute sqrt(P) */
     matrix_f32_t _temp;
+    Matrix_vinit(&_temp);
     Matrix_vCholeskyDec(&UKF_op->P, &UKF_op->P_Chol);
     if (!Matrix_bMatrixIsValid(&UKF_op->P_Chol)) {
         /* System Fail */
@@ -243,6 +239,8 @@ UKF_bUnscentedTransform(UKF_t *UKF_op, matrix_f32_t *Out, matrix_f32_t *OutSigma
                         matrix_f32_t *_CovNoise, AHRS_t *AHRS_op) {
     matrix_f32_t _temp_T;
     matrix_f32_t _temp_M;
+    Matrix_vinit(&_temp_T);
+    Matrix_vinit(&_temp_M);
     /* XSigma(k) = f(XSigma(k-1), u(k-1))                                  ...{UKF_5a}  */
     /* x(k|k-1) = sum(Wm(i) * XSigma(k)(i))    ; i = 1 ... (2N+1)          ...{UKF_6a}  */
     Matrix_vSetToZero(Out);

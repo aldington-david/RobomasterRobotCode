@@ -383,6 +383,7 @@ bool Matrix_bMatrixIsPositiveDefinite(matrix_f32_t *matrix_op, bool checkPosSemi
     if (Matrix_bMatrixIsValid(matrix_op)) {
         bool _posDef, _posSemiDef;
         matrix_f32_t _temp;
+        Matrix_vinit(&_temp);
         Matrix_vCopy(matrix_op, &_temp);
 
         /* Gauss Elimination... */
@@ -471,6 +472,7 @@ Matrix_vHouseholderTransformQR(matrix_f32_t *matrix_op, const int16_t _rowTransf
                                 InitMatWithZero);
         }
         matrix_f32_t _vectTemp;
+        Matrix_vinit(&_vectTemp);
         Matrix_nodata_creat(&_vectTemp, matrix_op->arm_matrix.numRows, 1, InitMatWithZero);
         if ((_rowTransform >= matrix_op->arm_matrix.numRows) ||
             (_columnTransform >= matrix_op->arm_matrix.numCols)) {
@@ -511,7 +513,7 @@ Matrix_vHouseholderTransformQR(matrix_f32_t *matrix_op, const int16_t _rowTransf
             /* x vector is collinear with basis vector e, return result = I */
             Matrix_vSetIdentity(matrix_result);
         } else {
-            if (matrix_result->is_valid) {
+            if (Matrix_bMatrixIsValid(matrix_result)) {
                 /* P = -2*(u1*u1')/v_len2 + I */
                 /* PR TODO: We can do many optimization here */
                 for (int16_t _i = 0; _i < matrix_op->arm_matrix.numRows; _i++) {
@@ -536,6 +538,7 @@ bool Matrix_bQRDec(matrix_f32_t *matrix_op, matrix_f32_t *Qt, matrix_f32_t *R) {
     if (Matrix_bMatrixIsValid(matrix_op) && Matrix_bMatrixIsValid(Qt)) {
         matrix_f32_t Qn;
         matrix_f32_t _temp;
+        Matrix_vinit(&_temp);
         Matrix_nodata_creat(&Qn, Qt->arm_matrix.numRows, Qt->arm_matrix.numCols, InitMatWithZero);
         if ((matrix_op->arm_matrix.numRows < matrix_op->arm_matrix.numCols) || (!Matrix_bMatrixIsSquare(Qt)) ||
             (Qt->arm_matrix.numRows != matrix_op->arm_matrix.numRows) ||
@@ -639,7 +642,9 @@ void Matrix_vCopy(matrix_f32_t *matrix_op, matrix_f32_t *matrix_result) {
 
 void Matrix_vMove(matrix_f32_t *matrix_op, matrix_f32_t *matrix_result) {
     if (Matrix_bMatrixIsValid(matrix_op)) {
-        Matrix_vSetMatrixInvalid(matrix_result);
+        if (Matrix_bMatrixIsValid(matrix_result)) {
+            Matrix_vSetMatrixInvalid(matrix_result);
+        }
         Matrix_data_creat(matrix_result, matrix_op->arm_matrix.numRows, matrix_op->arm_matrix.numCols,
                           matrix_op->arm_matrix.pData, NoInitMatZero);
         Matrix_vSetMatrixInvalid(matrix_op);
@@ -682,6 +687,12 @@ void Matrix_print(matrix_f32_t *matrix_op, PrintWay printway) {
             }
         }
     }
+}
+
+void Matrix_vinit(matrix_f32_t *matrix_op){
+    matrix_op->is_valid = false;
+    matrix_op->arm_matrix.pData = NULL;
+    matrix_op->p2Data = NULL;
 }
 
 

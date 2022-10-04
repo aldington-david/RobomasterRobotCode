@@ -999,11 +999,6 @@
               <FileType>4</FileType>
               <FilePath>..\User\Components\algorithm\AHRS.lib</FilePath>
             </File>
-            <File>
-              <FileName>ahrs_ukf.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\User\Components\algorithm\ahrs_ukf.c</FilePath>
-            </File>
           </Files>
         </Group>
         <Group>
@@ -1034,11 +1029,6 @@
               <FileType>1</FileType>
               <FilePath>..\User\Components\devices\OLED.c</FilePath>
             </File>
-            <File>
-              <FileName>DWT.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\User\Components\devices\DWT.c</FilePath>
-            </File>
           </Files>
         </Group>
         <Group>
@@ -1058,11 +1048,6 @@
               <FileName>mem_mang4.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\User\Components\support\mem_mang4.c</FilePath>
-            </File>
-            <File>
-              <FileName>matrix.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\User\Components\support\matrix.c</FilePath>
             </File>
           </Files>
         </Group>

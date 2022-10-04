@@ -181,13 +181,13 @@ referee usart:%s\r\n\
 //            SEGGER_RTT_WriteString(0, print_buf);
 
             //IMU数据
-//            SEGGER_RTT_SetTerminal(5);
-//            sprintf(print_buf, "imu_tmp=%f,YAW=%f,PITCH=%f,ROLL=%f\r\n",
-//                    bmi088_real_data.temp,
-//                    INS_angle[0],
-//                    INS_angle[1],
-//                    INS_angle[2]);
-//            SEGGER_RTT_WriteString(0, print_buf);
+            SEGGER_RTT_SetTerminal(5);
+            sprintf(print_buf, "imu_tmp=%f,YAW=%f,PITCH=%f,ROLL=%f\r\n",
+                    bmi088_real_data.temp,
+                    INS_angle[0],
+                    INS_angle[1],
+                    INS_angle[2]);
+            SEGGER_RTT_WriteString(0, print_buf);
 
 
             //视觉

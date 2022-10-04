@@ -267,4 +267,6 @@ Matrix_vassignment(matrix_f32_t *matrix_op, const int16_t _i16row, const int16_t
 
 extern void Matrix_print(matrix_f32_t *matrix_op, PrintWay printway);
 
+extern void Matrix_vinit(matrix_f32_t *matrix_op);
+
 #endif //ROBOMASTERROBOTCODE_MATRIX_H

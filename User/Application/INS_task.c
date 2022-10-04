@@ -214,9 +214,7 @@ void INS_task(void const *pvParameters) {
     imu_start_dma_flag = 1;
     //    NEWAHRS_init(INS_quat, INS_accel, INS_mag);
     NEWAHRS_init(&IMU);
-    SEGGER_RTT_WriteString(0,"fuck1\r\n");
     UKF_vReset(&UKF_IMU, &quaternionData, &UKF_PINIT, &UKF_Rv, &UKF_Rn);
-    SEGGER_RTT_WriteString(0,"fuck2\r\n");
     TickType_t LoopStartTime;
     while (1) {
         DWT_update_task_time_us(&global_task_time.tim_INS_task);
@@ -255,12 +253,12 @@ void INS_task(void const *pvParameters) {
         float32_t Ax = bmi088_real_data.accel[0];
         float32_t Ay = bmi088_real_data.accel[1];
         float32_t Az = bmi088_real_data.accel[2];
-        float32_t Bx = ist8310_real_data.mag[0];
-        float32_t By = ist8310_real_data.mag[1];
-        float32_t Bz = ist8310_real_data.mag[2];
-//        float32_t Bx = ist8310_real_data.mag[0] - IMU.HARD_IRON_BIAS.p2Data[0][0];
-//        float32_t By = ist8310_real_data.mag[1] - IMU.HARD_IRON_BIAS.p2Data[1][0];
-//        float32_t Bz = ist8310_real_data.mag[2] - IMU.HARD_IRON_BIAS.p2Data[2][0];
+//        float32_t Bx = ist8310_real_data.mag[0];
+//        float32_t By = ist8310_real_data.mag[1];
+//        float32_t Bz = ist8310_real_data.mag[2];
+        float32_t Bx = ist8310_real_data.mag[0] - IMU.HARD_IRON_BIAS.p2Data[0][0];
+        float32_t By = ist8310_real_data.mag[1] - IMU.HARD_IRON_BIAS.p2Data[1][0];
+        float32_t Bz = ist8310_real_data.mag[2] - IMU.HARD_IRON_BIAS.p2Data[2][0];
         float32_t p = bmi088_real_data.gyro[0];
         float32_t q = bmi088_real_data.gyro[1];
         float32_t r = bmi088_real_data.gyro[2];
@@ -287,12 +285,10 @@ void INS_task(void const *pvParameters) {
         Y.p2Data[5][0] = Y.p2Data[5][0] / _normM;
         /* ------------------ Read the sensor data / simulate the system here ------------------ */
         /* ============================= Update the Kalman Filter ============================== */
-        SEGGER_RTT_WriteString(0,"fuck3\r\n");
         if (!UKF_bUpdate(&UKF_IMU,&Y,&U,&IMU)) {
             Matrix_vSetToZero(&quaternionData);
             Matrix_vassignment(&quaternionData,1,1,1.0f);
             UKF_vReset(&UKF_IMU,&quaternionData,&UKF_PINIT,&UKF_Rv,&UKF_Rn);
-            SEGGER_RTT_WriteString(0,"fuck4\r\n");
         }
         /* ----------------------------- Update the Kalman Filter ------------------------------ */
         /* ================== Read the sensor data / simulate the system here ================== */
