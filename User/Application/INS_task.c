@@ -213,9 +213,8 @@ void INS_task(void const *pvParameters) {
 
     imu_start_dma_flag = 1;
     ist8310_read_over(mag_dma_rx_buf, ist8310_real_data.mag);
-    //    NEWAHRS_init(INS_quat, INS_accel, INS_mag);
     NEWAHRS_init(&IMU);
-    AHRS_vset_north(&IMU);
+//    AHRS_vset_north(&IMU);
     UKF_vReset(&UKF_IMU, &quaternionData, &UKF_PINIT, &UKF_Rv, &UKF_Rn);
     TickType_t LoopStartTime;
     while (1) {
