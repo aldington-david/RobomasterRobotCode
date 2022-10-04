@@ -391,7 +391,7 @@ bool AHRS_bUpdateNonlinearY(matrix_f32_t *Y_matrix, matrix_f32_t *X_matrix, matr
 void NEWAHRS_init(AHRS_t *AHRS_op) {
     Matrix_data_creat(&AHRS_op->IMU_MAG_B0, 3, 1, IMU_MAG_B0_data, InitMatWithZero);
     Matrix_data_creat(&AHRS_op->HARD_IRON_BIAS, 3, 1, HARD_IRON_BIAS_data, InitMatWithZero);
-    Matrix_data_creat(&quaternionData, SS_X_LEN, 1, INS_quat,InitMatWithZero);
+    Matrix_data_creat(&quaternionData, SS_X_LEN, 1, FAhrs.quaternion.array,InitMatWithZero);
 
     Matrix_nodata_creat(&RLS_theta, 4, 1, InitMatWithZero);
     Matrix_nodata_creat(&RLS_P, 4, 4, InitMatWithZero);

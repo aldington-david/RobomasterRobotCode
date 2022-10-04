@@ -26,6 +26,7 @@
 #include <stdint.h>
 #include "struct_typedef.h"
 #include "DWT.h"
+#include "FusionAhrs.h"
 
 
 #define SPI_DMA_GYRO_LENGHT       8
@@ -192,5 +193,6 @@ extern const float32_t *get_mag_data_point(void);
 
 extern AHRS_time_record_t IMU_time_record;
 extern float32_t INS_quat[4];
+extern FusionAhrs FAhrs;
 
 #endif

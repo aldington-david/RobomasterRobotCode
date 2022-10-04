@@ -41,7 +41,8 @@
 #include "matrix.h"
 #include "ahrs_ukf.h"
 #include "SEGGER_RTT.h"
-
+#include "FusionAhrs.h"
+FusionAhrs FAhrs;
 
 #define IMU_temp_PWM(pwm)  imu_pwm_set(pwm)                    //pwm给定
 
@@ -164,6 +165,9 @@ float32_t INS_mag[3] = {0.0f, 0.0f, 0.0f};
 float32_t INS_quat[4] = {0.0f, 0.0f, 0.0f, 0.0f};
 float32_t INS_angle[3] = {0.0f, 0.0f, 0.0f};      //euler angle, unit rad.欧拉角 单位 rad
 
+FusionVector3 GY;
+FusionVector3 AC;
+
 //new_AHRS
 AHRS_t IMU;
 
@@ -194,9 +198,10 @@ void INS_task(void const *pvParameters) {
 
     PID_init(&imu_temp_pid, PID_POSITION, imu_temp_PID, TEMPERATURE_PID_MAX_OUT, TEMPERATURE_PID_MAX_IOUT, 0, 0, 0, 0,
              0, 0, 0, 0, 0, 0, 0);
-    accel_fliter_1[0] = accel_fliter_2[0] = accel_fliter_3[0] = INS_accel[0];
-    accel_fliter_1[1] = accel_fliter_2[1] = accel_fliter_3[1] = INS_accel[1];
-    accel_fliter_1[2] = accel_fliter_2[2] = accel_fliter_3[2] = INS_accel[2];
+    FusionAhrsInitialise(&FAhrs,10.0f);
+//    accel_fliter_1[0] = accel_fliter_2[0] = accel_fliter_3[0] = INS_accel[0];
+//    accel_fliter_1[1] = accel_fliter_2[1] = accel_fliter_3[1] = INS_accel[1];
+//    accel_fliter_1[2] = accel_fliter_2[2] = accel_fliter_3[2] = INS_accel[2];
     //get the handle of task
     //获取当前任务的任务句柄，
 //    INS_task_local_handler = xTaskGetHandle(pcTaskGetName(NULL));
@@ -213,10 +218,24 @@ void INS_task(void const *pvParameters) {
 
     imu_start_dma_flag = 1;
     ist8310_read_over(mag_dma_rx_buf, ist8310_real_data.mag);
-    AHRS_init(INS_quat, bmi088_real_data.accel, ist8310_real_data.mag);
+    GY.axis.x=bmi088_real_data.gyro[0];
+    GY.axis.x=bmi088_real_data.gyro[1];
+    GY.axis.x=bmi088_real_data.gyro[2];
+    AC.axis.x=bmi088_real_data.accel[0];
+    AC.axis.x=bmi088_real_data.accel[1];
+    AC.axis.x=bmi088_real_data.accel[2];
+    FusionAhrsUpdateWithoutMagnetometer(&FAhrs,GY,AC,0.005f);
+    SEGGER_RTT_printf(0,"g=%f\r\n",bmi088_real_data.gyro[0]);
+    SEGGER_RTT_printf(0,"A=%f\r\n",bmi088_real_data.accel[0]);
+    SEGGER_RTT_printf(0,"m=%f\r\n",ist8310_real_data.mag[0]);
+    SEGGER_RTT_printf(0,"%f\r\n",FAhrs.quaternion.array[0]);
+    SEGGER_RTT_printf(0,"%f\r\n",FAhrs.quaternion.array[1]);
+    SEGGER_RTT_printf(0,"%f\r\n",FAhrs.quaternion.array[2]);
+    SEGGER_RTT_printf(0,"%f\r\n",FAhrs.quaternion.array[3]);
+//    AHRS_init(INS_quat, bmi088_real_data.accel, ist8310_real_data.mag);
 //    AHRS_update(INS_quat, timing_time, bmi088_real_data.gyro, bmi088_real_data.accel, ist8310_real_data.mag);
     NEWAHRS_init(&IMU);
-    AHRS_vset_north(&IMU);
+//    AHRS_vset_north(&IMU);
     UKF_vReset(&UKF_IMU, &quaternionData, &UKF_PINIT, &UKF_Rv, &UKF_Rn);
     TickType_t LoopStartTime;
     while (1) {
@@ -228,17 +247,43 @@ void INS_task(void const *pvParameters) {
         }
 
 
-        if (gyro_update_flag & (1 << IMU_NOTIFY_SHFITS)) {
+//        if (gyro_update_flag & (1 << IMU_NOTIFY_SHFITS)) {
+//            gyro_update_flag &= ~(1 << IMU_NOTIFY_SHFITS);
+//            BMI088_gyro_read_over(gyro_dma_rx_buf + BMI088_GYRO_RX_BUF_DATA_OFFSET, bmi088_real_data.gyro);
+//            DWT_update_task_time_us(&IMU_time_record.gyro);
+//        }
+//
+//        if (accel_update_flag & (1 << IMU_UPDATE_SHFITS)) {
+//            accel_update_flag &= ~(1 << IMU_UPDATE_SHFITS);
+//            BMI088_accel_read_over(accel_dma_rx_buf + BMI088_ACCEL_RX_BUF_DATA_OFFSET, bmi088_real_data.accel,
+//                                   &bmi088_real_data.time);
+//            DWT_update_task_time_us(&IMU_time_record.accel);
+//        }
+//
+//        if (accel_temp_update_flag & (1 << IMU_UPDATE_SHFITS)) {
+//            accel_temp_update_flag &= ~(1 << IMU_UPDATE_SHFITS);
+//            BMI088_temperature_read_over(accel_temp_dma_rx_buf + BMI088_ACCEL_RX_BUF_DATA_OFFSET,
+//                                         &bmi088_real_data.temp);
+//            imu_temp_control(bmi088_real_data.temp);
+//        }
+//
+//        if (mag_update_flag & (1 << IMU_DR_SHFITS)) {
+//            mag_update_flag &= ~(1 << IMU_DR_SHFITS);
+//            ist8310_read_over(mag_dma_rx_buf, ist8310_real_data.mag);
+//            DWT_update_task_time_us(&IMU_time_record.mag);
+//        }
+
+        if ((gyro_update_flag & (1 << IMU_NOTIFY_SHFITS))&&(accel_update_flag & (1 << IMU_UPDATE_SHFITS))&&(mag_update_flag & (1 << IMU_DR_SHFITS))) {
             gyro_update_flag &= ~(1 << IMU_NOTIFY_SHFITS);
             BMI088_gyro_read_over(gyro_dma_rx_buf + BMI088_GYRO_RX_BUF_DATA_OFFSET, bmi088_real_data.gyro);
             DWT_update_task_time_us(&IMU_time_record.gyro);
-        }
-
-        if (accel_update_flag & (1 << IMU_UPDATE_SHFITS)) {
             accel_update_flag &= ~(1 << IMU_UPDATE_SHFITS);
             BMI088_accel_read_over(accel_dma_rx_buf + BMI088_ACCEL_RX_BUF_DATA_OFFSET, bmi088_real_data.accel,
                                    &bmi088_real_data.time);
             DWT_update_task_time_us(&IMU_time_record.accel);
+            mag_update_flag &= ~(1 << IMU_DR_SHFITS);
+            ist8310_read_over(mag_dma_rx_buf, ist8310_real_data.mag);
+            DWT_update_task_time_us(&IMU_time_record.mag);
         }
 
         if (accel_temp_update_flag & (1 << IMU_UPDATE_SHFITS)) {
@@ -248,11 +293,6 @@ void INS_task(void const *pvParameters) {
             imu_temp_control(bmi088_real_data.temp);
         }
 
-        if (mag_update_flag & (1 << IMU_DR_SHFITS)) {
-            mag_update_flag &= ~(1 << IMU_DR_SHFITS);
-            ist8310_read_over(mag_dma_rx_buf, ist8310_real_data.mag);
-            DWT_update_task_time_us(&IMU_time_record.mag);
-        }
         float32_t Ax = bmi088_real_data.accel[0];
         float32_t Ay = bmi088_real_data.accel[1];
         float32_t Az = bmi088_real_data.accel[2];
