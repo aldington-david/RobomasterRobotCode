@@ -39,6 +39,7 @@
 #include "led_flow_task.h"
 #include "gimbal_behaviour.h"
 #include "DWT.h"
+#include "ahrs_ukf.h"
 
 
 #if PRINTF_MODE == RTT_MODE
@@ -181,12 +182,20 @@ referee usart:%s\r\n\
 //            SEGGER_RTT_WriteString(0, print_buf);
 
             //IMU数据
-            SEGGER_RTT_SetTerminal(5);
+            SEGGER_RTT_SetTerminal(4);
             sprintf(print_buf, "imu_tmp=%f,YAW=%f,PITCH=%f,ROLL=%f\r\n",
                     bmi088_real_data.temp,
                     INS_angle[0],
                     INS_angle[1],
                     INS_angle[2]);
+            SEGGER_RTT_WriteString(0, print_buf);
+
+            SEGGER_RTT_SetTerminal(5);
+            sprintf(print_buf, "q1=%f,q2=%f,q3=%f,q4=%f\r\n",
+                    UKF_IMU.X_Est.arm_matrix.pData[0],
+                    UKF_IMU.X_Est.arm_matrix.pData[1],
+                    UKF_IMU.X_Est.arm_matrix.pData[2],
+                    UKF_IMU.X_Est.arm_matrix.pData[3]);
             SEGGER_RTT_WriteString(0, print_buf);
 
 

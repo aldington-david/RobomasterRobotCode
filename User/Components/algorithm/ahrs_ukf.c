@@ -411,10 +411,10 @@ void NEWAHRS_init(AHRS_t *AHRS_op) {
     /* UKF initialization ----------------------------------------- */
     /* x(k=0) = [1 0 0 0]' */
     Matrix_vSetToZero(&quaternionData);
-    Matrix_vassignment(&quaternionData, 1, 1, 1.0f);
-    Matrix_vassignment(&quaternionData, 2, 1, 1.0f);
-    Matrix_vassignment(&quaternionData, 3, 1, 1.0f);
-    Matrix_vassignment(&quaternionData, 4, 1, 1.0f);
+    Matrix_vassignment(&quaternionData, 1, 1, 0.005f);
+    Matrix_vassignment(&quaternionData, 2, 1, 0.005f);
+    Matrix_vassignment(&quaternionData, 3, 1, 0.005f);
+    Matrix_vassignment(&quaternionData, 4, 1, 0.005f);
 
     UKF_init(&UKF_IMU, &quaternionData, &UKF_PINIT, &UKF_Rv, &UKF_Rn, AHRS_bUpdateNonlinearX, AHRS_bUpdateNonlinearY);
     /* RLS initialization ----------------------------------------- */

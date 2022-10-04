@@ -326,7 +326,7 @@ void INS_task(void const *pvParameters) {
 
 
 //        AHRS_update(INS_quat, timing_time, INS_gyro, accel_fliter_3, INS_mag);
-        get_angle(quaternionData.arm_matrix.pData, INS_angle + INS_YAW_ADDRESS_OFFSET, INS_angle + INS_PITCH_ADDRESS_OFFSET,
+        get_angle(UKF_IMU.X_Est.arm_matrix.pData, INS_angle + INS_YAW_ADDRESS_OFFSET, INS_angle + INS_PITCH_ADDRESS_OFFSET,
                   INS_angle + INS_ROLL_ADDRESS_OFFSET);
 
 
