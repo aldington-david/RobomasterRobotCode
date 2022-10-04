@@ -189,14 +189,14 @@ void INS_task(void const *pvParameters) {
     }
 
     BMI088_read(bmi088_real_data.gyro, bmi088_real_data.accel, &bmi088_real_data.temp);
-    //rotate and zero drift 
-    imu_cali_slove(INS_gyro, INS_accel, INS_mag, &bmi088_real_data, &ist8310_real_data);
+    //rotate and zero drift
+//    imu_cali_slove(INS_gyro, INS_accel, INS_mag, &bmi088_real_data, &ist8310_real_data);
 
     PID_init(&imu_temp_pid, PID_POSITION, imu_temp_PID, TEMPERATURE_PID_MAX_OUT, TEMPERATURE_PID_MAX_IOUT, 0, 0, 0, 0,
              0, 0, 0, 0, 0, 0, 0);
-    accel_fliter_1[0] = accel_fliter_2[0] = accel_fliter_3[0] = INS_accel[0];
-    accel_fliter_1[1] = accel_fliter_2[1] = accel_fliter_3[1] = INS_accel[1];
-    accel_fliter_1[2] = accel_fliter_2[2] = accel_fliter_3[2] = INS_accel[2];
+//    accel_fliter_1[0] = accel_fliter_2[0] = accel_fliter_3[0] = INS_accel[0];
+//    accel_fliter_1[1] = accel_fliter_2[1] = accel_fliter_3[1] = INS_accel[1];
+//    accel_fliter_1[2] = accel_fliter_2[2] = accel_fliter_3[2] = INS_accel[2];
     //get the handle of task
     //获取当前任务的任务句柄，
 //    INS_task_local_handler = xTaskGetHandle(pcTaskGetName(NULL));
@@ -212,8 +212,10 @@ void INS_task(void const *pvParameters) {
     SPI1_DMA_init((uint32_t) gyro_dma_tx_buf, (uint32_t) gyro_dma_rx_buf, SPI_DMA_GYRO_LENGHT);
 
     imu_start_dma_flag = 1;
+    ist8310_read_over(mag_dma_rx_buf, ist8310_real_data.mag);
     //    NEWAHRS_init(INS_quat, INS_accel, INS_mag);
     NEWAHRS_init(&IMU);
+    AHRS_vset_north(&IMU);
     UKF_vReset(&UKF_IMU, &quaternionData, &UKF_PINIT, &UKF_Rv, &UKF_Rn);
     TickType_t LoopStartTime;
     while (1) {
@@ -253,12 +255,12 @@ void INS_task(void const *pvParameters) {
         float32_t Ax = bmi088_real_data.accel[0];
         float32_t Ay = bmi088_real_data.accel[1];
         float32_t Az = bmi088_real_data.accel[2];
-//        float32_t Bx = ist8310_real_data.mag[0];
-//        float32_t By = ist8310_real_data.mag[1];
-//        float32_t Bz = ist8310_real_data.mag[2];
-        float32_t Bx = ist8310_real_data.mag[0] - IMU.HARD_IRON_BIAS.p2Data[0][0];
-        float32_t By = ist8310_real_data.mag[1] - IMU.HARD_IRON_BIAS.p2Data[1][0];
-        float32_t Bz = ist8310_real_data.mag[2] - IMU.HARD_IRON_BIAS.p2Data[2][0];
+        float32_t Bx = ist8310_real_data.mag[0];
+        float32_t By = ist8310_real_data.mag[1];
+        float32_t Bz = ist8310_real_data.mag[2];
+//        float32_t Bx = ist8310_real_data.mag[0] - IMU.HARD_IRON_BIAS.p2Data[0][0];
+//        float32_t By = ist8310_real_data.mag[1] - IMU.HARD_IRON_BIAS.p2Data[1][0];
+//        float32_t Bz = ist8310_real_data.mag[2] - IMU.HARD_IRON_BIAS.p2Data[2][0];
         float32_t p = bmi088_real_data.gyro[0];
         float32_t q = bmi088_real_data.gyro[1];
         float32_t r = bmi088_real_data.gyro[2];
