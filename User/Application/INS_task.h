@@ -191,5 +191,6 @@ extern const float32_t *get_accel_data_point(void);
 extern const float32_t *get_mag_data_point(void);
 
 extern AHRS_time_record_t IMU_time_record;
+extern float32_t INS_quat[4];
 
 #endif

@@ -148,7 +148,7 @@ static uint8_t first_temperate;
 static const float32_t imu_temp_PID[3] = {TEMPERATURE_PID_KP, TEMPERATURE_PID_KI, TEMPERATURE_PID_KD};
 static pid_type_def imu_temp_pid;
 
-static const float timing_time = 0.001f;   //tast run time , unit s.任务运行的时间 单位 s
+static const float timing_time = 0.005f;   //tast run time , unit s.任务运行的时间 单位 s
 
 
 //加速度计低通滤波
@@ -194,9 +194,9 @@ void INS_task(void const *pvParameters) {
 
     PID_init(&imu_temp_pid, PID_POSITION, imu_temp_PID, TEMPERATURE_PID_MAX_OUT, TEMPERATURE_PID_MAX_IOUT, 0, 0, 0, 0,
              0, 0, 0, 0, 0, 0, 0);
-//    accel_fliter_1[0] = accel_fliter_2[0] = accel_fliter_3[0] = INS_accel[0];
-//    accel_fliter_1[1] = accel_fliter_2[1] = accel_fliter_3[1] = INS_accel[1];
-//    accel_fliter_1[2] = accel_fliter_2[2] = accel_fliter_3[2] = INS_accel[2];
+    accel_fliter_1[0] = accel_fliter_2[0] = accel_fliter_3[0] = INS_accel[0];
+    accel_fliter_1[1] = accel_fliter_2[1] = accel_fliter_3[1] = INS_accel[1];
+    accel_fliter_1[2] = accel_fliter_2[2] = accel_fliter_3[2] = INS_accel[2];
     //get the handle of task
     //获取当前任务的任务句柄，
 //    INS_task_local_handler = xTaskGetHandle(pcTaskGetName(NULL));
@@ -213,8 +213,10 @@ void INS_task(void const *pvParameters) {
 
     imu_start_dma_flag = 1;
     ist8310_read_over(mag_dma_rx_buf, ist8310_real_data.mag);
+    AHRS_init(INS_quat, bmi088_real_data.accel, ist8310_real_data.mag);
+//    AHRS_update(INS_quat, timing_time, bmi088_real_data.gyro, bmi088_real_data.accel, ist8310_real_data.mag);
     NEWAHRS_init(&IMU);
-//    AHRS_vset_north(&IMU);
+    AHRS_vset_north(&IMU);
     UKF_vReset(&UKF_IMU, &quaternionData, &UKF_PINIT, &UKF_Rv, &UKF_Rn);
     TickType_t LoopStartTime;
     while (1) {
@@ -305,7 +307,7 @@ void INS_task(void const *pvParameters) {
 
 
         //加速度计低通滤波
-        //accel low-pass filter
+//        accel low-pass filter
 //        accel_fliter_1[0] = accel_fliter_2[0];
 //        accel_fliter_2[0] = accel_fliter_3[0];
 //
@@ -325,7 +327,7 @@ void INS_task(void const *pvParameters) {
 //                accel_fliter_2[2] * fliter_num[0] + accel_fliter_1[2] * fliter_num[1] + INS_accel[2] * fliter_num[2];
 
 
-//        AHRS_update(INS_quat, timing_time, INS_gyro, accel_fliter_3, INS_mag);
+
         get_angle(UKF_IMU.X_Est.arm_matrix.pData, INS_angle + INS_YAW_ADDRESS_OFFSET, INS_angle + INS_PITCH_ADDRESS_OFFSET,
                   INS_angle + INS_ROLL_ADDRESS_OFFSET);
 

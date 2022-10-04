@@ -391,6 +391,7 @@ bool AHRS_bUpdateNonlinearY(matrix_f32_t *Y_matrix, matrix_f32_t *X_matrix, matr
 void NEWAHRS_init(AHRS_t *AHRS_op) {
     Matrix_data_creat(&AHRS_op->IMU_MAG_B0, 3, 1, IMU_MAG_B0_data, InitMatWithZero);
     Matrix_data_creat(&AHRS_op->HARD_IRON_BIAS, 3, 1, HARD_IRON_BIAS_data, InitMatWithZero);
+    Matrix_data_creat(&quaternionData, SS_X_LEN, 1, INS_quat,InitMatWithZero);
 
     Matrix_nodata_creat(&RLS_theta, 4, 1, InitMatWithZero);
     Matrix_nodata_creat(&RLS_P, 4, 4, InitMatWithZero);
@@ -398,7 +399,7 @@ void NEWAHRS_init(AHRS_t *AHRS_op) {
     Matrix_nodata_creat(&RLS_out, 1, 1, InitMatWithZero);
     Matrix_nodata_creat(&RLS_gain, 4, 1, InitMatWithZero);
 
-    Matrix_nodata_creat(&quaternionData, SS_X_LEN, 1, InitMatWithZero);
+//    Matrix_nodata_creat(&quaternionData, SS_X_LEN, 1, InitMatWithZero);
     Matrix_nodata_creat(&Y, SS_Z_LEN, 1, InitMatWithZero);
     Matrix_nodata_creat(&U, SS_U_LEN, 1, InitMatWithZero);
 
@@ -410,11 +411,7 @@ void NEWAHRS_init(AHRS_t *AHRS_op) {
 
     /* UKF initialization ----------------------------------------- */
     /* x(k=0) = [1 0 0 0]' */
-    Matrix_vSetToZero(&quaternionData);
-    Matrix_vassignment(&quaternionData, 1, 1, 0.005f);
-    Matrix_vassignment(&quaternionData, 2, 1, 0.005f);
-    Matrix_vassignment(&quaternionData, 3, 1, 0.005f);
-    Matrix_vassignment(&quaternionData, 4, 1, 0.005f);
+//    Matrix_vSetToZero(&quaternionData);
 
     UKF_init(&UKF_IMU, &quaternionData, &UKF_PINIT, &UKF_Rv, &UKF_Rn, AHRS_bUpdateNonlinearX, AHRS_bUpdateNonlinearY);
     /* RLS initialization ----------------------------------------- */
@@ -424,41 +421,34 @@ void NEWAHRS_init(AHRS_t *AHRS_op) {
 }
 
 void AHRS_vset_north(AHRS_t *AHRS_op) {
-//    float32_t Ax = bmi088_real_data.accel[0];
-//    float32_t Ay = bmi088_real_data.accel[1];
-//    float32_t Az = bmi088_real_data.accel[2];
-//    float32_t Bx = ist8310_real_data.mag[0];
-//    float32_t By = ist8310_real_data.mag[1];
-//    float32_t Bz = ist8310_real_data.mag[2];
-//
-//    /* Normalizing the acceleration vector & projecting the gravitational vector (gravity is negative acceleration) */
-//    float32_t _normG = sqrtf((Ax * Ax) + (Ay * Ay) + (Az * Az));
-//    Ax = Ax / _normG;
-//    Ay = Ay / _normG;
-//    Az = Az / _normG;
-//
-//    /* Normalizing the magnetic vector */
-//    _normG = sqrtf((Bx * Bx) + (By * By) + (Bz * Bz));
-//    Bx = Bx / _normG;
-//    By = By / _normG;
-//    Bz = Bz / _normG;
-//
-//    /* Projecting the magnetic vector into plane orthogonal to the gravitational vector */
-//    float32_t pitch = asinf(-Ax);
-//    float32_t roll = asinf(Ay / cosf(pitch));
-//    float32_t m_tilt_x = Bx * cosf(pitch) + By * sinf(roll) * sinf(pitch) + Bz * cosf(roll) * sinf(pitch);
-//    float32_t m_tilt_y = By * cosf(roll) - Bz * sinf(roll);
-//    /* float32_t m_tilt_z = -Bx*sin(pitch)             + By*sin(roll)*cos(pitch)   + Bz*cos(roll)*cos(pitch); */
-//
-//    float32_t mag_dec = atan2f(m_tilt_y, m_tilt_x);
-//    AHRS_op->IMU_MAG_B0.p2Data[0][0] = cosf(mag_dec);
-//    AHRS_op->IMU_MAG_B0.p2Data[1][0] = sinf(mag_dec);
-//    AHRS_op->IMU_MAG_B0.p2Data[2][0] = 0;
+    float32_t Ax = bmi088_real_data.accel[0];
+    float32_t Ay = bmi088_real_data.accel[1];
+    float32_t Az = bmi088_real_data.accel[2];
+    float32_t Bx = ist8310_real_data.mag[0];
+    float32_t By = ist8310_real_data.mag[1];
+    float32_t Bz = ist8310_real_data.mag[2];
 
-    Matrix_vassignment(&UKF_Rn,1,1,bmi088_real_data.accel[0]);
-    Matrix_vassignment(&UKF_Rn,2,2,bmi088_real_data.accel[1]);
-    Matrix_vassignment(&UKF_Rn,3,3,bmi088_real_data.accel[2]);
-    Matrix_vassignment(&UKF_Rn,4,4,ist8310_real_data.mag[0]);
-    Matrix_vassignment(&UKF_Rn,5,5,ist8310_real_data.mag[1]);
-    Matrix_vassignment(&UKF_Rn,6,6,ist8310_real_data.mag[2]);
+    /* Normalizing the acceleration vector & projecting the gravitational vector (gravity is negative acceleration) */
+    float32_t _normG = sqrtf((Ax * Ax) + (Ay * Ay) + (Az * Az));
+    Ax = Ax / _normG;
+    Ay = Ay / _normG;
+    Az = Az / _normG;
+
+    /* Normalizing the magnetic vector */
+    _normG = sqrtf((Bx * Bx) + (By * By) + (Bz * Bz));
+    Bx = Bx / _normG;
+    By = By / _normG;
+    Bz = Bz / _normG;
+
+    /* Projecting the magnetic vector into plane orthogonal to the gravitational vector */
+    float32_t pitch = asinf(-Ax);
+    float32_t roll = asinf(Ay / cosf(pitch));
+    float32_t m_tilt_x = Bx * cosf(pitch) + By * sinf(roll) * sinf(pitch) + Bz * cosf(roll) * sinf(pitch);
+    float32_t m_tilt_y = By * cosf(roll) - Bz * sinf(roll);
+    /* float32_t m_tilt_z = -Bx*sin(pitch)             + By*sin(roll)*cos(pitch)   + Bz*cos(roll)*cos(pitch); */
+
+    float32_t mag_dec = atan2f(m_tilt_y, m_tilt_x);
+    AHRS_op->IMU_MAG_B0.p2Data[0][0] = cosf(mag_dec);
+    AHRS_op->IMU_MAG_B0.p2Data[1][0] = sinf(mag_dec);
+    AHRS_op->IMU_MAG_B0.p2Data[2][0] = 0;
 }

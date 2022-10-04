@@ -190,16 +190,24 @@ referee usart:%s\r\n\
                     INS_angle[2]);
             SEGGER_RTT_WriteString(0, print_buf);
 
-            SEGGER_RTT_SetTerminal(5);
-            sprintf(print_buf, "q1=%f,q2=%f,q3=%f,q4=%f\r\n",
-                    UKF_IMU.X_Est.arm_matrix.pData[0],
-                    UKF_IMU.X_Est.arm_matrix.pData[1],
-                    UKF_IMU.X_Est.arm_matrix.pData[2],
-                    UKF_IMU.X_Est.arm_matrix.pData[3]);
-            SEGGER_RTT_WriteString(0, print_buf);
+//            SEGGER_RTT_SetTerminal(5);
+//            sprintf(print_buf, "q1=%f,q2=%f,q3=%f,q4=%f\r\n",
+//                    UKF_IMU.X_Est.arm_matrix.pData[0],
+//                    UKF_IMU.X_Est.arm_matrix.pData[1],
+//                    UKF_IMU.X_Est.arm_matrix.pData[2],
+//                    UKF_IMU.X_Est.arm_matrix.pData[3]);
+//            SEGGER_RTT_WriteString(0, print_buf);
+
+//            SEGGER_RTT_SetTerminal(5);
+//            sprintf(print_buf, "q1=%f,q2=%f,q3=%f,q4=%f\r\n",
+//                    UKF_IMU.X_Est.arm_matrix.pData[0],
+//                    UKF_IMU.X_Est.arm_matrix.pData[1],
+//                    UKF_IMU.X_Est.arm_matrix.pData[2],
+//                    UKF_IMU.X_Est.arm_matrix.pData[3]);
+//            SEGGER_RTT_WriteString(0, print_buf);
 
 
-            //视觉
+                    //视觉
 
 //            SEGGER_RTT_SetTerminal(1);
 //            sprintf(print_buf,
