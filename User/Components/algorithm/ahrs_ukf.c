@@ -51,7 +51,7 @@ UKF_t UKF_IMU;
 /* Magnetic vector constant (align with local magnetic vector) */
 float32_t IMU_MAG_B0_data[3] = {COS(0), SIN(0), 0.000000f};
 /* The hard-magnet bias */
-float32_t HARD_IRON_BIAS_data[3] = {8.832973f, 7.243323f, 23.95714f};
+float32_t HARD_IRON_BIAS_data[3] = {0.0f, 0.0f, 0.0f};
 
 
 void UKF_init(UKF_t *UKF_op, matrix_f32_t *XInit, matrix_f32_t *P, matrix_f32_t *Rv, matrix_f32_t *Rn,
@@ -391,7 +391,7 @@ bool AHRS_bUpdateNonlinearY(matrix_f32_t *Y_matrix, matrix_f32_t *X_matrix, matr
 void NEWAHRS_init(AHRS_t *AHRS_op) {
     Matrix_data_creat(&AHRS_op->IMU_MAG_B0, 3, 1, IMU_MAG_B0_data, InitMatWithZero);
     Matrix_data_creat(&AHRS_op->HARD_IRON_BIAS, 3, 1, HARD_IRON_BIAS_data, InitMatWithZero);
-    Matrix_data_creat(&quaternionData, SS_X_LEN, 1, FAhrs.quaternion.array,InitMatWithZero);
+    Matrix_data_creat(&quaternionData, SS_X_LEN, 1, INS_quat, InitMatWithZero);
 
     Matrix_nodata_creat(&RLS_theta, 4, 1, InitMatWithZero);
     Matrix_nodata_creat(&RLS_P, 4, 4, InitMatWithZero);
@@ -421,12 +421,17 @@ void NEWAHRS_init(AHRS_t *AHRS_op) {
 }
 
 void AHRS_vset_north(AHRS_t *AHRS_op) {
+    ist8310_read_over(mag_dma_rx_buf, ist8310_real_data.mag);
+    BMI088_read(bmi088_real_data.gyro, bmi088_real_data.accel, &bmi088_real_data.temp);
     float32_t Ax = bmi088_real_data.accel[0];
     float32_t Ay = bmi088_real_data.accel[1];
     float32_t Az = bmi088_real_data.accel[2];
-    float32_t Bx = ist8310_real_data.mag[0];
-    float32_t By = ist8310_real_data.mag[1];
-    float32_t Bz = ist8310_real_data.mag[2];
+    float32_t Bx = ist8310_real_data.mag[0] - IMU.HARD_IRON_BIAS.p2Data[0][0];
+    float32_t By = ist8310_real_data.mag[1] - IMU.HARD_IRON_BIAS.p2Data[1][0];
+    float32_t Bz = ist8310_real_data.mag[2] - IMU.HARD_IRON_BIAS.p2Data[2][0];
+//    float32_t Bx = ist8310_real_data.mag[0];
+//    float32_t By = ist8310_real_data.mag[1];
+//    float32_t Bz = ist8310_real_data.mag[2];
 
     /* Normalizing the acceleration vector & projecting the gravitational vector (gravity is negative acceleration) */
     float32_t _normG = sqrtf((Ax * Ax) + (Ay * Ay) + (Az * Az));
@@ -442,13 +447,50 @@ void AHRS_vset_north(AHRS_t *AHRS_op) {
 
     /* Projecting the magnetic vector into plane orthogonal to the gravitational vector */
     float32_t pitch = asinf(-Ax);
+//    float32_t pitch = asinf(-Ax);
     float32_t roll = asinf(Ay / cosf(pitch));
-    float32_t m_tilt_x = Bx * cosf(pitch) + By * sinf(roll) * sinf(pitch) + Bz * cosf(roll) * sinf(pitch);
-    float32_t m_tilt_y = By * cosf(roll) - Bz * sinf(roll);
+//    float32_t roll =atanf(Ay / Az);
+//    float32_t m_tilt_x = Bx * cosf(pitch) + By * sinf(roll) * sinf(pitch) + Bz * cosf(roll) * sinf(pitch);
+//    float32_t m_tilt_y = By * cosf(roll) - Bz * sinf(roll);
+    float32_t m_tilt_x = Bx * cosf(roll) + Bz * sinf(roll);
+    float32_t m_tilt_y = By * cosf(pitch) + Bx * sinf(roll) * sinf(pitch) - Bz * cosf(roll) * sinf(pitch);
     /* float32_t m_tilt_z = -Bx*sin(pitch)             + By*sin(roll)*cos(pitch)   + Bz*cos(roll)*cos(pitch); */
 
     float32_t mag_dec = atan2f(m_tilt_y, m_tilt_x);
-    AHRS_op->IMU_MAG_B0.p2Data[0][0] = cosf(mag_dec);
-    AHRS_op->IMU_MAG_B0.p2Data[1][0] = sinf(mag_dec);
-    AHRS_op->IMU_MAG_B0.p2Data[2][0] = 0;
+    SEGGER_RTT_printf(0,"yaw=%f\r\n",mag_dec);
+//    INS_quat[0] =
+//            cosf(roll / 2.0f) * cosf(pitch / 2.0f) * cosf(mag_dec / 2.0f) + sinf(roll / 2.0f) * sinf(pitch / 2.0f) *
+//                                                                            sinf(mag_dec / 2.0f);
+//    INS_quat[1] =
+//            sinf(roll / 2.0f) * cosf(pitch / 2.0f) * cosf(mag_dec / 2.0f) - cosf(roll / 2.0f) * sinf(pitch / 2.0f) *
+//                                                                            sinf(mag_dec / 2.0f);
+//    INS_quat[2] =
+//            cosf(roll / 2.0f) * sinf(pitch / 2.0f) * cosf(mag_dec / 2.0f) + sinf(roll / 2.0f) * cosf(pitch / 2.0f) *
+//                                                                            sinf(mag_dec / 2.0f);
+//    INS_quat[3] =
+//            cosf(roll / 2.0f) * cosf(pitch / 2.0f) * sinf(mag_dec / 2.0f) - sinf(roll / 2.0f) * sinf(pitch / 2.0f) *
+//                                                                            sinf(mag_dec / 2.0f);
+    INS_quat[0] =
+            cosf(pitch / 2.0f) * cosf(roll / 2.0f) * cosf(mag_dec / 2.0f) - sinf(roll / 2.0f) * sinf(pitch / 2.0f) *
+                                                                            sinf(mag_dec / 2.0f);
+    INS_quat[1] =
+            sinf(pitch / 2.0f) * cosf(roll / 2.0f) * cosf(mag_dec / 2.0f) - cosf(pitch / 2.0f) * sinf(roll / 2.0f) *
+                                                                            sinf(mag_dec / 2.0f);
+    INS_quat[2] =
+            cosf(pitch / 2.0f) * sinf(roll / 2.0f) * cosf(mag_dec / 2.0f) + sinf(pitch / 2.0f) * cosf(roll / 2.0f) *
+                                                                            sinf(mag_dec / 2.0f);
+    INS_quat[3] =
+            cosf(pitch / 2.0f) * cosf(roll / 2.0f) * sinf(mag_dec / 2.0f) + sinf(roll / 2.0f) * sinf(pitch / 2.0f) *
+                                                                            cosf(mag_dec / 2.0f);
+
+    Matrix_vassignment(&quaternionData, 1, 1, INS_quat[0]);
+    Matrix_vassignment(&quaternionData, 2, 1, INS_quat[1]);
+    Matrix_vassignment(&quaternionData, 3, 1, INS_quat[2]);
+    Matrix_vassignment(&quaternionData, 4, 1, INS_quat[3]);
+//    AHRS_op->IMU_MAG_B0.p2Data[0][0] = cosf(mag_dec);
+//    AHRS_op->IMU_MAG_B0.p2Data[1][0] = sinf(mag_dec);
+//    AHRS_op->IMU_MAG_B0.p2Data[2][0] = 0;
+
 }
+
+//void AHRS_get_init_quaternion()

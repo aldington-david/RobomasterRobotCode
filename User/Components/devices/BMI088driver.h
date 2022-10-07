@@ -58,8 +58,12 @@ typedef struct BMI088_REAL_DATA
 {
     uint8_t status;
     float32_t accel[3];
+    float32_t accel_last[3];
+    float32_t accel_err[3];
     float32_t temp;
     float32_t gyro[3];
+    float32_t gyro_last[3];
+    float32_t gyro_err[3];
     float32_t time;
 } bmi088_real_data_t;
 

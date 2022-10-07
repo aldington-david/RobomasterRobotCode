@@ -138,6 +138,15 @@ referee usart:%s\r\n\
             LoopStartTime = xTaskGetTickCount();
 //            SEGGER_RTT_printf(0,"testfunction\n");
             /***********************打印数据 Start *****************************/
+            //Freertos HEAP
+//            SEGGER_RTT_SetTerminal(1);
+//            sprintf(print_buf,
+//                    "Now_Heap=%d,Heap_min=%d\r\n",
+//                    xPortGetFreeHeapSize(),
+//            xPortGetMinimumEverFreeHeapSize()
+//            );
+//            SEGGER_RTT_WriteString(0, print_buf);
+
             //执行时间
             //task
 //            SEGGER_RTT_SetTerminal(1);
@@ -189,6 +198,21 @@ referee usart:%s\r\n\
                     INS_angle[1],
                     INS_angle[2]);
             SEGGER_RTT_WriteString(0, print_buf);
+//
+            SEGGER_RTT_SetTerminal(5);
+            sprintf(print_buf, "imu_tmp=%f,uYAW=%f,uPITCH=%f,uROLL=%f\r\n",
+                    bmi088_real_data.temp,
+                    INS_angle_ukf[0],
+                    INS_angle_ukf[1],
+                    INS_angle_ukf[2]);
+            SEGGER_RTT_WriteString(0, print_buf);
+
+//            SEGGER_RTT_SetTerminal(5);
+//            sprintf(print_buf, "acc_x=%f,acc_y=%f,acc_z=%f\r\n",
+//                    bmi088_real_data.accel[0],
+//                    bmi088_real_data.accel[1],
+//                    bmi088_real_data.accel[2]);
+//            SEGGER_RTT_WriteString(0, print_buf);
 
 //            SEGGER_RTT_SetTerminal(5);
 //            sprintf(print_buf, "q1=%f,q2=%f,q3=%f,q4=%f\r\n",
