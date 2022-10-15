@@ -688,8 +688,9 @@ void Matrix_print(matrix_f32_t *matrix_op, PrintWay printway) {
                 for (int8_t j = 0; j < matrix_op->arm_matrix.numCols; j++) {
                     len += sprintf((print_buf + len), "%8.3f", (matrix_op->p2Data)[i][j]);
                 }
-                len += sprintf((print_buf + len), "]\r\n");
+                len += sprintf((print_buf + len), "]");
             }
+            len += sprintf((print_buf + len), ";\r\n");
             SEGGER_RTT_SetTerminal(0);
             SEGGER_RTT_WriteString(0, print_buf);
         } else if (printway == Linear) {
