@@ -22,7 +22,6 @@ uint32_t matlab_sync_task_stack;
 
 uint8_t matlab_fifo_tx_len_buf[MATLAB_FIFO_BUF_LENGTH];
 uint8_t matlab_fifo_tx_buf[MATLAB_FIFO_BUF_LENGTH];
-uint8_t mag_data_tx_buf[MAG_FIFO_BUF_LENGTH];
 fifo_s_t matlab_tx_len_fifo;
 fifo_s_t matlab_tx_fifo;
 fifo_s_t mag_data_tx_fifo;
@@ -45,7 +44,6 @@ void matlab_sync_task(void const *argument) {
     init_matlab_struct_data();
     fifo_s_init(&matlab_tx_len_fifo, matlab_fifo_tx_len_buf, MATLAB_FIFO_BUF_LENGTH);
     fifo_s_init(&matlab_tx_fifo, matlab_fifo_tx_buf, MATLAB_FIFO_BUF_LENGTH);
-    fifo_s_init(&mag_data_tx_fifo, mag_data_tx_buf, MAG_FIFO_BUF_LENGTH);
     usart1_tx_init(usart1_matlab_tx_buf[0], usart1_matlab_tx_buf[1], USART1_MATLAB_TX_BUF_LENGHT);
     matlab_tx_task_local_handler = xTaskGetCurrentTaskHandle();
 //    TickType_t LoopStartTime;
@@ -57,9 +55,10 @@ void matlab_sync_task(void const *argument) {
 //        matlab_sync_task_stack = uxTaskGetStackHighWaterMark(NULL);
 //#endif
 //        LoopStartTime = xTaskGetTickCount();
-        if (fifo_s_used(&mag_data_tx_fifo) > 120) {
+        if(global_task_time.tim_matlab_sync_task.time<15000){
+            data_sync(sizeof(test1));
+        }else if (fifo_s_used(&mag_data_tx_fifo) > 120) {
             fifo_s_gets(&mag_data_tx_fifo, (char *) &test1.data.mag_xyz_5data, 120);
-
             test1.header.data_len = sizeof(test1.data.mag_xyz_5data);
 //        SEGGER_RTT_printf(0, "test1=%p\r\ntest2=%p\r\ntest3=%p\r\n", &test1,&test1.data,&test1.data.data2);
             append_CRC16_check_sum((uint8_t *) &test1.data.mag_xyz_5data,
@@ -87,7 +86,6 @@ uint32_t get_stack_of_matlab_sync_task(void) {
 void init_matlab_struct_data(void) {
     memset(&matlab_fifo_tx_len_buf, 0, MATLAB_FIFO_BUF_LENGTH);
     memset(&matlab_fifo_tx_buf, 0, MATLAB_FIFO_BUF_LENGTH);
-    memset(&mag_data_tx_buf, 0, MAG_FIFO_BUF_LENGTH);
     memset(&matlab_transmit_pack, 0, 256);
     memset(&test1.data.mag_xyz_5data, 0, 120);
     memset(&usart1_matlab_tx_buf, 0, 2 * USART1_MATLAB_TX_BUF_LENGHT);
@@ -109,7 +107,7 @@ void data_sync(int data_len) {
     if (Matlab_No_DMA_IRQHandler || Matlab_IRQ_Return_Before) {
         if (xTaskGetSchedulerState() != taskSCHEDULER_NOT_STARTED) {
             xTaskNotifyGive(USART1TX_active_task_local_handler);
-//            portYIELD();
+            portYIELD();
         }
     }
 }

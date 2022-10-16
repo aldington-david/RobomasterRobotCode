@@ -42,6 +42,8 @@
 #include "ahrs_ukf.h"
 #include "SEGGER_RTT.h"
 #include "FusionAhrs.h"
+#include "fifo.h"
+#include "matlab_sync_task.h"
 //#include "calibrate_ukf.h"
 
 FusionAhrs FAhrs;
@@ -173,6 +175,7 @@ float32_t expected_field[3] = {-3.7151f, 28.3972f, -46.1396f};
 float calibrated_reading[3] = {0};
 //new_AHRS
 AHRS_t IMU;
+uint8_t mag_data_tx_buf[MAG_FIFO_BUF_LENGTH];
 
 /**
   * @brief          imu task, init bmi088, ist8310, calculate the euler angle
@@ -230,99 +233,101 @@ void INS_task(void const *pvParameters) {
 //    SEGGER_RTT_printf(0,"%f\r\n",FAhrs.quaternion.array[2]);
 //    SEGGER_RTT_printf(0,"%f\r\n",FAhrs.quaternion.array[3]);
 //    AHRS_init(INS_quat, INS_accel, INS_mag);
-    NEWAHRS_init(&IMU);
-    float32_t P_check_num = 10;
-    while (!(P_check_num < 2e-6f)) {
-        if (mag_update_flag & (1 << IMU_DR_SHFITS)) {
-            mag_update_flag &= ~(1 << IMU_DR_SHFITS);
-            ist8310_read_over(mag_dma_rx_buf, ist8310_real_data.mag);
-            imu_cali_slove(INS_gyro, INS_accel, INS_mag, &bmi088_real_data, &ist8310_real_data);
-            float32_t Bx_RLS = INS_mag[0];
-            float32_t By_RLS = INS_mag[1];
-            float32_t Bz_RLS = INS_mag[2];
-            matrix_f32_t P_check;
-            Matrix_vinit(&P_check);
-            matrix_f32_t _temp_T;
-            matrix_f32_t _temp_M;
-            matrix_f32_t _temp_M2;
-            matrix_f32_t _temp_AS;
-            Matrix_vinit(&_temp_T);
-            Matrix_vinit(&_temp_M);
-            Matrix_vinit(&_temp_M2);
-            Matrix_vinit(&_temp_AS);
-            RLS_in.p2Data[0][0] = Bx_RLS;
-            RLS_in.p2Data[1][0] = By_RLS;
-            RLS_in.p2Data[2][0] = Bz_RLS;
-            RLS_in.p2Data[3][0] = 1;
-            RLS_out.p2Data[0][0] = (Bx_RLS * Bx_RLS) + (By_RLS * By_RLS) + (Bz_RLS * Bz_RLS);
-            Matrix_vTranspose_nsame(&RLS_in, &_temp_T);
-            Matrix_vmult_nsame(&_temp_T, &RLS_theta, &_temp_M);
-
-            Matrix_vsub(&RLS_out, &_temp_M, &_temp_AS);
-            float32_t err = 0.01f*_temp_AS.p2Data[0][0];
-            SEGGER_RTT_printf(0, "%f\r\n", P_check_num);
-            Matrix_vmult_nsame(&_temp_T, &RLS_P, &_temp_M);
-            Matrix_vmult_nsame(&_temp_M, &RLS_in, &_temp_M2);
-            Matrix_vRoundingadd(&_temp_M2, RLS_lambda);
-            Matrix_vmult_nsame(&RLS_P, &RLS_in, &_temp_M);
-            Matrix_vscale(&_temp_M, (1.0f / _temp_M2.p2Data[0][0]));
-            Matrix_vMove(&_temp_M, &RLS_gain);
-            Matrix_vmult_nsame(&RLS_gain, &_temp_T, &_temp_M);
-            Matrix_vmult_nsame(&_temp_M, &RLS_P, &_temp_M2);
-            Matrix_vsub(&RLS_P, &_temp_M2, &RLS_P);
-            Matrix_vscale(&RLS_P, (1.0f / RLS_lambda));
-            Matrix_vCopy(&RLS_gain, &_temp_AS);
-            Matrix_vscale(&_temp_AS, err);
-            Matrix_vsub(&RLS_theta, &_temp_AS, &RLS_theta);
-
-            Matrix_vGetDiagonalEntries(&RLS_P, &P_check);
-            Matrix_vTranspose_nsame(&P_check, &_temp_T);
-            Matrix_vmult_nsame(&_temp_T, &P_check, &_temp_M);
-            P_check_num = _temp_M.p2Data[0][0];
-            Matrix_vSetMatrixInvalid(&P_check);
-            Matrix_vSetMatrixInvalid(&_temp_T);
-            Matrix_vSetMatrixInvalid(&_temp_M);
-            Matrix_vSetMatrixInvalid(&_temp_M2);
-            Matrix_vSetMatrixInvalid(&_temp_AS);
-        }
-        osDelay(5);
-    }
-    SEGGER_RTT_WriteString(0, "D\r\n");
-    IMU.HARD_IRON_BIAS.p2Data[0][0] = RLS_theta.p2Data[0][0] / 2.0f;
-    IMU.HARD_IRON_BIAS.p2Data[1][0] = RLS_theta.p2Data[1][0] / 2.0f;
-    IMU.HARD_IRON_BIAS.p2Data[2][0] = RLS_theta.p2Data[2][0] / 2.0f;
-    SEGGER_RTT_printf(0, "%f\r\n", IMU.HARD_IRON_BIAS.p2Data[0][0]);
-    SEGGER_RTT_printf(0, "%f\r\n", IMU.HARD_IRON_BIAS.p2Data[1][0]);
-    SEGGER_RTT_printf(0, "%f\r\n", IMU.HARD_IRON_BIAS.p2Data[2][0]);
-    uint16_t stable_cnt = 0;
-
-    while (stable_cnt < 400) {
-        BMI088_read(bmi088_real_data.gyro, bmi088_real_data.accel, &bmi088_real_data.temp);
-        ist8310_read_over(mag_dma_rx_buf, ist8310_real_data.mag);
-        imu_cali_slove(INS_gyro, INS_accel, INS_mag, &bmi088_real_data, &ist8310_real_data);
-        bmi088_real_data.accel_err[0] = bmi088_real_data.accel_last[0] - bmi088_real_data.accel[0];
-        bmi088_real_data.accel_err[1] = bmi088_real_data.accel_last[1] - bmi088_real_data.accel[1];
-        bmi088_real_data.accel_err[2] = bmi088_real_data.accel_last[2] - bmi088_real_data.accel[2];
-        if ((0.1f > fabsf(bmi088_real_data.accel_err[0])) && (0.1f > fabsf(bmi088_real_data.accel_err[1])) &&
-            (0.1f > fabsf(bmi088_real_data.accel_err[2]))) {
-            stable_cnt++;
-        }
-        bmi088_real_data.accel_last[0] = bmi088_real_data.accel[0];
-        bmi088_real_data.accel_last[1] = bmi088_real_data.accel[1];
-        bmi088_real_data.accel_last[2] = bmi088_real_data.accel[2];
-        osDelay(5);
-    }
-    AHRS_vset_north(&IMU);
+//    NEWAHRS_init(&IMU);
+//    float32_t P_check_num = 10;
+//    while (!(P_check_num < 2e-6f)) {
+//        if (mag_update_flag & (1 << IMU_DR_SHFITS)) {
+//            mag_update_flag &= ~(1 << IMU_DR_SHFITS);
+//            ist8310_read_over(mag_dma_rx_buf, ist8310_real_data.mag);
+//            imu_cali_slove(INS_gyro, INS_accel, INS_mag, &bmi088_real_data, &ist8310_real_data);
+//            float32_t Bx_RLS = INS_mag[0];
+//            float32_t By_RLS = INS_mag[1];
+//            float32_t Bz_RLS = INS_mag[2];
+//            matrix_f32_t P_check;
+//            Matrix_vinit(&P_check);
+//            matrix_f32_t _temp_T;
+//            matrix_f32_t _temp_M;
+//            matrix_f32_t _temp_M2;
+//            matrix_f32_t _temp_AS;
+//            Matrix_vinit(&_temp_T);
+//            Matrix_vinit(&_temp_M);
+//            Matrix_vinit(&_temp_M2);
+//            Matrix_vinit(&_temp_AS);
+//            RLS_in.p2Data[0][0] = Bx_RLS;
+//            RLS_in.p2Data[1][0] = By_RLS;
+//            RLS_in.p2Data[2][0] = Bz_RLS;
+//            RLS_in.p2Data[3][0] = 1;
+//            RLS_out.p2Data[0][0] = (Bx_RLS * Bx_RLS) + (By_RLS * By_RLS) + (Bz_RLS * Bz_RLS);
+//            Matrix_vTranspose_nsame(&RLS_in, &_temp_T);
+//            Matrix_vmult_nsame(&_temp_T, &RLS_theta, &_temp_M);
+//
+//            Matrix_vsub(&RLS_out, &_temp_M, &_temp_AS);
+//            float32_t err = 0.01f*_temp_AS.p2Data[0][0];
+//            SEGGER_RTT_printf(0, "%f\r\n", P_check_num);
+//            Matrix_vmult_nsame(&_temp_T, &RLS_P, &_temp_M);
+//            Matrix_vmult_nsame(&_temp_M, &RLS_in, &_temp_M2);
+//            Matrix_vRoundingadd(&_temp_M2, RLS_lambda);
+//            Matrix_vmult_nsame(&RLS_P, &RLS_in, &_temp_M);
+//            Matrix_vscale(&_temp_M, (1.0f / _temp_M2.p2Data[0][0]));
+//            Matrix_vMove(&_temp_M, &RLS_gain);
+//            Matrix_vmult_nsame(&RLS_gain, &_temp_T, &_temp_M);
+//            Matrix_vmult_nsame(&_temp_M, &RLS_P, &_temp_M2);
+//            Matrix_vsub(&RLS_P, &_temp_M2, &RLS_P);
+//            Matrix_vscale(&RLS_P, (1.0f / RLS_lambda));
+//            Matrix_vCopy(&RLS_gain, &_temp_AS);
+//            Matrix_vscale(&_temp_AS, err);
+//            Matrix_vsub(&RLS_theta, &_temp_AS, &RLS_theta);
+//
+//            Matrix_vGetDiagonalEntries(&RLS_P, &P_check);
+//            Matrix_vTranspose_nsame(&P_check, &_temp_T);
+//            Matrix_vmult_nsame(&_temp_T, &P_check, &_temp_M);
+//            P_check_num = _temp_M.p2Data[0][0];
+//            Matrix_vSetMatrixInvalid(&P_check);
+//            Matrix_vSetMatrixInvalid(&_temp_T);
+//            Matrix_vSetMatrixInvalid(&_temp_M);
+//            Matrix_vSetMatrixInvalid(&_temp_M2);
+//            Matrix_vSetMatrixInvalid(&_temp_AS);
+//        }
+//        osDelay(5);
+//    }
+//    SEGGER_RTT_WriteString(0, "D\r\n");
+//    IMU.HARD_IRON_BIAS.p2Data[0][0] = RLS_theta.p2Data[0][0] / 2.0f;
+//    IMU.HARD_IRON_BIAS.p2Data[1][0] = RLS_theta.p2Data[1][0] / 2.0f;
+//    IMU.HARD_IRON_BIAS.p2Data[2][0] = RLS_theta.p2Data[2][0] / 2.0f;
+//    SEGGER_RTT_printf(0, "%f\r\n", IMU.HARD_IRON_BIAS.p2Data[0][0]);
+//    SEGGER_RTT_printf(0, "%f\r\n", IMU.HARD_IRON_BIAS.p2Data[1][0]);
+//    SEGGER_RTT_printf(0, "%f\r\n", IMU.HARD_IRON_BIAS.p2Data[2][0]);
+//    uint16_t stable_cnt = 0;
+//
+//    while (stable_cnt < 400) {
+//        BMI088_read(bmi088_real_data.gyro, bmi088_real_data.accel, &bmi088_real_data.temp);
+//        ist8310_read_over(mag_dma_rx_buf, ist8310_real_data.mag);
+//        imu_cali_slove(INS_gyro, INS_accel, INS_mag, &bmi088_real_data, &ist8310_real_data);
+//        bmi088_real_data.accel_err[0] = bmi088_real_data.accel_last[0] - bmi088_real_data.accel[0];
+//        bmi088_real_data.accel_err[1] = bmi088_real_data.accel_last[1] - bmi088_real_data.accel[1];
+//        bmi088_real_data.accel_err[2] = bmi088_real_data.accel_last[2] - bmi088_real_data.accel[2];
+//        if ((0.1f > fabsf(bmi088_real_data.accel_err[0])) && (0.1f > fabsf(bmi088_real_data.accel_err[1])) &&
+//            (0.1f > fabsf(bmi088_real_data.accel_err[2]))) {
+//            stable_cnt++;
+//        }
+//        bmi088_real_data.accel_last[0] = bmi088_real_data.accel[0];
+//        bmi088_real_data.accel_last[1] = bmi088_real_data.accel[1];
+//        bmi088_real_data.accel_last[2] = bmi088_real_data.accel[2];
+//        osDelay(5);
+//    }
+//    AHRS_vset_north(&IMU);
 //    INS_mag[0] -=IMU.HARD_IRON_BIAS.p2Data[0][0];
 //    INS_mag[1] -=IMU.HARD_IRON_BIAS.p2Data[1][0];
 //    INS_mag[2] -=IMU.HARD_IRON_BIAS.p2Data[2][0];
 //    AHRS_init(INS_quat, INS_accel, INS_mag);
 
 //    Matrix_data_creat(&quaternionData, SS_X_LEN, 1, INS_quat, InitMatWithZero);
-    UKF_vReset(&UKF_IMU, &quaternionData, &UKF_PINIT, &UKF_Rv, &UKF_Rn);
+//    UKF_vReset(&UKF_IMU, &quaternionData, &UKF_PINIT, &UKF_Rv, &UKF_Rn);
 //    TRICAL_init(&mag_calib);
 //    TRICAL_norm_set(&mag_calib, 54.305f);
 //    TRICAL_noise_set(&mag_calib, 2e-1f);
+    memset(&mag_data_tx_buf, 0, MAG_FIFO_BUF_LENGTH);
+    fifo_s_init(&mag_data_tx_fifo, mag_data_tx_buf, MAG_FIFO_BUF_LENGTH);
     TickType_t LoopStartTime;
     while (1) {
         DWT_update_task_time_us(&global_task_time.tim_INS_task);
@@ -379,6 +384,15 @@ void INS_task(void const *pvParameters) {
             ist8310_read_over(mag_dma_rx_buf, ist8310_real_data.mag);
             DWT_update_task_time_us(&IMU_time_record.mag);
             imu_cali_slove(INS_gyro, INS_accel, INS_mag, &bmi088_real_data, &ist8310_real_data);
+            if(fifo_s_free(&mag_data_tx_fifo)){
+                fifo_s_puts(&mag_data_tx_fifo,(char *)INS_mag,sizeof(INS_mag));
+//                SEGGER_RTT_WriteString(0,"yes\r\n");
+            } else{
+                fifo_s_flush(&mag_data_tx_fifo);
+                fifo_s_puts(&mag_data_tx_fifo,(char *)INS_mag,sizeof(INS_mag));
+//                SEGGER_RTT_WriteString(0,"no\r\n");
+            }
+        }
 //            TRICAL_estimate_update(&mag_calib, ist8310_real_data.mag, expected_field);
 
 
@@ -401,47 +415,47 @@ void INS_task(void const *pvParameters) {
 //        float32_t p = bmi088_real_data.gyro[0];
 //        float32_t q = bmi088_real_data.gyro[1];
 //        float32_t r = bmi088_real_data.gyro[2];
-            float32_t Ax = INS_accel[0];
-            float32_t Ay = INS_accel[1];
-            float32_t Az = INS_accel[2];
-            float32_t Bx = INS_mag[0];
-            float32_t By = INS_mag[1];
-            float32_t Bz = INS_mag[2];
-//        float32_t Bx = ist8310_real_data.mag[0] - IMU.HARD_IRON_BIAS.p2Data[0][0];
-//        float32_t By = ist8310_real_data.mag[1] - IMU.HARD_IRON_BIAS.p2Data[1][0];
-//        float32_t Bz = ist8310_real_data.mag[2] - IMU.HARD_IRON_BIAS.p2Data[2][0];
-            float32_t p = INS_gyro[0];
-            float32_t q = INS_gyro[1];
-            float32_t r = INS_gyro[2];
-            Matrix_vassignment(&U, 1, 1, p);
-            Matrix_vassignment(&U, 2, 1, q);
-            Matrix_vassignment(&U, 3, 1, r);
-            Matrix_vassignment(&Y, 1, 1, Ax);
-            Matrix_vassignment(&Y, 2, 1, Ay);
-            Matrix_vassignment(&Y, 3, 1, Az);
-            Matrix_vassignment(&Y, 4, 1, Bx);
-            Matrix_vassignment(&Y, 5, 1, By);
-            Matrix_vassignment(&Y, 6, 1, Bz);
-
-            /* Normalizing the output vector */
-            float32_t _normG = sqrtf(Y.p2Data[0][0] * Y.p2Data[0][0]) + (Y.p2Data[1][0] * Y.p2Data[1][0]) +
-                               (Y.p2Data[2][0] * Y.p2Data[2][0]);
-            Y.p2Data[0][0] = Y.p2Data[0][0] / _normG;
-            Y.p2Data[1][0] = Y.p2Data[1][0] / _normG;
-            Y.p2Data[2][0] = Y.p2Data[2][0] / _normG;
-            float32_t _normM = sqrtf(Y.p2Data[3][0] * Y.p2Data[3][0]) + (Y.p2Data[4][0] * Y.p2Data[4][0]) +
-                               (Y.p2Data[5][0] * Y.p2Data[5][0]);
-            Y.p2Data[3][0] = Y.p2Data[3][0] / _normM;
-            Y.p2Data[4][0] = Y.p2Data[4][0] / _normM;
-            Y.p2Data[5][0] = Y.p2Data[5][0] / _normM;
-            /* ------------------ Read the sensor data / simulate the system here ------------------ */
-            /* ============================= Update the Kalman Filter ============================== */
-            if (!UKF_bUpdate(&UKF_IMU, &Y, &U, &IMU)) {
-                Matrix_vSetToZero(&quaternionData);
-                Matrix_vassignment(&quaternionData, 1, 1, 1.0f);
-                UKF_vReset(&UKF_IMU, &quaternionData, &UKF_PINIT, &UKF_Rv, &UKF_Rn);
-            }
-        }
+//            float32_t Ax = INS_accel[0];
+//            float32_t Ay = INS_accel[1];
+//            float32_t Az = INS_accel[2];
+//            float32_t Bx = INS_mag[0];
+//            float32_t By = INS_mag[1];
+//            float32_t Bz = INS_mag[2];
+////        float32_t Bx = ist8310_real_data.mag[0] - IMU.HARD_IRON_BIAS.p2Data[0][0];
+////        float32_t By = ist8310_real_data.mag[1] - IMU.HARD_IRON_BIAS.p2Data[1][0];
+////        float32_t Bz = ist8310_real_data.mag[2] - IMU.HARD_IRON_BIAS.p2Data[2][0];
+//            float32_t p = INS_gyro[0];
+//            float32_t q = INS_gyro[1];
+//            float32_t r = INS_gyro[2];
+//            Matrix_vassignment(&U, 1, 1, p);
+//            Matrix_vassignment(&U, 2, 1, q);
+//            Matrix_vassignment(&U, 3, 1, r);
+//            Matrix_vassignment(&Y, 1, 1, Ax);
+//            Matrix_vassignment(&Y, 2, 1, Ay);
+//            Matrix_vassignment(&Y, 3, 1, Az);
+//            Matrix_vassignment(&Y, 4, 1, Bx);
+//            Matrix_vassignment(&Y, 5, 1, By);
+//            Matrix_vassignment(&Y, 6, 1, Bz);
+//
+//            /* Normalizing the output vector */
+//            float32_t _normG = sqrtf(Y.p2Data[0][0] * Y.p2Data[0][0]) + (Y.p2Data[1][0] * Y.p2Data[1][0]) +
+//                               (Y.p2Data[2][0] * Y.p2Data[2][0]);
+//            Y.p2Data[0][0] = Y.p2Data[0][0] / _normG;
+//            Y.p2Data[1][0] = Y.p2Data[1][0] / _normG;
+//            Y.p2Data[2][0] = Y.p2Data[2][0] / _normG;
+//            float32_t _normM = sqrtf(Y.p2Data[3][0] * Y.p2Data[3][0]) + (Y.p2Data[4][0] * Y.p2Data[4][0]) +
+//                               (Y.p2Data[5][0] * Y.p2Data[5][0]);
+//            Y.p2Data[3][0] = Y.p2Data[3][0] / _normM;
+//            Y.p2Data[4][0] = Y.p2Data[4][0] / _normM;
+//            Y.p2Data[5][0] = Y.p2Data[5][0] / _normM;
+//            /* ------------------ Read the sensor data / simulate the system here ------------------ */
+//            /* ============================= Update the Kalman Filter ============================== */
+//            if (!UKF_bUpdate(&UKF_IMU, &Y, &U, &IMU)) {
+//                Matrix_vSetToZero(&quaternionData);
+//                Matrix_vassignment(&quaternionData, 1, 1, 1.0f);
+//                UKF_vReset(&UKF_IMU, &quaternionData, &UKF_PINIT, &UKF_Rv, &UKF_Rn);
+//            }
+//        }
         /* ----------------------------- Update the Kalman Filter ------------------------------ */
         /* ================== Read the sensor data / simulate the system here ================== */
 //        float32_t P_check_num = 0;
@@ -521,9 +535,9 @@ void INS_task(void const *pvParameters) {
 //        AHRS_update(INS_quat, timing_time, bmi088_real_data.gyro, bmi088_real_data.accel, ist8310_real_data.mag);
 //        get_angle(INS_quat, INS_angle + INS_YAW_ADDRESS_OFFSET, INS_angle + INS_PITCH_ADDRESS_OFFSET,
 //                  INS_angle + INS_ROLL_ADDRESS_OFFSET);
-        get_angle(UKF_IMU.X_Est.arm_matrix.pData, INS_angle_ukf + INS_YAW_ADDRESS_OFFSET,
-                  INS_angle_ukf + INS_PITCH_ADDRESS_OFFSET,
-                  INS_angle_ukf + INS_ROLL_ADDRESS_OFFSET);
+//        get_angle(UKF_IMU.X_Est.arm_matrix.pData, INS_angle_ukf + INS_YAW_ADDRESS_OFFSET,
+//                  INS_angle_ukf + INS_PITCH_ADDRESS_OFFSET,
+//                  INS_angle_ukf + INS_ROLL_ADDRESS_OFFSET);
 
 
 #if INCLUDE_uxTaskGetStackHighWaterMark

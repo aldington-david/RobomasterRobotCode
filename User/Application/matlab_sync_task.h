@@ -13,7 +13,7 @@
 
 #define USART1_MATLAB_TX_BUF_LENGHT     128
 #define MATLAB_FIFO_BUF_LENGTH 1024
-#define MAG_FIFO_BUF_LENGTH 240
+#define MAG_FIFO_BUF_LENGTH 960
 
 extern volatile uint8_t Matlab_No_DMA_IRQHandler;
 extern volatile uint8_t matlab_dma_send_data_len;
@@ -77,5 +77,7 @@ void data_sync(int data_len);
   * @retval         matlab_sync_task_stack:任务堆栈大小
   */
 extern uint32_t get_stack_of_matlab_sync_task(void);
+
+extern bool matlab_sync_flag;
 
 #endif //ROBOMASTERROBOTCODE_MATLAB_SYNC_TASK_H
