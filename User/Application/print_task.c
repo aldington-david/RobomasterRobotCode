@@ -39,6 +39,7 @@
 #include "led_flow_task.h"
 #include "gimbal_behaviour.h"
 #include "DWT.h"
+#include "ahrs_ukf.h"
 
 
 #if PRINTF_MODE == RTT_MODE
@@ -137,7 +138,17 @@ referee usart:%s\r\n\
             LoopStartTime = xTaskGetTickCount();
 //            SEGGER_RTT_printf(0,"testfunction\n");
             /***********************打印数据 Start *****************************/
+            //Freertos HEAP
+//            SEGGER_RTT_SetTerminal(1);
+//            sprintf(print_buf,
+//                    "Now_Heap=%d,Heap_min=%d\r\n",
+//                    xPortGetFreeHeapSize(),
+//            xPortGetMinimumEverFreeHeapSize()
+//            );
+//            SEGGER_RTT_WriteString(0, print_buf);
+
             //执行时间
+            //task
 //            SEGGER_RTT_SetTerminal(1);
 //            sprintf(print_buf,
 //                    "test=%d\r\ncali=%d\r\ndetect=%d\r\nchassis=%d\r\ngimbal=%d\r\nINS=%d\r\nvision_rx=%d\r\nservo=%d\r\nreferee_rx=%d\r\nreferee_tx=%d\r\nvision_tx=%d\r\nmatlab=%d\r\nprint=%d\r\nPC_receive=%d\r\nbattery_voltage=%d\r\nled_RGB_flow=%d\r\n",
@@ -149,6 +160,13 @@ referee usart:%s\r\n\
 //                    global_task_time.tim_vision_tx_task.time, global_task_time.tim_matlab_sync_task.time,
 //                    global_task_time.tim_print_task.time, global_task_time.tim_PC_receive_task.time,
 //                    global_task_time.tim_battery_voltage_task.time, global_task_time.tim_led_RGB_flow_task.time);
+//            SEGGER_RTT_WriteString(0, print_buf);
+            //IMU
+//            SEGGER_RTT_SetTerminal(1);
+//            sprintf(print_buf,
+//                    "gyro=%d\r\naccel=%d\r\nmag=%d\r\n",
+//                    IMU_time_record.gyro.time, IMU_time_record.accel.time,
+//                    IMU_time_record.mag.time);
 //            SEGGER_RTT_WriteString(0, print_buf);
             //裁判系统
             //裁判系统限速
@@ -171,14 +189,59 @@ referee usart:%s\r\n\
 //                    ist8310_real_data.mag[1],
 //                    ist8310_real_data.mag[2]);
 //            SEGGER_RTT_WriteString(0, print_buf);
+//            SEGGER_RTT_SetTerminal(1);
+//            sprintf(print_buf,
+//                    "mag_x=%f,mag_y=%f,mag_z=%f,\r\n",
+//                    ist8310_real_data.mag[1],
+//                    ist8310_real_data.mag[0],
+//                    ist8310_real_data.mag[2]);
+//            SEGGER_RTT_WriteString(0, print_buf);
 
             //IMU数据
-//            SEGGER_RTT_SetTerminal(5);
+//            SEGGER_RTT_SetTerminal(4);
 //            sprintf(print_buf, "imu_tmp=%f,YAW=%f,PITCH=%f,ROLL=%f\r\n",
 //                    bmi088_real_data.temp,
 //                    INS_angle[0],
 //                    INS_angle[1],
 //                    INS_angle[2]);
+//            SEGGER_RTT_WriteString(0, print_buf);
+//
+//            SEGGER_RTT_SetTerminal(5);
+//            sprintf(print_buf, "imu_tmp=%f,uYAW=%f,uPITCH=%f,uROLL=%f\r\n",
+//                    bmi088_real_data.temp,
+//                    INS_angle_ukf[0],
+//                    INS_angle_ukf[1],
+//                    INS_angle_ukf[2]);
+//            SEGGER_RTT_WriteString(0, print_buf);
+              //accel
+//            SEGGER_RTT_SetTerminal(5);
+//            sprintf(print_buf, "acc_x=%f,acc_y=%f,acc_z=%f\r\n",
+//                    bmi088_real_data.accel[0],
+//                    bmi088_real_data.accel[1],
+//                    bmi088_real_data.accel[2]);
+//            SEGGER_RTT_WriteString(0, print_buf);
+
+//            SEGGER_RTT_SetTerminal(5);
+//            sprintf(print_buf, "acc_x=%f,acc_y=%f,acc_z=%f\r\n",
+//                    bmi088_real_data.accel[0],
+//                    bmi088_real_data.accel[1],
+//                    bmi088_real_data.accel[2]);
+//            SEGGER_RTT_WriteString(0, print_buf);
+
+//            SEGGER_RTT_SetTerminal(5);
+//            sprintf(print_buf, "q1=%f,q2=%f,q3=%f,q4=%f\r\n",
+//                    UKF_IMU.X_Est.arm_matrix.pData[0],
+//                    UKF_IMU.X_Est.arm_matrix.pData[1],
+//                    UKF_IMU.X_Est.arm_matrix.pData[2],
+//                    UKF_IMU.X_Est.arm_matrix.pData[3]);
+//            SEGGER_RTT_WriteString(0, print_buf);
+
+//            SEGGER_RTT_SetTerminal(5);
+//            sprintf(print_buf, "q1=%f,q2=%f,q3=%f,q4=%f\r\n",
+//                    UKF_IMU.X_Est.arm_matrix.pData[0],
+//                    UKF_IMU.X_Est.arm_matrix.pData[1],
+//                    UKF_IMU.X_Est.arm_matrix.pData[2],
+//                    UKF_IMU.X_Est.arm_matrix.pData[3]);
 //            SEGGER_RTT_WriteString(0, print_buf);
 
 
@@ -742,7 +805,7 @@ void RTT_PrintWave_np(int num_args, ...) {
 }
 
 /**
-  * @brief          Timer7溢出中断调用打印，Timer7配置务必在STM32Cubemx调节，APB1 82Mhz,建议时间不小于60us
+  * @brief          Timer7溢出中断调用打印，Timer7配置务必在STM32Cubemx调节，APB1 84Mhz,触发时间不宜过短否则影响其他任务执行，目前单次计数10us，触发时间1750us
   * @param[in]      none
   * @retval         none
   */

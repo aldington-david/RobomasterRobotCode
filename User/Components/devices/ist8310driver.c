@@ -28,20 +28,22 @@
 #define IST8310_WHO_AM_I_VALUE 0x10 //设备 ID
 
 #define IST8310_WRITE_REG_NUM 4 //IST8310需要设置的寄存器数目
-//average 2 times
-//static const uint8_t ist8310_write_reg_data_error[IST8310_WRITE_REG_NUM][3] =
-//    {
-//        {0x0B, 0x08, 0x01},
-//        {0x41, 0x09, 0x02},
-//        {0x42, 0xC0, 0x03},
-//        {0x0A, 0x0B, 0x04}};
 
+uint8_t mag_dma_rx_buf[I2C_MEG_LENGHT];
+//average 2 times
 static const uint8_t ist8310_write_reg_data_error[IST8310_WRITE_REG_NUM][3] =
-        {
-                {0x0B, 0x08, 0x01},
-                {0x41, 0x24, 0x02},
-                {0x42, 0xC0, 0x03},
-                {0x0A, 0x02, 0x04}};
+    {
+        {0x0B, 0x08, 0x01},
+        {0x41, 0x09, 0x02},
+        {0x42, 0xC0, 0x03},
+        {0x0A, 0x0B, 0x04}};
+
+//static const uint8_t ist8310_write_reg_data_error[IST8310_WRITE_REG_NUM][3] =
+//        {
+//                {0x0B, 0x08, 0x01},
+//                {0x41, 0x24, 0x02},
+//                {0x42, 0xC0, 0x03},
+//                {0x0A, 0x02, 0x04}};
 
 uint8_t ist8310_init(void)
 {
@@ -80,25 +82,35 @@ uint8_t ist8310_init(void)
     return IST8310_NO_ERROR;
 }
 
-void ist8310_read_over(uint8_t *status_buf, ist8310_real_data_t *ist8310_real_data)
-{
+//void ist8310_read_over(uint8_t *status_buf, ist8310_real_data_t *ist8310_real_data)
+//{
+//
+//    if (status_buf[0] & 0x01)
+//    {
+//        int16_t temp_ist8310_data = 0;
+//        ist8310_real_data->status |= 1 << IST8310_DATA_READY_BIT;
+//
+//        temp_ist8310_data = (int16_t)((status_buf[2] << 8) | status_buf[1]);
+//        ist8310_real_data->mag[0] = MAG_SEN * temp_ist8310_data;
+//        temp_ist8310_data = (int16_t)((status_buf[4] << 8) | status_buf[3]);
+//        ist8310_real_data->mag[1] = MAG_SEN * temp_ist8310_data;
+//        temp_ist8310_data = (int16_t)((status_buf[6] << 8) | status_buf[5]);
+//        ist8310_real_data->mag[2] = MAG_SEN * temp_ist8310_data;
+//    }
+//    else
+//    {
+//        ist8310_real_data->status &= ~(1 << IST8310_DATA_READY_BIT);
+//    }
+//}
 
-    if (status_buf[0] & 0x01)
-    {
-        int16_t temp_ist8310_data = 0;
-        ist8310_real_data->status |= 1 << IST8310_DATA_READY_BIT;
-
-        temp_ist8310_data = (int16_t)((status_buf[2] << 8) | status_buf[1]);
-        ist8310_real_data->mag[0] = MAG_SEN * temp_ist8310_data;
-        temp_ist8310_data = (int16_t)((status_buf[4] << 8) | status_buf[3]);
-        ist8310_real_data->mag[1] = MAG_SEN * temp_ist8310_data;
-        temp_ist8310_data = (int16_t)((status_buf[6] << 8) | status_buf[5]);
-        ist8310_real_data->mag[2] = MAG_SEN * temp_ist8310_data;
-    }
-    else
-    {
-        ist8310_real_data->status &= ~(1 << IST8310_DATA_READY_BIT);
-    }
+void ist8310_read_over(uint8_t *rx_buf, float32_t mag[3]){
+    int16_t temp_ist8310_data = 0;
+    temp_ist8310_data = (int16_t)((rx_buf[1] << 8) | rx_buf[0]);
+    mag[0] = MAG_SEN * temp_ist8310_data;
+    temp_ist8310_data = (int16_t)((rx_buf[3] << 8) | rx_buf[2]);
+    mag[1] = MAG_SEN * temp_ist8310_data;
+    temp_ist8310_data = (int16_t)((rx_buf[5] << 8) | rx_buf[4]);
+    mag[2] = MAG_SEN * temp_ist8310_data;
 }
 
 void ist8310_read_mag(float32_t mag[3])

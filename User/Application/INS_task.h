@@ -25,6 +25,12 @@
 #define INS_Task_H
 #include <stdint.h>
 #include "struct_typedef.h"
+#include "DWT.h"
+#include "FusionAhrs.h"
+#include "ahrs_ukf.h"
+#include "BMI088driver.h"
+#include "ist8310driver.h"
+#include "fifo.h"
 
 
 #define SPI_DMA_GYRO_LENGHT       8
@@ -72,6 +78,8 @@
 #define INS_MAG_X_ADDRESS_OFFSET 0
 #define INS_MAG_Y_ADDRESS_OFFSET 1
 #define INS_MAG_Z_ADDRESS_OFFSET 2
+
+#define MAG_FIFO_BUF_LENGTH 960
 
 extern float32_t INS_angle[3];
 
@@ -123,6 +131,29 @@ extern void INS_cali_gyro(float32_t cali_scale[3], float32_t cali_offset[3], uin
   * @retval         none
   */
 extern void INS_set_cali_gyro(float32_t cali_scale[3], float32_t cali_offset[3]);
+
+/**
+  * @brief          rotate the gyro, accel and mag, and calculate the zero drift, because sensors have
+  *                 different install derection.
+  * @param[out]     gyro: after plus zero drift and rotate
+  * @param[out]     accel: after plus zero drift and rotate
+  * @param[out]     mag: after plus zero drift and rotate
+  * @param[in]      bmi088: gyro and accel data
+  * @param[in]      ist8310: mag data
+  * @retval         none
+  */
+/**
+  * @brief          旋转陀螺仪,加速度计和磁力计,并计算零漂,因为设备有不同安装方式
+  * @param[out]     gyro: 加上零漂和旋转
+  * @param[out]     accel: 加上零漂和旋转
+  * @param[out]     mag: 加上零漂和旋转
+  * @param[in]      bmi088: 陀螺仪和加速度计数据
+  * @param[in]      ist8310: 磁力计数据
+  * @retval         none
+  */
+extern void
+imu_cali_slove(float32_t gyro[3], float32_t accel[3], float32_t mag[3], bmi088_real_data_t *bmi088,
+               ist8310_real_data_t *ist8310);
 
 /**
   * @brief          get the quat
@@ -187,4 +218,12 @@ extern const float32_t *get_accel_data_point(void);
   */
 extern const float32_t *get_mag_data_point(void);
 
+extern AHRS_time_record_t IMU_time_record;
+extern float32_t INS_gyro[3];
+extern float32_t INS_accel[3];
+extern float32_t INS_mag[3];
+extern float32_t INS_quat[4];
+extern float32_t INS_angle_ukf[3];
+extern AHRS_t IMU;
+extern fifo_s_t mag_data_tx_fifo;
 #endif

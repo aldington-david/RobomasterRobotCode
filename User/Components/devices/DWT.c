@@ -22,7 +22,7 @@ uint32_t DWT_get_tick(void) {
     return DWT->CYCCNT;
 }
 
-void DWT_update_task_time_us(task_time_struct *task_time) {
+void DWT_update_task_time_us(time_record_struct *task_time) {
     if (DWT_get_tick() >= task_time->last_time) {
         task_time->time = (DWT_get_tick() - task_time->last_time) / (HAL_RCC_GetHCLKFreq() / 1000000U);
     } else {

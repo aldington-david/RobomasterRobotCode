@@ -7,7 +7,7 @@
 
 #include <stdbool.h>
 #include "struct_typedef.h"
-#include "matrix_functions.h"
+#include "arm_math.h"
 
 #define float_prec          (float)
 #define float_prec_ZERO     (1e-7f)
@@ -17,7 +17,7 @@
 #define SS_X_LEN    (4)
 #define SS_Z_LEN    (6)
 #define SS_U_LEN    (3)
-#define SS_DT_MILIS (20)                            /* 10 ms */
+#define SS_DT_MILIS (5)                            /* 10 ms */
 #define SS_DT       (SS_DT_MILIS/1000.0f)   /* Sampling time */
 
 
@@ -266,5 +266,7 @@ extern void
 Matrix_vassignment(matrix_f32_t *matrix_op, const int16_t _i16row, const int16_t _i16col, const float32_t _val);
 
 extern void Matrix_print(matrix_f32_t *matrix_op, PrintWay printway);
+
+extern void Matrix_vinit(matrix_f32_t *matrix_op);
 
 #endif //ROBOMASTERROBOTCODE_MATRIX_H

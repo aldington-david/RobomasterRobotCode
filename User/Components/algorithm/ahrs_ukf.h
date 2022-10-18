@@ -6,6 +6,14 @@
 #define ROBOMASTERROBOTCODE_AHRS_UKF_H
 
 #include "matrix.h"
+//New_AHRS_Define
+/* ================================================= UKF Variables/function declaration ================================================= */
+/* UKF initialization constant */
+#define P_INIT       (10.0f)
+#define Rv_INIT      (1e-6f)
+#define Rn_INIT_ACC  (0.0015f/10.0f)
+#define Rn_INIT_MAG  (0.0015f/10.0f)
+
 //will_move_to_other_place
 #define IMU_ACC_Z0          (1)
 #define COS(x)   1.0f
@@ -153,13 +161,28 @@ typedef struct {
 } UKF_t;
 
 
+extern float32_t RLS_lambda;
+extern matrix_f32_t RLS_theta;
+extern matrix_f32_t RLS_P;
+extern matrix_f32_t RLS_in;
+extern matrix_f32_t RLS_out;
+extern matrix_f32_t RLS_gain;
+extern uint32_t RLS_u32iterData;
+extern matrix_f32_t UKF_PINIT;
+extern matrix_f32_t UKF_Rv;
+extern matrix_f32_t UKF_Rn;
+extern matrix_f32_t quaternionData;
+extern matrix_f32_t Y;
+extern matrix_f32_t U;
+extern UKF_t UKF_IMU;
+
 extern void UKF_init(UKF_t *UKF_op, matrix_f32_t *XInit, matrix_f32_t *P, matrix_f32_t *Rv, matrix_f32_t *Rn,
-                     bool (*bNonlinearUpdateX)(matrix_f32_t *, matrix_f32_t *, matrix_f32_t *),
-                     bool (*bNonlinearUpdateY)(matrix_f32_t *, matrix_f32_t *, matrix_f32_t *));
+                     bool (*bNonlinearUpdateX)(matrix_f32_t *, matrix_f32_t *, matrix_f32_t *, AHRS_t *),
+                     bool (*bNonlinearUpdateY)(matrix_f32_t *, matrix_f32_t *, matrix_f32_t *, AHRS_t *));
 
 extern void UKF_vReset(UKF_t *UKF_op, matrix_f32_t *XInit, matrix_f32_t *P, matrix_f32_t *Rv, matrix_f32_t *Rn);
 
-extern bool UKF_bUpdate(UKF_t *UKF_op, matrix_f32_t *Y, matrix_f32_t *U, AHRS_t *AHRS_op);
+extern bool UKF_bUpdate(UKF_t *UKF_op, matrix_f32_t *Y_matrix, matrix_f32_t *U_matrix, AHRS_t *AHRS_op);
 
 extern bool UKF_bCalculateSigmaPoint(UKF_t *UKF_op);
 
@@ -170,10 +193,14 @@ UKF_bUnscentedTransform(UKF_t *UKF_op, matrix_f32_t *Out, matrix_f32_t *OutSigma
                         matrix_f32_t *InpSigma, matrix_f32_t *InpVector,
                         matrix_f32_t *_CovNoise, AHRS_t *AHRS_op);
 
-//extern void AHRS_init(AHRS_t *AHRS_op);
+extern void NEWAHRS_init(AHRS_t *AHRS_op);
 
-extern bool AHRS_bUpdateNonlinearX(matrix_f32_t *X_Next, matrix_f32_t *X, matrix_f32_t *U, AHRS_t *AHRS_op);
+extern bool
+AHRS_bUpdateNonlinearX(matrix_f32_t *X_Next, matrix_f32_t *X_matrix, matrix_f32_t *U_matrix, AHRS_t *AHRS_op);
 
-extern bool AHRS_bUpdateNonlinearY(matrix_f32_t *Y, matrix_f32_t *X, matrix_f32_t *U, AHRS_t *AHRS_op);
+extern bool
+AHRS_bUpdateNonlinearY(matrix_f32_t *Y_matrix, matrix_f32_t *X_matrix, matrix_f32_t *U_matrix, AHRS_t *AHRS_op);
+
+extern void AHRS_vset_north(AHRS_t *AHRS_op);
 
 #endif //ROBOMASTERROBOTCODE_AHRS_UKF_H

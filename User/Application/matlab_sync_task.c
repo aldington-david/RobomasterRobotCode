@@ -15,6 +15,7 @@
 #include "task.h"
 #include "vision_task.h"
 #include "DWT.h"
+#include "INS_task.h"
 
 #if INCLUDE_uxTaskGetStackHighWaterMark
 uint32_t matlab_sync_task_stack;
@@ -29,8 +30,8 @@ volatile uint8_t Matlab_No_DMA_IRQHandler = 1;
 volatile uint8_t matlab_dma_send_data_len = 0;
 volatile uint8_t Matlab_IRQ_Return_Before = 0;
 TaskHandle_t matlab_tx_task_local_handler;
-/* 发送数据包缓存区，最大128字节 */
-uint8_t matlab_transmit_pack[128];
+/* 发送数据包缓存区 */
+uint8_t matlab_transmit_pack[256];
 static char sync_char = '$';
 Matlab_SyncStruct test1;
 
@@ -54,16 +55,17 @@ void matlab_sync_task(void const *argument) {
 //        matlab_sync_task_stack = uxTaskGetStackHighWaterMark(NULL);
 //#endif
 //        LoopStartTime = xTaskGetTickCount();
-        test1.data.data1 = 10;
-        test1.data.data2 = 20;
-        test1.data.data3 = 30;
-        test1.data.data4 = 40;
-        test1.data.data5 = 50;
-        test1.header.data_len = sizeof(test1.data);
+        if(global_task_time.tim_matlab_sync_task.time<15000){
+            data_sync(sizeof(test1));
+        }else if (fifo_s_used(&mag_data_tx_fifo) > 120) {
+            fifo_s_gets(&mag_data_tx_fifo, (char *) &test1.data.mag_xyz_5data, 120);
+            test1.header.data_len = sizeof(test1.data.mag_xyz_5data);
 //        SEGGER_RTT_printf(0, "test1=%p\r\ntest2=%p\r\ntest3=%p\r\n", &test1,&test1.data,&test1.data.data2);
-        append_CRC16_check_sum((uint8_t *) &test1.data, sizeof(test1.data) + sizeof(test1.tail));
-        memcpy((void *) matlab_transmit_pack, &test1, sizeof(test1));
-        data_sync(sizeof(test1));
+            append_CRC16_check_sum((uint8_t *) &test1.data.mag_xyz_5data,
+                                   sizeof(test1.data.mag_xyz_5data) + sizeof(test1.tail));
+            memcpy((void *) matlab_transmit_pack, &test1, sizeof(test1));
+            data_sync(sizeof(test1));
+        }
 //        data_sync(sizeof(test1));
 //        data_sync(sizeof(test1));
 //        data_sync(sizeof(test1));
@@ -84,7 +86,8 @@ uint32_t get_stack_of_matlab_sync_task(void) {
 void init_matlab_struct_data(void) {
     memset(&matlab_fifo_tx_len_buf, 0, MATLAB_FIFO_BUF_LENGTH);
     memset(&matlab_fifo_tx_buf, 0, MATLAB_FIFO_BUF_LENGTH);
-    memset(&matlab_transmit_pack, 0, 128);
+    memset(&matlab_transmit_pack, 0, 256);
+    memset(&test1.data.mag_xyz_5data, 0, 120);
     memset(&usart1_matlab_tx_buf, 0, 2 * USART1_MATLAB_TX_BUF_LENGHT);
     test1.header.sync_char = '$';
 }
@@ -104,7 +107,7 @@ void data_sync(int data_len) {
     if (Matlab_No_DMA_IRQHandler || Matlab_IRQ_Return_Before) {
         if (xTaskGetSchedulerState() != taskSCHEDULER_NOT_STARTED) {
             xTaskNotifyGive(USART1TX_active_task_local_handler);
-//            portYIELD();
+            portYIELD(); //如此函数不是循环中最后一个执行的函数请注释掉（实时性可能有问题）
         }
     }
 }
