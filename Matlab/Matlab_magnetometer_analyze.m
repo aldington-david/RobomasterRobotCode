@@ -57,7 +57,6 @@ while 1
     Data_len =0;
     i=0;
     TrueNum=int32.empty;
-    TrueNum=int32.empty;
     %发送同步帧
     encoded_str = unicode2native('$','UTF-8');
     write(s,encoded_str,'uint8');
@@ -65,7 +64,7 @@ while 1
     while (getdataflag == 0)
         i = i+1;
         pause(1/1000);
-        if(i>25)
+        if(i>20)
             encoded_str = unicode2native('$','UTF-8');
             write(s,encoded_str,'uint8');
             i =0;
@@ -81,7 +80,7 @@ while 1
     %检索下位机返回的数据中是否有字符$
     StartData = find(char(RecDataRaw) == '$');
     PackNum=size(StartData,2);
-    if(fix(bytes/124)<PackNum)
+    if((fix(bytes/124)<=PackNum) && (PackNum>2))
         if (size(StartData,2)>2)
             for i = 1:size(StartData,2)
                 for j = i:size(StartData,2)
@@ -96,6 +95,7 @@ while 1
             if(isempty(TrueNum)&&bytes==124)
                 TrueNum(1)=1;
             end
+            TrueNum=unique(TrueNum);
             StartData=StartData(TrueNum);
         end
     end
