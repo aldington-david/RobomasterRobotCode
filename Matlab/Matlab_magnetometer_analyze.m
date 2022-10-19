@@ -64,7 +64,7 @@ while 1
     while (getdataflag == 0)
         i = i+1;
         pause(1/1000);
-        if(i>20)
+        if(i>15)
             encoded_str = unicode2native('$','UTF-8');
             write(s,encoded_str,'uint8');
             i =0;
@@ -104,13 +104,22 @@ while 1
             StartData(u)=[];
         end
     end
+    if(~isempty(StartData))
+        for n = size(StartData,2):-1:1
+            if(RecDataRaw(StartData(n)+1)~=120)
+                StartData(n)=[];
+            end
+        end
+    end
     if(isempty(StartData))
         RecDataRaw = zeros(1,100000);
         flush(s);
         continue
     end
     PackNum=size(StartData,2);
+
     for PackIndex = 1:PackNum
+        SOF =0;
         %如果检索到$，读取数据包字节数，为同步字符后一字节，同时将数据段暂存并进行CRC16校验，与数据包CRC比对，如有误立刻重传
         if(StartData(PackIndex) >= 1)
             Data_len = RecDataRaw(StartData(PackIndex)+1);
@@ -147,8 +156,10 @@ while 1
             Mag_Z=[Mag_Z RecData(3:3:end)];
             scatter3(RecData(1:3:end-2),RecData(2:3:end-1),RecData(3:3:end));
             hold on;
+            if(PackIndex==1)
             %同步延迟
             pause(25/1000);
+            end
         end
     end
 end
