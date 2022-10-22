@@ -189,13 +189,13 @@ referee usart:%s\r\n\
 //                    ist8310_real_data.mag[1],
 //                    ist8310_real_data.mag[2]);
 //            SEGGER_RTT_WriteString(0, print_buf);
-//            SEGGER_RTT_SetTerminal(1);
-//            sprintf(print_buf,
-//                    "mag_x=%f,mag_y=%f,mag_z=%f,\r\n",
-//                    ist8310_real_data.mag[1],
-//                    ist8310_real_data.mag[0],
-//                    ist8310_real_data.mag[2]);
-//            SEGGER_RTT_WriteString(0, print_buf);
+            SEGGER_RTT_SetTerminal(1);
+            sprintf(print_buf,
+                    "mag_x=%f,mag_y=%f,mag_z=%f,\r\n",
+                    ist8310_real_data.mag[1],
+                    ist8310_real_data.mag[0],
+                    ist8310_real_data.mag[2]);
+            SEGGER_RTT_WriteString(0, print_buf);
 
             //IMU数据
 //            SEGGER_RTT_SetTerminal(4);
