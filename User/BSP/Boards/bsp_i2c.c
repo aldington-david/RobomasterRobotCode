@@ -4,6 +4,7 @@
 
 extern I2C_HandleTypeDef hi2c1;
 extern I2C_HandleTypeDef hi2c2;
+extern I2C_HandleTypeDef hi2c3;
 
 
 void bsp_I2C_master_transmit(I2C_TypeDef *I2C, uint16_t I2C_address, uint8_t *data, uint16_t len)
@@ -138,12 +139,43 @@ void DMA1_Stream7_IRQHandler(void)
 }
 
 
+void I2C3_rx_DMA_init(void){
+//    SET_BIT(hi2c3.Instance->CR2, SPI_CR2_RXDMAEN);
+    //disable DMA
+    __HAL_DMA_DISABLE(hi2c3.hdmarx);
+
+    while(hi2c3.hdmarx->Instance->CR & DMA_SxCR_EN)
+    {
+        __HAL_DMA_DISABLE(hi2c3.hdmarx);
+    }
+    hi2c3.hdmarx->Instance->PAR = (uint32_t)(&I2C3->DR);
+    __HAL_DMA_CLEAR_FLAG(hi2c3.hdmarx, DMA_LISR_TCIF2);
+    __HAL_DMA_ENABLE_IT(hi2c3.hdmarx, DMA_IT_TC);
+
+}
+
+void I2C3_rx_DMA_enable(uint32_t rx_buf, uint16_t ndtr){
+    //disable DMA
+    __HAL_DMA_DISABLE(hi2c3.hdmarx);
+
+    while(hi2c3.hdmarx->Instance->CR & DMA_SxCR_EN)
+    {
+        __HAL_DMA_DISABLE(hi2c3.hdmarx);
+    }
+
+    __HAL_DMA_CLEAR_FLAG(hi2c3.hdmarx, DMA_LISR_TCIF2);
+
+
+    hi2c3.hdmarx->Instance->M0AR = rx_buf;
+    __HAL_DMA_SET_COUNTER(hi2c3.hdmarx, ndtr);
+
+    __HAL_DMA_ENABLE(hi2c3.hdmarx);
+}
 
 void I2C2_tx_DMA_init(void)
 {
 
     //disable DMA
-    //ʧЧDMA
     __HAL_DMA_DISABLE(hi2c2.hdmatx);
     
     while(hi2c2.hdmatx->Instance->CR & DMA_SxCR_EN)
@@ -161,7 +193,6 @@ void I2C2_tx_DMA_init(void)
 void I2C2_tx_DMA_enable(uint32_t tx_buf, uint16_t ndtr)
 {
     //disable DMA
-    //ʧЧDMA
     __HAL_DMA_DISABLE(hi2c2.hdmatx);
 
     while(hi2c2.hdmatx->Instance->CR & DMA_SxCR_EN)

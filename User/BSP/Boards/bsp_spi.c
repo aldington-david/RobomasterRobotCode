@@ -55,6 +55,8 @@ void SPI1_DMA_init(uint32_t tx_buf, uint32_t rx_buf, uint16_t num)
     //数据长度
     __HAL_DMA_SET_COUNTER(&hdma_spi1_tx, num);
 
+    __HAL_DMA_ENABLE_IT(&hdma_spi1_tx, DMA_IT_TC);
+
 
 }
 

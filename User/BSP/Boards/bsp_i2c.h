@@ -12,6 +12,10 @@ extern void bsp_I2C_master_transmit(I2C_TypeDef *I2C, uint16_t I2C_address, uint
 extern bool_t bsp_I2C_check_ack(I2C_TypeDef *I2C, uint16_t I2C_address);
 
 extern void I2C2_tx_DMA_init(void);
+extern void I2C3_rx_DMA_init(void);
+extern void I2C2_tx_DMA_enable(uint32_t tx_buf, uint16_t ndtr);
+extern void I2C3_rx_DMA_enable(uint32_t rx_buf, uint16_t ndtr);
+
 extern void I2C2_DMA_transmit(uint16_t DevAddress, uint8_t *pData, uint16_t Size);
 
 
