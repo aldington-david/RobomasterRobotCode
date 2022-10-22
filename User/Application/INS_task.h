@@ -34,14 +34,15 @@
 
 
 #define SPI_DMA_GYRO_LENGHT       8
+//详见BMI088数据手册SPI读取部分,ACC读9舍1刚好8
 #define SPI_DMA_ACCEL_LENGHT      9
 #define SPI_DMA_ACCEL_TEMP_LENGHT 4
 
 
-#define IMU_DR_SHFITS        0
-#define IMU_SPI_SHFITS       1
-#define IMU_UPDATE_SHFITS    2
-#define IMU_NOTIFY_SHFITS    3
+#define IMU_IST_DR_SHFITS        0 //片外DataReady标志，在外部中断设置
+#define IMU_IST_SPI_I2C_SHFITS       1 //DMA占用标志
+#define IMU_IST_UPDATE_SHFITS    2 //读取完成，新数据已装入缓存标志
+#define IMU_IST_NOTIFY_SHFITS    3 //通知INS_task标志
 
 
 #define BMI088_GYRO_RX_BUF_DATA_OFFSET  1
@@ -83,6 +84,8 @@
 
 extern float32_t INS_angle[3];
 
+extern SPI_HandleTypeDef hspi1;
+extern I2C_HandleTypeDef hi2c3;
 /**
   * @brief          获取INS_task栈大小
   * @param[in]      none

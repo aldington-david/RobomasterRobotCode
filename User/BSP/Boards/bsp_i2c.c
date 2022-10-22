@@ -4,6 +4,7 @@
 
 extern I2C_HandleTypeDef hi2c1;
 extern I2C_HandleTypeDef hi2c2;
+extern I2C_HandleTypeDef hi2c3;
 
 
 void bsp_I2C_master_transmit(I2C_TypeDef *I2C, uint16_t I2C_address, uint8_t *data, uint16_t len)
@@ -143,7 +144,6 @@ void I2C2_tx_DMA_init(void)
 {
 
     //disable DMA
-    //ʧЧDMA
     __HAL_DMA_DISABLE(hi2c2.hdmatx);
     
     while(hi2c2.hdmatx->Instance->CR & DMA_SxCR_EN)
@@ -161,7 +161,6 @@ void I2C2_tx_DMA_init(void)
 void I2C2_tx_DMA_enable(uint32_t tx_buf, uint16_t ndtr)
 {
     //disable DMA
-    //ʧЧDMA
     __HAL_DMA_DISABLE(hi2c2.hdmatx);
 
     while(hi2c2.hdmatx->Instance->CR & DMA_SxCR_EN)
