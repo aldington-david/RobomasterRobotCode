@@ -158,6 +158,9 @@ void MX_FREERTOS_Init(void) {
 
   /* USER CODE BEGIN RTOS_THREADS */
     /* add threads, ... */
+    osThreadDef(BATTERY_VOLTAGE, battery_voltage_task, osPriorityBelowNormal, 0, 256);
+    battery_voltage_handle = osThreadCreate(osThread(BATTERY_VOLTAGE), NULL);
+
     osThreadDef(cali, calibrate_task, osPriorityNormal, 0, 128);
     calibrate_tast_handle = osThreadCreate(osThread(cali), NULL);
 
@@ -199,15 +202,11 @@ void MX_FREERTOS_Init(void) {
         MatlabSync_task_handle = osThreadCreate(osThread(MatlabSyncTask), NULL);
     }
 
-
     osThreadDef(printTask, print_task, osPriorityNormal, 0, 512);
     print_task_handle = osThreadCreate(osThread(printTask), NULL);
 
     osThreadDef(PC_receiveTask, PC_receive_task, osPriorityNormal, 0, 512);
     servo_task_handle = osThreadCreate(osThread(PC_receiveTask), NULL);
-
-    osThreadDef(BATTERY_VOLTAGE, battery_voltage_task, osPriorityBelowNormal, 0, 256);
-    battery_voltage_handle = osThreadCreate(osThread(BATTERY_VOLTAGE), NULL);
 
     osThreadDef(led, led_RGB_flow_task, osPriorityLow, 0, 128);
     led_RGB_flow_handle = osThreadCreate(osThread(led), NULL);

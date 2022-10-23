@@ -40,6 +40,8 @@
 #include "gimbal_behaviour.h"
 #include "DWT.h"
 #include "ahrs_ukf.h"
+#include "bsp_buzzer.h"
+#include "bsp_adc.h"
 
 
 #if PRINTF_MODE == RTT_MODE
@@ -136,6 +138,8 @@ referee usart:%s\r\n\
         while (1) {
             DWT_update_task_time_us(&global_task_time.tim_print_task);
             LoopStartTime = xTaskGetTickCount();
+//            SEGGER_RTT_printf(0,"%f\r\n",get_temprate());
+//            SEGGER_RTT_printf(0,"%d\r\n",HAL_RCC_GetPCLK1Freq());
 //            SEGGER_RTT_printf(0,"testfunction\n");
             /***********************打印数据 Start *****************************/
             //Freertos HEAP

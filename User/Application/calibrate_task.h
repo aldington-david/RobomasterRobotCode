@@ -103,9 +103,9 @@
 #include "struct_typedef.h"
 
 //when imu is calibrating ,buzzer set frequency and strength. 当imu在校准,蜂鸣器的设置频率和强度
-#define imu_start_buzzer()          buzzer_on(95, 10000)
+#define imu_start_buzzer()          buzzer_on(95, VOLUME(50))
 //when gimbal is calibrating ,buzzer set frequency and strength.当云台在校准,蜂鸣器的设置频率和强度
-#define gimbal_start_buzzer()       buzzer_on(31, 19999)
+#define gimbal_start_buzzer()       buzzer_on(31, VOLUME(50))
 #define cali_buzzer_off()           buzzer_off()            //buzzer off，关闭蜂鸣器
 
 

@@ -102,7 +102,7 @@ static void buzzer_warn_error(uint8_t num) {
         if (tick < 50) {
             buzzer_off();
         } else if (tick < 100) {
-            buzzer_on(1, 30000);
+            buzzer_on(1, VOLUME(50));
         } else {
             tick = 0;
             show_num--;
