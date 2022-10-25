@@ -234,7 +234,7 @@ static uint8_t flash_write_buf[FLASH_WRITE_BUF_LENGHT];
 
 cali_sensor_t cali_sensor[CALI_LIST_LENGHT];
 
-static const uint8_t cali_name[CALI_LIST_LENGHT][3] = {"HD", "GM", "GYR", "ACC", "MAG"};
+static const uint8_t cali_name[CALI_LIST_LENGHT][3] = {"HD", "GMB", "GYR", "ACC", "MAG"};
 
 //cali data address
 static uint32_t *cali_sensor_buf[CALI_LIST_LENGHT] = {
@@ -320,9 +320,9 @@ uint32_t get_stack_of_calibrate_task(void) {
   */
 int8_t get_control_temperature(void) {
 
-    return head_cali.temperature;
+    return 30;
 }
-
+//not_use
 /**
   * @brief          get latitude, default 22.0f
   * @param[out]     latitude: the point to float32_t
@@ -340,7 +340,7 @@ void get_flash_latitude(float *latitude) {
         return;
     }
     if (cali_sensor[CALI_HEAD].cali_done == CALIED_FLAG) {
-        *latitude = head_cali.latitude;
+        *latitude = 22.0f;
     } else {
         *latitude = 22.0f;
     }
@@ -384,6 +384,7 @@ static void RC_cmd_to_calibrate(void) {
         rc_cmd_systemTick = xTaskGetTickCount();
         rc_action_flag = BEGIN_FLAG;
         rc_cmd_time = 0;
+        buzzer_cali_start();
     } else if (rc_action_flag == GIMBAL_FLAG && rc_cmd_time > RC_CMD_LONG_TIME) {
         //gimbal cali, 
         rc_action_flag = 0;
@@ -396,10 +397,11 @@ static void RC_cmd_to_calibrate(void) {
         rc_cmd_time = 0;
         cali_sensor[CALI_GYRO].cali_cmd = 1;
         //update control temperature
-        head_cali.temperature = (int8_t) (cali_get_mcu_temperature()) + 10;
-        if (head_cali.temperature > (int8_t) (GYRO_CONST_MAX_TEMP)) {
-            head_cali.temperature = (int8_t) (GYRO_CONST_MAX_TEMP);
-        }
+        head_cali.temperature = 30;
+//        head_cali.temperature = (int8_t) (cali_get_mcu_temperature()) + 10;
+//        if (head_cali.temperature > (int8_t) (GYRO_CONST_MAX_TEMP)) {
+//            head_cali.temperature = (int8_t) (GYRO_CONST_MAX_TEMP);
+//        }
 //        imu_temp = head_cali.temperature; //for_test
         cali_buzzer_off();
     } else if (rc_action_flag == CHASSIS_FLAG && rc_cmd_time > RC_CMD_LONG_TIME) {
@@ -454,7 +456,7 @@ static void RC_cmd_to_calibrate(void) {
     } else if (calibrate_systemTick - rc_cmd_systemTick > RC_CALI_BUZZER_MIDDLE_TIME && rc_cmd_systemTick != 0 &&
                rc_action_flag != 0) {
         rc_cali_buzzer_middle_on();
-    } else if (calibrate_systemTick - rc_cmd_systemTick > 0 && rc_cmd_systemTick != 0 && rc_action_flag != 0) {
+    } else if (calibrate_systemTick - rc_cmd_systemTick > RC_CALI_BUZZER_START_TIME && rc_cmd_systemTick != 0 && rc_action_flag != 0) {
         rc_cali_buzzer_start_on();
     }
 
@@ -599,15 +601,15 @@ static bool_t cali_head_hook(uint32_t *cali, bool_t cmd) {
     // self id
     local_cali_t->self_id = SELF_ID;
     //imu control temperature
-    local_cali_t->temperature = (int8_t) (cali_get_mcu_temperature()) + 10;
+    local_cali_t->temperature = (int8_t) (cali_get_mcu_temperature()) + 5;
     //head_cali.temperature = (int8_t)(cali_get_mcu_temperature()) + 10;
     if (local_cali_t->temperature > (int8_t) (GYRO_CONST_MAX_TEMP)) {
         local_cali_t->temperature = (int8_t) (GYRO_CONST_MAX_TEMP);
     }
 
     local_cali_t->firmware_version = FIRMWARE_VERSION;
-    //shenzhen latitude 
-    local_cali_t->latitude = 22.0f;
+//    //shenzhen latitude
+//    local_cali_t->latitude = 22.0f;
 
     return 1;
 }

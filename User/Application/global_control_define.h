@@ -5,7 +5,26 @@
 #ifndef STANDARDROBOTBASICCODE_GLOBAL_CONTROL_DEFINE_H
 #define STANDARDROBOTBASICCODE_GLOBAL_CONTROL_DEFINE_H
 
-#endif //STANDARDROBOTBASICCODE_GLOBAL_CONTROL_DEFINE_H
+#include "referee_task.h"
+/************ WMM define Start*******************/
+//x point to north
+//WMM model mag is true north value
+//WMM model is NED
+#define North_Comp  (28398.5f) //nT，when use it please scale to uT
+#define East_Comp    (-3717.0f) //nT，when use it please scale to uT
+#define Vertical_Comp    (46139.5f) //nT，when use it please scale to uT
+#define Total_Field    (54306.0f) //nT，when use it please scale to uT
+#define Declination (-7.4570f) //degree,need to convert to rad
+/************ WMM define End*******************/
+
+/************ Self Data define Start*******************/
+#define SELF_ID  infantry3_red //get from referee_robot_ID
+#define FIRMWARE_VERSION 12345 //for self_test
+#define YAW_LIMIT YAW_NO_LIMIT
+
+#define YAW_HAVE_LIMIT 1
+#define YAW_NO_LIMIT 0
+/************ Self Data define End*******************/
 
 /************ Motor turn define Start*******************/
 #define PITCH_TURN  0
@@ -98,9 +117,14 @@
 #error "You mast define CALI_BLOCK to chose a block mode"
 #endif
 
+#if !defined(YAW_LIMIT)
+#error "You mast define YAW_LIMIT to limit yaw angle"
+#endif
+
 #if __CC_ARM
 #if !defined(EventRecorder_MODE)
 #error "You mast define EventRecorder_MODE to chose enalbe or not"
 #endif
 #endif
 /************ Lack Define Warning End*******************/
+#endif //STANDARDROBOTBASICCODE_GLOBAL_CONTROL_DEFINE_H

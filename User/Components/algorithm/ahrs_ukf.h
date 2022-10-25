@@ -10,11 +10,12 @@
 /* ================================================= UKF Variables/function declaration ================================================= */
 /* UKF initialization constant */
 #define P_INIT       (10.0f)
-#define Rv_INIT      (1e-6f)
+#define Rv_INIT      (1e-5f)
 #define Rn_INIT_ACC  (0.0015f/10.0f)
 #define Rn_INIT_MAG  (0.0015f/10.0f)
 
 //will_move_to_other_place
+/* Gravity vector constant (align with global Z-axis) */
 #define IMU_ACC_Z0          (1)
 #define COS(x)   1.0f
 #define SIN(x)   0.0f

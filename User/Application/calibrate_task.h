@@ -139,8 +139,8 @@
 
 #define CALI_SENSOR_HEAD_LEGHT  1
 
-#define SELF_ID                 0                   //ID 
-#define FIRMWARE_VERSION        12345               //handware version.
+//#define SELF_ID                 0                   //ID
+//#define FIRMWARE_VERSION        12345               //handware version.
 #define CALIED_FLAG             0x55                // means it has been calibrated
 //you have 20 seconds to calibrate by remote control. 有20s可以用遥控器进行校准
 #define CALIBRATE_END_TIME          20000
@@ -156,10 +156,11 @@
 
 #define RCCALI_BUZZER_CYCLE_TIME    400
 #define RC_CALI_BUZZER_PAUSE_TIME   200
+
 #define RC_CALI_VALUE_HOLE          600     //remote control threshold, the max value of remote control channel is 660. 
 
 
-#define GYRO_CALIBRATE_TIME         20000   //gyro calibrate time,陀螺仪校准时间
+#define GYRO_CALIBRATE_TIME         20000   //gyro calibrate time,陀螺仪校准时间 GYRO_CALIBRATE_TIME*
 
 //cali device name
 typedef enum {
@@ -189,7 +190,6 @@ typedef struct {
     //'temperature' and 'latitude' should not be in the head_cali, because don't want to create a new sensor
     //'temperature' and 'latitude'不应该在head_cali,因为不想创建一个新的设备就放这了
     int8_t temperature;         // imu control temperature
-    float32_t latitude;              // latitude
 } head_cali_t;
 //gimbal device
 typedef struct {

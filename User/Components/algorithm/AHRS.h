@@ -44,7 +44,7 @@ extern float32_t get_pitch(const float32_t quat[4]);
 extern float32_t get_roll(const float32_t quat[4]);
 
 /**
-  * @brief          根据四元数大小计算对应的欧拉角yaw，pitch，roll
+  * @brief          根据四元数大小计算对应的欧拉角yaw，pitch，roll(Z-Y-X顺序yaw-pitch-raw)
   * @param[in]      四元数数组，不为NULL
   * @param[in]      返回的偏航角yaw 单位 rad
   * @param[in]      返回的俯仰角pitch  单位 rad

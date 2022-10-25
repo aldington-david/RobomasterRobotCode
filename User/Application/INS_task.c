@@ -59,7 +59,7 @@
 #define IST8310_BOARD_INSTALL_SPIN_MATRIX   \
     {0.0f, 1.0f, 0.0f},                     \
     {1.0f, 0.0f, 0.0f},                     \
-    {0.0f, 0.0f, -1.0f}                     \
+    {0.0f, 0.0f, 1.0f}                     \
 
 AHRS_time_record_t IMU_time_record;
 
@@ -126,8 +126,8 @@ volatile uint8_t imu_start_dma_flag = 0;
 
 bmi088_real_data_t bmi088_real_data;
 float32_t gyro_scale_factor[3][3] = {BMI088_BOARD_INSTALL_SPIN_MATRIX};
-float32_t gyro_offset[3];
-float32_t gyro_cali_offset[3];
+float32_t gyro_offset[3]={0};
+float32_t gyro_cali_offset[3]={0};
 
 float32_t accel_scale_factor[3][3] = {BMI088_BOARD_INSTALL_SPIN_MATRIX};
 float32_t accel_offset[3];
@@ -155,8 +155,8 @@ static const float32_t fliter_num[3] = {1.929454039488895f, -0.93178349823448126
 float32_t INS_gyro[3] = {0.0f, 0.0f, 0.0f};
 float32_t INS_accel[3] = {0.0f, 0.0f, 0.0f};
 float32_t INS_mag[3] = {0.0f, 0.0f, 0.0f};
-float32_t INS_quat[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-float32_t INS_angle[3] = {0.0f, 0.0f, 0.0f};      //euler angle, unit rad.欧拉角 单位 rad
+float32_t INS_quat[4] = {1.0f, 0.0f, 0.0f, 0.0f}; //w x y z 标量在前同matlab
+float32_t INS_angle[3] = {0.0f, 0.0f, 0.0f};      //yaw-pitch-roll euler angle, unit rad.欧拉角 单位 rad
 float32_t INS_angle_ukf[3] = {0.0f, 0.0f, 0.0f};      //euler angle, unit rad.欧拉角 单位 rad
 
 //TRICAL_instance_t mag_calib;
@@ -193,7 +193,7 @@ void INS_task(void const *pvParameters) {
     //rotate and zero drift
     imu_cali_slove(INS_gyro, INS_accel, INS_mag, &bmi088_real_data, &ist8310_real_data);
 
-    PID_init(&imu_temp_pid, PID_POSITION, imu_temp_PID, TEMPERATURE_PID_MAX_OUT, TEMPERATURE_PID_MAX_IOUT, 0, 0, 0, 0,
+    PID_init(&imu_temp_pid, PID_POSITION, imu_temp_PID, TEMPERATURE_PID_MAX_OUT, TEMPERATURE_PID_MAX_IOUT, 1000, 0, 0, 0,
              0, 0, 0, 0, 0, 0, 0);
 //    AHRS_init(INS_quat, INS_accel, INS_mag);
 
@@ -217,7 +217,7 @@ void INS_task(void const *pvParameters) {
 //    SEGGER_RTT_printf(0,"%f\r\n",FAhrs.quaternion.array[2]);
 //    SEGGER_RTT_printf(0,"%f\r\n",FAhrs.quaternion.array[3]);
 //    AHRS_init(INS_quat, INS_accel, INS_mag);
-//    NEWAHRS_init(&IMU);
+    NEWAHRS_init(&IMU);
 //    float32_t P_check_num = 10;
 //    while (!(P_check_num < 2e-6f)) {
 //        if (mag_update_flag & (1 << IMU_IST_DR_SHFITS)) {
@@ -305,8 +305,8 @@ void INS_task(void const *pvParameters) {
 //    INS_mag[2] -=IMU.HARD_IRON_BIAS.p2Data[2][0];
 //    AHRS_init(INS_quat, INS_accel, INS_mag);
 
-//    Matrix_data_creat(&quaternionData, SS_X_LEN, 1, INS_quat, InitMatWithZero);
-//    UKF_vReset(&UKF_IMU, &quaternionData, &UKF_PINIT, &UKF_Rv, &UKF_Rn);
+    Matrix_data_creat(&quaternionData, SS_X_LEN, 1, INS_quat, InitMatWithZero);
+    UKF_vReset(&UKF_IMU, &quaternionData, &UKF_PINIT, &UKF_Rv, &UKF_Rn);
 //    TRICAL_init(&mag_calib);
 //    TRICAL_norm_set(&mag_calib, 54.305f);
 //    TRICAL_noise_set(&mag_calib, 2e-1f);
@@ -376,9 +376,25 @@ void INS_task(void const *pvParameters) {
                 fifo_s_puts(&mag_data_tx_fifo,(char *)INS_mag,sizeof(INS_mag));
 //                SEGGER_RTT_WriteString(0,"no\r\n");
             }
-        }
+//        }
 //            TRICAL_estimate_update(&mag_calib, ist8310_real_data.mag, expected_field);
+            accel_fliter_1[0] = accel_fliter_2[0];
+            accel_fliter_2[0] = accel_fliter_3[0];
 
+            accel_fliter_3[0] =
+                    accel_fliter_2[0] * fliter_num[0] + accel_fliter_1[0] * fliter_num[1] + INS_accel[0] * fliter_num[2];
+
+            accel_fliter_1[1] = accel_fliter_2[1];
+            accel_fliter_2[1] = accel_fliter_3[1];
+
+            accel_fliter_3[1] =
+                    accel_fliter_2[1] * fliter_num[0] + accel_fliter_1[1] * fliter_num[1] + INS_accel[1] * fliter_num[2];
+
+            accel_fliter_1[2] = accel_fliter_2[2];
+            accel_fliter_2[2] = accel_fliter_3[2];
+
+            accel_fliter_3[2] =
+                    accel_fliter_2[2] * fliter_num[0] + accel_fliter_1[2] * fliter_num[1] + INS_accel[2] * fliter_num[2];
 
 
 
@@ -399,47 +415,47 @@ void INS_task(void const *pvParameters) {
 //        float32_t p = bmi088_real_data.gyro[0];
 //        float32_t q = bmi088_real_data.gyro[1];
 //        float32_t r = bmi088_real_data.gyro[2];
-//            float32_t Ax = INS_accel[0];
-//            float32_t Ay = INS_accel[1];
-//            float32_t Az = INS_accel[2];
-//            float32_t Bx = INS_mag[0];
-//            float32_t By = INS_mag[1];
-//            float32_t Bz = INS_mag[2];
+            float32_t Ax = INS_accel[0];
+            float32_t Ay = INS_accel[1];
+            float32_t Az = INS_accel[2];
+            float32_t Bx = INS_mag[0];
+            float32_t By = INS_mag[1];
+            float32_t Bz = INS_mag[2];
 ////        float32_t Bx = ist8310_real_data.mag[0] - IMU.HARD_IRON_BIAS.p2Data[0][0];
 ////        float32_t By = ist8310_real_data.mag[1] - IMU.HARD_IRON_BIAS.p2Data[1][0];
 ////        float32_t Bz = ist8310_real_data.mag[2] - IMU.HARD_IRON_BIAS.p2Data[2][0];
-//            float32_t p = INS_gyro[0];
-//            float32_t q = INS_gyro[1];
-//            float32_t r = INS_gyro[2];
-//            Matrix_vassignment(&U, 1, 1, p);
-//            Matrix_vassignment(&U, 2, 1, q);
-//            Matrix_vassignment(&U, 3, 1, r);
-//            Matrix_vassignment(&Y, 1, 1, Ax);
-//            Matrix_vassignment(&Y, 2, 1, Ay);
-//            Matrix_vassignment(&Y, 3, 1, Az);
-//            Matrix_vassignment(&Y, 4, 1, Bx);
-//            Matrix_vassignment(&Y, 5, 1, By);
-//            Matrix_vassignment(&Y, 6, 1, Bz);
-//
-//            /* Normalizing the output vector */
-//            float32_t _normG = sqrtf(Y.p2Data[0][0] * Y.p2Data[0][0]) + (Y.p2Data[1][0] * Y.p2Data[1][0]) +
-//                               (Y.p2Data[2][0] * Y.p2Data[2][0]);
-//            Y.p2Data[0][0] = Y.p2Data[0][0] / _normG;
-//            Y.p2Data[1][0] = Y.p2Data[1][0] / _normG;
-//            Y.p2Data[2][0] = Y.p2Data[2][0] / _normG;
-//            float32_t _normM = sqrtf(Y.p2Data[3][0] * Y.p2Data[3][0]) + (Y.p2Data[4][0] * Y.p2Data[4][0]) +
-//                               (Y.p2Data[5][0] * Y.p2Data[5][0]);
-//            Y.p2Data[3][0] = Y.p2Data[3][0] / _normM;
-//            Y.p2Data[4][0] = Y.p2Data[4][0] / _normM;
-//            Y.p2Data[5][0] = Y.p2Data[5][0] / _normM;
-//            /* ------------------ Read the sensor data / simulate the system here ------------------ */
-//            /* ============================= Update the Kalman Filter ============================== */
-//            if (!UKF_bUpdate(&UKF_IMU, &Y, &U, &IMU)) {
-//                Matrix_vSetToZero(&quaternionData);
-//                Matrix_vassignment(&quaternionData, 1, 1, 1.0f);
-//                UKF_vReset(&UKF_IMU, &quaternionData, &UKF_PINIT, &UKF_Rv, &UKF_Rn);
-//            }
-//        }
+            float32_t p = INS_gyro[0];
+            float32_t q = INS_gyro[1];
+            float32_t r = INS_gyro[2];
+            Matrix_vassignment(&U, 1, 1, p);
+            Matrix_vassignment(&U, 2, 1, q);
+            Matrix_vassignment(&U, 3, 1, r);
+            Matrix_vassignment(&Y, 1, 1, Ax);
+            Matrix_vassignment(&Y, 2, 1, Ay);
+            Matrix_vassignment(&Y, 3, 1, Az);
+            Matrix_vassignment(&Y, 4, 1, Bx);
+            Matrix_vassignment(&Y, 5, 1, By);
+            Matrix_vassignment(&Y, 6, 1, Bz);
+
+            /* Normalizing the output vector */
+            float32_t _normG = sqrtf((Y.p2Data[0][0] * Y.p2Data[0][0]) + (Y.p2Data[1][0] * Y.p2Data[1][0]) +
+                               (Y.p2Data[2][0] * Y.p2Data[2][0]));
+            Y.p2Data[0][0] = Y.p2Data[0][0] / _normG;
+            Y.p2Data[1][0] = Y.p2Data[1][0] / _normG;
+            Y.p2Data[2][0] = Y.p2Data[2][0] / _normG;
+            float32_t _normM = sqrtf((Y.p2Data[3][0] * Y.p2Data[3][0]) + (Y.p2Data[4][0] * Y.p2Data[4][0]) +
+                               (Y.p2Data[5][0] * Y.p2Data[5][0]));
+            Y.p2Data[3][0] = Y.p2Data[3][0] / _normM;
+            Y.p2Data[4][0] = Y.p2Data[4][0] / _normM;
+            Y.p2Data[5][0] = Y.p2Data[5][0] / _normM;
+            /* ------------------ Read the sensor data / simulate the system here ------------------ */
+            /* ============================= Update the Kalman Filter ============================== */
+            if (!UKF_bUpdate(&UKF_IMU, &Y, &U, &IMU)) {
+                Matrix_vSetToZero(&quaternionData);
+                Matrix_vassignment(&quaternionData, 1, 1, 1.0f);
+                UKF_vReset(&UKF_IMU, &quaternionData, &UKF_PINIT, &UKF_Rv, &UKF_Rn);
+            }
+        }
         /* ----------------------------- Update the Kalman Filter ------------------------------ */
         /* ================== Read the sensor data / simulate the system here ================== */
 //        float32_t P_check_num = 0;
@@ -519,9 +535,11 @@ void INS_task(void const *pvParameters) {
 //        AHRS_update(INS_quat, timing_time, bmi088_real_data.gyro, bmi088_real_data.accel, ist8310_real_data.mag);
 //        get_angle(INS_quat, INS_angle + INS_YAW_ADDRESS_OFFSET, INS_angle + INS_PITCH_ADDRESS_OFFSET,
 //                  INS_angle + INS_ROLL_ADDRESS_OFFSET);
-//        get_angle(UKF_IMU.X_Est.arm_matrix.pData, INS_angle_ukf + INS_YAW_ADDRESS_OFFSET,
-//                  INS_angle_ukf + INS_PITCH_ADDRESS_OFFSET,
-//                  INS_angle_ukf + INS_ROLL_ADDRESS_OFFSET);
+        get_angle(UKF_IMU.X_Est.arm_matrix.pData, INS_angle_ukf + INS_YAW_ADDRESS_OFFSET,
+                  INS_angle_ukf + INS_PITCH_ADDRESS_OFFSET,
+                  INS_angle_ukf + INS_ROLL_ADDRESS_OFFSET);
+//        get_angle(INS_quat, INS_angle + INS_YAW_ADDRESS_OFFSET, INS_angle + INS_PITCH_ADDRESS_OFFSET,
+//                  INS_angle + INS_ROLL_ADDRESS_OFFSET);
 
 
 #if INCLUDE_uxTaskGetStackHighWaterMark
@@ -599,16 +617,16 @@ static void imu_temp_control(float32_t temp) {
     uint16_t tempPWM;
     static uint8_t temp_constant_time = 0;
     if (first_temperate) {
-        ALL_PID(&imu_temp_pid, temp, get_control_temperature());
+        ALL_PID(&imu_temp_pid, temp, 30.0f);
         if (imu_temp_pid.out < 0.0f) {
             imu_temp_pid.out = 0.0f;
         }
         tempPWM = (uint16_t) imu_temp_pid.out;
         IMU_temp_PWM(tempPWM);
-    } else {
+    }else {
         //在没有达到设置的温度，一直最大功率加热
         //in beginning, max power
-        if (temp < get_control_temperature()) {
+        if (temp < 29.0f) {
             temp_constant_time++;
             if (temp_constant_time > 200) {
                 //达到设置温度，将积分项设置为一半最大功率，加速收敛

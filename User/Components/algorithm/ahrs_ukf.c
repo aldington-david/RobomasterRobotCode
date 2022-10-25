@@ -9,6 +9,7 @@
 #include "ist8310driver.h"
 #include "BMI088driver.h"
 #include "INS_task.h"
+#include "global_control_define.h"
 
 //new_AHRS_define
 float32_t RLS_lambda = 0.999999f;/* Forgetting factor */
@@ -47,9 +48,10 @@ matrix_f32_t U;
 UKF_t UKF_IMU;
 
 /* =============================================== Sharing Variables/function declaration =============================================== */
-/* Gravity vector constant (align with global Z-axis) */
+//X北向，北东地对前右下
 /* Magnetic vector constant (align with local magnetic vector) */
-float32_t IMU_MAG_B0_data[3] = {COS(0), SIN(0), 0.000000f};
+//float32_t IMU_MAG_B0_data[3] = {COS(0), SIN(0), 0.000000f};//由经纬度和海拔从WMM世界磁场模型计算获得，需旋转并修正磁偏角
+float32_t IMU_MAG_B0_data[3] = {North_Comp, East_Comp, Vertical_Comp};//由经纬度和海拔从WMM世界磁场模型计算获得，需旋转并修正磁偏角(need True north magnetic vector)
 /* The hard-magnet bias */
 float32_t HARD_IRON_BIAS_data[3] = {0.0f, 0.0f, 0.0f};
 
@@ -301,6 +303,7 @@ UKF_bUnscentedTransform(UKF_t *UKF_op, matrix_f32_t *Out, matrix_f32_t *OutSigma
 }
 
 bool AHRS_bUpdateNonlinearX(matrix_f32_t *X_Next, matrix_f32_t *X_matrix, matrix_f32_t *U_matrix, AHRS_t *AHRS_op) {
+    //此处更改传感器投影方向，根据陀螺仪对对应符号取负，如下英文注释参考MPU9250,https://github.com/pronenewbits/Arduino_AHRS_System板子实物图，此处相对其x不动在The quaternion update function部分对q,r做取负修正
     /* Insert the nonlinear update transformation here
  *          x(k+1) = f[x(k), u(k)]
  *
@@ -328,10 +331,10 @@ bool AHRS_bUpdateNonlinearX(matrix_f32_t *X_Next, matrix_f32_t *X_matrix, matrix
     q = U_matrix->p2Data[1][0];
     r = U_matrix->p2Data[2][0];
 
-    X_Next->p2Data[0][0] = (0.5f * (+0.00f - p * q1 - q * q2 - r * q3)) * SS_DT + q0;
-    X_Next->p2Data[1][0] = (0.5f * (+p * q0 + 0.00f + r * q2 - q * q3)) * SS_DT + q1;
-    X_Next->p2Data[2][0] = (0.5f * (+q * q0 - r * q1 + 0.00f + p * q3)) * SS_DT + q2;
-    X_Next->p2Data[3][0] = (0.5f * (+r * q0 + q * q1 - p * q2 + 0.00f)) * SS_DT + q3;
+    X_Next->p2Data[0][0] = (0.5f * (+0.00f - p * q1 + q * q2 + r * q3)) * SS_DT + q0;
+    X_Next->p2Data[1][0] = (0.5f * (+p * q0 + 0.00f - r * q2 + q * q3)) * SS_DT + q1;
+    X_Next->p2Data[2][0] = (0.5f * (-q * q0 + r * q1 + 0.00f + p * q3)) * SS_DT + q2;
+    X_Next->p2Data[3][0] = (0.5f * (-r * q0 - q * q1 - p * q2 + 0.00f)) * SS_DT + q3;
 
 
     /* ======= Additional ad-hoc quaternion normalization to make sure the quaternion is a unit vector (i.e. ||q|| = 1) ======= */
@@ -344,6 +347,7 @@ bool AHRS_bUpdateNonlinearX(matrix_f32_t *X_Next, matrix_f32_t *X_matrix, matrix
 }
 
 bool AHRS_bUpdateNonlinearY(matrix_f32_t *Y_matrix, matrix_f32_t *X_matrix, matrix_f32_t *U_matrix, AHRS_t *AHRS_op) {
+    //此处更改传感器投影方向IMU_ACC_Z0，原MPU9250
     /* Insert the nonlinear measurement transformation here
      *          y(k)   = h[x(k), u(k)]
      *
@@ -353,7 +357,7 @@ bool AHRS_bUpdateNonlinearY(matrix_f32_t *Y_matrix, matrix_f32_t *X_matrix, matr
      *               [                   2*(q1*q3+q0*q2),                        2*(q2*q3-q0*q1),     (+(q0**2)-(q1**2)-(q2**2)+(q3**2))]
      *
      *  G_proj_sens = DCM * [0 0 1]             --> Gravitational projection to the accelerometer sensor
-     *  M_proj_sens = DCM * [Mx My Mz]          --> (Earth) magnetic projection to the magnetometer sensor
+     *  M_proj_sens = DCM * [Mx My Mz]          --> (Earth) magnetic projection to the magnetometer sensor //依赖初始四元数
      */
     float32_t q0, q1, q2, q3;
     float32_t q0_2, q1_2, q2_2, q3_2;
@@ -447,9 +451,7 @@ void AHRS_vset_north(AHRS_t *AHRS_op) {
     Bz = Bz / _normG;
 
     /* Projecting the magnetic vector into plane orthogonal to the gravitational vector */
-    float32_t pitch = asinf(Ax);
-//    float32_t pitch = asinf(-Ax);
-//    float32_t roll = asinf(Ay / cosf(pitch));
+    float32_t pitch = asinf(-Ax);
     float32_t roll = atan2f(Ay , Az);
     float32_t m_tilt_x = Bx * cosf(pitch) + By * sinf(roll) * sinf(pitch) + Bz * cosf(roll) * sinf(pitch);
     float32_t m_tilt_y = By * cosf(roll) - Bz * sinf(roll);
@@ -458,31 +460,19 @@ void AHRS_vset_north(AHRS_t *AHRS_op) {
     /* float32_t m_tilt_z = -Bx*sin(pitch)             + By*sin(roll)*cos(pitch)   + Bz*cos(roll)*cos(pitch); */
 
     float32_t mag_dec = atan2f(m_tilt_y, m_tilt_x);
-//    SEGGER_RTT_printf(0,"yaw=%f\r\n",mag_dec);
-//    INS_quat[0] =
-//            cosf(roll / 2.0f) * cosf(pitch / 2.0f) * cosf(mag_dec / 2.0f) + sinf(roll / 2.0f) * sinf(pitch / 2.0f) *
-//                                                                            sinf(mag_dec / 2.0f);
-//    INS_quat[1] =
-//            sinf(roll / 2.0f) * cosf(pitch / 2.0f) * cosf(mag_dec / 2.0f) - cosf(roll / 2.0f) * sinf(pitch / 2.0f) *
-//                                                                            sinf(mag_dec / 2.0f);
-//    INS_quat[2] =
-//            cosf(roll / 2.0f) * sinf(pitch / 2.0f) * cosf(mag_dec / 2.0f) + sinf(roll / 2.0f) * cosf(pitch / 2.0f) *
-//                                                                            sinf(mag_dec / 2.0f);
-//    INS_quat[3] =
-//            cosf(roll / 2.0f) * cosf(pitch / 2.0f) * sinf(mag_dec / 2.0f) - sinf(roll / 2.0f) * sinf(pitch / 2.0f) *
-//                                                                            sinf(mag_dec / 2.0f);
+    //ZYX(yaw-pitch-roll)
     INS_quat[0] =
-            cosf(pitch / 2.0f) * cosf(roll / 2.0f) * cosf(mag_dec / 2.0f) - sinf(roll / 2.0f) * sinf(pitch / 2.0f) *
-                                                                            sinf(mag_dec / 2.0f);
+            cosf(mag_dec / 2.0f) * cosf(pitch / 2.0f) * cosf(roll / 2.0f) - sinf(mag_dec / 2.0f) * sinf(pitch / 2.0f) *
+                                                                            sinf(roll / 2.0f);
     INS_quat[1] =
-            sinf(pitch / 2.0f) * cosf(roll / 2.0f) * cosf(mag_dec / 2.0f) + cosf(roll / 2.0f) * sinf(pitch / 2.0f) *
-                                                                            sinf(mag_dec / 2.0f);
+            cosf(mag_dec / 2.0f) * cosf(pitch / 2.0f) * sinf(roll / 2.0f) + sinf(mag_dec/ 2.0f) * sinf(pitch / 2.0f) *
+                                                                            cosf(roll / 2.0f);
     INS_quat[2] =
-            cosf(pitch / 2.0f) * sinf(roll / 2.0f) * cosf(mag_dec / 2.0f) - sinf(roll / 2.0f) * cosf(pitch / 2.0f) *
-                                                                            sinf(mag_dec / 2.0f);
+            cosf(mag_dec / 2.0f) * sinf(pitch / 2.0f) * cosf(roll / 2.0f) - sinf(mag_dec / 2.0f) * cosf(pitch / 2.0f) *
+                                                                            sinf(roll / 2.0f);
     INS_quat[3] =
-            cosf(pitch / 2.0f) * cosf(roll / 2.0f) * sinf(mag_dec / 2.0f) + sinf(roll / 2.0f) * sinf(pitch / 2.0f) *
-                                                                            cosf(mag_dec / 2.0f);
+            sinf(mag_dec / 2.0f) * cosf(pitch / 2.0f) * cosf(roll / 2.0f) + cosf(mag_dec / 2.0f) * sinf(pitch / 2.0f) *
+                                                                            sinf(roll / 2.0f);
 
     Matrix_vassignment(&quaternionData, 1, 1, INS_quat[0]);
     Matrix_vassignment(&quaternionData, 2, 1, INS_quat[1]);
