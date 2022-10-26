@@ -45,6 +45,7 @@
 #include "FusionAhrs.h"
 #include "fifo.h"
 #include "matlab_sync_task.h"
+#include "global_control_define.h"
 //#include "calibrate_ukf.h"
 
 
@@ -126,8 +127,8 @@ volatile uint8_t imu_start_dma_flag = 0;
 
 bmi088_real_data_t bmi088_real_data;
 float32_t gyro_scale_factor[3][3] = {BMI088_BOARD_INSTALL_SPIN_MATRIX};
-float32_t gyro_offset[3]={0};
-float32_t gyro_cali_offset[3]={0};
+float32_t gyro_offset[3] = {0};
+float32_t gyro_cali_offset[3] = {0};
 
 float32_t accel_scale_factor[3][3] = {BMI088_BOARD_INSTALL_SPIN_MATRIX};
 float32_t accel_offset[3];
@@ -193,8 +194,8 @@ void INS_task(void const *pvParameters) {
     //rotate and zero drift
     imu_cali_slove(INS_gyro, INS_accel, INS_mag, &bmi088_real_data, &ist8310_real_data);
 
-    PID_init(&imu_temp_pid, PID_POSITION, imu_temp_PID, TEMPERATURE_PID_MAX_OUT, TEMPERATURE_PID_MAX_IOUT, 1000, 0, 0, 0,
-             0, 0, 0, 0, 0, 0, 0);
+    PID_init(&imu_temp_pid, PID_POSITION, imu_temp_PID, TEMPERATURE_PID_MAX_OUT, TEMPERATURE_PID_MAX_IOUT, 1000, 0, 0,
+             0,0, 0, 0, 0, 0, 0, 0);
 //    AHRS_init(INS_quat, INS_accel, INS_mag);
 
 //    accel_fliter_1[0] = accel_fliter_2[0] = accel_fliter_3[0] = INS_accel[0];
@@ -368,13 +369,15 @@ void INS_task(void const *pvParameters) {
             ist8310_read_over(mag_dma_rx_buf, ist8310_real_data.mag);
             DWT_update_task_time_us(&IMU_time_record.mag);
             imu_cali_slove(INS_gyro, INS_accel, INS_mag, &bmi088_real_data, &ist8310_real_data);
-            if(fifo_s_free(&mag_data_tx_fifo)){
-                fifo_s_puts(&mag_data_tx_fifo,(char *)INS_mag,sizeof(INS_mag));
+            if (UART1_TARGET_MODE == Matlab_MODE) {
+                if (fifo_s_free(&mag_data_tx_fifo)) {
+                    fifo_s_puts(&mag_data_tx_fifo, (char *) INS_mag, sizeof(INS_mag));
 //                SEGGER_RTT_WriteString(0,"yes\r\n");
-            } else{
-                fifo_s_flush(&mag_data_tx_fifo);
-                fifo_s_puts(&mag_data_tx_fifo,(char *)INS_mag,sizeof(INS_mag));
+                } else {
+                    fifo_s_flush(&mag_data_tx_fifo);
+                    fifo_s_puts(&mag_data_tx_fifo, (char *) INS_mag, sizeof(INS_mag));
 //                SEGGER_RTT_WriteString(0,"no\r\n");
+                }
             }
 //        }
 //            TRICAL_estimate_update(&mag_calib, ist8310_real_data.mag, expected_field);
@@ -382,19 +385,22 @@ void INS_task(void const *pvParameters) {
             accel_fliter_2[0] = accel_fliter_3[0];
 
             accel_fliter_3[0] =
-                    accel_fliter_2[0] * fliter_num[0] + accel_fliter_1[0] * fliter_num[1] + INS_accel[0] * fliter_num[2];
+                    accel_fliter_2[0] * fliter_num[0] + accel_fliter_1[0] * fliter_num[1] +
+                    INS_accel[0] * fliter_num[2];
 
             accel_fliter_1[1] = accel_fliter_2[1];
             accel_fliter_2[1] = accel_fliter_3[1];
 
             accel_fliter_3[1] =
-                    accel_fliter_2[1] * fliter_num[0] + accel_fliter_1[1] * fliter_num[1] + INS_accel[1] * fliter_num[2];
+                    accel_fliter_2[1] * fliter_num[0] + accel_fliter_1[1] * fliter_num[1] +
+                    INS_accel[1] * fliter_num[2];
 
             accel_fliter_1[2] = accel_fliter_2[2];
             accel_fliter_2[2] = accel_fliter_3[2];
 
             accel_fliter_3[2] =
-                    accel_fliter_2[2] * fliter_num[0] + accel_fliter_1[2] * fliter_num[1] + INS_accel[2] * fliter_num[2];
+                    accel_fliter_2[2] * fliter_num[0] + accel_fliter_1[2] * fliter_num[1] +
+                    INS_accel[2] * fliter_num[2];
 
 
 
@@ -439,12 +445,12 @@ void INS_task(void const *pvParameters) {
 
             /* Normalizing the output vector */
             float32_t _normG = sqrtf((Y.p2Data[0][0] * Y.p2Data[0][0]) + (Y.p2Data[1][0] * Y.p2Data[1][0]) +
-                               (Y.p2Data[2][0] * Y.p2Data[2][0]));
+                                     (Y.p2Data[2][0] * Y.p2Data[2][0]));
             Y.p2Data[0][0] = Y.p2Data[0][0] / _normG;
             Y.p2Data[1][0] = Y.p2Data[1][0] / _normG;
             Y.p2Data[2][0] = Y.p2Data[2][0] / _normG;
             float32_t _normM = sqrtf((Y.p2Data[3][0] * Y.p2Data[3][0]) + (Y.p2Data[4][0] * Y.p2Data[4][0]) +
-                               (Y.p2Data[5][0] * Y.p2Data[5][0]));
+                                     (Y.p2Data[5][0] * Y.p2Data[5][0]));
             Y.p2Data[3][0] = Y.p2Data[3][0] / _normM;
             Y.p2Data[4][0] = Y.p2Data[4][0] / _normM;
             Y.p2Data[5][0] = Y.p2Data[5][0] / _normM;
@@ -590,7 +596,7 @@ uint32_t get_stack_of_INS_task(void) {
 //                 ist8310->mag[2] * mag_scale_factor[i][2] + mag_offset[i];
 //    }
 //}
- void
+void
 imu_cali_slove(float32_t gyro[3], float32_t accel[3], float32_t mag[3], bmi088_real_data_t *bmi088,
                ist8310_real_data_t *ist8310) {
     for (uint8_t i = 0; i < 3; i++) {
@@ -623,7 +629,7 @@ static void imu_temp_control(float32_t temp) {
         }
         tempPWM = (uint16_t) imu_temp_pid.out;
         IMU_temp_PWM(tempPWM);
-    }else {
+    } else {
         //在没有达到设置的温度，一直最大功率加热
         //in beginning, max power
         if (temp < 29.0f) {
@@ -862,7 +868,8 @@ static void imu_cmd_spi_dma(void) {
     //开启陀螺仪的DMA传输
     if ((gyro_update_flag & (1 << IMU_IST_DR_SHFITS)) && !(hspi1.hdmatx->Instance->CR & DMA_SxCR_EN) &&
         !(hspi1.hdmarx->Instance->CR & DMA_SxCR_EN)
-        && !(accel_update_flag & (1 << IMU_IST_SPI_I2C_SHFITS)) && !(accel_temp_update_flag & (1 << IMU_IST_SPI_I2C_SHFITS))) {
+        && !(accel_update_flag & (1 << IMU_IST_SPI_I2C_SHFITS)) &&
+        !(accel_temp_update_flag & (1 << IMU_IST_SPI_I2C_SHFITS))) {
         gyro_update_flag &= ~(1 << IMU_IST_DR_SHFITS);
         gyro_update_flag |= (1 << IMU_IST_SPI_I2C_SHFITS);
 
@@ -874,7 +881,8 @@ static void imu_cmd_spi_dma(void) {
     //开启加速度计的DMA传输
     if ((accel_update_flag & (1 << IMU_IST_DR_SHFITS)) && !(hspi1.hdmatx->Instance->CR & DMA_SxCR_EN) &&
         !(hspi1.hdmarx->Instance->CR & DMA_SxCR_EN)
-        && !(gyro_update_flag & (1 << IMU_IST_SPI_I2C_SHFITS)) && !(accel_temp_update_flag & (1 << IMU_IST_SPI_I2C_SHFITS))) {
+        && !(gyro_update_flag & (1 << IMU_IST_SPI_I2C_SHFITS)) &&
+        !(accel_temp_update_flag & (1 << IMU_IST_SPI_I2C_SHFITS))) {
         accel_update_flag &= ~(1 << IMU_IST_DR_SHFITS);
         accel_update_flag |= (1 << IMU_IST_SPI_I2C_SHFITS);
 
@@ -887,7 +895,8 @@ static void imu_cmd_spi_dma(void) {
 
     if ((accel_temp_update_flag & (1 << IMU_IST_DR_SHFITS)) && !(hspi1.hdmatx->Instance->CR & DMA_SxCR_EN) &&
         !(hspi1.hdmarx->Instance->CR & DMA_SxCR_EN)
-        && !(gyro_update_flag & (1 << IMU_IST_SPI_I2C_SHFITS)) && !(accel_update_flag & (1 << IMU_IST_SPI_I2C_SHFITS))) {
+        && !(gyro_update_flag & (1 << IMU_IST_SPI_I2C_SHFITS)) &&
+        !(accel_update_flag & (1 << IMU_IST_SPI_I2C_SHFITS))) {
         accel_temp_update_flag &= ~(1 << IMU_IST_DR_SHFITS);
         accel_temp_update_flag |= (1 << IMU_IST_SPI_I2C_SHFITS);
 

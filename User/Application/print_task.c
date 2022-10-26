@@ -372,6 +372,15 @@ referee usart:%s\r\n\
                     gimbal_control.gimbal_cali.min_pitch_ecd);
             SEGGER_RTT_WriteString(0, print_buf);
 
+            SEGGER_RTT_SetTerminal(3);
+            sprintf(print_buf,
+                    "Pitch_cl_max=%f,Pitch_cl_min=%f,Pitch_cl_max_ecd=%d,Pitch_cl_min_ecd=%d\r\n",
+                    gimbal_control.gimbal_cali.max_pitch,
+                    gimbal_control.gimbal_cali.min_pitch,
+                    gimbal_control.gimbal_cali.max_pitch_ecd,
+                    gimbal_control.gimbal_cali.min_pitch_ecd);
+            SEGGER_RTT_WriteString(0, print_buf);
+
             //拨盘pid
 //            拨盘数据
 //            SEGGER_RTT_SetTerminal(8);
