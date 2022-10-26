@@ -107,7 +107,7 @@ void shoot_init(void) {
     PID_init(&shoot_control.fric2_motor_pid, PID_POSITION, fric2_speed_pid, TRIGGER_READY_PID_MAX_OUT,
              TRIGGER_READY_PID_MAX_IOUT, 1000, 0, 0, 0, 0, 0, 1, 0.003f, 0, 0, 0);
 //    shoot_control.pwm = SHOOT_FRIC_PWM_ADD_VALUE;
-
+    KalmanCreate(&shoot_control.Trigger_Motor_Current_Kalman_Filter, 10.0f, 0.5f);
     //更新数据
     shoot_feedback_update();
     ramp_init(&shoot_control.fric1_ramp, SHOOT_CONTROL_TIME * 0.001f, FRIC_DOWN, FRIC_OFF);
@@ -195,9 +195,9 @@ int16_t shoot_control_loop(void) {
             shoot_control.angle_set = shoot_control.angle;
         }
         ALL_PID(&shoot_control.trigger_motor_speed_pid, shoot_control.speed, shoot_control.speed_set);
-        shoot_control.given_current = (int16_t) (shoot_control.trigger_motor_speed_pid.out);
-        shoot_control.given_current = KalmanFilter(&shoot_control.Trigger_Motor_Current_Kalman_Filter,
-                                                   shoot_control.given_current);
+        shoot_control.current_set = shoot_control.trigger_motor_speed_pid.out;
+        shoot_control.given_current = (int16_t) KalmanFilter(&shoot_control.Trigger_Motor_Current_Kalman_Filter,
+                                                             shoot_control.current_set);
         if (shoot_control.shoot_mode < SHOOT_READY) {
             shoot_control.given_current = 0;
         }
@@ -217,8 +217,8 @@ int16_t shoot_control_loop(void) {
 //    shoot_control.fric_pwm2 = (uint16_t) (shoot_control.fric2_ramp.out);
 //    shoot_fric1_on(shoot_control.fric_pwm1);
 //    shoot_fric2_on(shoot_control.fric_pwm2);
-    gimbal_control.fric1_give_current = (int16_t) (gimbal_control.fric1_current_set);
-    gimbal_control.fric2_give_current = (int16_t) (gimbal_control.fric2_current_set);
+    gimbal_control.fric1_give_current = (int16_t)(gimbal_control.fric1_current_set);
+    gimbal_control.fric2_give_current = (int16_t)(gimbal_control.fric2_current_set);
     return shoot_control.given_current;
 }
 
