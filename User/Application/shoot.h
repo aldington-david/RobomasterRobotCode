@@ -131,6 +131,7 @@ typedef struct {
     float32_t speed_set;
     float32_t angle;
     float32_t angle_set;
+    float32_t current_set;
     int16_t given_current;
     int8_t ecd_count;
 
