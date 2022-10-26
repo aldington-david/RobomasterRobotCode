@@ -190,6 +190,7 @@ typedef struct {
     //'temperature' and 'latitude' should not be in the head_cali, because don't want to create a new sensor
     //'temperature' and 'latitude'不应该在head_cali,因为不想创建一个新的设备就放这了
     int8_t temperature;         // imu control temperature
+    float32_t latitude;
 } head_cali_t;
 //gimbal device
 typedef struct {

@@ -1102,9 +1102,9 @@ static void gimbal_motor_relative_angle_control(gimbal_motor_t *gimbal_motor) {
                                            gimbal_motor->relative_angle, gimbal_motor->relative_angle_set);
     gimbal_motor->current_set = ALL_PID(&gimbal_motor->gimbal_motor_gyro_pid, -gimbal_motor->motor_speed,
                                         gimbal_motor->motor_gyro_set);
-    if (gimbal_motor == &gimbal_control.gimbal_pitch_motor) {
-        kalman_test = gimbal_motor->current_set;
-    }
+//    if (gimbal_motor == &gimbal_control.gimbal_pitch_motor) {
+//        kalman_test = gimbal_motor->current_set;
+//    }
     gimbal_motor->current_set = KalmanFilter(&gimbal_motor->Cloud_Motor_Current_Kalman_Filter,
                                              gimbal_motor->current_set);
 //    for_test

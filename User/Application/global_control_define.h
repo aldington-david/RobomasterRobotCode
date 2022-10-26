@@ -27,7 +27,7 @@
 /************ Self Data define End*******************/
 
 /************ Motor turn define Start*******************/
-#define PITCH_TURN  1
+#define PITCH_TURN  0
 #define YAW_TURN    1
 #define SHOOT_TRIGGER_TURN    0
 /************ Motor turn define End*******************/
