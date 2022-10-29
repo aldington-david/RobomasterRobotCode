@@ -202,6 +202,6 @@ AHRS_bUpdateNonlinearX(matrix_f32_t *X_Next, matrix_f32_t *X_matrix, matrix_f32_
 extern bool
 AHRS_bUpdateNonlinearY(matrix_f32_t *Y_matrix, matrix_f32_t *X_matrix, matrix_f32_t *U_matrix, AHRS_t *AHRS_op);
 
-extern void AHRS_vset_north(AHRS_t *AHRS_op);
+extern void AHRS_quaternion_init(AHRS_t *AHRS_op);
 
 #endif //ROBOMASTERROBOTCODE_AHRS_UKF_H

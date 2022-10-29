@@ -403,7 +403,6 @@ void NEWAHRS_init(AHRS_t *AHRS_op) {
     Matrix_nodata_creat(&RLS_out, 1, 1, InitMatWithZero);
     Matrix_nodata_creat(&RLS_gain, 4, 1, InitMatWithZero);
 
-//    Matrix_nodata_creat(&quaternionData, SS_X_LEN, 1, InitMatWithZero);
     Matrix_nodata_creat(&Y, SS_Z_LEN, 1, InitMatWithZero);
     Matrix_nodata_creat(&U, SS_U_LEN, 1, InitMatWithZero);
 
@@ -424,7 +423,7 @@ void NEWAHRS_init(AHRS_t *AHRS_op) {
     Matrix_vscale(&RLS_P, 1000.0f);
 }
 
-void AHRS_vset_north(AHRS_t *AHRS_op) {
+void AHRS_quaternion_init(AHRS_t *AHRS_op) {
 //    ist8310_read_over(mag_dma_rx_buf, ist8310_real_data.mag);
 //    BMI088_read(bmi088_real_data.gyro, bmi088_real_data.accel, &bmi088_real_data.temp);
 //    imu_cali_slove(INS_gyro, INS_accel, INS_mag, &bmi088_real_data, &ist8310_real_data);

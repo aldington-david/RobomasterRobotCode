@@ -21,6 +21,7 @@
 #define SELF_ID  infantry3_red //get from referee_robot_ID
 #define FIRMWARE_VERSION 12345 //for self_test
 #define YAW_LIMIT YAW_NO_LIMIT
+#define YAW_LIMIT_TURN 0
 
 #define YAW_HAVE_LIMIT 1
 #define YAW_NO_LIMIT 0
@@ -119,6 +120,10 @@
 
 #if !defined(YAW_LIMIT)
 #error "You mast define YAW_LIMIT to limit yaw angle"
+#endif
+
+#if !defined(YAW_LIMIT_TURN)
+#error "You mast define YAW_LIMIT_TURN to limit yaw turn cnt"
 #endif
 
 #if __CC_ARM

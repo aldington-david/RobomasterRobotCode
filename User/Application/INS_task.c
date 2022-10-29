@@ -300,13 +300,13 @@ void INS_task(void const *pvParameters) {
 //        bmi088_real_data.accel_last[2] = bmi088_real_data.accel[2];
 //        osDelay(5);
 //    }
-//    AHRS_vset_north(&IMU);
+//    AHRS_quaternion_init(&IMU);
 //    INS_mag[0] -=IMU.HARD_IRON_BIAS.p2Data[0][0];
 //    INS_mag[1] -=IMU.HARD_IRON_BIAS.p2Data[1][0];
 //    INS_mag[2] -=IMU.HARD_IRON_BIAS.p2Data[2][0];
 //    AHRS_init(INS_quat, INS_accel, INS_mag);
-
-    Matrix_data_creat(&quaternionData, SS_X_LEN, 1, INS_quat, InitMatWithZero);
+    AHRS_quaternion_init(&IMU);
+//    Matrix_data_creat(&quaternionData, SS_X_LEN, 1, INS_quat, InitMatWithZero);
     UKF_vReset(&UKF_IMU, &quaternionData, &UKF_PINIT, &UKF_Rv, &UKF_Rn);
 //    TRICAL_init(&mag_calib);
 //    TRICAL_norm_set(&mag_calib, 54.305f);
@@ -541,9 +541,9 @@ void INS_task(void const *pvParameters) {
 //        AHRS_update(INS_quat, timing_time, bmi088_real_data.gyro, bmi088_real_data.accel, ist8310_real_data.mag);
 //        get_angle(INS_quat, INS_angle + INS_YAW_ADDRESS_OFFSET, INS_angle + INS_PITCH_ADDRESS_OFFSET,
 //                  INS_angle + INS_ROLL_ADDRESS_OFFSET);
-        get_angle(UKF_IMU.X_Est.arm_matrix.pData, INS_angle_ukf + INS_YAW_ADDRESS_OFFSET,
-                  INS_angle_ukf + INS_PITCH_ADDRESS_OFFSET,
-                  INS_angle_ukf + INS_ROLL_ADDRESS_OFFSET);
+        get_angle(UKF_IMU.X_Est.arm_matrix.pData, INS_angle + INS_YAW_ADDRESS_OFFSET,
+                  INS_angle + INS_PITCH_ADDRESS_OFFSET,
+                  INS_angle + INS_ROLL_ADDRESS_OFFSET);
 //        get_angle(INS_quat, INS_angle + INS_YAW_ADDRESS_OFFSET, INS_angle + INS_PITCH_ADDRESS_OFFSET,
 //                  INS_angle + INS_ROLL_ADDRESS_OFFSET);
 
@@ -671,6 +671,13 @@ void gyro_offset_calc(float32_t gyro_offset[3], float32_t gyro[3], uint16_t *off
     (*offset_time_count)++;
 }
 
+void mag_scale_offset_calc(float32_t mag_offset[3], float32_t mag[3], uint16_t *offset_time_count) {
+    if (gyro_offset == NULL || mag == NULL || offset_time_count == NULL) {
+        return;
+    }
+
+}
+
 /**
   * @brief          calculate gyro zero drift
   * @param[out]     cali_scale:scale, default 1.0
@@ -686,6 +693,23 @@ void gyro_offset_calc(float32_t gyro_offset[3], float32_t gyro[3], uint16_t *off
   * @retval         none
   */
 void INS_cali_gyro(float32_t cali_scale[3], float32_t cali_offset[3], uint16_t *time_count) {
+    if (*time_count == 0) {
+        gyro_offset[0] = gyro_cali_offset[0];
+        gyro_offset[1] = gyro_cali_offset[1];
+        gyro_offset[2] = gyro_cali_offset[2];
+    }
+    gyro_offset_calc(gyro_offset, INS_gyro, time_count);
+
+    cali_offset[0] = gyro_offset[0];
+    cali_offset[1] = gyro_offset[1];
+    cali_offset[2] = gyro_offset[2];
+    cali_scale[0] = 1.0f;
+    cali_scale[1] = 1.0f;
+    cali_scale[2] = 1.0f;
+
+}
+
+void IST_cali_mag(float32_t cali_scale[3], float32_t cali_offset[3], uint16_t *time_count) {
     if (*time_count == 0) {
         gyro_offset[0] = gyro_cali_offset[0];
         gyro_offset[1] = gyro_cali_offset[1];

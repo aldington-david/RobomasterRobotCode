@@ -519,20 +519,25 @@ calc_gimbal_cali(const gimbal_step_cali_t *gimbal_cali, uint16_t *yaw_offset, ui
     int16_t temp_max_ecd = 0, temp_min_ecd = 0, temp_ecd = 0;
 
 #if YAW_TURN
-    temp_ecd = gimbal_cali->min_yaw_ecd - gimbal_cali->max_yaw_ecd;
+    if (YAW_LIMIT == YAW_HAVE_LIMIT) {
+        temp_ecd = gimbal_cali->min_yaw_ecd - gimbal_cali->max_yaw_ecd;
 
-    if (temp_ecd < 0) {
-        temp_ecd += ECD_RANGE;
+        if (temp_ecd < 0) {
+            temp_ecd += ECD_RANGE;
+        }
+        temp_ecd = gimbal_cali->max_yaw_ecd + (temp_ecd / 2);
+
+        ecd_format(temp_ecd);
+        *yaw_offset = temp_ecd;
+        *max_yaw = -motor_ecd_to_angle_change(gimbal_cali->max_yaw_ecd, *yaw_offset);
+        *min_yaw = -motor_ecd_to_angle_change(gimbal_cali->min_yaw_ecd, *yaw_offset);
+    } else if (YAW_LIMIT == YAW_NO_LIMIT) {
+        *yaw_offset = gimbal_cali->max_yaw_ecd;
+        *max_yaw = 0;
+        *min_yaw = 0;
     }
-    temp_ecd = gimbal_cali->max_yaw_ecd + (temp_ecd / 2);
-
-    ecd_format(temp_ecd);
-    *yaw_offset = temp_ecd;
-    *max_yaw = -motor_ecd_to_angle_change(gimbal_cali->max_yaw_ecd, *yaw_offset);
-    *min_yaw = -motor_ecd_to_angle_change(gimbal_cali->min_yaw_ecd, *yaw_offset);
-
 #else
-
+    if (YAW_LIMIT == YAW_HAVE_LIMIT) {
     temp_ecd = gimbal_cali->max_yaw_ecd - gimbal_cali->min_yaw_ecd;
 
     if (temp_ecd < 0) {
@@ -544,7 +549,11 @@ calc_gimbal_cali(const gimbal_step_cali_t *gimbal_cali, uint16_t *yaw_offset, ui
     *yaw_offset = temp_ecd;
     *max_yaw = motor_ecd_to_angle_change(gimbal_cali->max_yaw_ecd, *yaw_offset);
     *min_yaw = motor_ecd_to_angle_change(gimbal_cali->min_yaw_ecd, *yaw_offset);
-
+}   else if (YAW_LIMIT == YAW_NO_LIMIT) {
+        *yaw_offset = gimbal_cali->max_yaw_ecd;
+        *max_yaw = 0;
+        *min_yaw = 0;
+    }
 #endif
 
 #if PITCH_TURN
@@ -754,9 +763,13 @@ static void gimbal_feedback_update(gimbal_control_t *feedback_update) {
             feedback_update->gimbal_pitch_motor.offset_ecd);
 #else
 
-    feedback_update->gimbal_pitch_motor.relative_angle = motor_ecd_to_angle_change(
-            feedback_update->gimbal_pitch_motor.gimbal_motor_measure->ecd,
-            feedback_update->gimbal_pitch_motor.offset_ecd);
+//    feedback_update->gimbal_pitch_motor.relative_angle = motor_ecd_to_angle_change(
+//            feedback_update->gimbal_pitch_motor.gimbal_motor_measure->ecd,
+//            feedback_update->gimbal_pitch_motor.offset_ecd);
+    feedback_update->gimbal_pitch_motor.relative_angle = -(
+            (feedback_update->gimbal_pitch_motor.gimbal_motor_measure->total_ecd -
+             (feedback_update->gimbal_pitch_motor.offset_ecd +
+              (8192 * feedback_update->gimbal_pitch_motor.gimbal_motor_measure->turnCount))) * MOTOR_ECD_TO_RAD);
 #endif
 
     feedback_update->gimbal_pitch_motor.motor_gyro = *(feedback_update->gimbal_INT_gyro_point +
@@ -771,15 +784,23 @@ static void gimbal_feedback_update(gimbal_control_t *feedback_update) {
                                                          INS_YAW_ADDRESS_OFFSET);
 
 #if YAW_TURN
-    yaw_relative_angle_last = feedback_update->gimbal_yaw_motor.relative_angle;
+//    yaw_relative_angle_last = feedback_update->gimbal_yaw_motor.relative_angle;
 //    feedback_update->gimbal_yaw_motor.relative_angle = -motor_ecd_to_angle_change(
 //            feedback_update->gimbal_yaw_motor.gimbal_motor_measure->ecd,
 //            feedback_update->gimbal_yaw_motor.offset_ecd);
 //    feedback_update->gimbal_yaw_motor.relative_angle = -( //offset_ecd加了有概率封车
 //            (feedback_update->gimbal_yaw_motor.gimbal_motor_measure->total_ecd -
 //             feedback_update->gimbal_yaw_motor.offset_ecd) * MOTOR_ECD_TO_RAD);
-    feedback_update->gimbal_yaw_motor.relative_angle = -(
-            (feedback_update->gimbal_yaw_motor.gimbal_motor_measure->total_ecd) * MOTOR_ECD_TO_RAD);
+    if (YAW_LIMIT == YAW_NO_LIMIT) {
+        feedback_update->gimbal_yaw_motor.relative_angle = -(
+                (feedback_update->gimbal_yaw_motor.gimbal_motor_measure->total_ecd) * MOTOR_ECD_TO_RAD);
+    } else if (YAW_LIMIT == YAW_HAVE_LIMIT){
+            feedback_update->gimbal_yaw_motor.relative_angle = -motor_ecd_to_angle_change(
+            feedback_update->gimbal_yaw_motor.gimbal_motor_measure->ecd,
+            feedback_update->gimbal_yaw_motor.offset_ecd);
+    }
+
+
     feedback_update->gimbal_yaw_motor.motor_speed = KalmanFilter(&feedback_update->gimbal_yaw_motor.MotorSpeed_Kalman,
                                                                  feedback_update->gimbal_yaw_motor.motor_speed);
     feedback_update->gimbal_pitch_motor.motor_speed = KalmanFilter(

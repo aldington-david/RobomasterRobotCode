@@ -126,6 +126,9 @@
 #define INIT_YAW_SET    0.0f
 #define INIT_PITCH_SET  0.0f
 
+//ist校准
+#define IST_CALI_YAW_MOTOR_SET   1000
+
 //云台校准中值的时候，发送原始电流值，以及堵转时间，通过陀螺仪判断堵转
 #define GIMBAL_CALI_MOTOR_SET   4000
 #define GIMBAL_CALI_STEP_TIME   2000
@@ -138,6 +141,12 @@
 
 #define GIMBAL_CALI_START_STEP  GIMBAL_CALI_PITCH_MAX_STEP
 #define GIMBAL_CALI_END_STEP    5
+
+#define IST_CALI_FORWARD_STEP  1
+#define IST_CALI_BACKWARD_STEP  2
+
+#define IST_CALI_START_STEP  IST_CALI_FORWARD_STEP
+#define IST_CALI_END_STEP    3
 
 //判断遥控器无输入的时间以及遥控器无输入判断，设置云台yaw回中值以防陀螺仪漂移
 #define GIMBAL_MOTIONLESS_RC_DEADLINE 10
@@ -229,6 +238,16 @@ typedef struct {
 } gimbal_step_cali_t;
 
 typedef struct {
+    float32_t max_mag_x;
+    float32_t min_mag_x;
+    float32_t max_mag_y;
+    float32_t min_mag_y;
+    float32_t scale_x;
+    float32_t scale_y;
+    uint8_t step;
+} ist_step_cali_t;
+
+typedef struct {
     const volatile vision_control_t *gimbal_vision_ctrl;
     const volatile RC_ctrl_t *gimbal_rc_ctrl;
     const float32_t *gimbal_INT_angle_point;
@@ -236,6 +255,7 @@ typedef struct {
     gimbal_motor_t gimbal_yaw_motor;
     gimbal_motor_t gimbal_pitch_motor;
     gimbal_step_cali_t gimbal_cali;
+    ist_step_cali_t ist_cali;
 
 
     float32_t fric1_current_set;

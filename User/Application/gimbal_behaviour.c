@@ -159,6 +159,30 @@
             }                                                                        \
         }                                                                            \
     }
+/**
+  * @brief          通过判断电机转速来判断云台是否到达极限位置
+  * @param          对应轴的角速度，单位rad/s
+  * @param          计时时间，到达GIMBAL_CALI_STEP_TIME的时间后归零
+  * @param          记录的角度 rad
+  * @param          反馈的角度 rad
+  * @param          记录的编码值 raw
+  * @param          反馈的编码值 raw
+  * @param          校准的步骤 完成一次 加一
+  */
+#define gimbal_cali_motor_speed_judge(motor_speed, cmd_time, angle_set, angle, ecd_set, ecd, step) \
+    {                                                                                \
+        if ((motor_speed) < GIMBAL_CALI_GYRO_LIMIT)                                         \
+        {                                                                            \
+            (cmd_time)++;                                                            \
+            if ((cmd_time) > GIMBAL_CALI_STEP_TIME)                                  \
+            {                                                                        \
+                (cmd_time) = 0;                                                      \
+                (angle_set) = (angle);                                               \
+                (ecd_set) = (ecd);                                                   \
+                (step)++;                                                            \
+            }                                                                        \
+        }                                                                            \
+    }
 
 /**
   * @brief          gimbal behave mode set.
@@ -315,6 +339,9 @@ void gimbal_behaviour_mode_set(gimbal_control_t *gimbal_mode_set) {
     } else if (gimbal_behaviour == GIMBAL_CALI) {
         gimbal_mode_set->gimbal_yaw_motor.gimbal_motor_mode = GIMBAL_MOTOR_RAW;
         gimbal_mode_set->gimbal_pitch_motor.gimbal_motor_mode = GIMBAL_MOTOR_RAW;
+    } else if (gimbal_behaviour == IST_CALI) {
+        gimbal_mode_set->gimbal_yaw_motor.gimbal_motor_mode = GIMBAL_MOTOR_RAW;
+        gimbal_mode_set->gimbal_pitch_motor.gimbal_motor_mode = GIMBAL_MOTOR_RAW;
     } else if (gimbal_behaviour == GIMBAL_ABSOLUTE_ANGLE) {
         gimbal_mode_set->gimbal_yaw_motor.gimbal_motor_mode = GIMBAL_MOTOR_GYRO;
         gimbal_mode_set->gimbal_pitch_motor.gimbal_motor_mode = GIMBAL_MOTOR_GYRO;
@@ -354,6 +381,8 @@ void gimbal_behaviour_control_set(float32_t *add_yaw, float32_t *add_pitch, gimb
     } else if (gimbal_behaviour == GIMBAL_INIT) {
         gimbal_init_control(add_yaw, add_pitch, gimbal_control_set);
     } else if (gimbal_behaviour == GIMBAL_CALI) {
+        gimbal_cali_control(add_yaw, add_pitch, gimbal_control_set);
+    } else if (gimbal_behaviour == IST_CALI) {
         gimbal_cali_control(add_yaw, add_pitch, gimbal_control_set);
     } else if (gimbal_behaviour == GIMBAL_ABSOLUTE_ANGLE) {
         gimbal_absolute_angle_control(add_yaw, add_pitch, gimbal_control_set);
@@ -424,10 +453,18 @@ static void gimbal_behavour_set(gimbal_control_t *gimbal_mode_set) {
     if (gimbal_behaviour == GIMBAL_CALI && gimbal_mode_set->gimbal_cali.step != GIMBAL_CALI_END_STEP) {
         return;
     }
+    if (gimbal_behaviour == IST_CALI && gimbal_mode_set->ist_cali.step != IST_CALI_END_STEP) {
+        return;
+    }
     //if other operate make step change to start, means enter cali mode
     //如果外部使得校准步骤从0 变成 start，则进入校准模式
     if (gimbal_mode_set->gimbal_cali.step == GIMBAL_CALI_START_STEP && !toe_is_error(DBUS_TOE)) {
         gimbal_behaviour = GIMBAL_CALI;
+        return;
+    }
+
+    if (gimbal_mode_set->ist_cali.step == IST_CALI_START_STEP && !toe_is_error(DBUS_TOE)) {
+        gimbal_behaviour = IST_CALI;
         return;
     }
 
@@ -596,7 +633,7 @@ static void gimbal_cali_control(float32_t *yaw, float32_t *pitch, gimbal_control
                                gimbal_control_set->gimbal_cali.step);
     } else if (gimbal_control_set->gimbal_cali.step == GIMBAL_CALI_YAW_MAX_STEP) {
         *pitch = 0;
-        if(YAW_LIMIT == YAW_HAVE_LIMIT){
+        if (YAW_LIMIT == YAW_HAVE_LIMIT) {
             *yaw = GIMBAL_CALI_MOTOR_SET;
 
             gimbal_cali_gyro_judge(gimbal_control_set->gimbal_yaw_motor.motor_gyro, cali_time,
@@ -605,16 +642,16 @@ static void gimbal_cali_control(float32_t *yaw, float32_t *pitch, gimbal_control
                                    gimbal_control_set->gimbal_cali.max_yaw_ecd,
                                    gimbal_control_set->gimbal_yaw_motor.gimbal_motor_measure->ecd,
                                    gimbal_control_set->gimbal_cali.step);
-        }else if (YAW_LIMIT == YAW_NO_LIMIT){
+        } else if (YAW_LIMIT == YAW_NO_LIMIT) {
             *yaw = 0;
             gimbal_control_set->gimbal_cali.max_yaw = 0.0f;
-            gimbal_control_set->gimbal_cali.max_yaw_ecd = 0;
+            gimbal_control_set->gimbal_cali.max_yaw_ecd = gimbal_control_set->gimbal_yaw_motor.gimbal_motor_measure->ecd;
             gimbal_control_set->gimbal_cali.step++;
         }
 
     } else if (gimbal_control_set->gimbal_cali.step == GIMBAL_CALI_YAW_MIN_STEP) {
         *pitch = 0;
-        if(YAW_LIMIT == YAW_HAVE_LIMIT) {
+        if (YAW_LIMIT == YAW_HAVE_LIMIT) {
             *yaw = -GIMBAL_CALI_MOTOR_SET;
 
             gimbal_cali_gyro_judge(gimbal_control_set->gimbal_yaw_motor.motor_gyro, cali_time,
@@ -623,10 +660,10 @@ static void gimbal_cali_control(float32_t *yaw, float32_t *pitch, gimbal_control
                                    gimbal_control_set->gimbal_cali.min_yaw_ecd,
                                    gimbal_control_set->gimbal_yaw_motor.gimbal_motor_measure->ecd,
                                    gimbal_control_set->gimbal_cali.step);
-        } else if (YAW_LIMIT == YAW_NO_LIMIT){
+        } else if (YAW_LIMIT == YAW_NO_LIMIT) {
             *yaw = 0;
             gimbal_control_set->gimbal_cali.min_yaw = 0.0f;
-            gimbal_control_set->gimbal_cali.min_yaw_ecd = 0;
+            gimbal_control_set->gimbal_cali.min_yaw_ecd = gimbal_control_set->gimbal_yaw_motor.gimbal_motor_measure->ecd;
             gimbal_control_set->gimbal_cali.step++;
         }
     } else if (gimbal_control_set->gimbal_cali.step == GIMBAL_CALI_END_STEP) {
@@ -634,6 +671,42 @@ static void gimbal_cali_control(float32_t *yaw, float32_t *pitch, gimbal_control
     }
 }
 
+static void ist_cali_control(float32_t *yaw, float32_t *pitch, gimbal_control_t *gimbal_control_set) {
+    if (yaw == NULL || pitch == NULL || gimbal_control_set == NULL) {
+        return;
+    }
+    static uint16_t cali_time = 0;
+
+    if (gimbal_control_set->ist_cali.step == IST_CALI_FORWARD_STEP) {
+
+        *pitch = 0;
+        *yaw = IST_CALI_YAW_MOTOR_SET;
+#if YAW_TURN
+        if (gimbal_control_set->gimbal_yaw_motor.gimbal_motor_measure->turnCount > 1) {
+            gimbal_control_set->ist_cali.step++;
+        }
+#else
+        if(gimbal_control_set->gimbal_yaw_motor.gimbal_motor_measure->turnCount<-1){
+            gimbal_control_set->ist_cali.step++;
+        }
+#endif
+    } else if (gimbal_control_set->gimbal_cali.step == IST_CALI_BACKWARD_STEP) {
+        *pitch = 0;
+        *yaw = -IST_CALI_YAW_MOTOR_SET;
+
+#if YAW_TURN
+        if (gimbal_control_set->gimbal_yaw_motor.gimbal_motor_measure->turnCount < -1) {
+            gimbal_control_set->ist_cali.step++;
+        }
+#else
+        if(gimbal_control_set->gimbal_yaw_motor.gimbal_motor_measure->turnCount>1){
+            gimbal_control_set->ist_cali.step++;
+        }
+#endif
+    } else if (gimbal_control_set->gimbal_cali.step == IST_CALI_END_STEP) {
+        cali_time = 0;
+    }
+}
 
 /**
   * @brief          when gimbal behaviour mode is GIMBAL_ABSOLUTE_ANGLE, the function is called
