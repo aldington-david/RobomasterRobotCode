@@ -371,12 +371,13 @@ void gimbal_task(void const *pvParameters) {
             if (toe_is_error(DBUS_TOE)) {
                 CAN2_cmd_0x1ff(0, 0, 0, 0);
                 CAN1_cmd_0x1ff(0, 0, 0, 0);
+                CAN2_cmd_0x200(0, 0, 0, 0);
                 gimbal_control.gimbal_yaw_motor.relative_angle_set = gimbal_control.gimbal_yaw_motor.relative_angle;
                 gimbal_control.gimbal_pitch_motor.relative_angle_set = gimbal_control.gimbal_pitch_motor.relative_angle;
 //                gimbal_control.gimbal_yaw_motor.offset_ecd = gimbal_control.gimbal_yaw_motor.gimbal_motor_measure->total_ecd;
 
             } else {
-                CAN2_cmd_0x1ff(pitch_can_set_current, 0, shoot_can_set_current, 0);
+                CAN2_cmd_0x1ff(0, pitch_can_set_current, shoot_can_set_current, 0);
                 CAN1_cmd_0x1ff(yaw_can_set_current, 0, 0, 0);
                 CAN2_cmd_0x200(gimbal_control.fric1_give_current, 0, 0, gimbal_control.fric2_give_current);
             }
@@ -649,7 +650,7 @@ static void gimbal_init(gimbal_control_t *init) {
     static const float32_t Pitch_speed_pid[3] = {600.0f, 0.0f, 0.0f};
     static const float32_t Yaw_speed_pid[3] = {5000.0f, 0.0f, 0.0f};
 
-    static const float32_t Yaw_angle_pid[3] = {14.59f, 0.0f, 250.0f};
+    static const float32_t Yaw_angle_pid[3] = {13.59f, 0.0f, 250.0f};
     static const float32_t Pitch_angle_pid[3] = {28.0f, 0.0f, 100.0f};
     //电机数据指针获取
     init->gimbal_yaw_motor.gimbal_motor_measure = get_yaw_gimbal_motor_measure_point();
@@ -680,7 +681,7 @@ static void gimbal_init(gimbal_control_t *init) {
     PID_init(&init->gimbal_pitch_motor.gimbal_motor_gyro_pid, PID_POSITION, Pitch_speed_pid, PITCH_SPEED_PID_MAX_OUT,
              PITCH_SPEED_PID_MAX_IOUT, 100, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
     KalmanCreate(&init->gimbal_pitch_motor.Cloud_Motor_Current_Kalman_Filter, 0.001f, 0.05f);
-    KalmanCreate(&init->gimbal_yaw_motor.Cloud_Motor_Current_Kalman_Filter, 0.001f, 1.0f);
+    KalmanCreate(&init->gimbal_yaw_motor.Cloud_Motor_Current_Kalman_Filter, 0.005f, 1.0f);
     KalmanCreate(&init->gimbal_yaw_motor.gimbal_motor_relative_angle_pid.D_Kalman, 1.0f, 1.0f);
     KalmanCreate(&init->gimbal_yaw_motor.gimbal_motor_gyro_pid.D_Kalman, 1.0f, 1.0f);
     KalmanCreate(&init->gimbal_pitch_motor.gimbal_motor_relative_angle_pid.D_Kalman, 1.0f, 1.0f);
