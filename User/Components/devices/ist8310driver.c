@@ -113,7 +113,7 @@ void ist8310_read_over(uint8_t *rx_buf, float32_t mag[3]){
     mag[2] = MAG_SEN * temp_ist8310_data;
 }
 
-void ist8310_read_mag(float32_t mag[3])
+bool_t ist8310_read_mag(float32_t mag[3])
 {
     uint8_t buf[6];
     int16_t temp_ist8310_data = 0;
@@ -125,4 +125,9 @@ void ist8310_read_mag(float32_t mag[3])
     mag[1] = MAG_SEN * temp_ist8310_data;
     temp_ist8310_data = (int16_t)((buf[5] << 8) | buf[4]);
     mag[2] = MAG_SEN * temp_ist8310_data;
+    if((mag[0]==0)&&(mag[1]==0)&&(mag[2]==0)){
+        return 0;
+    } else{
+        return 1;
+    }
 }

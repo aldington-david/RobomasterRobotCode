@@ -95,9 +95,9 @@
 //遥控器输入死区，因为遥控器存在差异，摇杆在中间，其值不一定为零
 #define RC_DEADBAND   10
 
-
+//遥控器摇杆灵敏度
 #define YAW_RC_SEN    0.000023f
-#define PITCH_RC_SEN  0.000012f
+#define PITCH_RC_SEN  0.000005f
 
 #define YAW_MOUSE_SEN   0.00084f
 #define PITCH_MOUSE_SEN 0.0021f
@@ -115,13 +115,14 @@
 #define HALF_ECD_RANGE  4096
 #define ECD_RANGE       8191
 //云台初始化回中值，允许的误差,并且在误差范围内停止一段时间以及最大时间6s后解除初始化状态，
-#define GIMBAL_INIT_ANGLE_ERROR     0.1f
+#define GIMBAL_INIT_ANGLE_ERROR     0.0074532f
+#define GIMBAL_INIT_PITCH_ANGLE_LIMIT     0.8726646f
 #define GIMBAL_INIT_STOP_TIME       100
-#define GIMBAL_INIT_TIME            6000
-#define GIMBAL_CALI_REDUNDANT_ANGLE 0.25f
+#define GIMBAL_INIT_TIME            10000
+#define GIMBAL_CALI_REDUNDANT_ANGLE 0.0523598f
 //云台初始化回中值的速度以及控制到的角度
-#define GIMBAL_INIT_PITCH_SPEED     0.001f
-#define GIMBAL_INIT_YAW_SPEED       0.001f
+#define GIMBAL_INIT_PITCH_SPEED     0.002f
+#define GIMBAL_INIT_YAW_SPEED       0.004f
 
 #define INIT_YAW_SET    0.0f
 #define INIT_PITCH_SET  0.0f
@@ -203,7 +204,7 @@ typedef struct {
 
     gimbal_motor_mode_e gimbal_motor_mode;
     gimbal_motor_mode_e last_gimbal_motor_mode;
-    uint16_t offset_ecd;
+    int32_t offset_ecd;
     float32_t max_relative_angle; //rad
     float32_t min_relative_angle; //rad
 
@@ -230,20 +231,14 @@ typedef struct {
     float32_t min_yaw;
     float32_t max_pitch;
     float32_t min_pitch;
-    uint16_t max_yaw_ecd;
-    uint16_t min_yaw_ecd;
-    uint16_t max_pitch_ecd;
-    uint16_t min_pitch_ecd;
+    int32_t max_yaw_ecd;
+    int32_t min_yaw_ecd;
+    int32_t max_pitch_ecd;
+    int32_t min_pitch_ecd;
     uint8_t step;
 } gimbal_step_cali_t;
 
 typedef struct {
-    float32_t max_mag_x;
-    float32_t min_mag_x;
-    float32_t max_mag_y;
-    float32_t min_mag_y;
-    float32_t scale_x;
-    float32_t scale_y;
     uint8_t step;
 } ist_step_cali_t;
 
@@ -331,7 +326,7 @@ extern void gimbal_task(void const *pvParameters) __attribute__((noreturn));
   * @waring         这个函数使用到gimbal_control 静态变量导致函数不适用以上通用指针复用
   */
 extern bool_t
-cmd_cali_gimbal_hook(uint16_t *yaw_offset, uint16_t *pitch_offset, float32_t *max_yaw, float32_t *min_yaw, float32_t *max_pitch,
+cmd_cali_gimbal_hook(int32_t *yaw_offset, int32_t *pitch_offset, float32_t *max_yaw, float32_t *min_yaw, float32_t *max_pitch,
                      float32_t *min_pitch);
 
 /**
@@ -356,7 +351,7 @@ cmd_cali_gimbal_hook(uint16_t *yaw_offset, uint16_t *pitch_offset, float32_t *ma
   * @waring         这个函数使用到gimbal_control 静态变量导致函数不适用以上通用指针复用
   */
 extern void
-set_cali_gimbal_hook(const uint16_t yaw_offset, const uint16_t pitch_offset, const float32_t max_yaw, const float32_t min_yaw,
+set_cali_gimbal_hook(const int32_t yaw_offset, const int32_t pitch_offset, const float32_t max_yaw, const float32_t min_yaw,
                      const float32_t max_pitch, const float32_t min_pitch);
 
 extern gimbal_control_t gimbal_control;

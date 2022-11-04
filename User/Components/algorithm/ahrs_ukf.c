@@ -50,8 +50,8 @@ UKF_t UKF_IMU;
 /* =============================================== Sharing Variables/function declaration =============================================== */
 //X北向，北东地对前右下
 /* Magnetic vector constant (align with local magnetic vector) */
-//float32_t IMU_MAG_B0_data[3] = {COS(0), SIN(0), 0.000000f};//由经纬度和海拔从WMM世界磁场模型计算获得，需旋转并修正磁偏角
-float32_t IMU_MAG_B0_data[3] = {North_Comp, East_Comp, Vertical_Comp};//由经纬度和海拔从WMM世界磁场模型计算获得，需旋转并修正磁偏角(need True north magnetic vector)
+float32_t IMU_MAG_B0_data[3] = {COS(0), SIN(0), 0.000000f};
+//float32_t IMU_MAG_B0_data[3] = {North_Comp, East_Comp, Vertical_Comp};//由经纬度和海拔从WMM世界磁场模型计算获得，需旋转并修正磁偏角(need True north magnetic vector)
 /* The hard-magnet bias */
 float32_t HARD_IRON_BIAS_data[3] = {0.0f, 0.0f, 0.0f};
 
@@ -450,7 +450,7 @@ void AHRS_quaternion_init(AHRS_t *AHRS_op) {
     Bz = Bz / _normG;
 
     /* Projecting the magnetic vector into plane orthogonal to the gravitational vector */
-    float32_t pitch = asinf(-Ax);
+    float32_t pitch = asinf(Ax);
     float32_t roll = atan2f(Ay , Az);
     float32_t m_tilt_x = Bx * cosf(pitch) + By * sinf(roll) * sinf(pitch) + Bz * cosf(roll) * sinf(pitch);
     float32_t m_tilt_y = By * cosf(roll) - Bz * sinf(roll);
@@ -458,29 +458,51 @@ void AHRS_quaternion_init(AHRS_t *AHRS_op) {
 //    float32_t m_tilt_y = By * cosf(pitch) + Bx * sinf(roll) * sinf(pitch) - Bz * cosf(roll) * sinf(pitch);
     /* float32_t m_tilt_z = -Bx*sin(pitch)             + By*sin(roll)*cos(pitch)   + Bz*cos(roll)*cos(pitch); */
 
-    float32_t mag_dec = atan2f(m_tilt_y, m_tilt_x);
+    float32_t yaw = atan2f(m_tilt_y, m_tilt_x);
+//    float32_t yaw = 0;
+
     //ZYX(yaw-pitch-roll)
     INS_quat[0] =
-            cosf(mag_dec / 2.0f) * cosf(pitch / 2.0f) * cosf(roll / 2.0f) - sinf(mag_dec / 2.0f) * sinf(pitch / 2.0f) *
-                                                                            sinf(roll / 2.0f);
+            cosf(yaw / 2.0f) * cosf(pitch / 2.0f) * cosf(roll / 2.0f) + sinf(yaw / 2.0f) * sinf(pitch / 2.0f) *
+                                                                        sinf(roll / 2.0f);
     INS_quat[1] =
-            cosf(mag_dec / 2.0f) * cosf(pitch / 2.0f) * sinf(roll / 2.0f) + sinf(mag_dec/ 2.0f) * sinf(pitch / 2.0f) *
-                                                                            cosf(roll / 2.0f);
+            cosf(yaw / 2.0f) * cosf(pitch / 2.0f) * sinf(roll / 2.0f) - sinf(yaw / 2.0f) * sinf(pitch / 2.0f) *
+                                                                        cosf(roll / 2.0f);
     INS_quat[2] =
-            cosf(mag_dec / 2.0f) * sinf(pitch / 2.0f) * cosf(roll / 2.0f) - sinf(mag_dec / 2.0f) * cosf(pitch / 2.0f) *
-                                                                            sinf(roll / 2.0f);
+            cosf(yaw / 2.0f) * sinf(pitch / 2.0f) * cosf(roll / 2.0f) + sinf(yaw / 2.0f) * cosf(pitch / 2.0f) *
+                                                                        sinf(roll / 2.0f);
     INS_quat[3] =
-            sinf(mag_dec / 2.0f) * cosf(pitch / 2.0f) * cosf(roll / 2.0f) + cosf(mag_dec / 2.0f) * sinf(pitch / 2.0f) *
-                                                                            sinf(roll / 2.0f);
-
+            sinf(yaw / 2.0f) * cosf(pitch / 2.0f) * cosf(roll / 2.0f) - cosf(yaw / 2.0f) * sinf(pitch / 2.0f) *
+                                                                        sinf(roll / 2.0f);
+//    SEGGER_RTT_printf(0,"%f\r\n",INS_quat[0]);
+//    SEGGER_RTT_printf(0,"%f\r\n",INS_quat[1]);
+//    SEGGER_RTT_printf(0,"%f\r\n",INS_quat[2]);
+//    SEGGER_RTT_printf(0,"%f\r\n",INS_quat[3]);
     Matrix_vassignment(&quaternionData, 1, 1, INS_quat[0]);
     Matrix_vassignment(&quaternionData, 2, 1, INS_quat[1]);
     Matrix_vassignment(&quaternionData, 3, 1, INS_quat[2]);
     Matrix_vassignment(&quaternionData, 4, 1, INS_quat[3]);
-//    AHRS_op->IMU_MAG_B0.p2Data[0][0] = cosf(mag_dec);
-//    AHRS_op->IMU_MAG_B0.p2Data[1][0] = sinf(mag_dec);
+//    AHRS_op->IMU_MAG_B0.p2Data[0][0] = cosf(yaw);
+//    AHRS_op->IMU_MAG_B0.p2Data[1][0] = sinf(yaw);
 //    AHRS_op->IMU_MAG_B0.p2Data[2][0] = 0;
 
 }
 
-//void AHRS_get_init_quaternion()
+float32_t AHRS_get_instant_pitch(void){
+    float32_t Ax = INS_accel[0];
+    float32_t Ay = INS_accel[1];
+    float32_t Az = INS_accel[2];
+    float32_t _normG = sqrtf((Ax * Ax) + (Ay * Ay) + (Az * Az));
+    Ax = Ax / _normG;
+    return asinf(Ax);
+}
+
+float32_t AHRS_get_instant_roll(void){
+    float32_t Ax = INS_accel[0];
+    float32_t Ay = INS_accel[1];
+    float32_t Az = INS_accel[2];
+    float32_t _normG = sqrtf((Ax * Ax) + (Ay * Ay) + (Az * Az));
+    Ay = Ay / _normG;
+    Az = Az / _normG;
+    return atan2f(Ay , Az);
+}

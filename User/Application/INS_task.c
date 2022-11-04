@@ -188,9 +188,10 @@ void INS_task(void const *pvParameters) {
     while (ist8310_init()) {
         osDelay(100);
     }
-
     BMI088_read(bmi088_real_data.gyro, bmi088_real_data.accel, &bmi088_real_data.temp);
-    ist8310_read_over(mag_dma_rx_buf, ist8310_real_data.mag);
+    while (!ist8310_read_mag( ist8310_real_data.mag)){
+        osDelay(1);
+    }
     //rotate and zero drift
     imu_cali_slove(INS_gyro, INS_accel, INS_mag, &bmi088_real_data, &ist8310_real_data);
 
@@ -198,9 +199,9 @@ void INS_task(void const *pvParameters) {
              0,0, 0, 0, 0, 0, 0, 0);
 //    AHRS_init(INS_quat, INS_accel, INS_mag);
 
-//    accel_fliter_1[0] = accel_fliter_2[0] = accel_fliter_3[0] = INS_accel[0];
-//    accel_fliter_1[1] = accel_fliter_2[1] = accel_fliter_3[1] = INS_accel[1];
-//    accel_fliter_1[2] = accel_fliter_2[2] = accel_fliter_3[2] = INS_accel[2];
+    accel_fliter_1[0] = accel_fliter_2[0] = accel_fliter_3[0] = INS_accel[0];
+    accel_fliter_1[1] = accel_fliter_2[1] = accel_fliter_3[1] = INS_accel[1];
+    accel_fliter_1[2] = accel_fliter_2[2] = accel_fliter_3[2] = INS_accel[2];
     //get the handle of task
     //获取当前任务的任务句柄，
 //    INS_task_local_handler = xTaskGetHandle(pcTaskGetName(NULL));
@@ -306,6 +307,15 @@ void INS_task(void const *pvParameters) {
 //    INS_mag[2] -=IMU.HARD_IRON_BIAS.p2Data[2][0];
 //    AHRS_init(INS_quat, INS_accel, INS_mag);
     AHRS_quaternion_init(&IMU);
+//    SEGGER_RTT_printf(0,"Q0=%f",INS_quat[0]);
+//    SEGGER_RTT_printf(0,"Q1=%f",INS_quat[1]);
+//    SEGGER_RTT_printf(0,"Q2=%f",INS_quat[2]);
+//    SEGGER_RTT_printf(0,"Q3=%f",INS_quat[3]);
+//    AHRS_init(INS_quat, INS_accel, INS_mag);
+//    SEGGER_RTT_printf(0,"Q0=%f",INS_quat[0]);
+//    SEGGER_RTT_printf(0,"Q1=%f",INS_quat[1]);
+//    SEGGER_RTT_printf(0,"Q2=%f",INS_quat[2]);
+//    SEGGER_RTT_printf(0,"Q3=%f",INS_quat[3]);
 //    Matrix_data_creat(&quaternionData, SS_X_LEN, 1, INS_quat, InitMatWithZero);
     UKF_vReset(&UKF_IMU, &quaternionData, &UKF_PINIT, &UKF_Rv, &UKF_Rn);
 //    TRICAL_init(&mag_calib);
@@ -461,6 +471,13 @@ void INS_task(void const *pvParameters) {
                 Matrix_vassignment(&quaternionData, 1, 1, 1.0f);
                 UKF_vReset(&UKF_IMU, &quaternionData, &UKF_PINIT, &UKF_Rv, &UKF_Rn);
             }
+//            AHRS_update(INS_quat, timing_time, INS_gyro, INS_accel, INS_mag);
+            get_angle(UKF_IMU.X_Est.arm_matrix.pData, INS_angle + INS_YAW_ADDRESS_OFFSET,
+                      INS_angle + INS_PITCH_ADDRESS_OFFSET,
+                      INS_angle + INS_ROLL_ADDRESS_OFFSET);
+//            get_angle(INS_quat, INS_angle + INS_YAW_ADDRESS_OFFSET,
+//                      INS_angle + INS_PITCH_ADDRESS_OFFSET,
+//                      INS_angle + INS_ROLL_ADDRESS_OFFSET);
         }
         /* ----------------------------- Update the Kalman Filter ------------------------------ */
         /* ================== Read the sensor data / simulate the system here ================== */
@@ -538,12 +555,8 @@ void INS_task(void const *pvParameters) {
 //                accel_fliter_2[2] * fliter_num[0] + accel_fliter_1[2] * fliter_num[1] + INS_accel[2] * fliter_num[2];
 
 
-//        AHRS_update(INS_quat, timing_time, bmi088_real_data.gyro, bmi088_real_data.accel, ist8310_real_data.mag);
 //        get_angle(INS_quat, INS_angle + INS_YAW_ADDRESS_OFFSET, INS_angle + INS_PITCH_ADDRESS_OFFSET,
 //                  INS_angle + INS_ROLL_ADDRESS_OFFSET);
-        get_angle(UKF_IMU.X_Est.arm_matrix.pData, INS_angle + INS_YAW_ADDRESS_OFFSET,
-                  INS_angle + INS_PITCH_ADDRESS_OFFSET,
-                  INS_angle + INS_ROLL_ADDRESS_OFFSET);
 //        get_angle(INS_quat, INS_angle + INS_YAW_ADDRESS_OFFSET, INS_angle + INS_PITCH_ADDRESS_OFFSET,
 //                  INS_angle + INS_ROLL_ADDRESS_OFFSET);
 
@@ -623,16 +636,17 @@ static void imu_temp_control(float32_t temp) {
     uint16_t tempPWM;
     static uint8_t temp_constant_time = 0;
     if (first_temperate) {
-        ALL_PID(&imu_temp_pid, temp, 30.0f);
+        ALL_PID(&imu_temp_pid, temp, 65.0f);
         if (imu_temp_pid.out < 0.0f) {
             imu_temp_pid.out = 0.0f;
         }
         tempPWM = (uint16_t) imu_temp_pid.out;
         IMU_temp_PWM(tempPWM);
+//        SEGGER_RTT_printf(0,"%d\r\n",tempPWM);
     } else {
         //在没有达到设置的温度，一直最大功率加热
         //in beginning, max power
-        if (temp < 29.0f) {
+        if (temp < 65.0f) {
             temp_constant_time++;
             if (temp_constant_time > 200) {
                 //达到设置温度，将积分项设置为一半最大功率，加速收敛

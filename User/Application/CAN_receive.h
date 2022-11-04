@@ -46,7 +46,7 @@ typedef struct {
     int16_t speed_rpm;
     int16_t given_current;
     uint8_t temperate;
-    int16_t last_ecd;
+    int16_t last_ecd; //define int16_t to narrow convert in sub
     int16_t turnCount;
     int32_t total_ecd;
     bool init_flag;

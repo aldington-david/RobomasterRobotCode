@@ -90,6 +90,7 @@
 #include "math.h"
 #include "print_task.h"
 #include "global_control_define.h"
+#include "ahrs_ukf.h"
 
 //when gimbal is in calibrating, set buzzer frequency and strenght
 //当云台在校准, 设置蜂鸣器频率和强度
@@ -253,6 +254,7 @@ static void gimbal_init_control(float32_t *yaw, float32_t *pitch, gimbal_control
   */
 static void gimbal_cali_control(float32_t *yaw, float32_t *pitch, gimbal_control_t *gimbal_control_set);
 
+static void ist_cali_control(float32_t *yaw, float32_t *pitch, gimbal_control_t *gimbal_control_set);
 /**
   * @brief          when gimbal behaviour mode is GIMBAL_ABSOLUTE_ANGLE, the function is called
   *                 and gimbal control mode is gyro mode. 
@@ -383,7 +385,7 @@ void gimbal_behaviour_control_set(float32_t *add_yaw, float32_t *add_pitch, gimb
     } else if (gimbal_behaviour == GIMBAL_CALI) {
         gimbal_cali_control(add_yaw, add_pitch, gimbal_control_set);
     } else if (gimbal_behaviour == IST_CALI) {
-        gimbal_cali_control(add_yaw, add_pitch, gimbal_control_set);
+        ist_cali_control(add_yaw, add_pitch, gimbal_control_set);
     } else if (gimbal_behaviour == GIMBAL_ABSOLUTE_ANGLE) {
         gimbal_absolute_angle_control(add_yaw, add_pitch, gimbal_control_set);
     } else if (gimbal_behaviour == GIMBAL_RELATIVE_ANGLE) {
@@ -473,6 +475,7 @@ static void gimbal_behavour_set(gimbal_control_t *gimbal_mode_set) {
     if (gimbal_behaviour == GIMBAL_INIT) {
         static uint16_t init_time = 0;
         static uint16_t init_stop_time = 0;
+        static bool_t init_complete_flag = 0;
         init_time++;
 
         if ((fabsf(gimbal_mode_set->gimbal_yaw_motor.relative_angle - INIT_YAW_SET) < GIMBAL_INIT_ANGLE_ERROR &&
@@ -489,13 +492,28 @@ static void gimbal_behavour_set(gimbal_control_t *gimbal_mode_set) {
         }
 
         //超过初始化最大时间，或者已经稳定到中值一段时间，退出初始化状态开关打下档，或者掉线
-        if (init_time < GIMBAL_INIT_TIME && init_stop_time < GIMBAL_INIT_STOP_TIME &&
-            !switch_is_down(gimbal_mode_set->gimbal_rc_ctrl->rc.s[RADIO_CONTROL_SWITCH_R]) && !toe_is_error(DBUS_TOE)) {
-            return;
+        if (INIT_ONLY_FIRST_TIME) {
+            if (init_time < GIMBAL_INIT_TIME && init_stop_time < GIMBAL_INIT_STOP_TIME &&
+                !switch_is_down(gimbal_mode_set->gimbal_rc_ctrl->rc.s[RADIO_CONTROL_SWITCH_L]) &&
+                !toe_is_error(DBUS_TOE) && !init_complete_flag) {
+                return;
+            } else {
+                init_stop_time = 0;
+                init_time = 0;
+                init_complete_flag = 1;
+            }
         } else {
-            init_stop_time = 0;
-            init_time = 0;
+            if (init_time < GIMBAL_INIT_TIME && init_stop_time < GIMBAL_INIT_STOP_TIME &&
+                !switch_is_down(gimbal_mode_set->gimbal_rc_ctrl->rc.s[RADIO_CONTROL_SWITCH_L]) &&
+                !toe_is_error(DBUS_TOE)) {
+                return;
+            } else {
+                init_stop_time = 0;
+                init_time = 0;
+                init_complete_flag = 1;
+            }
         }
+
     }
 
     //开关控制 云台状态
@@ -574,14 +592,26 @@ static void gimbal_init_control(float32_t *yaw, float32_t *pitch, gimbal_control
     }
 
     //初始化状态控制量计算
-    if (fabsf(INIT_PITCH_SET - gimbal_control_set->gimbal_pitch_motor.absolute_angle) > GIMBAL_INIT_ANGLE_ERROR) {
-//        *pitch = (INIT_PITCH_SET - gimbal_control_set->gimbal_pitch_motor.relative_angle) * GIMBAL_INIT_PITCH_SPEED;
-        *pitch = 0.0f;
-        *yaw = 0.0f;
+    if (fabsf(INIT_PITCH_SET - gimbal_control_set->gimbal_pitch_motor.relative_angle) > GIMBAL_INIT_PITCH_ANGLE_LIMIT) {
+        if (PITCH_INIT == INIT) {
+            *pitch = (INIT_PITCH_SET - gimbal_control_set->gimbal_pitch_motor.relative_angle) * GIMBAL_INIT_PITCH_SPEED;
+            *yaw = 0.0f;
+//            *yaw = (INIT_YAW_SET - gimbal_control_set->gimbal_yaw_motor.relative_angle) * GIMBAL_INIT_YAW_SPEED;
+        } else if (PITCH_INIT == NO_INIT) {
+            *pitch = 0.0f;
+            *yaw = 0.0f;
+        }
     } else {
-        *pitch = (INIT_PITCH_SET - gimbal_control_set->gimbal_pitch_motor.relative_angle) * GIMBAL_INIT_PITCH_SPEED;
-        *yaw = (INIT_YAW_SET - gimbal_control_set->gimbal_yaw_motor.relative_angle) * GIMBAL_INIT_YAW_SPEED;
-//        *yaw = 0.0f;//for_test
+        if (PITCH_INIT == INIT) {
+            *pitch = (INIT_PITCH_SET - gimbal_control_set->gimbal_pitch_motor.relative_angle) * GIMBAL_INIT_PITCH_SPEED;
+        } else if (PITCH_INIT == NO_INIT) {
+            *pitch = 0.0f;
+        }
+        if (YAW_INIT == INIT) {
+            *yaw = (INIT_YAW_SET - gimbal_control_set->gimbal_yaw_motor.relative_angle) * GIMBAL_INIT_YAW_SPEED;
+        } else if (PITCH_INIT == NO_INIT) {
+            *yaw = 0.0f;
+        }
     }
 }
 
@@ -617,9 +647,9 @@ static void gimbal_cali_control(float32_t *yaw, float32_t *pitch, gimbal_control
         //判断陀螺仪数据， 并记录最大最小角度数据
         gimbal_cali_gyro_judge(gimbal_control_set->gimbal_pitch_motor.motor_gyro, cali_time,
                                gimbal_control_set->gimbal_cali.max_pitch,
-                               gimbal_control_set->gimbal_pitch_motor.absolute_angle,
+                               AHRS_get_instant_pitch(),
                                gimbal_control_set->gimbal_cali.max_pitch_ecd,
-                               gimbal_control_set->gimbal_pitch_motor.gimbal_motor_measure->ecd,
+                               gimbal_control_set->gimbal_pitch_motor.gimbal_motor_measure->total_ecd,
                                gimbal_control_set->gimbal_cali.step);
     } else if (gimbal_control_set->gimbal_cali.step == GIMBAL_CALI_PITCH_MIN_STEP) {
         *pitch = -GIMBAL_CALI_MOTOR_SET;
@@ -627,25 +657,25 @@ static void gimbal_cali_control(float32_t *yaw, float32_t *pitch, gimbal_control
 
         gimbal_cali_gyro_judge(gimbal_control_set->gimbal_pitch_motor.motor_gyro, cali_time,
                                gimbal_control_set->gimbal_cali.min_pitch,
-                               gimbal_control_set->gimbal_pitch_motor.absolute_angle,
+                               AHRS_get_instant_pitch(),
                                gimbal_control_set->gimbal_cali.min_pitch_ecd,
-                               gimbal_control_set->gimbal_pitch_motor.gimbal_motor_measure->ecd,
+                               gimbal_control_set->gimbal_pitch_motor.gimbal_motor_measure->total_ecd,
                                gimbal_control_set->gimbal_cali.step);
     } else if (gimbal_control_set->gimbal_cali.step == GIMBAL_CALI_YAW_MAX_STEP) {
         *pitch = 0;
         if (YAW_LIMIT == YAW_HAVE_LIMIT) {
             *yaw = GIMBAL_CALI_MOTOR_SET;
-
+            //yaw absolute_angle is not usefull
             gimbal_cali_gyro_judge(gimbal_control_set->gimbal_yaw_motor.motor_gyro, cali_time,
                                    gimbal_control_set->gimbal_cali.max_yaw,
                                    gimbal_control_set->gimbal_yaw_motor.absolute_angle,
                                    gimbal_control_set->gimbal_cali.max_yaw_ecd,
-                                   gimbal_control_set->gimbal_yaw_motor.gimbal_motor_measure->ecd,
+                                   gimbal_control_set->gimbal_yaw_motor.gimbal_motor_measure->total_ecd,
                                    gimbal_control_set->gimbal_cali.step);
         } else if (YAW_LIMIT == YAW_NO_LIMIT) {
             *yaw = 0;
             gimbal_control_set->gimbal_cali.max_yaw = 0.0f;
-            gimbal_control_set->gimbal_cali.max_yaw_ecd = gimbal_control_set->gimbal_yaw_motor.gimbal_motor_measure->ecd;
+            gimbal_control_set->gimbal_cali.max_yaw_ecd = gimbal_control_set->gimbal_yaw_motor.gimbal_motor_measure->total_ecd;
             gimbal_control_set->gimbal_cali.step++;
         }
 
@@ -653,17 +683,17 @@ static void gimbal_cali_control(float32_t *yaw, float32_t *pitch, gimbal_control
         *pitch = 0;
         if (YAW_LIMIT == YAW_HAVE_LIMIT) {
             *yaw = -GIMBAL_CALI_MOTOR_SET;
-
+            //yaw absolute_angle is not usefull
             gimbal_cali_gyro_judge(gimbal_control_set->gimbal_yaw_motor.motor_gyro, cali_time,
                                    gimbal_control_set->gimbal_cali.min_yaw,
                                    gimbal_control_set->gimbal_yaw_motor.absolute_angle,
                                    gimbal_control_set->gimbal_cali.min_yaw_ecd,
-                                   gimbal_control_set->gimbal_yaw_motor.gimbal_motor_measure->ecd,
+                                   gimbal_control_set->gimbal_yaw_motor.gimbal_motor_measure->total_ecd,
                                    gimbal_control_set->gimbal_cali.step);
         } else if (YAW_LIMIT == YAW_NO_LIMIT) {
             *yaw = 0;
             gimbal_control_set->gimbal_cali.min_yaw = 0.0f;
-            gimbal_control_set->gimbal_cali.min_yaw_ecd = gimbal_control_set->gimbal_yaw_motor.gimbal_motor_measure->ecd;
+            gimbal_control_set->gimbal_cali.min_yaw_ecd = gimbal_control_set->gimbal_yaw_motor.gimbal_motor_measure->total_ecd;
             gimbal_control_set->gimbal_cali.step++;
         }
     } else if (gimbal_control_set->gimbal_cali.step == GIMBAL_CALI_END_STEP) {

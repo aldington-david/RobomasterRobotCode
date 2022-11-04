@@ -41,7 +41,7 @@ extern ist8310_real_data_t ist8310_real_data;
 
 extern uint8_t ist8310_init(void);
 extern void ist8310_read_over(uint8_t *rx_buf, float32_t mag[3]);
-extern void ist8310_read_mag(float32_t mag[3]);
+extern bool_t ist8310_read_mag(float32_t mag[3]);
 
 extern uint8_t mag_dma_rx_buf[I2C_MEG_LENGHT];
 #endif

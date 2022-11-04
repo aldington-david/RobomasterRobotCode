@@ -28,6 +28,7 @@
 
 #include "detect_task.h"
 #include "print_task.h"
+#include "SEGGER_RTT.h"
 
 extern CAN_HandleTypeDef hcan1;
 extern CAN_HandleTypeDef hcan2;

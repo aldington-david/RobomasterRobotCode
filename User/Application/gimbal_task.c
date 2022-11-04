@@ -301,10 +301,16 @@ static float32_t gimbal_PID_calc(gimbal_PID_t *pid, float32_t get, float32_t set
   * @retval         none
   */
 static void
-calc_gimbal_cali(const gimbal_step_cali_t *gimbal_cali, uint16_t *yaw_offset, uint16_t *pitch_offset,
+calc_gimbal_cali(const gimbal_step_cali_t *gimbal_cali, int32_t *yaw_offset, int32_t *pitch_offset,
                  float32_t *max_yaw,
                  float32_t *min_yaw, float32_t *max_pitch, float32_t *min_pitch);
 
+/**
+  * @brief          offset_ecd 偏移,以total_ecd为基准需要校正turnCount值
+  * @param[in]      gimbal_cali: 校准数据
+  * @retval         none
+  */
+static void gimbal_offset_ecd_cali(gimbal_control_t *init);
 
 //gimbal control data
 //云台控制所有相关数据
@@ -373,6 +379,7 @@ void gimbal_task(void const *pvParameters) {
             if (toe_is_error(DBUS_TOE)) {
                 CAN2_cmd_0x1ff(0, 0, 0, 0);
                 CAN1_cmd_0x1ff(0, 0, 0, 0);
+                gimbal_offset_ecd_cali(&gimbal_control);
                 gimbal_control.gimbal_yaw_motor.relative_angle_set = gimbal_control.gimbal_yaw_motor.relative_angle;
                 gimbal_control.gimbal_pitch_motor.relative_angle_set = gimbal_control.gimbal_pitch_motor.relative_angle;
 //                gimbal_control.gimbal_yaw_motor.offset_ecd = gimbal_control.gimbal_yaw_motor.gimbal_motor_measure->total_ecd;
@@ -422,7 +429,7 @@ uint32_t get_stack_of_gimbal_task(void) {
   * @waring         这个函数使用到gimbal_control 静态变量导致函数不适用以上通用指针复用
   */
 void
-set_cali_gimbal_hook(const uint16_t yaw_offset, const uint16_t pitch_offset, const float32_t max_yaw,
+set_cali_gimbal_hook(const int32_t yaw_offset, const int32_t pitch_offset, const float32_t max_yaw,
                      const float32_t min_yaw, const float32_t max_pitch, const float32_t min_pitch) {
     gimbal_control.gimbal_yaw_motor.offset_ecd = yaw_offset;
     gimbal_control.gimbal_yaw_motor.max_relative_angle = max_yaw;
@@ -455,19 +462,51 @@ set_cali_gimbal_hook(const uint16_t yaw_offset, const uint16_t pitch_offset, con
   * @retval         返回1 代表成功校准完毕， 返回0 代表未校准完
   * @waring         这个函数使用到gimbal_control 静态变量导致函数不适用以上通用指针复用
   */
-bool_t cmd_cali_gimbal_hook(uint16_t *yaw_offset, uint16_t *pitch_offset, float32_t *max_yaw, float32_t *min_yaw,
+//bool_t cmd_cali_gimbal_hook(uint16_t *yaw_offset, uint16_t *pitch_offset, float32_t *max_yaw, float32_t *min_yaw,
+//                            float32_t *max_pitch, float32_t *min_pitch) {
+//    if (gimbal_control.gimbal_cali.step == 0) {
+//        gimbal_control.gimbal_cali.step = GIMBAL_CALI_START_STEP;
+//        //保存进入时候的数据，作为起始数据，来判断最大，最小值
+//        gimbal_control.gimbal_cali.max_pitch = gimbal_control.gimbal_pitch_motor.absolute_angle;
+//        gimbal_control.gimbal_cali.max_pitch_ecd = gimbal_control.gimbal_pitch_motor.gimbal_motor_measure->total_ecd;
+//        gimbal_control.gimbal_cali.max_yaw = gimbal_control.gimbal_yaw_motor.absolute_angle;
+//        gimbal_control.gimbal_cali.max_yaw_ecd = gimbal_control.gimbal_yaw_motor.gimbal_motor_measure->total_ecd;
+//        gimbal_control.gimbal_cali.min_pitch = gimbal_control.gimbal_pitch_motor.absolute_angle;
+//        gimbal_control.gimbal_cali.min_pitch_ecd = gimbal_control.gimbal_pitch_motor.gimbal_motor_measure->total_ecd;
+//        gimbal_control.gimbal_cali.min_yaw = gimbal_control.gimbal_yaw_motor.absolute_angle;
+//        gimbal_control.gimbal_cali.min_yaw_ecd = gimbal_control.gimbal_yaw_motor.gimbal_motor_measure->total_ecd;
+//        return 0;
+//    } else if (gimbal_control.gimbal_cali.step == GIMBAL_CALI_END_STEP) {
+//        calc_gimbal_cali(&gimbal_control.gimbal_cali, yaw_offset, pitch_offset, max_yaw, min_yaw, max_pitch, min_pitch);
+//        (*max_yaw) -= GIMBAL_CALI_REDUNDANT_ANGLE;
+//        (*min_yaw) += GIMBAL_CALI_REDUNDANT_ANGLE;
+//        (*max_pitch) -= GIMBAL_CALI_REDUNDANT_ANGLE;
+//        (*min_pitch) += GIMBAL_CALI_REDUNDANT_ANGLE;
+//        gimbal_control.gimbal_yaw_motor.offset_ecd = *yaw_offset;
+//        gimbal_control.gimbal_yaw_motor.max_relative_angle = *max_yaw;
+//        gimbal_control.gimbal_yaw_motor.min_relative_angle = *min_yaw;
+//        gimbal_control.gimbal_pitch_motor.offset_ecd = *pitch_offset;
+//        gimbal_control.gimbal_pitch_motor.max_relative_angle = *max_pitch;
+//        gimbal_control.gimbal_pitch_motor.min_relative_angle = *min_pitch;
+//        gimbal_control.gimbal_cali.step = 0;
+//        return 1;
+//    } else {
+//        return 0;
+//    }
+//}
+bool_t cmd_cali_gimbal_hook(int32_t *yaw_offset, int32_t *pitch_offset, float32_t *max_yaw, float32_t *min_yaw,
                             float32_t *max_pitch, float32_t *min_pitch) {
     if (gimbal_control.gimbal_cali.step == 0) {
         gimbal_control.gimbal_cali.step = GIMBAL_CALI_START_STEP;
         //保存进入时候的数据，作为起始数据，来判断最大，最小值
         gimbal_control.gimbal_cali.max_pitch = gimbal_control.gimbal_pitch_motor.absolute_angle;
-        gimbal_control.gimbal_cali.max_pitch_ecd = gimbal_control.gimbal_pitch_motor.gimbal_motor_measure->ecd;
+        gimbal_control.gimbal_cali.max_pitch_ecd = gimbal_control.gimbal_pitch_motor.gimbal_motor_measure->total_ecd;
         gimbal_control.gimbal_cali.max_yaw = gimbal_control.gimbal_yaw_motor.absolute_angle;
-        gimbal_control.gimbal_cali.max_yaw_ecd = gimbal_control.gimbal_yaw_motor.gimbal_motor_measure->ecd;
+        gimbal_control.gimbal_cali.max_yaw_ecd = gimbal_control.gimbal_yaw_motor.gimbal_motor_measure->total_ecd;
         gimbal_control.gimbal_cali.min_pitch = gimbal_control.gimbal_pitch_motor.absolute_angle;
-        gimbal_control.gimbal_cali.min_pitch_ecd = gimbal_control.gimbal_pitch_motor.gimbal_motor_measure->ecd;
+        gimbal_control.gimbal_cali.min_pitch_ecd = gimbal_control.gimbal_pitch_motor.gimbal_motor_measure->total_ecd;
         gimbal_control.gimbal_cali.min_yaw = gimbal_control.gimbal_yaw_motor.absolute_angle;
-        gimbal_control.gimbal_cali.min_yaw_ecd = gimbal_control.gimbal_yaw_motor.gimbal_motor_measure->ecd;
+        gimbal_control.gimbal_cali.min_yaw_ecd = gimbal_control.gimbal_yaw_motor.gimbal_motor_measure->total_ecd;
         return 0;
     } else if (gimbal_control.gimbal_cali.step == GIMBAL_CALI_END_STEP) {
         calc_gimbal_cali(&gimbal_control.gimbal_cali, yaw_offset, pitch_offset, max_yaw, min_yaw, max_pitch, min_pitch);
@@ -487,7 +526,6 @@ bool_t cmd_cali_gimbal_hook(uint16_t *yaw_offset, uint16_t *pitch_offset, float3
         return 0;
     }
 }
-
 /**
   * @brief          calc motor offset encode, max and min relative angle
   * @param[out]     yaw_offse:yaw middle place encode
@@ -508,15 +546,122 @@ bool_t cmd_cali_gimbal_hook(uint16_t *yaw_offset, uint16_t *pitch_offset, float3
   * @param[out]     pitch 最小相对角度 指针
   * @retval         none
   */
+//static void
+//calc_gimbal_cali(const gimbal_step_cali_t *gimbal_cali, uint16_t *yaw_offset, uint16_t *pitch_offset,
+//                 float32_t *max_yaw, float32_t *min_yaw, float32_t *max_pitch, float32_t *min_pitch) {
+//    if (gimbal_cali == NULL || yaw_offset == NULL || pitch_offset == NULL || max_yaw == NULL || min_yaw == NULL ||
+//        max_pitch == NULL || min_pitch == NULL) {
+//        return;
+//    }
+//
+//    int16_t temp_max_ecd = 0, temp_min_ecd = 0, temp_ecd = 0;
+//
+//#if YAW_TURN
+//    if (YAW_LIMIT == YAW_HAVE_LIMIT) {
+//        temp_ecd = gimbal_cali->min_yaw_ecd - gimbal_cali->max_yaw_ecd;
+//
+//        if (temp_ecd < 0) {
+//            temp_ecd += ECD_RANGE;
+//        }
+//        temp_ecd = gimbal_cali->max_yaw_ecd + (temp_ecd / 2);
+//
+//        ecd_format(temp_ecd);
+//        *yaw_offset = temp_ecd;
+//        *max_yaw = -motor_ecd_to_angle_change(gimbal_cali->max_yaw_ecd, *yaw_offset);
+//        *min_yaw = -motor_ecd_to_angle_change(gimbal_cali->min_yaw_ecd, *yaw_offset);
+//    } else if (YAW_LIMIT == YAW_NO_LIMIT) {
+//        *yaw_offset = gimbal_cali->max_yaw_ecd;
+//        *max_yaw = 0;
+//        *min_yaw = 0;
+//    }
+//#else
+//    if (YAW_LIMIT == YAW_HAVE_LIMIT) {
+//    temp_ecd = gimbal_cali->max_yaw_ecd - gimbal_cali->min_yaw_ecd;
+//
+//    if (temp_ecd < 0) {
+//        temp_ecd += ECD_RANGE;
+//    }
+//    temp_ecd = gimbal_cali->max_yaw_ecd - (temp_ecd / 2);
+//
+//    ecd_format(temp_ecd);
+//    *yaw_offset = temp_ecd;
+//    *max_yaw = motor_ecd_to_angle_change(gimbal_cali->max_yaw_ecd, *yaw_offset);
+//    *min_yaw = motor_ecd_to_angle_change(gimbal_cali->min_yaw_ecd, *yaw_offset);
+//}   else if (YAW_LIMIT == YAW_NO_LIMIT) {
+//        *yaw_offset = gimbal_cali->max_yaw_ecd;
+//        *max_yaw = 0;
+//        *min_yaw = 0;
+//    }
+//#endif
+//
+//#if PITCH_TURN
+//
+//    temp_ecd = (int16_t) (gimbal_cali->max_pitch / MOTOR_ECD_TO_RAD);
+//    temp_max_ecd = gimbal_cali->max_pitch_ecd + temp_ecd;
+//    temp_ecd = (int16_t) (gimbal_cali->min_pitch / MOTOR_ECD_TO_RAD);
+//    temp_min_ecd = gimbal_cali->min_pitch_ecd + temp_ecd;
+//
+//    ecd_format(temp_max_ecd);
+//    ecd_format(temp_min_ecd);
+//
+//    temp_ecd = temp_max_ecd - temp_min_ecd;
+//
+//    if (temp_ecd > HALF_ECD_RANGE) {
+//        temp_ecd -= ECD_RANGE;
+//    } else if (temp_ecd < -HALF_ECD_RANGE) {
+//        temp_ecd += ECD_RANGE;
+//    }
+//
+//    if (temp_max_ecd > temp_min_ecd) {
+//        temp_min_ecd += ECD_RANGE;
+//    }
+//
+//    temp_ecd = temp_max_ecd - temp_ecd / 2;
+//
+//    ecd_format(temp_ecd);
+//
+//    *pitch_offset = temp_ecd;
+//
+//    *max_pitch = -motor_ecd_to_angle_change(gimbal_cali->max_pitch_ecd, *pitch_offset);
+//    *min_pitch = -motor_ecd_to_angle_change(gimbal_cali->min_pitch_ecd, *pitch_offset);
+//
+//#else
+//    temp_ecd = (int16_t) (gimbal_cali->max_pitch / MOTOR_ECD_TO_RAD);
+//    temp_max_ecd = gimbal_cali->max_pitch_ecd - temp_ecd;
+//    temp_ecd = (int16_t) (gimbal_cali->min_pitch / MOTOR_ECD_TO_RAD);
+//    temp_min_ecd = gimbal_cali->min_pitch_ecd - temp_ecd;
+//
+//    ecd_format(temp_max_ecd);
+//    ecd_format(temp_min_ecd);
+//
+//    temp_ecd = temp_max_ecd - temp_min_ecd;
+//
+//    if (temp_ecd > HALF_ECD_RANGE) {
+//        temp_ecd -= ECD_RANGE;
+//    } else if (temp_ecd < -HALF_ECD_RANGE) {
+//        temp_ecd += ECD_RANGE;
+//    }
+//
+//    temp_ecd = temp_max_ecd - temp_ecd / 2;
+//
+//    ecd_format(temp_ecd);
+//
+//    *pitch_offset = temp_ecd;
+//
+//    *max_pitch = motor_ecd_to_angle_change(gimbal_cali->max_pitch_ecd, *pitch_offset);
+//    *min_pitch = motor_ecd_to_angle_change(gimbal_cali->min_pitch_ecd, *pitch_offset);
+//#endif
+//}
+
 static void
-calc_gimbal_cali(const gimbal_step_cali_t *gimbal_cali, uint16_t *yaw_offset, uint16_t *pitch_offset,
+calc_gimbal_cali(const gimbal_step_cali_t *gimbal_cali, int32_t *yaw_offset, int32_t *pitch_offset,
                  float32_t *max_yaw, float32_t *min_yaw, float32_t *max_pitch, float32_t *min_pitch) {
     if (gimbal_cali == NULL || yaw_offset == NULL || pitch_offset == NULL || max_yaw == NULL || min_yaw == NULL ||
         max_pitch == NULL || min_pitch == NULL) {
         return;
     }
 
-    int16_t temp_max_ecd = 0, temp_min_ecd = 0, temp_ecd = 0;
+    int32_t temp_max_ecd = 0, temp_min_ecd = 0, temp_ecd = 0;
 
 #if YAW_TURN
     if (YAW_LIMIT == YAW_HAVE_LIMIT) {
@@ -532,7 +677,7 @@ calc_gimbal_cali(const gimbal_step_cali_t *gimbal_cali, uint16_t *yaw_offset, ui
         *max_yaw = -motor_ecd_to_angle_change(gimbal_cali->max_yaw_ecd, *yaw_offset);
         *min_yaw = -motor_ecd_to_angle_change(gimbal_cali->min_yaw_ecd, *yaw_offset);
     } else if (YAW_LIMIT == YAW_NO_LIMIT) {
-        *yaw_offset = gimbal_cali->max_yaw_ecd;
+        *yaw_offset = (gimbal_cali->max_yaw_ecd + gimbal_cali->min_yaw_ecd) / 2;
         *max_yaw = 0;
         *min_yaw = 0;
     }
@@ -550,68 +695,68 @@ calc_gimbal_cali(const gimbal_step_cali_t *gimbal_cali, uint16_t *yaw_offset, ui
     *max_yaw = motor_ecd_to_angle_change(gimbal_cali->max_yaw_ecd, *yaw_offset);
     *min_yaw = motor_ecd_to_angle_change(gimbal_cali->min_yaw_ecd, *yaw_offset);
 }   else if (YAW_LIMIT == YAW_NO_LIMIT) {
-        *yaw_offset = gimbal_cali->max_yaw_ecd;
+        *yaw_offset = (gimbal_cali->max_yaw_ecd + gimbal_cali->min_yaw_ecd) / 2;
         *max_yaw = 0;
         *min_yaw = 0;
     }
 #endif
 
 #if PITCH_TURN
-
-    temp_ecd = (int16_t) (gimbal_cali->max_pitch / MOTOR_ECD_TO_RAD);
+    temp_ecd = (int32_t) (fabsf(gimbal_cali->max_pitch) / MOTOR_ECD_TO_RAD * PITCH_MOTOR_REDUCTION);
     temp_max_ecd = gimbal_cali->max_pitch_ecd + temp_ecd;
-    temp_ecd = (int16_t) (gimbal_cali->min_pitch / MOTOR_ECD_TO_RAD);
-    temp_min_ecd = gimbal_cali->min_pitch_ecd + temp_ecd;
-
-    ecd_format(temp_max_ecd);
-    ecd_format(temp_min_ecd);
-
-    temp_ecd = temp_max_ecd - temp_min_ecd;
-
-    if (temp_ecd > HALF_ECD_RANGE) {
-        temp_ecd -= ECD_RANGE;
-    } else if (temp_ecd < -HALF_ECD_RANGE) {
-        temp_ecd += ECD_RANGE;
-    }
-
-    if (temp_max_ecd > temp_min_ecd) {
-        temp_min_ecd += ECD_RANGE;
-    }
-
-    temp_ecd = temp_max_ecd - temp_ecd / 2;
-
-    ecd_format(temp_ecd);
-
-    *pitch_offset = temp_ecd;
-
-    *max_pitch = -motor_ecd_to_angle_change(gimbal_cali->max_pitch_ecd, *pitch_offset);
-    *min_pitch = -motor_ecd_to_angle_change(gimbal_cali->min_pitch_ecd, *pitch_offset);
-
-#else
-    temp_ecd = (int16_t) (gimbal_cali->max_pitch / MOTOR_ECD_TO_RAD);
-    temp_max_ecd = gimbal_cali->max_pitch_ecd - temp_ecd;
-    temp_ecd = (int16_t) (gimbal_cali->min_pitch / MOTOR_ECD_TO_RAD);
+    temp_ecd = (int32_t) (fabsf(gimbal_cali->min_pitch) / MOTOR_ECD_TO_RAD * PITCH_MOTOR_REDUCTION);
     temp_min_ecd = gimbal_cali->min_pitch_ecd - temp_ecd;
 
-    ecd_format(temp_max_ecd);
-    ecd_format(temp_min_ecd);
-
     temp_ecd = temp_max_ecd - temp_min_ecd;
-
-    if (temp_ecd > HALF_ECD_RANGE) {
-        temp_ecd -= ECD_RANGE;
-    } else if (temp_ecd < -HALF_ECD_RANGE) {
-        temp_ecd += ECD_RANGE;
-    }
-
     temp_ecd = temp_max_ecd - temp_ecd / 2;
-
-    ecd_format(temp_ecd);
 
     *pitch_offset = temp_ecd;
 
-    *max_pitch = motor_ecd_to_angle_change(gimbal_cali->max_pitch_ecd, *pitch_offset);
-    *min_pitch = motor_ecd_to_angle_change(gimbal_cali->min_pitch_ecd, *pitch_offset);
+    *max_pitch = labs(gimbal_cali->max_pitch_ecd - *pitch_offset) * MOTOR_ECD_TO_RAD / PITCH_MOTOR_REDUCTION;
+    *min_pitch = -labs(gimbal_cali->min_pitch_ecd - *pitch_offset) * MOTOR_ECD_TO_RAD / PITCH_MOTOR_REDUCTION;
+
+//    temp_ecd = (int16_t) (gimbal_cali->max_pitch / MOTOR_ECD_TO_RAD);
+//    temp_max_ecd = gimbal_cali->max_pitch_ecd + temp_ecd;
+//    temp_ecd = (int16_t) (gimbal_cali->min_pitch / MOTOR_ECD_TO_RAD);
+//    temp_min_ecd = gimbal_cali->min_pitch_ecd + temp_ecd;
+//
+//    ecd_format(temp_max_ecd);
+//    ecd_format(temp_min_ecd);
+//
+//    temp_ecd = temp_max_ecd - temp_min_ecd;
+//
+//    if (temp_ecd > HALF_ECD_RANGE) {
+//        temp_ecd -= ECD_RANGE;
+//    } else if (temp_ecd < -HALF_ECD_RANGE) {
+//        temp_ecd += ECD_RANGE;
+//    }
+//
+//    if (temp_max_ecd > temp_min_ecd) {
+//        temp_min_ecd += ECD_RANGE;
+//    }
+//
+//    temp_ecd = temp_max_ecd - temp_ecd / 2;
+//
+//    ecd_format(temp_ecd);
+//
+//    *pitch_offset = temp_ecd;
+//
+//    *max_pitch = -motor_ecd_to_angle_change(gimbal_cali->max_pitch_ecd, *pitch_offset);
+//    *min_pitch = -motor_ecd_to_angle_change(gimbal_cali->min_pitch_ecd, *pitch_offset);
+
+#else
+    temp_ecd = (int32_t) (fabsf(gimbal_cali->max_pitch) / MOTOR_ECD_TO_RAD * PITCH_MOTOR_REDUCTION);
+    temp_max_ecd = gimbal_cali->max_pitch_ecd - temp_ecd;
+    temp_ecd = (int32_t) (fabsf(gimbal_cali->min_pitch) / MOTOR_ECD_TO_RAD * PITCH_MOTOR_REDUCTION);
+    temp_min_ecd = gimbal_cali->min_pitch_ecd + temp_ecd;
+
+    temp_ecd = temp_max_ecd - temp_min_ecd;
+    temp_ecd = temp_max_ecd - temp_ecd / 2;
+
+    *pitch_offset = temp_ecd;
+
+    *max_pitch = labs(gimbal_cali->max_pitch_ecd - *pitch_offset) * MOTOR_ECD_TO_RAD / PITCH_MOTOR_REDUCTION;
+    *min_pitch = -labs(gimbal_cali->min_pitch_ecd - *pitch_offset) * MOTOR_ECD_TO_RAD / PITCH_MOTOR_REDUCTION;
 #endif
 }
 
@@ -657,11 +802,11 @@ const gimbal_motor_t *get_pitch_motor_point(void) {
 static void gimbal_init(gimbal_control_t *init) {
 
 
-    static const float32_t Pitch_speed_pid[3] = {600.0f, 0.0f, 0.0f};
+    static const float32_t Pitch_speed_pid[3] = {4000.0f, 0.0f, 0.0f};
     static const float32_t Yaw_speed_pid[3] = {5000.0f, 0.0f, 0.0f};
 
     static const float32_t Yaw_angle_pid[3] = {14.59f, 0.0f, 250.0f};
-    static const float32_t Pitch_angle_pid[3] = {28.0f, 0.0f, 100.0f};
+    static const float32_t Pitch_angle_pid[3] = {29.2f, 0.0f, 500.0f};
     //电机数据指针获取
     init->gimbal_yaw_motor.gimbal_motor_measure = get_yaw_gimbal_motor_measure_point();
     init->gimbal_pitch_motor.gimbal_motor_measure = get_pitch_gimbal_motor_measure_point();
@@ -703,7 +848,7 @@ static void gimbal_init(gimbal_control_t *init) {
     init->gimbal_pitch_motor.LpfFactor = 0.9f;
     init->gimbal_yaw_motor.LpfFactor = 0.9f;
 
-
+    gimbal_offset_ecd_cali(init);
     //清除所有PID
     gimbal_total_pid_clear(init);
 
@@ -758,24 +903,26 @@ static void gimbal_feedback_update(gimbal_control_t *feedback_update) {
                                                            INS_PITCH_ADDRESS_OFFSET);
 
 #if PITCH_TURN
-    feedback_update->gimbal_pitch_motor.relative_angle = -motor_ecd_to_angle_change(
-            feedback_update->gimbal_pitch_motor.gimbal_motor_measure->ecd,
-            feedback_update->gimbal_pitch_motor.offset_ecd);
+    feedback_update->gimbal_pitch_motor.relative_angle = -(
+            (feedback_update->gimbal_pitch_motor.gimbal_motor_measure->total_ecd -
+             feedback_update->gimbal_pitch_motor.offset_ecd) * MOTOR_ECD_TO_RAD / PITCH_MOTOR_REDUCTION);
+//    feedback_update->gimbal_pitch_motor.relative_angle = -motor_ecd_to_angle_change(
+//            feedback_update->gimbal_pitch_motor.gimbal_motor_measure->ecd,
+//            feedback_update->gimbal_pitch_motor.offset_ecd);
 #else
 
 //    feedback_update->gimbal_pitch_motor.relative_angle = motor_ecd_to_angle_change(
 //            feedback_update->gimbal_pitch_motor.gimbal_motor_measure->ecd,
 //            feedback_update->gimbal_pitch_motor.offset_ecd);
-    feedback_update->gimbal_pitch_motor.relative_angle = -(
+    feedback_update->gimbal_pitch_motor.relative_angle = (
             (feedback_update->gimbal_pitch_motor.gimbal_motor_measure->total_ecd -
-             (feedback_update->gimbal_pitch_motor.offset_ecd +
-              (8192 * feedback_update->gimbal_pitch_motor.gimbal_motor_measure->turnCount))) * MOTOR_ECD_TO_RAD);
+             feedback_update->gimbal_pitch_motor.offset_ecd) * MOTOR_ECD_TO_RAD / PITCH_MOTOR_REDUCTION);
 #endif
 
     feedback_update->gimbal_pitch_motor.motor_gyro = *(feedback_update->gimbal_INT_gyro_point +
                                                        INS_GYRO_Y_ADDRESS_OFFSET);
     feedback_update->gimbal_pitch_motor.motor_speed = (
-            feedback_update->gimbal_pitch_motor.gimbal_motor_measure->speed_rpm * PI / 30.0f);
+            feedback_update->gimbal_pitch_motor.gimbal_motor_measure->speed_rpm * PI / 30.0f / PITCH_MOTOR_REDUCTION);
 
     feedback_update->gimbal_yaw_motor.motor_speed = (feedback_update->gimbal_yaw_motor.gimbal_motor_measure->speed_rpm *
                                                      PI / 30.0f);
@@ -793,11 +940,13 @@ static void gimbal_feedback_update(gimbal_control_t *feedback_update) {
 //             feedback_update->gimbal_yaw_motor.offset_ecd) * MOTOR_ECD_TO_RAD);
     if (YAW_LIMIT == YAW_NO_LIMIT) {
         feedback_update->gimbal_yaw_motor.relative_angle = -(
-                (feedback_update->gimbal_yaw_motor.gimbal_motor_measure->total_ecd) * MOTOR_ECD_TO_RAD);
-    } else if (YAW_LIMIT == YAW_HAVE_LIMIT){
-            feedback_update->gimbal_yaw_motor.relative_angle = -motor_ecd_to_angle_change(
-            feedback_update->gimbal_yaw_motor.gimbal_motor_measure->ecd,
-            feedback_update->gimbal_yaw_motor.offset_ecd);
+                (feedback_update->gimbal_yaw_motor.gimbal_motor_measure->total_ecd -
+                 feedback_update->gimbal_yaw_motor.offset_ecd) * MOTOR_ECD_TO_RAD /
+                YAW_MOTOR_REDUCTION);
+    } else if (YAW_LIMIT == YAW_HAVE_LIMIT) {
+        feedback_update->gimbal_yaw_motor.relative_angle = -(
+                (feedback_update->gimbal_yaw_motor.gimbal_motor_measure->total_ecd -
+                 feedback_update->gimbal_yaw_motor.offset_ecd) * MOTOR_ECD_TO_RAD / YAW_MOTOR_REDUCTION);
     }
 
 
@@ -1224,4 +1373,34 @@ static void gimbal_PID_clear(gimbal_PID_t *gimbal_pid_clear) {
     }
     gimbal_pid_clear->err = gimbal_pid_clear->set = gimbal_pid_clear->get = 0.0f;
     gimbal_pid_clear->out = gimbal_pid_clear->Pout = gimbal_pid_clear->Iout = gimbal_pid_clear->Dout = 0.0f;
+}
+
+/**
+  * @brief          offset_ecd 偏移,以total_ecd为基准需要校正offset_ecd值
+  * @param[in]      gimbal_cali: 校准数据
+  * @retval         none
+  */
+static void gimbal_offset_ecd_cali(gimbal_control_t *init) {
+    if (labs(init->gimbal_yaw_motor.offset_ecd - init->gimbal_yaw_motor.gimbal_motor_measure->total_ecd) >
+        HALF_ECD_RANGE) {
+        if (init->gimbal_yaw_motor.offset_ecd < init->gimbal_yaw_motor.gimbal_motor_measure->total_ecd) {
+            init->gimbal_yaw_motor.offset_ecd +=
+                    ((labs(init->gimbal_yaw_motor.gimbal_motor_measure->total_ecd - init->gimbal_yaw_motor.offset_ecd) /
+                      8192) + 1) * 8192;
+        } else if (init->gimbal_yaw_motor.offset_ecd > init->gimbal_yaw_motor.gimbal_motor_measure->total_ecd) {
+            init->gimbal_yaw_motor.offset_ecd -=
+                    ((labs(init->gimbal_yaw_motor.gimbal_motor_measure->total_ecd - init->gimbal_yaw_motor.offset_ecd) /
+                      8192) + 1) * 8192;
+        }
+    }
+    if (labs(init->gimbal_pitch_motor.offset_ecd - init->gimbal_pitch_motor.gimbal_motor_measure->total_ecd) >
+        HALF_ECD_RANGE) {
+        if (init->gimbal_pitch_motor.offset_ecd < init->gimbal_pitch_motor.gimbal_motor_measure->total_ecd) {
+            init->gimbal_pitch_motor.offset_ecd += ((labs(init->gimbal_pitch_motor.gimbal_motor_measure->total_ecd -
+                                                          init->gimbal_pitch_motor.offset_ecd) / 8192) + 1) * 8192;
+        } else if (init->gimbal_pitch_motor.offset_ecd > init->gimbal_pitch_motor.gimbal_motor_measure->total_ecd) {
+            init->gimbal_pitch_motor.offset_ecd -= ((labs(init->gimbal_pitch_motor.gimbal_motor_measure->total_ecd -
+                                                          init->gimbal_pitch_motor.offset_ecd) / 8192) + 1) * 8192;
+        }
+    }
 }

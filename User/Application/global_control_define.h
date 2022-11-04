@@ -25,10 +25,23 @@
 
 #define YAW_HAVE_LIMIT 1
 #define YAW_NO_LIMIT 0
+
+#define PITCH_MOTOR_REDUCTION 3.4f
+#define YAW_MOTOR_REDUCTION 1.0f
 /************ Self Data define End*******************/
 
+/************ Init To Offset Start*******************/
+#define PITCH_INIT  1
+#define YAW_INIT    1
+
+#define INIT_ONLY_FIRST_TIME 1
+
+#define NO_INIT    0
+#define INIT    1
+/************ Init To Offset End*******************/
+
 /************ Motor turn define Start*******************/
-#define PITCH_TURN  0
+#define PITCH_TURN  1
 #define YAW_TURN    1
 #define SHOOT_TRIGGER_TURN    0
 /************ Motor turn define End*******************/
@@ -120,6 +133,14 @@
 
 #if !defined(YAW_LIMIT)
 #error "You mast define YAW_LIMIT to limit yaw angle"
+#endif
+
+#if !defined(PITCH_INIT)
+#error "You mast define PITCH_INIT to choose if let pitch init to offset or not"
+#endif
+
+#if !defined(YAW_INIT)
+#error "You mast define YAW_INIT to choose if let yaw init to offset or not"
 #endif
 
 #if !defined(YAW_LIMIT_TURN)
