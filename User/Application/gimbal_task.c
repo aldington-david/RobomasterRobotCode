@@ -379,6 +379,7 @@ void gimbal_task(void const *pvParameters) {
             if (toe_is_error(DBUS_TOE)) {
                 CAN2_cmd_0x1ff(0, 0, 0, 0);
                 CAN1_cmd_0x1ff(0, 0, 0, 0);
+                CAN2_cmd_0x200(0, 0, 0, 0);
                 gimbal_offset_ecd_cali(&gimbal_control);
                 gimbal_control.gimbal_yaw_motor.relative_angle_set = gimbal_control.gimbal_yaw_motor.relative_angle;
                 gimbal_control.gimbal_pitch_motor.relative_angle_set = gimbal_control.gimbal_pitch_motor.relative_angle;
