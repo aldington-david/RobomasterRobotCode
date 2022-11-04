@@ -124,7 +124,7 @@ void shoot_init(void) {
     shoot_control.key_time = 0;
     shoot_control.fric1_speed = 0.0f;
     shoot_control.fric2_speed = 0.0f;
-    shoot_control.fric_all_speed = 968.0f; //matx 968
+    shoot_control.fric_all_speed = 968.0f; //max 968 27m/s 537.0 7m/s 800.0f 17.4m/s 710 12m/s 780 16m/s 770 15.7m/s 760 15.1m/s 755 14.8 m/s
     shoot_control.fric1_speed_set = shoot_control.fric_all_speed;
     shoot_control.fric2_speed_set = -shoot_control.fric_all_speed;
 }
