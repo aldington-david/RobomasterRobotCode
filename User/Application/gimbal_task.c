@@ -386,7 +386,7 @@ void gimbal_task(void const *pvParameters) {
 //                gimbal_control.gimbal_yaw_motor.offset_ecd = gimbal_control.gimbal_yaw_motor.gimbal_motor_measure->total_ecd;
 
             } else {
-                CAN2_cmd_0x1ff(pitch_can_set_current, 0, shoot_can_set_current, 0);
+                CAN2_cmd_0x1ff(0, pitch_can_set_current, shoot_can_set_current, 0);
                 CAN1_cmd_0x1ff(yaw_can_set_current, 0, 0, 0);
                 CAN2_cmd_0x200(gimbal_control.fric1_give_current, 0, 0, gimbal_control.fric2_give_current);
             }

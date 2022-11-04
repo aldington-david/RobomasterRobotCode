@@ -885,7 +885,7 @@ void gimbal_rc_to_control_vector(float32_t *yaw, float32_t *pitch, gimbal_contro
 
         //视觉控制
         if (gimbal_move_rc_to_vector->gimbal_vision_ctrl->fps == 0) {
-            global_vision_info.vision_control.fps = 1.0f;
+            global_vision_info.vision_control.fps = 1;
         }
 
         if (gimbal_move_rc_to_vector->gimbal_vision_ctrl->update_flag) {
@@ -893,13 +893,23 @@ void gimbal_rc_to_control_vector(float32_t *yaw, float32_t *pitch, gimbal_contro
             clear_vision_update_flag();
         }
 //有延时系数
-        if (count <= ((0.054 * gimbal_move_rc_to_vector->gimbal_vision_ctrl->fps + 2.22) /
+//        if (count <= ((0.054 * gimbal_move_rc_to_vector->gimbal_vision_ctrl->fps + 2.22) /
+//                      gimbal_move_rc_to_vector->gimbal_vision_ctrl->fps * 1000)) {
+//            add_vision_yaw = (gimbal_move_rc_to_vector->gimbal_vision_ctrl->yaw_angle /
+//                              ((0.054 * gimbal_move_rc_to_vector->gimbal_vision_ctrl->fps + 2.22) /
+//                               gimbal_move_rc_to_vector->gimbal_vision_ctrl->fps * 1000));
+//            add_vision_pitch = (gimbal_move_rc_to_vector->gimbal_vision_ctrl->pitch_angle /
+//                                ((0.054 * gimbal_move_rc_to_vector->gimbal_vision_ctrl->fps + 2.22) /
+//                                 gimbal_move_rc_to_vector->gimbal_vision_ctrl->fps * 1000));
+//            count++;
+//        }
+        if (count <= ((0.064f * gimbal_move_rc_to_vector->gimbal_vision_ctrl->fps + 3.22f) /
                       gimbal_move_rc_to_vector->gimbal_vision_ctrl->fps * 1000)) {
             add_vision_yaw = (gimbal_move_rc_to_vector->gimbal_vision_ctrl->yaw_angle /
-                              ((0.054 * gimbal_move_rc_to_vector->gimbal_vision_ctrl->fps + 2.22) /
+                              ((0.064f * gimbal_move_rc_to_vector->gimbal_vision_ctrl->fps + 3.22f) /
                                gimbal_move_rc_to_vector->gimbal_vision_ctrl->fps * 1000));
             add_vision_pitch = (gimbal_move_rc_to_vector->gimbal_vision_ctrl->pitch_angle /
-                                ((0.054 * gimbal_move_rc_to_vector->gimbal_vision_ctrl->fps + 2.22) /
+                                ((0.064f * gimbal_move_rc_to_vector->gimbal_vision_ctrl->fps + 3.22f) /
                                  gimbal_move_rc_to_vector->gimbal_vision_ctrl->fps * 1000));
             count++;
         }

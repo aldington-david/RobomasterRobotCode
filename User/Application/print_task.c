@@ -344,55 +344,55 @@ referee usart:%s\r\n\
 
 //            cali校准
             //yaw
-            SEGGER_RTT_SetTerminal(2);
-            sprintf(print_buf,
-                    "Yaw_max_ang=%f,Yaw_min_ang=%f,Yaw_now_ang=%f,Yaw_now_set_ang=%f,Yaw_now_ecd=%d,Yaw_total_ecd=%d,Yaw_turncount=%d,Yaw_offset_ecd=%d,Yaw_cl_max_ecd=%d,Yaw_cl_min_ecd=%d\r\n",
-                    gimbal_control.gimbal_yaw_motor.max_relative_angle,
-                    gimbal_control.gimbal_yaw_motor.min_relative_angle,
-                    gimbal_control.gimbal_yaw_motor.relative_angle,
-                    gimbal_control.gimbal_yaw_motor.relative_angle_set,
-                    gimbal_control.gimbal_yaw_motor.gimbal_motor_measure->ecd,
-                    gimbal_control.gimbal_yaw_motor.gimbal_motor_measure->total_ecd,
-                    gimbal_control.gimbal_yaw_motor.gimbal_motor_measure->turnCount,
-                    gimbal_control.gimbal_yaw_motor.offset_ecd,
-                    gimbal_control.gimbal_cali.max_yaw_ecd,
-                    gimbal_control.gimbal_cali.min_yaw_ecd);
-            SEGGER_RTT_WriteString(0, print_buf);
-
-            SEGGER_RTT_SetTerminal(3);
-            sprintf(print_buf,
-                    "Yaw_cl_max=%f,Yaw_cl_min=%f,Yaw_cl_max_ecd=%d,Yaw_cl_min_ecd=%d,Yaw_speed=%d\r\n",
-                    gimbal_control.gimbal_cali.max_yaw,
-                    gimbal_control.gimbal_cali.min_yaw,
-                    gimbal_control.gimbal_cali.max_yaw_ecd,
-                    gimbal_control.gimbal_cali.min_yaw_ecd,
-                    gimbal_control.gimbal_yaw_motor.gimbal_motor_measure->speed_rpm);
-            SEGGER_RTT_WriteString(0, print_buf);
-            //pitch
 //            SEGGER_RTT_SetTerminal(2);
 //            sprintf(print_buf,
-//                    "Pitch_max_ang=%f,Pitch_min_ang=%f,Pitch_now_ang=%f,Pitch_now_set_ang=%f,Pitch_now_ecd=%d,Pitch_total_ecd=%d,Pitch_turncount=%d,Pitch_offset_ecd=%d,Pitch_cl_max_ecd=%d,Pitch_cl_min_ecd=%d\r\n",
-//                    gimbal_control.gimbal_pitch_motor.max_relative_angle,
-//                    gimbal_control.gimbal_pitch_motor.min_relative_angle,
-//                    gimbal_control.gimbal_pitch_motor.relative_angle,
-//                    gimbal_control.gimbal_pitch_motor.relative_angle_set,
-//                    gimbal_control.gimbal_pitch_motor.gimbal_motor_measure->ecd,
-//                    gimbal_control.gimbal_pitch_motor.gimbal_motor_measure->total_ecd,
-//                    gimbal_control.gimbal_pitch_motor.gimbal_motor_measure->turnCount,
-//                    gimbal_control.gimbal_pitch_motor.offset_ecd,
-//                    gimbal_control.gimbal_cali.max_pitch_ecd,
-//                    gimbal_control.gimbal_cali.min_pitch_ecd);
+//                    "Yaw_max_ang=%f,Yaw_min_ang=%f,Yaw_now_ang=%f,Yaw_now_set_ang=%f,Yaw_now_ecd=%d,Yaw_total_ecd=%d,Yaw_turncount=%d,Yaw_offset_ecd=%d,Yaw_cl_max_ecd=%d,Yaw_cl_min_ecd=%d\r\n",
+//                    gimbal_control.gimbal_yaw_motor.max_relative_angle,
+//                    gimbal_control.gimbal_yaw_motor.min_relative_angle,
+//                    gimbal_control.gimbal_yaw_motor.relative_angle,
+//                    gimbal_control.gimbal_yaw_motor.relative_angle_set,
+//                    gimbal_control.gimbal_yaw_motor.gimbal_motor_measure->ecd,
+//                    gimbal_control.gimbal_yaw_motor.gimbal_motor_measure->total_ecd,
+//                    gimbal_control.gimbal_yaw_motor.gimbal_motor_measure->turnCount,
+//                    gimbal_control.gimbal_yaw_motor.offset_ecd,
+//                    gimbal_control.gimbal_cali.max_yaw_ecd,
+//                    gimbal_control.gimbal_cali.min_yaw_ecd);
 //            SEGGER_RTT_WriteString(0, print_buf);
 //
 //            SEGGER_RTT_SetTerminal(3);
 //            sprintf(print_buf,
-//                    "Pitch_cl_max=%f,Pitch_cl_min=%f,Pitch_cl_max_ecd=%d,Pitch_cl_min_ecd=%d,Pitch_speed=%d\r\n",
-//                    gimbal_control.gimbal_cali.max_pitch,
-//                    gimbal_control.gimbal_cali.min_pitch,
-//                    gimbal_control.gimbal_cali.max_pitch_ecd,
-//                    gimbal_control.gimbal_cali.min_pitch_ecd,
-//                    gimbal_control.gimbal_pitch_motor.gimbal_motor_measure->speed_rpm);
+//                    "Yaw_cl_max=%f,Yaw_cl_min=%f,Yaw_cl_max_ecd=%d,Yaw_cl_min_ecd=%d,Yaw_speed=%d\r\n",
+//                    gimbal_control.gimbal_cali.max_yaw,
+//                    gimbal_control.gimbal_cali.min_yaw,
+//                    gimbal_control.gimbal_cali.max_yaw_ecd,
+//                    gimbal_control.gimbal_cali.min_yaw_ecd,
+//                    gimbal_control.gimbal_yaw_motor.gimbal_motor_measure->speed_rpm);
 //            SEGGER_RTT_WriteString(0, print_buf);
+            //pitch
+            SEGGER_RTT_SetTerminal(2);
+            sprintf(print_buf,
+                    "Pitch_max_ang=%f,Pitch_min_ang=%f,Pitch_now_ang=%f,Pitch_now_set_ang=%f,Pitch_now_ecd=%d,Pitch_total_ecd=%d,Pitch_turncount=%d,Pitch_offset_ecd=%d,Pitch_cl_max_ecd=%d,Pitch_cl_min_ecd=%d\r\n",
+                    gimbal_control.gimbal_pitch_motor.max_relative_angle,
+                    gimbal_control.gimbal_pitch_motor.min_relative_angle,
+                    gimbal_control.gimbal_pitch_motor.relative_angle,
+                    gimbal_control.gimbal_pitch_motor.relative_angle_set,
+                    gimbal_control.gimbal_pitch_motor.gimbal_motor_measure->ecd,
+                    gimbal_control.gimbal_pitch_motor.gimbal_motor_measure->total_ecd,
+                    gimbal_control.gimbal_pitch_motor.gimbal_motor_measure->turnCount,
+                    gimbal_control.gimbal_pitch_motor.offset_ecd,
+                    gimbal_control.gimbal_cali.max_pitch_ecd,
+                    gimbal_control.gimbal_cali.min_pitch_ecd);
+            SEGGER_RTT_WriteString(0, print_buf);
+
+            SEGGER_RTT_SetTerminal(3);
+            sprintf(print_buf,
+                    "Pitch_cl_max=%f,Pitch_cl_min=%f,Pitch_cl_max_ecd=%d,Pitch_cl_min_ecd=%d,Pitch_speed=%d\r\n",
+                    gimbal_control.gimbal_cali.max_pitch,
+                    gimbal_control.gimbal_cali.min_pitch,
+                    gimbal_control.gimbal_cali.max_pitch_ecd,
+                    gimbal_control.gimbal_cali.min_pitch_ecd,
+                    gimbal_control.gimbal_pitch_motor.gimbal_motor_measure->speed_rpm);
+            SEGGER_RTT_WriteString(0, print_buf);
 
             //拨盘pid
 //            拨盘数据
