@@ -916,10 +916,10 @@ void gimbal_rc_to_control_vector(float32_t *yaw, float32_t *pitch, gimbal_contro
 //        }
         if (count <= ((0.094f * gimbal_move_rc_to_vector->gimbal_vision_ctrl->fps + 5.22f) /
                       gimbal_move_rc_to_vector->gimbal_vision_ctrl->fps * 1000)) {
-            add_vision_yaw = (gimbal_move_rc_to_vector->gimbal_vision_ctrl->yaw_angle /
+            add_vision_yaw = 3*(gimbal_move_rc_to_vector->gimbal_vision_ctrl->yaw_angle /
                               ((0.094f * gimbal_move_rc_to_vector->gimbal_vision_ctrl->fps + 5.22f) /
                                gimbal_move_rc_to_vector->gimbal_vision_ctrl->fps * 1000));
-            add_vision_pitch = (gimbal_move_rc_to_vector->gimbal_vision_ctrl->pitch_angle /
+            add_vision_pitch = 3*(gimbal_move_rc_to_vector->gimbal_vision_ctrl->pitch_angle /
                                 ((0.094f * gimbal_move_rc_to_vector->gimbal_vision_ctrl->fps + 5.22f) /
                                  gimbal_move_rc_to_vector->gimbal_vision_ctrl->fps * 1000));
             count++;
