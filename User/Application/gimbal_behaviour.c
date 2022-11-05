@@ -862,6 +862,7 @@ void gimbal_rc_to_control_vector(float32_t *yaw, float32_t *pitch, gimbal_contro
     static uint16_t count;
     static int16_t yaw_rc_last;
     static float32_t vision_yaw;
+    static float32_t vision_pitch;
 //    static float32_t yaw_vision_last;
     int16_t err;
     int16_t yaw_channel, pitch_channel;
@@ -903,17 +904,32 @@ void gimbal_rc_to_control_vector(float32_t *yaw, float32_t *pitch, gimbal_contro
 //                                 gimbal_move_rc_to_vector->gimbal_vision_ctrl->fps * 1000));
 //            count++;
 //        }
-        if (count <= ((0.064f * gimbal_move_rc_to_vector->gimbal_vision_ctrl->fps + 3.22f) /
+//        if (count <= ((0.064f * gimbal_move_rc_to_vector->gimbal_vision_ctrl->fps + 3.22f) /
+//                      gimbal_move_rc_to_vector->gimbal_vision_ctrl->fps * 1000)) {
+//            add_vision_yaw = (gimbal_move_rc_to_vector->gimbal_vision_ctrl->yaw_angle /
+//                              ((0.064f * gimbal_move_rc_to_vector->gimbal_vision_ctrl->fps + 3.22f) /
+//                               gimbal_move_rc_to_vector->gimbal_vision_ctrl->fps * 1000));
+//            add_vision_pitch = (gimbal_move_rc_to_vector->gimbal_vision_ctrl->pitch_angle /
+//                                ((0.064f * gimbal_move_rc_to_vector->gimbal_vision_ctrl->fps + 3.22f) /
+//                                 gimbal_move_rc_to_vector->gimbal_vision_ctrl->fps * 1000));
+//            count++;
+//        }
+        if (count <= ((0.094f * gimbal_move_rc_to_vector->gimbal_vision_ctrl->fps + 5.22f) /
                       gimbal_move_rc_to_vector->gimbal_vision_ctrl->fps * 1000)) {
             add_vision_yaw = (gimbal_move_rc_to_vector->gimbal_vision_ctrl->yaw_angle /
-                              ((0.064f * gimbal_move_rc_to_vector->gimbal_vision_ctrl->fps + 3.22f) /
+                              ((0.094f * gimbal_move_rc_to_vector->gimbal_vision_ctrl->fps + 5.22f) /
                                gimbal_move_rc_to_vector->gimbal_vision_ctrl->fps * 1000));
             add_vision_pitch = (gimbal_move_rc_to_vector->gimbal_vision_ctrl->pitch_angle /
-                                ((0.064f * gimbal_move_rc_to_vector->gimbal_vision_ctrl->fps + 3.22f) /
+                                ((0.094f * gimbal_move_rc_to_vector->gimbal_vision_ctrl->fps + 5.22f) /
                                  gimbal_move_rc_to_vector->gimbal_vision_ctrl->fps * 1000));
             count++;
         }
-        Filter_IIRLPF(add_vision_yaw, &vision_yaw, 0.8f);
+//        add_vision_yaw = gimbal_move_rc_to_vector->gimbal_vision_ctrl->yaw_angle/350.0f;
+//        add_vision_pitch = gimbal_move_rc_to_vector->gimbal_vision_ctrl->pitch_angle/350.0f;
+
+        Filter_IIRLPF(add_vision_yaw, &vision_yaw, 0.1f);
+        Filter_IIRLPF(add_vision_pitch, &vision_pitch, 0.1f);
+
 //for_test
 //        RTT_PrintWave_np(2,
 //                         add_vision_yaw,
@@ -922,7 +938,8 @@ void gimbal_rc_to_control_vector(float32_t *yaw, float32_t *pitch, gimbal_contro
 
         yaw_set_channel = yaw_channel * YAW_RC_SEN +
                           (vision_yaw * (((660 - abs(yaw_channel)) * YAW_RC_SEN) / (660 * YAW_RC_SEN)));
-        pitch_set_channel = pitch_channel * PITCH_RC_SEN + add_vision_pitch;
+        pitch_set_channel = pitch_channel * PITCH_RC_SEN +
+                            (vision_pitch * (((660 - abs(pitch_channel)) * PITCH_RC_SEN) / (660 * PITCH_RC_SEN)));
 //        yaw_set_channel = yaw_channel * YAW_RC_SEN;
 //        pitch_set_channel = pitch_channel * PITCH_RC_SEN;
     } else {

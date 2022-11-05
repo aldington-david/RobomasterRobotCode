@@ -111,7 +111,7 @@ bool Matrix_bMatrixIsEqual(matrix_f32_t *matrix_L, matrix_f32_t *matrix_R) {
     }
 }
 
-extern void Matrix_vadd(matrix_f32_t *matrix_L, matrix_f32_t *matrix_R, matrix_f32_t *matrix_result) {
+void Matrix_vadd(matrix_f32_t *matrix_L, matrix_f32_t *matrix_R, matrix_f32_t *matrix_result) {
     if (Matrix_bMatrixIsValid(matrix_L) && Matrix_bMatrixIsValid(matrix_R)) {
         if (!Matrix_bMatrixIsValid(matrix_result)) {
             Matrix_nodata_creat(matrix_result, matrix_L->arm_matrix.numRows, matrix_L->arm_matrix.numCols,

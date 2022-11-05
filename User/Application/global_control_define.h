@@ -32,7 +32,7 @@
 
 /************ Init To Offset Start*******************/
 #define PITCH_INIT  1
-#define YAW_INIT    1
+#define YAW_INIT    0
 
 #define INIT_ONLY_FIRST_TIME 1
 
