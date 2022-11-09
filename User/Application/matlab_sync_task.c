@@ -55,7 +55,7 @@ void matlab_sync_task(void const *argument) {
 //        matlab_sync_task_stack = uxTaskGetStackHighWaterMark(NULL);
 //#endif
 //        LoopStartTime = xTaskGetTickCount();
-        if(global_task_time.tim_matlab_sync_task.time<25000){
+        if(global_task_time.tim_matlab_sync_task.time<15000){
             data_sync(sizeof(test1));
         }else if (fifo_s_used(&mag_data_tx_fifo) > 120) {
             fifo_s_gets(&mag_data_tx_fifo, (char *) &test1.data.mag_xyz_5data, 120);

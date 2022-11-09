@@ -177,6 +177,8 @@ extern matrix_f32_t Y;
 extern matrix_f32_t U;
 extern UKF_t UKF_IMU;
 
+extern float32_t IMU_MAG_B0_data[3];
+
 extern void UKF_init(UKF_t *UKF_op, matrix_f32_t *XInit, matrix_f32_t *P, matrix_f32_t *Rv, matrix_f32_t *Rn,
                      bool (*bNonlinearUpdateX)(matrix_f32_t *, matrix_f32_t *, matrix_f32_t *, AHRS_t *),
                      bool (*bNonlinearUpdateY)(matrix_f32_t *, matrix_f32_t *, matrix_f32_t *, AHRS_t *));

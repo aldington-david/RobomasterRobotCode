@@ -128,7 +128,7 @@
 #define INIT_PITCH_SET  0.0f
 
 //ist校准
-#define IST_CALI_YAW_MOTOR_SET   1000
+#define IST_CALI_YAW_MOTOR_SET   2000
 
 //云台校准中值的时候，发送原始电流值，以及堵转时间，通过陀螺仪判断堵转
 #define GIMBAL_CALI_MOTOR_SET   4000
@@ -353,6 +353,13 @@ cmd_cali_gimbal_hook(int32_t *yaw_offset, int32_t *pitch_offset, float32_t *max_
 extern void
 set_cali_gimbal_hook(const int32_t yaw_offset, const int32_t pitch_offset, const float32_t max_yaw, const float32_t min_yaw,
                      const float32_t max_pitch, const float32_t min_pitch);
+
+/**
+  * @brief          offset_ecd 偏移,以total_ecd为基准需要校正turnCount值
+  * @param[in]      gimbal_cali: 校准数据
+  * @retval         none
+  */
+extern void gimbal_offset_ecd_cali(gimbal_control_t *init);
 
 extern gimbal_control_t gimbal_control;
 #endif

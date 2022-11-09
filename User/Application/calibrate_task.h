@@ -102,6 +102,9 @@
 #include <stdint.h>
 #include "struct_typedef.h"
 
+#define IMU_CALI_STEP 0
+#define IST_CALI_STEP 1
+
 //when imu is calibrating ,buzzer set frequency and strength. 当imu在校准,蜂鸣器的设置频率和强度
 #define imu_start_buzzer()          buzzer_on(95, VOLUME(50))
 //when gimbal is calibrating ,buzzer set frequency and strength.当云台在校准,蜂鸣器的设置频率和强度
@@ -121,12 +124,6 @@
 #define get_remote_ctrl_point_cali()        get_remote_control_point()  //get the remote control point，获取遥控器指针
 #define gyro_cali_disable_control()         RC_unable()                 //when imu is calibrating, disable the remote control.当imu在校准时候,失能遥控器
 #define gyro_cali_enable_control()          RC_restart(SBUS_RX_BUF_NUM)
-
-// calc the zero drift function of gyro, 计算陀螺仪零漂
-#define gyro_cali_fun(cali_scale, cali_offset, time_count)  INS_cali_gyro((cali_scale), (cali_offset), (time_count))
-//set the zero drift to the INS task, 设置在INS task内的陀螺仪零漂
-#define gyro_set_cali(cali_scale, cali_offset)              INS_set_cali_gyro((cali_scale), (cali_offset))
-
 
 #define FLASH_USER_ADDR         ADDR_FLASH_SECTOR_9 //write flash page 9,保存的flash页地址
 
@@ -166,9 +163,7 @@
 typedef enum {
     CALI_HEAD = 0,
     CALI_GIMBAL = 1,
-    CALI_GYRO = 2,
-    CALI_ACC = 3,
-    CALI_MAG = 4,
+    CALI_GYRO_MAG = 2,
     //add more...
     CALI_LIST_LENGHT,
 } cali_id_e;
@@ -203,10 +198,13 @@ typedef struct {
 } gimbal_cali_t;
 //gyro, accel, mag device
 typedef struct {
-    float32_t offset[3]; //x,y,z
-    float32_t scale[3];  //x,y,z
-} imu_cali_t;
+    float32_t gyro_offset[3]; //x,y,z
+    float32_t gyro_scale[3];  //x,y,z
+    float32_t mag_offset[3]; //x,y,z
+    float32_t mag_scale[3];  //x,y,z
+} ahrs_cali_t;
 #pragma pack(pop)
+
 
 /**
   * @brief          获取calibrate_task栈大小
@@ -261,6 +259,6 @@ extern void get_flash_latitude(float *latitude);
   * @retval         none
   */
 extern void calibrate_task(void const *pvParameters);
-
-
+extern ahrs_cali_t gyro_mag_cali;
+extern cali_sensor_t cali_sensor[CALI_LIST_LENGHT];
 #endif

@@ -305,13 +305,6 @@ calc_gimbal_cali(const gimbal_step_cali_t *gimbal_cali, int32_t *yaw_offset, int
                  float32_t *max_yaw,
                  float32_t *min_yaw, float32_t *max_pitch, float32_t *min_pitch);
 
-/**
-  * @brief          offset_ecd 偏移,以total_ecd为基准需要校正turnCount值
-  * @param[in]      gimbal_cali: 校准数据
-  * @retval         none
-  */
-static void gimbal_offset_ecd_cali(gimbal_control_t *init);
-
 //gimbal control data
 //云台控制所有相关数据
 gimbal_control_t gimbal_control;
@@ -521,7 +514,6 @@ bool_t cmd_cali_gimbal_hook(int32_t *yaw_offset, int32_t *pitch_offset, float32_
         gimbal_control.gimbal_pitch_motor.offset_ecd = *pitch_offset;
         gimbal_control.gimbal_pitch_motor.max_relative_angle = *max_pitch;
         gimbal_control.gimbal_pitch_motor.min_relative_angle = *min_pitch;
-        gimbal_control.gimbal_cali.step = 0;
         return 1;
     } else {
         return 0;
@@ -1381,7 +1373,7 @@ static void gimbal_PID_clear(gimbal_PID_t *gimbal_pid_clear) {
   * @param[in]      gimbal_cali: 校准数据
   * @retval         none
   */
-static void gimbal_offset_ecd_cali(gimbal_control_t *init) {
+void gimbal_offset_ecd_cali(gimbal_control_t *init) {
     if (labs(init->gimbal_yaw_motor.offset_ecd - init->gimbal_yaw_motor.gimbal_motor_measure->total_ecd) >
         HALF_ECD_RANGE) {
         if (init->gimbal_yaw_motor.offset_ecd < init->gimbal_yaw_motor.gimbal_motor_measure->total_ecd) {

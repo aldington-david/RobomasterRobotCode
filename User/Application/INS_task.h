@@ -23,6 +23,7 @@
 
 #ifndef INS_Task_H
 #define INS_Task_H
+
 #include <stdint.h>
 #include "struct_typedef.h"
 #include "DWT.h"
@@ -82,10 +83,17 @@
 
 #define MAG_FIFO_BUF_LENGTH 960
 
+typedef struct {
+    float32_t rotation_factor[3][3];
+    float32_t offset[3];
+    float32_t scale[3];
+} IMU_IST_Cali_t;
+
 extern float32_t INS_angle[3];
 
 extern SPI_HandleTypeDef hspi1;
 extern I2C_HandleTypeDef hi2c3;
+
 /**
   * @brief          获取INS_task栈大小
   * @param[in]      none
@@ -133,8 +141,17 @@ extern void INS_cali_gyro(float32_t cali_scale[3], float32_t cali_offset[3], uin
   * @param[in]      陀螺仪的零漂
   * @retval         none
   */
-extern void INS_set_cali_gyro(float32_t cali_scale[3], float32_t cali_offset[3]);
+extern void gyro_set_cali(float32_t cali_scale[3], float32_t cali_offset[3]);
 
+extern void mag_set_cali(float32_t cali_scale[3], float32_t cali_offset[3]);
+
+extern void
+calc_mag_cali(float32_t *mag_x_offset, float32_t *mag_y_offset, float32_t *mag_z_offset, float32_t *mag_x_scale,
+                   float32_t *mag_y_scale, float32_t *mag_z_scale,
+                   float32_t *mag_x_max, float32_t *mag_x_min, float32_t *mag_y_max, float32_t *mag_y_min);
+
+extern void mag_cali_data_record(float32_t *mag_x_max, float32_t *mag_x_min, float32_t *mag_y_max, float32_t *mag_y_min,
+                                 float32_t mag[3]);
 /**
   * @brief          rotate the gyro, accel and mag, and calculate the zero drift, because sensors have
   *                 different install derection.
@@ -155,8 +172,9 @@ extern void INS_set_cali_gyro(float32_t cali_scale[3], float32_t cali_offset[3])
   * @retval         none
   */
 extern void
-imu_cali_slove(float32_t gyro[3], float32_t accel[3], float32_t mag[3], bmi088_real_data_t *bmi088,
+imu_ist_rotate(float32_t gyro[3], float32_t accel[3], float32_t mag[3], bmi088_real_data_t *bmi088,
                ist8310_real_data_t *ist8310);
+extern void imu_ist_cali(float32_t gyro[3], float32_t accel[3], float32_t mag[3],float32_t gyro_cali[3], float32_t accel_cali[3], float32_t mag_cali[3]);
 
 /**
   * @brief          get the quat
@@ -225,8 +243,14 @@ extern AHRS_time_record_t IMU_time_record;
 extern float32_t INS_gyro[3];
 extern float32_t INS_accel[3];
 extern float32_t INS_mag[3];
+extern float32_t INS_gyro_cali[3];
+extern float32_t INS_accel_cali[3];
+extern float32_t INS_mag_cali[3];
 extern float32_t INS_quat[4];
 extern float32_t INS_angle_ukf[3];
 extern AHRS_t IMU;
 extern fifo_s_t mag_data_tx_fifo;
+extern IMU_IST_Cali_t gyro_cali_data;
+extern IMU_IST_Cali_t accel_cali_data;
+extern IMU_IST_Cali_t mag_cali_data;
 #endif

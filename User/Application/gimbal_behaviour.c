@@ -91,6 +91,7 @@
 #include "print_task.h"
 #include "global_control_define.h"
 #include "ahrs_ukf.h"
+#include "calibrate_task.h"
 
 //when gimbal is in calibrating, set buzzer frequency and strenght
 //当云台在校准, 设置蜂鸣器频率和强度
@@ -450,12 +451,34 @@ static void gimbal_behavour_set(gimbal_control_t *gimbal_mode_set) {
     if (gimbal_mode_set == NULL) {
         return;
     }
-    //in cali mode, return
-    //校准行为，return 不会设置其他的模式
-    if (gimbal_behaviour == GIMBAL_CALI && gimbal_mode_set->gimbal_cali.step != GIMBAL_CALI_END_STEP) {
+    if (toe_is_error(DBUS_TOE)) {
+        gimbal_behaviour = GIMBAL_ZERO_FORCE;
+    }
+    static gimbal_behaviour_e last_gimbal_behaviour = GIMBAL_ZERO_FORCE;
+    static bool_t init_complete_flag = 0;
+    if (gimbal_behaviour == GIMBAL_CALI && gimbal_control.gimbal_cali.step == GIMBAL_CALI_END_STEP &&
+        cali_sensor[CALI_GIMBAL].cali_done == CALIED_FLAG) {
+        gimbal_behaviour = GIMBAL_ZERO_FORCE;
+        last_gimbal_behaviour = gimbal_behaviour;
+        gimbal_control.gimbal_cali.step = 0;
         return;
     }
-    if (gimbal_behaviour == IST_CALI && gimbal_mode_set->ist_cali.step != IST_CALI_END_STEP) {
+    if (gimbal_behaviour == IST_CALI && gimbal_control.ist_cali.step == IST_CALI_END_STEP &&
+        cali_sensor[CALI_GYRO_MAG].cali_done == CALIED_FLAG && init_complete_flag) {
+        gimbal_behaviour = GIMBAL_ZERO_FORCE;
+        last_gimbal_behaviour = gimbal_behaviour;
+        init_complete_flag = 0;
+        gimbal_control.ist_cali.step = 0;
+        return;
+    }
+
+    //in cali mode, return
+    //校准行为，return 不会设置其他的模式
+    if (gimbal_behaviour == GIMBAL_CALI && gimbal_mode_set->gimbal_cali.step != GIMBAL_CALI_END_STEP &&
+        !toe_is_error(DBUS_TOE)) {
+        return;
+    }
+    if (gimbal_behaviour == IST_CALI && gimbal_mode_set->ist_cali.step != IST_CALI_END_STEP && init_complete_flag) {
         return;
     }
     //if other operate make step change to start, means enter cali mode
@@ -464,18 +487,19 @@ static void gimbal_behavour_set(gimbal_control_t *gimbal_mode_set) {
         gimbal_behaviour = GIMBAL_CALI;
         return;
     }
-
     if (gimbal_mode_set->ist_cali.step == IST_CALI_START_STEP && !toe_is_error(DBUS_TOE)) {
-        gimbal_behaviour = IST_CALI;
-        return;
+        if (init_complete_flag) {
+            gimbal_behaviour = IST_CALI;
+            return;
+        } else if (!init_complete_flag) {
+            gimbal_behaviour = GIMBAL_INIT;
+        }
     }
-
     //init mode, judge if gimbal is in middle place
     //初始化模式判断是否到达中值位置
     if (gimbal_behaviour == GIMBAL_INIT) {
         static uint16_t init_time = 0;
         static uint16_t init_stop_time = 0;
-        static bool_t init_complete_flag = 0;
         init_time++;
 
         if ((fabsf(gimbal_mode_set->gimbal_yaw_motor.relative_angle - INIT_YAW_SET) < GIMBAL_INIT_ANGLE_ERROR &&
@@ -494,27 +518,30 @@ static void gimbal_behavour_set(gimbal_control_t *gimbal_mode_set) {
         //超过初始化最大时间，或者已经稳定到中值一段时间，退出初始化状态开关打下档，或者掉线
         if (INIT_ONLY_FIRST_TIME) {
             if (init_time < GIMBAL_INIT_TIME && init_stop_time < GIMBAL_INIT_STOP_TIME &&
-                !switch_is_down(gimbal_mode_set->gimbal_rc_ctrl->rc.s[RADIO_CONTROL_SWITCH_L]) &&
                 !toe_is_error(DBUS_TOE) && !init_complete_flag) {
                 return;
             } else {
+                if (init_stop_time == GIMBAL_INIT_STOP_TIME) {
+                    init_complete_flag = 1;
+                }
                 init_stop_time = 0;
                 init_time = 0;
-                init_complete_flag = 1;
             }
         } else {
             if (init_time < GIMBAL_INIT_TIME && init_stop_time < GIMBAL_INIT_STOP_TIME &&
-                !switch_is_down(gimbal_mode_set->gimbal_rc_ctrl->rc.s[RADIO_CONTROL_SWITCH_L]) &&
                 !toe_is_error(DBUS_TOE)) {
                 return;
             } else {
+                if (init_stop_time == GIMBAL_INIT_STOP_TIME) {
+                    init_complete_flag = 1;
+                }
                 init_stop_time = 0;
                 init_time = 0;
-                init_complete_flag = 1;
             }
         }
 
     }
+
 
     //开关控制 云台状态
     if (switch_is_mid(gimbal_mode_set->gimbal_rc_ctrl->rc.s[RADIO_CONTROL_SWITCH_L]) &&
@@ -537,7 +564,6 @@ static void gimbal_behavour_set(gimbal_control_t *gimbal_mode_set) {
     //enter init mode
     //判断进入init状态机
 
-    static gimbal_behaviour_e last_gimbal_behaviour = GIMBAL_ZERO_FORCE;
     if (last_gimbal_behaviour == GIMBAL_ZERO_FORCE && gimbal_behaviour != GIMBAL_ZERO_FORCE) {
         gimbal_behaviour = GIMBAL_INIT;
     }
@@ -705,36 +731,34 @@ static void ist_cali_control(float32_t *yaw, float32_t *pitch, gimbal_control_t 
     if (yaw == NULL || pitch == NULL || gimbal_control_set == NULL) {
         return;
     }
-    static uint16_t cali_time = 0;
-
     if (gimbal_control_set->ist_cali.step == IST_CALI_FORWARD_STEP) {
 
         *pitch = 0;
         *yaw = IST_CALI_YAW_MOTOR_SET;
 #if YAW_TURN
-        if (gimbal_control_set->gimbal_yaw_motor.gimbal_motor_measure->turnCount > 1) {
-            gimbal_control_set->ist_cali.step++;
-        }
-#else
-        if(gimbal_control_set->gimbal_yaw_motor.gimbal_motor_measure->turnCount<-1){
-            gimbal_control_set->ist_cali.step++;
-        }
-#endif
-    } else if (gimbal_control_set->gimbal_cali.step == IST_CALI_BACKWARD_STEP) {
-        *pitch = 0;
-        *yaw = -IST_CALI_YAW_MOTOR_SET;
-
-#if YAW_TURN
         if (gimbal_control_set->gimbal_yaw_motor.gimbal_motor_measure->turnCount < -1) {
             gimbal_control_set->ist_cali.step++;
         }
 #else
-        if(gimbal_control_set->gimbal_yaw_motor.gimbal_motor_measure->turnCount>1){
+        if(gimbal_control_set->gimbal_yaw_motor.gimbal_motor_measure->turnCount > 1){
             gimbal_control_set->ist_cali.step++;
         }
 #endif
-    } else if (gimbal_control_set->gimbal_cali.step == IST_CALI_END_STEP) {
-        cali_time = 0;
+    } else if (gimbal_control_set->ist_cali.step == IST_CALI_BACKWARD_STEP) {
+        *pitch = 0;
+        *yaw = -IST_CALI_YAW_MOTOR_SET;
+
+#if YAW_TURN
+        if (gimbal_control_set->gimbal_yaw_motor.gimbal_motor_measure->turnCount > 1) {
+            gimbal_control_set->ist_cali.step++;
+        }
+#else
+        if(gimbal_control_set->gimbal_yaw_motor.gimbal_motor_measure->turnCount < -1){
+            gimbal_control_set->ist_cali.step++;
+        }
+#endif
+    } else if (gimbal_control_set->ist_cali.step == IST_CALI_END_STEP) {
+        return;
     }
 }
 
