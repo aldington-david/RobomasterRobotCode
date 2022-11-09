@@ -99,13 +99,13 @@ void shoot_init(void) {
 
     //初始化PID
     PID_init(&shoot_control.trigger_motor_speed_pid, PID_POSITION, Trigger_speed_pid, TRIGGER_READY_PID_MAX_OUT,
-             TRIGGER_READY_PID_MAX_IOUT, 100, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+             TRIGGER_READY_PID_MAX_IOUT, 1000, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
     PID_init(&shoot_control.trigger_motor_angle_pid, PID_POSITION, Trigger_angle_pid, CONTINUE_TRIGGER_SPEED,
-             TRIGGER_READY_PID_MAX_IOUT, 100, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+             CONTINUE_TRIGGER_SPEED, 1000, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
     PID_init(&shoot_control.fric1_motor_pid, PID_POSITION, fric1_speed_pid, TRIGGER_READY_PID_MAX_OUT,
-             TRIGGER_READY_PID_MAX_IOUT, 100, 0, 0, 0, 0, 0, 1, 0.003f, 0, 0, 0);
+             TRIGGER_READY_PID_MAX_IOUT, 1000, 0, 0, 0, 0, 0, 1, 0.003f, 0, 0, 0);
     PID_init(&shoot_control.fric2_motor_pid, PID_POSITION, fric2_speed_pid, TRIGGER_READY_PID_MAX_OUT,
-             TRIGGER_READY_PID_MAX_IOUT, 100, 0, 0, 0, 0, 0, 1, 0.003f, 0, 0, 0);
+             TRIGGER_READY_PID_MAX_IOUT, 1000, 0, 0, 0, 0, 0, 1, 0.003f, 0, 0, 0);
 //    shoot_control.pwm = SHOOT_FRIC_PWM_ADD_VALUE;
     KalmanCreate(&shoot_control.Trigger_Motor_Current_Kalman_Filter, 10.0f, 0.5f);
     //更新数据
@@ -124,7 +124,7 @@ void shoot_init(void) {
     shoot_control.key_time = 0;
     shoot_control.fric1_speed = 0.0f;
     shoot_control.fric2_speed = 0.0f;
-    shoot_control.fric_all_speed = 968.0f; //matx 968
+    shoot_control.fric_all_speed = 968.0f; //max 968 27m/s 537.0 7m/s 800.0f 17.4m/s 710 12m/s 780 16m/s 770 15.7m/s 760 15.1m/s 755 14.8 m/s
     shoot_control.fric1_speed_set = shoot_control.fric_all_speed;
     shoot_control.fric2_speed_set = -shoot_control.fric_all_speed;
 }

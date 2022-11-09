@@ -111,7 +111,7 @@ bool Matrix_bMatrixIsEqual(matrix_f32_t *matrix_L, matrix_f32_t *matrix_R) {
     }
 }
 
-extern void Matrix_vadd(matrix_f32_t *matrix_L, matrix_f32_t *matrix_R, matrix_f32_t *matrix_result) {
+void Matrix_vadd(matrix_f32_t *matrix_L, matrix_f32_t *matrix_R, matrix_f32_t *matrix_result) {
     if (Matrix_bMatrixIsValid(matrix_L) && Matrix_bMatrixIsValid(matrix_R)) {
         if (!Matrix_bMatrixIsValid(matrix_result)) {
             Matrix_nodata_creat(matrix_result, matrix_L->arm_matrix.numRows, matrix_L->arm_matrix.numCols,
@@ -134,7 +134,7 @@ extern void Matrix_vadd(matrix_f32_t *matrix_L, matrix_f32_t *matrix_R, matrix_f
     }
 }
 
-extern void Matrix_vsub(matrix_f32_t *matrix_L, matrix_f32_t *matrix_R, matrix_f32_t *matrix_result) {
+void Matrix_vsub(matrix_f32_t *matrix_L, matrix_f32_t *matrix_R, matrix_f32_t *matrix_result) {
     if (Matrix_bMatrixIsValid(matrix_L) && Matrix_bMatrixIsValid(matrix_R)) {
         if (!Matrix_bMatrixIsValid(matrix_result)) {
             Matrix_nodata_creat(matrix_result, matrix_L->arm_matrix.numRows, matrix_L->arm_matrix.numCols,
@@ -215,13 +215,13 @@ void Matrix_vSetRandom(matrix_f32_t *matrix_op, const int32_t _maxRand, const in
     if (Matrix_bMatrixIsValid(matrix_op)) {
         for (int16_t _i = 0; _i < matrix_op->arm_matrix.numRows; _i++) {
             for (int16_t _j = 0; _j < matrix_op->arm_matrix.numCols; _j++) {
-                (matrix_op->p2Data)[_i][_j] = (float) ((rand() % (_maxRand - _minRand + 1)) + _minRand);
+                (matrix_op->p2Data)[_i][_j] = (float32_t) ((rand() % (_maxRand - _minRand + 1)) + _minRand);
             }
         }
     }
 }
 
-void Matrix_vSetDiag(matrix_f32_t *matrix_op, const float _val) {
+void Matrix_vSetDiag(matrix_f32_t *matrix_op, const float32_t _val) {
     if (Matrix_bMatrixIsValid(matrix_op)) {
         for (int16_t _i = 0; _i < matrix_op->arm_matrix.numRows; _i++) {
             for (int16_t _j = 0; _j < matrix_op->arm_matrix.numCols; _j++) {
@@ -348,7 +348,7 @@ void Matrix_vTranspose_nsame(matrix_f32_t *matrix_op, matrix_f32_t *matrix_resul
 
 bool Matrix_bNormVector(matrix_f32_t *matrix_op) {
     if (Matrix_bMatrixIsValid(matrix_op)) {
-        float _normM = 0.0f;
+        float32_t _normM = 0.0f;
         for (int16_t _i = 0; _i < matrix_op->arm_matrix.numRows; _i++) {
             for (int16_t _j = 0; _j < matrix_op->arm_matrix.numCols; _j++) {
                 _normM = _normM + ((matrix_op->p2Data)[_i][_j] * (matrix_op->p2Data)[_i][_j]);
@@ -407,7 +407,7 @@ bool Matrix_bMatrixIsPositiveDefinite(matrix_f32_t *matrix_op, bool checkPosSemi
                     return false;
                 }
 
-                float _tempfloat = _temp.p2Data[_i][_j] / _temp.p2Data[_j][_j];
+                float32_t _tempfloat = _temp.p2Data[_i][_j] / _temp.p2Data[_j][_j];
 
                 for (int16_t _k = 0; _k < _temp.arm_matrix.numCols; _k++) {
                     _temp.p2Data[_i][_k] -= (_temp.p2Data[_j][_k] * _tempfloat);

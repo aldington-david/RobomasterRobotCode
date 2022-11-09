@@ -185,6 +185,35 @@ referee usart:%s\r\n\
 
 
             //传感器
+            //IMU数据
+            SEGGER_RTT_SetTerminal(3);
+            sprintf(print_buf, "imu_tmp=%f,YAW=%f,PITCH=%f,ROLL=%f\r\n",
+                    bmi088_real_data.temp,
+                    INS_angle[0],
+                    INS_angle[1],
+                    INS_angle[2]);
+            SEGGER_RTT_WriteString(0, print_buf);
+
+            SEGGER_RTT_SetTerminal(4);
+            sprintf(print_buf, "imu_tmp=%f,uYAW=%f,uPITCH=%f,uROLL=%f\r\n",
+                    bmi088_real_data.temp,
+                    INS_angle_ukf[0],
+                    INS_angle_ukf[1],
+                    INS_angle_ukf[2]);
+            SEGGER_RTT_WriteString(0, print_buf);
+//              accel
+//            SEGGER_RTT_SetTerminal(5);
+//            sprintf(print_buf, "acc_x=%f,acc_y=%f,acc_z=%f\r\n",
+//                    bmi088_real_data.accel[0],
+//                    bmi088_real_data.accel[1],
+//                    bmi088_real_data.accel[2]);
+//            SEGGER_RTT_WriteString(0, print_buf);
+//            SEGGER_RTT_SetTerminal(5);
+//            sprintf(print_buf, "acc_x=%f,acc_y=%f,acc_z=%f\r\n",
+//                    INS_accel[0],
+//                    INS_accel[1],
+//                    INS_accel[2]);
+//            SEGGER_RTT_WriteString(0, print_buf);
             //mag
 //            SEGGER_RTT_SetTerminal(1);
 //            sprintf(print_buf,
@@ -196,33 +225,33 @@ referee usart:%s\r\n\
 //            SEGGER_RTT_SetTerminal(1);
 //            sprintf(print_buf,
 //                    "mag_x=%f,mag_y=%f,mag_z=%f,\r\n",
-//                    ist8310_real_data.mag[1],
-//                    ist8310_real_data.mag[0],
-//                    ist8310_real_data.mag[2]);
+//                    INS_mag[0],
+//                    INS_mag[1],
+//                    INS_mag[2]);
 //            SEGGER_RTT_WriteString(0, print_buf);
 
-            //IMU数据
-//            SEGGER_RTT_SetTerminal(4);
-//            sprintf(print_buf, "imu_tmp=%f,YAW=%f,PITCH=%f,ROLL=%f\r\n",
-//                    bmi088_real_data.temp,
-//                    INS_angle[0],
-//                    INS_angle[1],
-//                    INS_angle[2]);
+//              gyro
+//            SEGGER_RTT_SetTerminal(2);
+//            sprintf(print_buf,
+//                    "gyro_x=%f,gyro_y=%f,gyro_z=%f,\r\n",
+//                    INS_gyro[0],
+//                    INS_gyro[1],
+//                    INS_gyro[2]);
 //            SEGGER_RTT_WriteString(0, print_buf);
-//
-//            SEGGER_RTT_SetTerminal(5);
-//            sprintf(print_buf, "imu_tmp=%f,uYAW=%f,uPITCH=%f,uROLL=%f\r\n",
-//                    bmi088_real_data.temp,
-//                    INS_angle_ukf[0],
-//                    INS_angle_ukf[1],
-//                    INS_angle_ukf[2]);
+//            SEGGER_RTT_SetTerminal(3);
+//            sprintf(print_buf,
+//                    "gyro_x=%f,gyro_y=%f,gyro_z=%f,\r\n",
+//                    INS_gyro_cali[0],
+//                    INS_gyro_cali[1],
+//                    INS_gyro_cali[2]);
 //            SEGGER_RTT_WriteString(0, print_buf);
-//              accel
-//            SEGGER_RTT_SetTerminal(5);
-//            sprintf(print_buf, "acc_x=%f,acc_y=%f,acc_z=%f\r\n",
-//                    bmi088_real_data.accel[0],
-//                    bmi088_real_data.accel[1],
-//                    bmi088_real_data.accel[2]);
+
+//            SEGGER_RTT_SetTerminal(6);
+//            sprintf(print_buf, "imu_tmp=%f,gyro_x=%f,gyro_y=%f,gyro_z=%f\r\n",
+//                    bmi088_real_data.temp,
+//                    bmi088_real_data.gyro[0],
+//                    bmi088_real_data.gyro[1],
+//                    bmi088_real_data.gyro[2]);
 //            SEGGER_RTT_WriteString(0, print_buf);
 
 //            SEGGER_RTT_SetTerminal(5);
@@ -329,12 +358,14 @@ referee usart:%s\r\n\
 //            SEGGER_RTT_WriteString(0, print_buf);
 
 //            cali校准
-//            SEGGER_RTT_SetTerminal(1);
+            //yaw
+//            SEGGER_RTT_SetTerminal(2);
 //            sprintf(print_buf,
-//                    "Yaw_now_max_ang=%f,Yaw_now_min_ang=%f,Yaw_now_ang=%f,Yaw_now_ecd=%d,Yaw_total_ecd=%d,Yaw_turncount=%d,Yaw_offset_ecd=%d,Yaw_cl_max_ecd=%d,Yaw_cl_min_ecd=%d\r\n",
+//                    "Yaw_max_ang=%f,Yaw_min_ang=%f,Yaw_now_ang=%f,Yaw_now_set_ang=%f,Yaw_now_ecd=%d,Yaw_total_ecd=%d,Yaw_turncount=%d,Yaw_offset_ecd=%d,Yaw_cl_max_ecd=%d,Yaw_cl_min_ecd=%d\r\n",
 //                    gimbal_control.gimbal_yaw_motor.max_relative_angle,
 //                    gimbal_control.gimbal_yaw_motor.min_relative_angle,
 //                    gimbal_control.gimbal_yaw_motor.relative_angle,
+//                    gimbal_control.gimbal_yaw_motor.relative_angle_set,
 //                    gimbal_control.gimbal_yaw_motor.gimbal_motor_measure->ecd,
 //                    gimbal_control.gimbal_yaw_motor.gimbal_motor_measure->total_ecd,
 //                    gimbal_control.gimbal_yaw_motor.gimbal_motor_measure->turnCount,
@@ -343,18 +374,82 @@ referee usart:%s\r\n\
 //                    gimbal_control.gimbal_cali.min_yaw_ecd);
 //            SEGGER_RTT_WriteString(0, print_buf);
 //
+//            SEGGER_RTT_SetTerminal(3);
+//            sprintf(print_buf,
+//                    "Yaw_cl_max=%f,Yaw_cl_min=%f,Yaw_cl_max_ecd=%d,Yaw_cl_min_ecd=%d,Yaw_speed=%d\r\n",
+//                    gimbal_control.gimbal_cali.max_yaw,
+//                    gimbal_control.gimbal_cali.min_yaw,
+//                    gimbal_control.gimbal_cali.max_yaw_ecd,
+//                    gimbal_control.gimbal_cali.min_yaw_ecd,
+//                    gimbal_control.gimbal_yaw_motor.gimbal_motor_measure->speed_rpm);
+//            SEGGER_RTT_WriteString(0, print_buf);
+            //pitch
 //            SEGGER_RTT_SetTerminal(2);
 //            sprintf(print_buf,
-//                    "Pitch_max_ang=%f,Pitch_min_ang=%f,Pitch_now_ang=%f,Pitch_now_ecd=%d,Pitch_total_ecd=%d,Pitch_turncount=%d,Pitch_offset_ecd=%d,Pitch_cl_max_ecd=%d,Pitch_cl_min_ecd=%d\r\n",
+//                    "Pitch_max_ang=%f,Pitch_min_ang=%f,Pitch_now_ang=%f,Pitch_now_set_ang=%f,Pitch_now_ecd=%d,Pitch_total_ecd=%d,Pitch_turncount=%d,Pitch_offset_ecd=%d,Pitch_cl_max_ecd=%d,Pitch_cl_min_ecd=%d\r\n",
 //                    gimbal_control.gimbal_pitch_motor.max_relative_angle,
 //                    gimbal_control.gimbal_pitch_motor.min_relative_angle,
 //                    gimbal_control.gimbal_pitch_motor.relative_angle,
+//                    gimbal_control.gimbal_pitch_motor.relative_angle_set,
 //                    gimbal_control.gimbal_pitch_motor.gimbal_motor_measure->ecd,
 //                    gimbal_control.gimbal_pitch_motor.gimbal_motor_measure->total_ecd,
 //                    gimbal_control.gimbal_pitch_motor.gimbal_motor_measure->turnCount,
 //                    gimbal_control.gimbal_pitch_motor.offset_ecd,
 //                    gimbal_control.gimbal_cali.max_pitch_ecd,
 //                    gimbal_control.gimbal_cali.min_pitch_ecd);
+//            SEGGER_RTT_WriteString(0, print_buf);
+//
+//            SEGGER_RTT_SetTerminal(3);
+//            sprintf(print_buf,
+//                    "Pitch_cl_max=%f,Pitch_cl_min=%f,Pitch_cl_max_ecd=%d,Pitch_cl_min_ecd=%d,Pitch_speed=%d\r\n",
+//                    gimbal_control.gimbal_cali.max_pitch,
+//                    gimbal_control.gimbal_cali.min_pitch,
+//                    gimbal_control.gimbal_cali.max_pitch_ecd,
+//                    gimbal_control.gimbal_cali.min_pitch_ecd,
+//                    gimbal_control.gimbal_pitch_motor.gimbal_motor_measure->speed_rpm);
+//            SEGGER_RTT_WriteString(0, print_buf);
+            //gyro
+//            SEGGER_RTT_SetTerminal(7);
+//            sprintf(print_buf,
+//                    "gyro_x_scale=%f,gyro_y_scale=%f,gyro_z_scale=%f,gyro_x_offset=%f,gyro_y_offset=%f,gyro_z_offset=%f\r\n",
+//                    gyro_mag_cali.gyro_scale[0],
+//                    gyro_mag_cali.gyro_scale[1],
+//                    gyro_mag_cali.gyro_scale[2],
+//                    gyro_mag_cali.gyro_offset[0],
+//                    gyro_mag_cali.gyro_offset[1],
+//                    gyro_mag_cali.gyro_offset[2]);
+//            SEGGER_RTT_WriteString(0, print_buf);
+//            SEGGER_RTT_SetTerminal(3);
+//            sprintf(print_buf,
+//                    "gyro_x_scale=%f,gyro_y_scale=%f,gyro_z_scale=%f,gyro_x_offset=%f,gyro_y_offset=%f,gyro_z_offset=%f\r\n",
+//                    gyro_cali_data.scale[0],
+//                    gyro_cali_data.scale[1],
+//                    gyro_cali_data.scale[2],
+//                    gyro_cali_data.offset[0],
+//                    gyro_cali_data.offset[1],
+//                    gyro_cali_data.offset[2]);
+//            SEGGER_RTT_WriteString(0, print_buf);
+
+            //mag
+//            SEGGER_RTT_SetTerminal(4);
+//            sprintf(print_buf,
+//                    "mag_x_scale=%f,mag_y_scale=%f,mag_z_scale=%f,mag_x_offset=%f,mag_y_offset=%f,mag_z_offset=%f\r\n",
+//                    gyro_mag_cali.mag_scale[0],
+//                    gyro_mag_cali.mag_scale[1],
+//                    gyro_mag_cali.mag_scale[2],
+//                    gyro_mag_cali.mag_offset[0],
+//                    gyro_mag_cali.mag_offset[1],
+//                    gyro_mag_cali.mag_offset[2]);
+//            SEGGER_RTT_WriteString(0, print_buf);
+//            SEGGER_RTT_SetTerminal(4);
+//            sprintf(print_buf,
+//                    "mag_x_scale=%f,mag_y_scale=%f,mag_z_scale=%f,mag_x_offset=%f,mag_y_offset=%f,mag_z_offset=%f\r\n",
+//                    mag_cali_data.scale[0],
+//                    mag_cali_data.scale[1],
+//                    mag_cali_data.scale[2],
+//                    mag_cali_data.offset[0],
+//                    mag_cali_data.offset[1],
+//                    mag_cali_data.offset[2]);
 //            SEGGER_RTT_WriteString(0, print_buf);
 
             //拨盘pid

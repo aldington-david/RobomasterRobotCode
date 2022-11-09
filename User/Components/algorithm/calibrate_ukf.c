@@ -3,6 +3,8 @@
 //
 
 #include "calibrate_ukf.h"
+#include "matrix.h"
+#include "ahrs_ukf.h"
 
 /*
 TRICAL_init:
@@ -235,8 +237,8 @@ measurement[3], float field[3]) {
     float temp[3];
     _trical_measurement_calibrate(state, measurement, temp);
 
-    return fsqrt(fabsf(temp[X] * field[X] + temp[Y] * field[Y] +
-                      temp[Z] * field[Z]));
+    return fsqrt(fabsf(temp[0] * field[0] + temp[1] * field[1] +
+                       temp[2] * field[2]));
 }
 
 /*
@@ -468,4 +470,70 @@ static void matrix_cholesky_decomp_scale_f(unsigned int dim, float L[],
                         recip(L[j + jn]) * (A[i + jn]*mul - s);
         }
     }
+}
+
+void realtime_mag_cali(matrix_f32_t quaternion_attitude) {
+    static matrix_f32_t last_quaternion_attitude;
+    static float32_t body_wmm_filed[3];
+    Matrix_vinit(&last_quaternion_attitude);
+    Matrix_vCopy(&last_quaternion_attitude, &last_quaternion_attitude);
+    /*
+If the current attitude is too close to the attitude at which this
+TRICAL instance was last updated, skip calibration this time
+*/
+    float delta_angle = quaternion_quaternion_angle_f(quaternion_attitude.arm_matrix.pData,
+                                                      last_quaternion_attitude.arm_matrix.pData);
+    if (delta_angle < 3.0 * PI / 180.0) {
+        return;
+    }
+    quaternion_vector3_multiply_f(body_wmm_filed,quaternion_attitude.arm_matrix.pData,IMU_MAG_B0_data);
+
+}
+
+float quaternion_quaternion_angle_f(const float q1[4], const float q2[4]) {
+    float qdot = q1[0] * q2[0] + q1[1] * q2[1] + q1[2] * q2[2] + q1[3] * q2[3];
+    return acosf(2.0f * qdot - 1.0f);
+}
+
+float quaternion_vector3_multiply_f(float result[3], const float q[4], const float v[3]) {
+    /*
+    Multiply a quaternion by a vector (i.e. transform a vectory by a
+    quaternion)
+
+    v' = q * v * conjugate(q), or:
+    t = 2 * cross(q.xyz, v)
+    v' = v + q.w * t + cross(q.xyz, t)
+
+    http://molecularmusings.wordpress.com/2013/05/24/a-faster-quaternion-vector-multiplication/
+    */
+
+    float rx, ry, rz, tx, ty, tz;
+
+    tx = q[2] * v[2];
+    ty = q[3] * v[0];
+    tx -= q[3] * v[1];
+    ty -= q[1] * v[2];
+    tz = q[1] * v[1];
+    ty *= 2.0f;
+    tz -= q[2] * v[0];
+    tx *= 2.0f;
+    tz *= 2.0f;
+
+    rx = v[0];
+    rx += q[0] * tx;
+    rx += q[2] * tz;
+    rx -= q[3] * ty;
+    result[1] = rx;
+
+    ry = v[1];
+    ry += q[0] * ty;
+    ry += q[3] * tx;
+    ry -= q[1] * tz;
+    result[2] = ry;
+
+    rz = v[2];
+    rz += q[0] * tz;
+    rz -= q[2] * tx;
+    rz += q[1] * ty;
+    result[3] = rz;
 }

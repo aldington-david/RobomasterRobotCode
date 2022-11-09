@@ -22,6 +22,7 @@
 #define CAN_RECEIVE_H
 
 #include <stdint.h>
+#include <stdbool.h>
 
 
 /* CAN send and receive ID */
@@ -33,7 +34,7 @@ typedef enum {
     CAN_3508_M4_ID = 0x204,
 
     CAN_YAW_MOTOR_ID = 0x205,
-    CAN_PIT_MOTOR_ID = 0x205,
+    CAN_PITCH_MOTOR_ID = 0x205,
     CAN_TRIGGER_MOTOR_ID = 0x207,
     CAN_IDENTIFIER_0X1FF = 0x1FF,
 
@@ -45,9 +46,10 @@ typedef struct {
     int16_t speed_rpm;
     int16_t given_current;
     uint8_t temperate;
-    int16_t last_ecd;
+    int16_t last_ecd; //define int16_t to narrow convert in sub
     int16_t turnCount;
     int32_t total_ecd;
+    bool init_flag;
 } motor_measure_t;
 
 

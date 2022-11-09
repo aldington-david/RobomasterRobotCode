@@ -110,10 +110,11 @@
 #include "print_task.h"
 #include "global_control_define.h"
 #include "DWT.h"
+#include "SEGGER_RTT.h"
 
 
 //include head,gimbal,gyro,accel,mag. gyro,accel and mag have the same data struct. total 5(CALI_LIST_LENGHT) devices, need data lenght + 5 * 4 bytes(name[3]+cali)
-#define FLASH_WRITE_BUF_LENGHT  (sizeof(head_cali_t) + sizeof(gimbal_cali_t) + sizeof(imu_cali_t) * 3  + CALI_LIST_LENGHT * 4)
+#define FLASH_WRITE_BUF_LENGHT  (sizeof(head_cali_t) + sizeof(gimbal_cali_t) + sizeof(ahrs_cali_t) + CALI_LIST_LENGHT * 4)
 
 
 
@@ -193,7 +194,7 @@ static bool_t cali_head_hook(uint32_t *cali, bool_t cmd);   //header device cali
   * @retval         0:校准任务还没有完
                     1:校准任务已经完成
   */
-static bool_t cali_gyro_hook(uint32_t *cali, bool_t cmd);   //gyro device cali function
+static bool_t cali_gyro_mag_hook(uint32_t *cali, bool_t cmd);   //gyro device cali function
 
 /**
   * @brief          gimbal cali function
@@ -225,30 +226,27 @@ uint32_t calibrate_task_stack;
 static const volatile RC_ctrl_t *calibrate_RC;   //remote control point
 static head_cali_t head_cali;       //head cali data
 static gimbal_cali_t gimbal_cali;     //gimbal cali data
-static imu_cali_t accel_cali;      //accel cali data
-static imu_cali_t gyro_cali;       //gyro cali data
-static imu_cali_t mag_cali;        //mag cali data
+ahrs_cali_t gyro_mag_cali;       //gyro cali data
 
 
 static uint8_t flash_write_buf[FLASH_WRITE_BUF_LENGHT];
 
 cali_sensor_t cali_sensor[CALI_LIST_LENGHT];
 
-static const uint8_t cali_name[CALI_LIST_LENGHT][3] = {"HD", "GM", "GYR", "ACC", "MAG"};
+static const uint8_t cali_name[CALI_LIST_LENGHT][3] = {"HD", "GIM", "GM"};
 
 //cali data address
 static uint32_t *cali_sensor_buf[CALI_LIST_LENGHT] = {
         (uint32_t *) &head_cali, (uint32_t *) &gimbal_cali,
-        (uint32_t *) &gyro_cali, (uint32_t *) &accel_cali,
-        (uint32_t *) &mag_cali};
+        (uint32_t *) &gyro_mag_cali};
 
 
 static uint8_t cali_sensor_size[CALI_LIST_LENGHT] =
         {
                 sizeof(head_cali_t) / 4, sizeof(gimbal_cali_t) / 4,
-                sizeof(imu_cali_t) / 4, sizeof(imu_cali_t) / 4, sizeof(imu_cali_t) / 4};
+                sizeof(ahrs_cali_t) / 4};
 
-void *cali_hook_fun[CALI_LIST_LENGHT] = {cali_head_hook, cali_gimbal_hook, cali_gyro_hook, NULL, NULL};
+void *cali_hook_fun[CALI_LIST_LENGHT] = {cali_head_hook, cali_gimbal_hook, cali_gyro_mag_hook};
 
 static uint32_t calibrate_systemTick;
 
@@ -320,9 +318,9 @@ uint32_t get_stack_of_calibrate_task(void) {
   */
 int8_t get_control_temperature(void) {
 
-    return head_cali.temperature;
+    return 30;
 }
-
+//not_use
 /**
   * @brief          get latitude, default 22.0f
   * @param[out]     latitude: the point to float32_t
@@ -340,7 +338,7 @@ void get_flash_latitude(float *latitude) {
         return;
     }
     if (cali_sensor[CALI_HEAD].cali_done == CALIED_FLAG) {
-        *latitude = head_cali.latitude;
+        *latitude = 22.0f;
     } else {
         *latitude = 22.0f;
     }
@@ -384,6 +382,7 @@ static void RC_cmd_to_calibrate(void) {
         rc_cmd_systemTick = xTaskGetTickCount();
         rc_action_flag = BEGIN_FLAG;
         rc_cmd_time = 0;
+        buzzer_cali_start();
     } else if (rc_action_flag == GIMBAL_FLAG && rc_cmd_time > RC_CMD_LONG_TIME) {
         //gimbal cali, 
         rc_action_flag = 0;
@@ -394,12 +393,13 @@ static void RC_cmd_to_calibrate(void) {
         //gyro cali
         rc_action_flag = 0;
         rc_cmd_time = 0;
-        cali_sensor[CALI_GYRO].cali_cmd = 1;
+        cali_sensor[CALI_GYRO_MAG].cali_cmd = 1;
         //update control temperature
-        head_cali.temperature = (int8_t) (cali_get_mcu_temperature()) + 10;
-        if (head_cali.temperature > (int8_t) (GYRO_CONST_MAX_TEMP)) {
-            head_cali.temperature = (int8_t) (GYRO_CONST_MAX_TEMP);
-        }
+        head_cali.temperature = 30;
+//        head_cali.temperature = (int8_t) (cali_get_mcu_temperature()) + 10;
+//        if (head_cali.temperature > (int8_t) (GYRO_CONST_MAX_TEMP)) {
+//            head_cali.temperature = (int8_t) (GYRO_CONST_MAX_TEMP);
+//        }
 //        imu_temp = head_cali.temperature; //for_test
         cali_buzzer_off();
     } else if (rc_action_flag == CHASSIS_FLAG && rc_cmd_time > RC_CMD_LONG_TIME) {
@@ -454,7 +454,8 @@ static void RC_cmd_to_calibrate(void) {
     } else if (calibrate_systemTick - rc_cmd_systemTick > RC_CALI_BUZZER_MIDDLE_TIME && rc_cmd_systemTick != 0 &&
                rc_action_flag != 0) {
         rc_cali_buzzer_middle_on();
-    } else if (calibrate_systemTick - rc_cmd_systemTick > 0 && rc_cmd_systemTick != 0 && rc_action_flag != 0) {
+    } else if (calibrate_systemTick - rc_cmd_systemTick > RC_CALI_BUZZER_START_TIME && rc_cmd_systemTick != 0 &&
+               rc_action_flag != 0) {
         rc_cali_buzzer_start_on();
     }
 
@@ -599,15 +600,15 @@ static bool_t cali_head_hook(uint32_t *cali, bool_t cmd) {
     // self id
     local_cali_t->self_id = SELF_ID;
     //imu control temperature
-    local_cali_t->temperature = (int8_t) (cali_get_mcu_temperature()) + 10;
+    local_cali_t->temperature = (int8_t) (cali_get_mcu_temperature()) + 5;
     //head_cali.temperature = (int8_t)(cali_get_mcu_temperature()) + 10;
     if (local_cali_t->temperature > (int8_t) (GYRO_CONST_MAX_TEMP)) {
         local_cali_t->temperature = (int8_t) (GYRO_CONST_MAX_TEMP);
     }
 
     local_cali_t->firmware_version = FIRMWARE_VERSION;
-    //shenzhen latitude 
-    local_cali_t->latitude = 22.0f;
+//    //shenzhen latitude
+//    local_cali_t->latitude = 22.0f;
 
     return 1;
 }
@@ -630,28 +631,54 @@ static bool_t cali_head_hook(uint32_t *cali, bool_t cmd) {
   * @retval         0:校准任务还没有完
                     1:校准任务已经完成
   */
-static bool_t cali_gyro_hook(uint32_t *cali, bool_t cmd) {
-    imu_cali_t *local_cali_t = (imu_cali_t *) cali;
+static bool_t cali_gyro_mag_hook(uint32_t *cali, bool_t cmd) {
+    ahrs_cali_t *local_cali_t = (ahrs_cali_t *) cali;
     if (cmd == CALI_FUNC_CMD_INIT) {
-        gyro_set_cali(local_cali_t->scale, local_cali_t->offset);
-
+        gyro_set_cali(local_cali_t->gyro_scale, local_cali_t->gyro_offset);
+        mag_set_cali(local_cali_t->mag_scale, local_cali_t->mag_offset);
         return 0;
     } else if (cmd == CALI_FUNC_CMD_ON) {
-        static uint16_t count_time = 0;
-        gyro_cali_fun(local_cali_t->scale, local_cali_t->offset, &count_time);
-        if (count_time > GYRO_CALIBRATE_TIME) {
-            count_time = 0;
-            cali_buzzer_off();
-            gyro_cali_enable_control();
-            return 1;
-        } else {
-            gyro_cali_disable_control(); //disable the remote control to make robot no move
-            imu_start_buzzer();
-
-            return 0;
+        static bool_t IMU_IST_select_flag = 0;
+        static float32_t mag_x_max = -1000.0f;
+        static float32_t mag_x_min = 1000.0f;
+        static float32_t mag_y_max = -1000.0f;
+        static float32_t mag_y_min = 1000.0f;
+        if (IMU_IST_select_flag == IMU_CALI_STEP) {
+            static uint16_t count_time = 0;
+            INS_cali_gyro(local_cali_t->gyro_scale, local_cali_t->gyro_offset, &count_time);
+            if (count_time > GYRO_CALIBRATE_TIME) {
+                count_time = 0;
+                gyro_set_cali(local_cali_t->gyro_scale, local_cali_t->gyro_offset);
+                cali_buzzer_off();
+                gyro_cali_enable_control();
+                IMU_IST_select_flag = IST_CALI_STEP;
+                return 0;
+            } else {
+                gyro_cali_disable_control(); //disable the remote control to make robot no move
+                imu_start_buzzer();
+                return 0;
+            }
+        } else if(IMU_IST_select_flag == IST_CALI_STEP){
+            if (gimbal_control.ist_cali.step == 0) {
+                gimbal_control.ist_cali.step = IST_CALI_START_STEP;
+                return 0;
+            } else if (gimbal_control.ist_cali.step == IST_CALI_END_STEP) {
+                calc_mag_cali(&local_cali_t->mag_offset[0], &local_cali_t->mag_offset[1], &local_cali_t->mag_offset[2],
+                              &local_cali_t->mag_scale[0], &local_cali_t->mag_scale[1], &local_cali_t->mag_scale[2],
+                              &mag_x_max,&mag_x_min,&mag_y_max,&mag_y_min);
+                gyro_set_cali(local_cali_t->gyro_scale, local_cali_t->gyro_offset);
+                mag_set_cali(local_cali_t->mag_scale, local_cali_t->mag_offset);
+                gimbal_offset_ecd_cali(&gimbal_control);
+                gimbal_control.gimbal_yaw_motor.relative_angle_set = gimbal_control.gimbal_yaw_motor.relative_angle;
+                gimbal_control.gimbal_pitch_motor.relative_angle_set = gimbal_control.gimbal_pitch_motor.relative_angle;
+                IMU_IST_select_flag = 0;
+                return 1;
+            } else{
+                mag_cali_data_record(&mag_x_max,&mag_x_min,&mag_y_max,&mag_y_min,INS_mag);
+                return 0;
+            }
         }
     }
-
     return 0;
 }
 
@@ -688,7 +715,9 @@ static bool_t cali_gimbal_hook(uint32_t *cali, bool_t cmd) {
                                  &local_cali_t->yaw_max_angle, &local_cali_t->yaw_min_angle,
                                  &local_cali_t->pitch_max_angle, &local_cali_t->pitch_min_angle)) {
             cali_buzzer_off();
-
+            gimbal_offset_ecd_cali(&gimbal_control);
+            gimbal_control.gimbal_yaw_motor.relative_angle_set = gimbal_control.gimbal_yaw_motor.relative_angle;
+            gimbal_control.gimbal_pitch_motor.relative_angle_set = gimbal_control.gimbal_pitch_motor.relative_angle;
             return 1;
         } else {
             gimbal_start_buzzer();

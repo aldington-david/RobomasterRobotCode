@@ -7,10 +7,10 @@
 
 #include "matrix.h"
 
-#define X 0
-#define Y 1
-#define Z 2
-#define W 3
+//#define X 0
+//#define Y 1
+//#define Z 2
+//#define W 3
 
 #ifndef absval
 #define absval(x) ((x) < 0 ? -x : x)
@@ -179,5 +179,7 @@ void _trical_filter_iterate(TRICAL_instance_t *instance,
 
 static void matrix_cholesky_decomp_scale_f(unsigned int dim, float L[],
                                            const float A[], const float mul);
+extern float quaternion_quaternion_angle_f(const float q1[4],const float q2[4]);
+extern float quaternion_vector3_multiply_f(float result[3], const float q[4], const float v[3]);
 
 #endif //ROBOMASTERROBOTCODE_CALIBRATE_UKF_H

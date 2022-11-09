@@ -37,22 +37,13 @@
 
 /**
   * @brief          pid struct data init
-  * @param[out]     pid: PID struct data point
-  * @param[in]      mode: PID_POSITION: normal pid
-  *                 PID_DELTA: delta pid
-  * @param[in]      PID: 0: kp, 1: ki, 2:kd
-  * @param[in]      max_out: pid max out
-  * @param[in]      max_iout: pid max iout
-  * @retval         none
-  */
-/**
-  * @brief          pid struct data init
   * @param[out]     pid: PID结构数据指针
   * @param[in]      mode: PID_POSITION:普通PID
   *                 PID_DELTA: 差分PID
   * @param[in]      PID: 0: kp, 1: ki, 2:kd
   * @param[in]      max_out: pid最大输出
   * @param[in]      max_iout: pid最大积分输出
+  * @param[in]      Integral: 积分分离参数，若误差大于此值则Iout置零，不启用请设一个较大值
   * @retval         none
   */
 void PID_init(pid_type_def *pid, uint8_t mode, const float32_t PID[3], float32_t max_out, float32_t max_iout, float32_t Integral,
@@ -253,7 +244,7 @@ float ALL_PID(pid_type_def *pid, float32_t ref, float32_t set) {
         }
         pid->Iout += pid->I_ratio * pid->Ki * (pid->error[0] + pid->error[1]) / 2.0f;
     } else {
-        pid->Iout += pid->Ki * (pid->error[0] + pid->error[1]) / 2.0f;
+        pid->Iout += pid->Ki * (pid->error[0] + pid->error[1]) / 2.0f; //pid->Iout += pid->Ki * pid->error[0];
     }
 
 

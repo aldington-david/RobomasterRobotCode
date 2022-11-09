@@ -102,6 +102,9 @@
 #include <stdint.h>
 #include "struct_typedef.h"
 
+#define IMU_CALI_STEP 0
+#define IST_CALI_STEP 1
+
 //when imu is calibrating ,buzzer set frequency and strength. 当imu在校准,蜂鸣器的设置频率和强度
 #define imu_start_buzzer()          buzzer_on(95, VOLUME(50))
 //when gimbal is calibrating ,buzzer set frequency and strength.当云台在校准,蜂鸣器的设置频率和强度
@@ -122,12 +125,6 @@
 #define gyro_cali_disable_control()         RC_unable()                 //when imu is calibrating, disable the remote control.当imu在校准时候,失能遥控器
 #define gyro_cali_enable_control()          RC_restart(SBUS_RX_BUF_NUM)
 
-// calc the zero drift function of gyro, 计算陀螺仪零漂
-#define gyro_cali_fun(cali_scale, cali_offset, time_count)  INS_cali_gyro((cali_scale), (cali_offset), (time_count))
-//set the zero drift to the INS task, 设置在INS task内的陀螺仪零漂
-#define gyro_set_cali(cali_scale, cali_offset)              INS_set_cali_gyro((cali_scale), (cali_offset))
-
-
 #define FLASH_USER_ADDR         ADDR_FLASH_SECTOR_9 //write flash page 9,保存的flash页地址
 
 #define GYRO_CONST_MAX_TEMP     45.0f               //max control temperature of gyro,最大陀螺仪控制温度
@@ -139,8 +136,8 @@
 
 #define CALI_SENSOR_HEAD_LEGHT  1
 
-#define SELF_ID                 0                   //ID 
-#define FIRMWARE_VERSION        12345               //handware version.
+//#define SELF_ID                 0                   //ID
+//#define FIRMWARE_VERSION        12345               //handware version.
 #define CALIED_FLAG             0x55                // means it has been calibrated
 //you have 20 seconds to calibrate by remote control. 有20s可以用遥控器进行校准
 #define CALIBRATE_END_TIME          20000
@@ -156,18 +153,16 @@
 
 #define RCCALI_BUZZER_CYCLE_TIME    400
 #define RC_CALI_BUZZER_PAUSE_TIME   200
-#define RC_CALI_VALUE_HOLE          600     //remote control threshold, the max value of remote control channel is 660. 
+#define RC_CALI_VALUE_HOLE          600     //remote control threshold, the max value of remote control channel is 660.
 
 
-#define GYRO_CALIBRATE_TIME         20000   //gyro calibrate time,陀螺仪校准时间
+#define GYRO_CALIBRATE_TIME         20000   //gyro calibrate time,陀螺仪校准时间 GYRO_CALIBRATE_TIME*
 
 //cali device name
 typedef enum {
     CALI_HEAD = 0,
     CALI_GIMBAL = 1,
-    CALI_GYRO = 2,
-    CALI_ACC = 3,
-    CALI_MAG = 4,
+    CALI_GYRO_MAG = 2,
     //add more...
     CALI_LIST_LENGHT,
 } cali_id_e;
@@ -189,12 +184,12 @@ typedef struct {
     //'temperature' and 'latitude' should not be in the head_cali, because don't want to create a new sensor
     //'temperature' and 'latitude'不应该在head_cali,因为不想创建一个新的设备就放这了
     int8_t temperature;         // imu control temperature
-    float32_t latitude;              // latitude
+//    float32_t latitude;
 } head_cali_t;
 //gimbal device
 typedef struct {
-    uint16_t yaw_offset;
-    uint16_t pitch_offset;
+    int32_t yaw_offset;
+    int32_t pitch_offset;
     float32_t yaw_max_angle;
     float32_t yaw_min_angle;
     float32_t pitch_max_angle;
@@ -202,9 +197,11 @@ typedef struct {
 } gimbal_cali_t;
 //gyro, accel, mag device
 typedef struct {
-    float32_t offset[3]; //x,y,z
-    float32_t scale[3];  //x,y,z
-} imu_cali_t;
+    float32_t gyro_offset[3]; //x,y,z
+    float32_t gyro_scale[3];  //x,y,z
+    float32_t mag_offset[3]; //x,y,z
+    float32_t mag_scale[3];  //x,y,z
+} ahrs_cali_t;
 #pragma pack(pop)
 
 /**
@@ -260,6 +257,6 @@ extern void get_flash_latitude(float *latitude);
   * @retval         none
   */
 extern void calibrate_task(void const *pvParameters);
-
-
+extern ahrs_cali_t gyro_mag_cali;
+extern cali_sensor_t cali_sensor[CALI_LIST_LENGHT];
 #endif

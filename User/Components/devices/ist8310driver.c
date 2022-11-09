@@ -32,11 +32,11 @@
 uint8_t mag_dma_rx_buf[I2C_MEG_LENGHT];
 //average 2 times
 static const uint8_t ist8310_write_reg_data_error[IST8310_WRITE_REG_NUM][3] =
-    {
-        {0x0B, 0x08, 0x01},
-        {0x41, 0x09, 0x02},
-        {0x42, 0xC0, 0x03},
-        {0x0A, 0x0B, 0x04}};
+        {
+                {0x0B, 0x08, 0x01},
+                {0x41, 0x09, 0x02},
+                {0x42, 0xC0, 0x03},
+                {0x0A, 0x0B, 0x04}};
 
 //static const uint8_t ist8310_write_reg_data_error[IST8310_WRITE_REG_NUM][3] =
 //        {
@@ -45,8 +45,7 @@ static const uint8_t ist8310_write_reg_data_error[IST8310_WRITE_REG_NUM][3] =
 //                {0x42, 0xC0, 0x03},
 //                {0x0A, 0x02, 0x04}};
 
-uint8_t ist8310_init(void)
-{
+uint8_t ist8310_init(void) {
     static const uint8_t wait_time = 1;
     static const uint8_t sleepTime = 50;
     uint8_t res = 0;
@@ -61,20 +60,18 @@ uint8_t ist8310_init(void)
     ist8310_delay_ms(sleepTime);
 
     res = ist8310_IIC_read_single_reg(IST8310_WHO_AM_I);
-    if (res != IST8310_WHO_AM_I_VALUE)
-    {
+    if (res != IST8310_WHO_AM_I_VALUE) {
         return IST8310_NO_SENSOR;
     }
     ist8310_delay_ms(wait_time);
     //set mpu6500 sonsor config and check
-    for (writeNum = 0; writeNum < IST8310_WRITE_REG_NUM; writeNum++)
-    {
-        ist8310_IIC_write_single_reg(ist8310_write_reg_data_error[writeNum][0], ist8310_write_reg_data_error[writeNum][1]);
+    for (writeNum = 0; writeNum < IST8310_WRITE_REG_NUM; writeNum++) {
+        ist8310_IIC_write_single_reg(ist8310_write_reg_data_error[writeNum][0],
+                                     ist8310_write_reg_data_error[writeNum][1]);
         ist8310_delay_ms(wait_time);
         res = ist8310_IIC_read_single_reg(ist8310_write_reg_data_error[writeNum][0]);
         ist8310_delay_ms(wait_time);
-        if (res != ist8310_write_reg_data_error[writeNum][1])
-        {
+        if (res != ist8310_write_reg_data_error[writeNum][1]) {
             return ist8310_write_reg_data_error[writeNum][2];
         }
     }
@@ -103,26 +100,30 @@ uint8_t ist8310_init(void)
 //    }
 //}
 
-void ist8310_read_over(uint8_t *rx_buf, float32_t mag[3]){
+void ist8310_read_over(uint8_t *rx_buf, float32_t mag[3]) {
     int16_t temp_ist8310_data = 0;
-    temp_ist8310_data = (int16_t)((rx_buf[1] << 8) | rx_buf[0]);
+    temp_ist8310_data = (int16_t) ((rx_buf[1] << 8) | rx_buf[0]);
     mag[0] = MAG_SEN * temp_ist8310_data;
-    temp_ist8310_data = (int16_t)((rx_buf[3] << 8) | rx_buf[2]);
+    temp_ist8310_data = (int16_t) ((rx_buf[3] << 8) | rx_buf[2]);
     mag[1] = MAG_SEN * temp_ist8310_data;
-    temp_ist8310_data = (int16_t)((rx_buf[5] << 8) | rx_buf[4]);
+    temp_ist8310_data = (int16_t) ((rx_buf[5] << 8) | rx_buf[4]);
     mag[2] = MAG_SEN * temp_ist8310_data;
 }
 
-void ist8310_read_mag(float32_t mag[3])
-{
+bool_t ist8310_read_mag(float32_t mag[3]) {
     uint8_t buf[6];
     int16_t temp_ist8310_data = 0;
     ist8310_IIC_read_muli_reg(0x03, buf, 6);
 
-    temp_ist8310_data = (int16_t)((buf[1] << 8) | buf[0]);
+    temp_ist8310_data = (int16_t) ((buf[1] << 8) | buf[0]);
     mag[0] = MAG_SEN * temp_ist8310_data;
-    temp_ist8310_data = (int16_t)((buf[3] << 8) | buf[2]);
+    temp_ist8310_data = (int16_t) ((buf[3] << 8) | buf[2]);
     mag[1] = MAG_SEN * temp_ist8310_data;
-    temp_ist8310_data = (int16_t)((buf[5] << 8) | buf[4]);
+    temp_ist8310_data = (int16_t) ((buf[5] << 8) | buf[4]);
     mag[2] = MAG_SEN * temp_ist8310_data;
+    if ((mag[0] == 0) && (mag[1] == 0) && (mag[2] == 0)) {
+        return 0;
+    } else {
+        return 1;
+    }
 }

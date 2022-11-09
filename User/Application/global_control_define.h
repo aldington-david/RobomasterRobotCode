@@ -5,10 +5,43 @@
 #ifndef STANDARDROBOTBASICCODE_GLOBAL_CONTROL_DEFINE_H
 #define STANDARDROBOTBASICCODE_GLOBAL_CONTROL_DEFINE_H
 
-#endif //STANDARDROBOTBASICCODE_GLOBAL_CONTROL_DEFINE_H
+#include "referee_task.h"
+/************ WMM define Start*******************/
+//x point to north
+//WMM model mag is true north value
+//WMM model is NED
+#define North_Comp  (28398.5f) //nT，when use it please scale to uT
+#define East_Comp    (-3717.0f) //nT，when use it please scale to uT
+#define Vertical_Comp    (46139.5f) //nT，when use it please scale to uT
+#define Total_Field    (54306.0f) //nT，when use it please scale to uT
+#define Declination (-7.4570f) //degree,need to convert to rad
+/************ WMM define End*******************/
+
+/************ Self Data define Start*******************/
+#define SELF_ID  infantry3_red //get from referee_robot_ID
+#define FIRMWARE_VERSION 12345 //for self_test
+#define YAW_LIMIT YAW_NO_LIMIT
+#define YAW_LIMIT_TURN 0
+
+#define YAW_HAVE_LIMIT 1
+#define YAW_NO_LIMIT 0
+
+#define PITCH_MOTOR_REDUCTION 3.4f
+#define YAW_MOTOR_REDUCTION 1.0f
+/************ Self Data define End*******************/
+
+/************ Init To Offset Start*******************/
+#define PITCH_INIT  1
+#define YAW_INIT    1
+
+#define INIT_ONLY_FIRST_TIME 1
+
+#define NO_INIT    0
+#define INIT    1
+/************ Init To Offset End*******************/
 
 /************ Motor turn define Start*******************/
-#define PITCH_TURN  0
+#define PITCH_TURN  1
 #define YAW_TURN    1
 #define SHOOT_TRIGGER_TURN    0
 /************ Motor turn define End*******************/
@@ -31,8 +64,8 @@
 #define Vision_MODE 0
 #define Matlab_MODE 1
 #define Vision_rx_Matlab_tx_MODE 2
-#define UART1_TARGET_MODE Vision_MODE // UART1 rx_tx to vision
-//#define UART1_TARGET_MODE Matlab_MODE //UART1 rx_tx to matlab
+//#define UART1_TARGET_MODE Vision_MODE // UART1 rx_tx to vision
+#define UART1_TARGET_MODE Matlab_MODE //UART1 rx_tx to matlab
 //#define UART1_TARGET_MODE Vision_rx_Matlab_tx_MODE //UART1 rx to vision tx to matlab //not_use
 /************ Choose UART1 TX Target End*******************/
 
@@ -98,9 +131,26 @@
 #error "You mast define CALI_BLOCK to chose a block mode"
 #endif
 
+#if !defined(YAW_LIMIT)
+#error "You mast define YAW_LIMIT to limit yaw angle"
+#endif
+
+#if !defined(PITCH_INIT)
+#error "You mast define PITCH_INIT to choose if let pitch init to offset or not"
+#endif
+
+#if !defined(YAW_INIT)
+#error "You mast define YAW_INIT to choose if let yaw init to offset or not"
+#endif
+
+#if !defined(YAW_LIMIT_TURN)
+#error "You mast define YAW_LIMIT_TURN to limit yaw turn cnt"
+#endif
+
 #if __CC_ARM
 #if !defined(EventRecorder_MODE)
 #error "You mast define EventRecorder_MODE to chose enalbe or not"
 #endif
 #endif
 /************ Lack Define Warning End*******************/
+#endif //STANDARDROBOTBASICCODE_GLOBAL_CONTROL_DEFINE_H

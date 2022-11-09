@@ -15,6 +15,7 @@
 #define Rn_INIT_MAG  (0.0015f/10.0f)
 
 //will_move_to_other_place
+/* Gravity vector constant (align with global Z-axis) */
 #define IMU_ACC_Z0          (1)
 #define COS(x)   1.0f
 #define SIN(x)   0.0f
@@ -176,6 +177,8 @@ extern matrix_f32_t Y;
 extern matrix_f32_t U;
 extern UKF_t UKF_IMU;
 
+extern float32_t IMU_MAG_B0_data[3];
+
 extern void UKF_init(UKF_t *UKF_op, matrix_f32_t *XInit, matrix_f32_t *P, matrix_f32_t *Rv, matrix_f32_t *Rn,
                      bool (*bNonlinearUpdateX)(matrix_f32_t *, matrix_f32_t *, matrix_f32_t *, AHRS_t *),
                      bool (*bNonlinearUpdateY)(matrix_f32_t *, matrix_f32_t *, matrix_f32_t *, AHRS_t *));
@@ -201,6 +204,7 @@ AHRS_bUpdateNonlinearX(matrix_f32_t *X_Next, matrix_f32_t *X_matrix, matrix_f32_
 extern bool
 AHRS_bUpdateNonlinearY(matrix_f32_t *Y_matrix, matrix_f32_t *X_matrix, matrix_f32_t *U_matrix, AHRS_t *AHRS_op);
 
-extern void AHRS_vset_north(AHRS_t *AHRS_op);
-
+extern void AHRS_quaternion_init(AHRS_t *AHRS_op);
+extern float32_t AHRS_get_instant_pitch(void);
+extern float32_t AHRS_get_instant_roll(void);
 #endif //ROBOMASTERROBOTCODE_AHRS_UKF_H

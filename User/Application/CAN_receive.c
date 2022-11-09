@@ -28,6 +28,7 @@
 
 #include "detect_task.h"
 #include "print_task.h"
+#include "SEGGER_RTT.h"
 
 extern CAN_HandleTypeDef hcan1;
 extern CAN_HandleTypeDef hcan2;
@@ -39,15 +40,19 @@ extern CAN_HandleTypeDef hcan2;
         (ptr)->speed_rpm = (uint16_t)((data)[2] << 8 | (data)[3]);      \
         (ptr)->given_current = (uint16_t)((data)[4] << 8 | (data)[5]);  \
         (ptr)->temperate = (data)[6];                                   \
-        if ((ptr)->ecd - (ptr)->last_ecd < -6500)                       \
+        if (((ptr)->ecd - (ptr)->last_ecd < -6500) && ((ptr)->init_flag == 1))  \
         {                                                               \
             (ptr)->turnCount++;                                         \
         }                                                               \
-        if ((ptr)->last_ecd - (ptr)->ecd < -6500)                       \
+        if (((ptr)->last_ecd - (ptr)->ecd < -6500) && ((ptr)->init_flag == 1))  \
         {                                                               \
             (ptr)->turnCount--;                                         \
         }                                                               \
         (ptr)->total_ecd = (ptr)->ecd+(8192 * (ptr)->turnCount);        \
+        if((ptr)->init_flag == 0)                                       \
+        {                                                               \
+           (ptr)->init_flag = 1;                                        \
+        }                                                               \
     }
 /*
 motor data,  0:chassis motor1 3508;1:chassis motor3 3508;2:chassis motor3 3508;3:chassis motor4 3508;
@@ -98,7 +103,7 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan) {
     } else if (hcan->Instance == CAN2) {
 //        id_test = rx_header.StdId;//for_test
         switch (rx_header.StdId) {
-            case CAN_PIT_MOTOR_ID: {
+            case CAN_PITCH_MOTOR_ID: {
 
                 get_motor_measure(&can2_motor_data[5], rx_data);
                 detect_hook(6);
@@ -127,7 +132,7 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan) {
 //        case CAN_3508_M3_ID:
 //        case CAN_3508_M4_ID:
 //        case CAN_YAW_MOTOR_ID:
-//        case CAN_PIT_MOTOR_ID:
+//        case CAN_PITCH_MOTOR_ID:
 //        case CAN_TRIGGER_MOTOR_ID:
 //        {
 //            static uint8_t i = 0;

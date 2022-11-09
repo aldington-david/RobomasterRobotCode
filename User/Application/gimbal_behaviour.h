@@ -80,6 +80,7 @@
   */
 #ifndef GIMBAL_BEHAVIOUR_H
 #define GIMBAL_BEHAVIOUR_H
+
 #include "struct_typedef.h"
 
 #include "gimbal_task.h"
@@ -96,14 +97,14 @@
 //will_replace_to_accurate_value
 #define GIMBAL_TASK_CONTROL_DELAY_SEN       6.3f
 
-typedef enum
-{
-  GIMBAL_ZERO_FORCE = 0, 
-  GIMBAL_INIT,           
-  GIMBAL_CALI,           
-  GIMBAL_ABSOLUTE_ANGLE, 
-  GIMBAL_RELATIVE_ANGLE, 
-  GIMBAL_MOTIONLESS,     
+typedef enum {
+    GIMBAL_ZERO_FORCE = 0,
+    GIMBAL_INIT,
+    GIMBAL_CALI,
+    IST_CALI,
+    GIMBAL_ABSOLUTE_ANGLE,
+    GIMBAL_RELATIVE_ANGLE,
+    GIMBAL_MOTIONLESS,
 } gimbal_behaviour_e;
 
 extern float32_t vision_pitch_angle_deadband_sen;
@@ -141,7 +142,8 @@ extern void gimbal_behaviour_mode_set(gimbal_control_t *gimbal_mode_set);
   * @param[in]      gimbal_mode_set:云台数据指针
   * @retval         none
   */
-extern void gimbal_behaviour_control_set(float32_t *add_yaw, float32_t *add_pitch, gimbal_control_t *gimbal_control_set);
+extern void
+gimbal_behaviour_control_set(float32_t *add_yaw, float32_t *add_pitch, gimbal_control_t *gimbal_control_set);
 
 /**
   * @brief          in some gimbal mode, need chassis keep no move
@@ -179,6 +181,6 @@ extern bool_t gimbal_cmd_to_shoot_stop(void);
 extern void gimbal_rc_to_control_vector(float32_t *yaw, float32_t *pitch, gimbal_control_t *gimbal_move_rc_to_vector);
 
 int16_t test_control(int16_t mode, float32_t re_angle_pr_up, float32_t re_angle_pr_down, int16_t time_ms,
-                     int16_t const_set , int16_t delay_ms, bool keep, int16_t keep_ms);
+                     int16_t const_set, int16_t delay_ms, bool keep, int16_t keep_ms);
 
 #endif
