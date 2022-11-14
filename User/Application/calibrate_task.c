@@ -357,7 +357,7 @@ void get_flash_latitude(float *latitude) {
 static void RC_cmd_to_calibrate(void) {
     static const uint8_t BEGIN_FLAG = 1;
     static const uint8_t GIMBAL_FLAG = 2;
-    static const uint8_t GYRO_FLAG = 3;
+    static const uint8_t GYRO_MAG_FLAG = 3;
     static const uint8_t CHASSIS_FLAG = 4;
 
     static uint8_t i;
@@ -389,7 +389,7 @@ static void RC_cmd_to_calibrate(void) {
         rc_cmd_time = 0;
         cali_sensor[CALI_GIMBAL].cali_cmd = 1;
         cali_buzzer_off();
-    } else if (rc_action_flag == GYRO_FLAG && rc_cmd_time > RC_CMD_LONG_TIME) {
+    } else if (rc_action_flag == GYRO_MAG_FLAG && rc_cmd_time > RC_CMD_LONG_TIME) {
         //gyro cali
         rc_action_flag = 0;
         rc_cmd_time = 0;
@@ -432,7 +432,7 @@ static void RC_cmd_to_calibrate(void) {
         //two rocker set to ./\., hold for 2 seconds
         //两个摇杆打成./\.,保持2s
         rc_cmd_time++;
-        rc_action_flag = GYRO_FLAG;
+        rc_action_flag = GYRO_MAG_FLAG;
     } else if (calibrate_RC->rc.ch[0] < -RC_CALI_VALUE_HOLE && calibrate_RC->rc.ch[1] > RC_CALI_VALUE_HOLE &&
                calibrate_RC->rc.ch[2] > RC_CALI_VALUE_HOLE && calibrate_RC->rc.ch[3] > RC_CALI_VALUE_HOLE &&
                switch_is_down(calibrate_RC->rc.s[0]) && switch_is_down(calibrate_RC->rc.s[1]) && rc_action_flag != 0) {
@@ -638,12 +638,12 @@ static bool_t cali_gyro_mag_hook(uint32_t *cali, bool_t cmd) {
         mag_set_cali(local_cali_t->mag_scale, local_cali_t->mag_offset);
         return 0;
     } else if (cmd == CALI_FUNC_CMD_ON) {
-        static bool_t IMU_IST_select_flag = 0;
+        static bool_t IMU_MAG_select_flag = 0;
         static float32_t mag_x_max = -1000.0f;
         static float32_t mag_x_min = 1000.0f;
         static float32_t mag_y_max = -1000.0f;
         static float32_t mag_y_min = 1000.0f;
-        if (IMU_IST_select_flag == IMU_CALI_STEP) {
+        if (IMU_MAG_select_flag == IMU_CALI_STEP) {
             static uint16_t count_time = 0;
             INS_cali_gyro(local_cali_t->gyro_scale, local_cali_t->gyro_offset, &count_time);
             if (count_time > GYRO_CALIBRATE_TIME) {
@@ -651,14 +651,14 @@ static bool_t cali_gyro_mag_hook(uint32_t *cali, bool_t cmd) {
                 gyro_set_cali(local_cali_t->gyro_scale, local_cali_t->gyro_offset);
                 cali_buzzer_off();
                 gyro_cali_enable_control();
-                IMU_IST_select_flag = IST_CALI_STEP;
+                IMU_MAG_select_flag = IST_CALI_STEP;
                 return 0;
             } else {
                 gyro_cali_disable_control(); //disable the remote control to make robot no move
                 imu_start_buzzer();
                 return 0;
             }
-        } else if(IMU_IST_select_flag == IST_CALI_STEP){
+        } else if(IMU_MAG_select_flag == IST_CALI_STEP){
             if (gimbal_control.ist_cali.step == 0) {
                 gimbal_control.ist_cali.step = IST_CALI_START_STEP;
                 return 0;
@@ -671,7 +671,7 @@ static bool_t cali_gyro_mag_hook(uint32_t *cali, bool_t cmd) {
                 gimbal_offset_ecd_cali(&gimbal_control);
                 gimbal_control.gimbal_yaw_motor.relative_angle_set = gimbal_control.gimbal_yaw_motor.relative_angle;
                 gimbal_control.gimbal_pitch_motor.relative_angle_set = gimbal_control.gimbal_pitch_motor.relative_angle;
-                IMU_IST_select_flag = 0;
+                IMU_MAG_select_flag = 0;
                 return 1;
             } else{
                 mag_cali_data_record(&mag_x_max,&mag_x_min,&mag_y_max,&mag_y_min,INS_mag);

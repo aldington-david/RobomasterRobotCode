@@ -32,6 +32,8 @@
 #include "BMI088driver.h"
 #include "ist8310driver.h"
 #include "fifo.h"
+#include "FreeRTOS.h"
+#include "task.h"
 
 
 #define SPI_DMA_GYRO_LENGHT       8
@@ -40,10 +42,10 @@
 #define SPI_DMA_ACCEL_TEMP_LENGHT 4
 
 
-#define IMU_IST_DR_SHFITS        0 //片外DataReady标志，在外部中断设置
-#define IMU_IST_SPI_I2C_SHFITS       1 //DMA占用标志
-#define IMU_IST_UPDATE_SHFITS    2 //读取完成，新数据已装入缓存标志
-#define IMU_IST_NOTIFY_SHFITS    3 //通知INS_task标志
+#define IMU_MAG_DR_SHFITS        0 //片外DataReady标志，在外部中断设置
+#define IMU_MAG_SPI_I2C_SHFITS       1 //DMA占用标志
+#define IMU_MAG_UPDATE_SHFITS    2 //读取完成，新数据已装入缓存标志
+#define IMU_MAG_NOTIFY_SHFITS    3 //通知INS_task标志
 
 
 #define BMI088_GYRO_RX_BUF_DATA_OFFSET  1
@@ -87,7 +89,7 @@ typedef struct {
     float32_t rotation_factor[3][3];
     float32_t offset[3];
     float32_t scale[3];
-} IMU_IST_Cali_t;
+} IMU_MAG_Cali_t;
 
 extern float32_t INS_angle[3];
 
@@ -172,11 +174,11 @@ extern void mag_cali_data_record(float32_t *mag_x_max, float32_t *mag_x_min, flo
   * @retval         none
   */
 extern void
-imu_ist_rotate(float32_t gyro[3], float32_t accel[3], float32_t mag[3], bmi088_real_data_t *bmi088,
+imu_mag_rotate(float32_t gyro[3], float32_t accel[3], float32_t mag[3], bmi088_real_data_t *bmi088,
                ist8310_real_data_t *ist8310);
 
 extern void
-imu_ist_cali(float32_t gyro[3], float32_t accel[3], float32_t mag[3], float32_t gyro_cali[3], float32_t accel_cali[3],
+imu_mag_cali(float32_t gyro[3], float32_t accel[3], float32_t mag[3], float32_t gyro_cali[3], float32_t accel_cali[3],
              float32_t mag_cali[3]);
 
 /**
@@ -241,7 +243,7 @@ extern const float32_t *get_accel_data_point(void);
   * @retval         INS_mag的指针
   */
 extern const float32_t *get_mag_data_point(void);
-
+extern TaskHandle_t INS_task_local_handler;
 extern AHRS_time_record_t IMU_time_record;
 extern float32_t INS_gyro[3];
 extern float32_t INS_accel[3];
@@ -253,7 +255,7 @@ extern float32_t INS_quat[4];
 extern float32_t INS_angle_ukf[3];
 extern AHRS_t IMU;
 extern fifo_s_t mag_data_tx_fifo;
-extern IMU_IST_Cali_t gyro_cali_data;
-extern IMU_IST_Cali_t accel_cali_data;
-extern IMU_IST_Cali_t mag_cali_data;
+extern IMU_MAG_Cali_t gyro_cali_data;
+extern IMU_MAG_Cali_t accel_cali_data;
+extern IMU_MAG_Cali_t mag_cali_data;
 #endif

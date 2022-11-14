@@ -106,7 +106,7 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan) {
             case CAN_PITCH_MOTOR_ID: {
 
                 get_motor_measure(&can2_motor_data[5], rx_data);
-                detect_hook(6);
+                detect_hook(PITCH_GIMBAL_MOTOR_TOE);
                 break;
             }
             case CAN_3508_M1_ID:

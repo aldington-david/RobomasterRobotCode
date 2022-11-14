@@ -377,6 +377,7 @@ void gimbal_task(void const *pvParameters) {
                 gimbal_offset_ecd_cali(&gimbal_control);
                 gimbal_control.gimbal_yaw_motor.relative_angle_set = gimbal_control.gimbal_yaw_motor.relative_angle;
                 gimbal_control.gimbal_pitch_motor.relative_angle_set = gimbal_control.gimbal_pitch_motor.relative_angle;
+//                shoot_control.angle_set = shoot_control.angle;
 //                gimbal_control.gimbal_yaw_motor.offset_ecd = gimbal_control.gimbal_yaw_motor.gimbal_motor_measure->total_ecd;
 
             } else {
@@ -906,12 +907,12 @@ static void gimbal_feedback_update(gimbal_control_t *feedback_update) {
 //            feedback_update->gimbal_pitch_motor.offset_ecd);
 #else
 
-//    feedback_update->gimbal_pitch_motor.relative_angle = motor_ecd_to_angle_change(
-//            feedback_update->gimbal_pitch_motor.gimbal_motor_measure->ecd,
-//            feedback_update->gimbal_pitch_motor.offset_ecd);
-    feedback_update->gimbal_pitch_motor.relative_angle = (
-            (feedback_update->gimbal_pitch_motor.gimbal_motor_measure->total_ecd -
-             feedback_update->gimbal_pitch_motor.offset_ecd) * MOTOR_ECD_TO_RAD / PITCH_MOTOR_REDUCTION);
+    //    feedback_update->gimbal_pitch_motor.relative_angle = motor_ecd_to_angle_change(
+    //            feedback_update->gimbal_pitch_motor.gimbal_motor_measure->ecd,
+    //            feedback_update->gimbal_pitch_motor.offset_ecd);
+        feedback_update->gimbal_pitch_motor.relative_angle = (
+                (feedback_update->gimbal_pitch_motor.gimbal_motor_measure->total_ecd -
+                 feedback_update->gimbal_pitch_motor.offset_ecd) * MOTOR_ECD_TO_RAD / PITCH_MOTOR_REDUCTION);
 #endif
 
     feedback_update->gimbal_pitch_motor.motor_gyro = *(feedback_update->gimbal_INT_gyro_point +

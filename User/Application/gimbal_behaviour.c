@@ -409,7 +409,7 @@ void gimbal_behaviour_control_set(float32_t *add_yaw, float32_t *add_pitch, gimb
   */
 
 bool_t gimbal_cmd_to_chassis_stop(void) {
-    if (gimbal_behaviour == GIMBAL_INIT || gimbal_behaviour == GIMBAL_CALI || gimbal_behaviour == GIMBAL_MOTIONLESS ||
+    if (gimbal_behaviour == GIMBAL_INIT || gimbal_behaviour == GIMBAL_CALI || gimbal_behaviour == IST_CALI || gimbal_behaviour == GIMBAL_MOTIONLESS ||
         gimbal_behaviour == GIMBAL_ZERO_FORCE) {
         return 1;
     } else {

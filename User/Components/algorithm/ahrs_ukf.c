@@ -51,8 +51,8 @@ UKF_t UKF_IMU;
 //X北向，北东地对前右下
 /* Magnetic vector constant (align with local magnetic vector) */
 //float32_t IMU_MAG_B0_data[3] = {COS(0), SIN(0), 0.000000f};
-float32_t IMU_MAG_B0_data[3] = {North_Comp, East_Comp,
-                                Vertical_Comp};//由经纬度和海拔从WMM世界磁场模型计算获得，需旋转并修正磁偏角(need True north magnetic vector),并归一化
+float32_t IMU_MAG_B0_data[3] = {North_Comp/Total_Field, East_Comp/Total_Field,
+                                Vertical_Comp/Total_Field};//由经纬度和海拔从WMM世界磁场模型计算获得，需旋转并修正磁偏角(need True north magnetic vector),并归一化
 /* The hard-magnet bias */
 float32_t HARD_IRON_BIAS_data[3] = {0.0f, 0.0f, 0.0f};
 
@@ -428,7 +428,7 @@ void AHRS_quaternion_init(AHRS_t *AHRS_op) {
     //quaterniondata [w x y z]
 //    ist8310_read_over(mag_dma_rx_buf, ist8310_real_data.mag);
 //    BMI088_read(bmi088_real_data.gyro, bmi088_real_data.accel, &bmi088_real_data.temp);
-//    imu_ist_rotate(INS_gyro, INS_accel, INS_mag, &bmi088_real_data, &ist8310_real_data);
+//    imu_mag_rotate(INS_gyro, INS_accel, INS_mag, &bmi088_real_data, &ist8310_real_data);
     float32_t Ax = INS_accel_cali[0];
     float32_t Ay = INS_accel_cali[1];
     float32_t Az = INS_accel_cali[2];

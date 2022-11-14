@@ -76,17 +76,18 @@
 #define MOTOR_SPEED_TO_CHASSIS_SPEED_WZ 0.25f
 
 
-#define MOTOR_DISTANCE_TO_CENTER 0.2f
+//#define MOTOR_DISTANCE_TO_CENTER 0.2f
+#define MOTOR_DISTANCE_TO_CENTER 1.0f
 
-//chassis task control time  2ms
-//底盘任务控制间隔 2ms
+//chassis task control time  1ms
+//底盘任务控制间隔 1ms
 #define CHASSIS_CONTROL_TIME_MS 1
 //chassis task control time 0.002s
 //底盘任务控制间隔 0.002s
 #define CHASSIS_CONTROL_TIME 0.002f
 //chassis control frequence, no use now.
 //底盘任务控制频率，尚未使用这个宏
-#define CHASSIS_CONTROL_FREQUENCE 500.0f
+#define CHASSIS_CONTROL_FREQUENCE 1000.0f
 //chassis 3508 max motor control current
 //底盘3508最大can发送电流值
 #define MAX_MOTOR_CAN_CURRENT 16000.0f

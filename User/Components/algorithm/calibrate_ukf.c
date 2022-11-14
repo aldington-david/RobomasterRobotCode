@@ -472,7 +472,7 @@ static void matrix_cholesky_decomp_scale_f(unsigned int dim, float L[],
     }
 }
 
-void realtime_mag_cali(matrix_f32_t quaternion_attitude) {
+void realtime_mag_cali(matrix_f32_t *quaternion_attitude,TRICAL_instance_t *TRICAL_data) {
     static matrix_f32_t last_quaternion_attitude;
     static float32_t body_wmm_filed[3];
     Matrix_vinit(&last_quaternion_attitude);
@@ -481,12 +481,14 @@ void realtime_mag_cali(matrix_f32_t quaternion_attitude) {
 If the current attitude is too close to the attitude at which this
 TRICAL instance was last updated, skip calibration this time
 */
-    float delta_angle = quaternion_quaternion_angle_f(quaternion_attitude.arm_matrix.pData,
+    float delta_angle = quaternion_quaternion_angle_f(quaternion_attitude->arm_matrix.pData,
                                                       last_quaternion_attitude.arm_matrix.pData);
     if (delta_angle < 3.0 * PI / 180.0) {
         return;
     }
-    quaternion_vector3_multiply_f(body_wmm_filed,quaternion_attitude.arm_matrix.pData,IMU_MAG_B0_data);
+    quaternion_vector3_multiply_f(body_wmm_filed,quaternion_attitude->arm_matrix.pData,IMU_MAG_B0_data);
+
+//    TRICAL_estimate_update(TRICAL_data,INS_m)
 
 }
 
