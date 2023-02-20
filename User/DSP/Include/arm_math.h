@@ -29,7 +29,7 @@
    * \section intro Introduction
    *
    * This user manual describes the CMSIS DSP software library,
-   * a suite of common signal processing functions for use on Cortex-M and Cortex-A processor 
+   * a suite of common compute processing functions for use on Cortex-M and Cortex-A processor 
    * based devices.
    *
    * The library is divided into a number of functions each covering a specific category:
@@ -47,11 +47,12 @@
    * - \ref groupBayes "Bayes classifier functions"
    * - \ref groupDistance "Distance functions"
    * - \ref groupQuaternionMath "Quaternion functions"
+   * - \ref groupWindow "Window functions"
    *
    * The library has generally separate functions for operating on 8-bit integers, 16-bit integers,
-   * 32-bit integer and 32-bit floating-point values.
+   * 32-bit integer and 32-bit floating-point values and 64-bit floating-point values.
    *
-   * The library is providing vectorized versions of most algorthms for Helium
+   * The library is providing vectorized versions of most algorithms for Helium
    * and of most f32 algorithms for Neon.
    *
    * When using a vectorized version, provide a little bit of padding after the end of
@@ -59,6 +60,16 @@
    * of a buffer. You don't have to modify your buffers but just ensure that the
    * end of buffer + padding is not outside of a memory region.
    *
+   * CMSIS-DSP pack is containing an optional project : The CMSIS-DSP
+   * Compute Graph. The documentation for this project is available
+   * on the <a href="https://github.com/ARM-software/CMSIS-DSP/blob/main/ComputeGraph/README.md">CMSIS-DSP github repository.</a> 
+   *
+   * A Python wrapper is also available with a Python API as close as possible
+   * to the C one. It can be used to start developing and testing an algorithm with NumPy and
+   * SciPy before writing the C version. Is is available on <a href="https://pypi.org/project/cmsisdsp/">PyPI.org</a>.
+   * It can be installed with : pip install cmsisdsp
+   * 
+   * 
    * \section using Using the Library
    *
    * The library is released in source form. It is strongly advised to compile the library using -Ofast to

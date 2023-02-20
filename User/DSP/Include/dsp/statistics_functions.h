@@ -1,8 +1,8 @@
 /******************************************************************************
  * @file     statistics_functions.h
  * @brief    Public header file for CMSIS DSP Library
- * @version  V1.10.0
- * @date     08 July 2021
+ * @version  V1.10.1
+ * @date     14 July 2022
  * Target Processor: Cortex-M and Cortex-A cores
  ******************************************************************************/
 /*
@@ -403,38 +403,38 @@ float64_t arm_kullback_leibler_f64(const float64_t * pSrcA,
    * @brief  Minimum value of a Q7 vector.
    * @param[in]  pSrc       is input pointer
    * @param[in]  blockSize  is the number of samples to process
-   * @param[out] result     is output pointer
-   * @param[in]  index      is the array index of the minimum value in the input buffer.
+   * @param[out] pResult     is output pointer
+   * @param[in]  pIndex      is the array index of the minimum value in the input buffer.
    */
   void arm_min_q7(
   const q7_t * pSrc,
         uint32_t blockSize,
-        q7_t * result,
-        uint32_t * index);
+        q7_t * pResult,
+        uint32_t * pIndex);
 
   /**
    * @brief  Minimum value of absolute values of a Q7 vector.
    * @param[in]  pSrc       is input pointer
    * @param[in]  blockSize  is the number of samples to process
-   * @param[out] result     is output pointer
-   * @param[in]  index      is the array index of the minimum value in the input buffer.
+   * @param[out] pResult    is output pointer
+   * @param[in]  pIndex     is the array index of the minimum value in the input buffer.
    */
   void arm_absmin_q7(
   const q7_t * pSrc,
         uint32_t blockSize,
-        q7_t * result,
-        uint32_t * index);
+        q7_t * pResult,
+        uint32_t * pIndex);
 
     /**
    * @brief  Minimum value of absolute values of a Q7 vector.
    * @param[in]  pSrc       is input pointer
    * @param[in]  blockSize  is the number of samples to process
-   * @param[out] result     is output pointer
+   * @param[out] pResult    is output pointer
    */
   void arm_absmin_no_idx_q7(
   const q7_t * pSrc,
         uint32_t blockSize,
-        q7_t * result);
+        q7_t * pResult);
 
 
   /**
@@ -969,6 +969,32 @@ void arm_mse_f64(
   const float64_t * pSrcB,
         uint32_t blockSize,
         float64_t * pResult);
+
+
+/**
+ * @brief  Accumulation value of a floating-point vector.
+ * @param[in]  pSrc       is input pointer
+ * @param[in]  blockSize  is the number of samples to process
+ * @param[out] pResult    is output value.
+ */
+
+void arm_accumulate_f32(
+const float32_t * pSrc,
+      uint32_t blockSize,
+      float32_t * pResult);
+
+/**
+ * @brief  Accumulation value of a floating-point vector.
+ * @param[in]  pSrc       is input pointer
+ * @param[in]  blockSize  is the number of samples to process
+ * @param[out] pResult    is output value.
+ */
+
+void arm_accumulate_f64(
+const float64_t * pSrc,
+      uint32_t blockSize,
+      float64_t * pResult);
+
 
 #ifdef   __cplusplus
 }

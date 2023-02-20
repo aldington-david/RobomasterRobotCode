@@ -68,34 +68,34 @@ void UKF_init(UKF_t *UKF_op, matrix_f32_t *XInit, matrix_f32_t *P, matrix_f32_t 
  *                to Rv=diag(RvInit,...,RvInit) and Rn=diag(RnInit,...,RnInit).
  */
     UKF_op->X_Est = *XInit;
-    Matrix_vCopy(&UKF_op->P, P);
-    Matrix_vCopy(&UKF_op->Rv, Rv);
-    Matrix_vCopy(&UKF_op->Rn, Rn);
+    Matrix_vCopy_f32(&UKF_op->P, P);
+    Matrix_vCopy_f32(&UKF_op->Rv, Rv);
+    Matrix_vCopy_f32(&UKF_op->Rn, Rn);
     UKF_op->AHRS_bUpdateNonlinearX = bNonlinearUpdateX;
     UKF_op->AHRS_bUpdateNonlinearY = bNonlinearUpdateY;
-    Matrix_nodata_creat(&UKF_op->X_Est, SS_X_LEN, 1, InitMatWithZero);
-    Matrix_nodata_creat(&UKF_op->X_Sigma, SS_X_LEN, (2 * SS_X_LEN + 1), InitMatWithZero);
+    Matrix_nodata_creat_f32(&UKF_op->X_Est, SS_X_LEN, 1, InitMatWithZero);
+    Matrix_nodata_creat_f32(&UKF_op->X_Sigma, SS_X_LEN, (2 * SS_X_LEN + 1), InitMatWithZero);
 
-    Matrix_nodata_creat(&UKF_op->Y_Est, SS_Z_LEN, 1, InitMatWithZero);
-    Matrix_nodata_creat(&UKF_op->Y_Sigma, SS_Z_LEN, (2 * SS_X_LEN + 1), InitMatWithZero);
+    Matrix_nodata_creat_f32(&UKF_op->Y_Est, SS_Z_LEN, 1, InitMatWithZero);
+    Matrix_nodata_creat_f32(&UKF_op->Y_Sigma, SS_Z_LEN, (2 * SS_X_LEN + 1), InitMatWithZero);
 
-//    Matrix_nodata_creat(&UKF_op->P, SS_X_LEN, SS_X_LEN, InitMatWithZero);
-    Matrix_nodata_creat(&UKF_op->P_Chol, SS_X_LEN, SS_X_LEN, InitMatWithZero);
+//    Matrix_nodata_creat_f32(&UKF_op->P, SS_X_LEN, SS_X_LEN, InitMatWithZero);
+    Matrix_nodata_creat_f32(&UKF_op->P_Chol, SS_X_LEN, SS_X_LEN, InitMatWithZero);
 
-    Matrix_nodata_creat(&UKF_op->DX, SS_X_LEN, (2 * SS_X_LEN + 1), InitMatWithZero);
-    Matrix_nodata_creat(&UKF_op->DY, SS_Z_LEN, (2 * SS_X_LEN + 1), InitMatWithZero);
+    Matrix_nodata_creat_f32(&UKF_op->DX, SS_X_LEN, (2 * SS_X_LEN + 1), InitMatWithZero);
+    Matrix_nodata_creat_f32(&UKF_op->DY, SS_Z_LEN, (2 * SS_X_LEN + 1), InitMatWithZero);
 
-    Matrix_nodata_creat(&UKF_op->Py, SS_Z_LEN, SS_Z_LEN, InitMatWithZero);
-    Matrix_nodata_creat(&UKF_op->Pxy, SS_X_LEN, SS_Z_LEN, InitMatWithZero);
+    Matrix_nodata_creat_f32(&UKF_op->Py, SS_Z_LEN, SS_Z_LEN, InitMatWithZero);
+    Matrix_nodata_creat_f32(&UKF_op->Pxy, SS_X_LEN, SS_Z_LEN, InitMatWithZero);
 
-    Matrix_nodata_creat(&UKF_op->Wm, 1, (2 * SS_X_LEN + 1), InitMatWithZero);
-//    Matrix_nodata_creat(&UKF_op->Wc, 1, (2 * SS_X_LEN + 1), InitMatWithZero);
+    Matrix_nodata_creat_f32(&UKF_op->Wm, 1, (2 * SS_X_LEN + 1), InitMatWithZero);
+//    Matrix_nodata_creat_f32(&UKF_op->Wc, 1, (2 * SS_X_LEN + 1), InitMatWithZero);
 
-//    Matrix_nodata_creat(&UKF_op->Rv, SS_X_LEN, SS_X_LEN, InitMatWithZero);
-//    Matrix_nodata_creat(&UKF_op->Rn, SS_Z_LEN, SS_Z_LEN, InitMatWithZero);
+//    Matrix_nodata_creat_f32(&UKF_op->Rv, SS_X_LEN, SS_X_LEN, InitMatWithZero);
+//    Matrix_nodata_creat_f32(&UKF_op->Rn, SS_Z_LEN, SS_Z_LEN, InitMatWithZero);
 
-    Matrix_nodata_creat(&UKF_op->Err, SS_Z_LEN, 1, InitMatWithZero);
-    Matrix_nodata_creat(&UKF_op->Gain, SS_X_LEN, SS_Z_LEN, InitMatWithZero);
+    Matrix_nodata_creat_f32(&UKF_op->Err, SS_Z_LEN, 1, InitMatWithZero);
+    Matrix_nodata_creat_f32(&UKF_op->Gain, SS_X_LEN, SS_Z_LEN, InitMatWithZero);
 
     /* Van der. Merwe, .. (2004). Sigma-Point Kalman Filters for Probabilistic Inference in Dynamic State-Space Models
  * (Ph.D. thesis). Oregon Health & Science University. Page 6:
@@ -121,7 +121,7 @@ void UKF_init(UKF_t *UKF_op, matrix_f32_t *XInit, matrix_f32_t *P, matrix_f32_t 
     }
 
     /* Wc = [Wm(0)+(1-alpha(^2)+beta)  1/(2(N+lambda)) ... 1/(2(N+lambda))]     ...{UKF_3} */
-    Matrix_vCopy(&UKF_op->Wm, &UKF_op->Wc);
+    Matrix_vCopy_f32(&UKF_op->Wm, &UKF_op->Wc);
     UKF_op->Wc.p2Data[0][0] = UKF_op->Wc.p2Data[0][0] + (1.0f - (_alpha * _alpha) + _beta);
 }
 
@@ -129,9 +129,9 @@ bool UKF_bUpdate(UKF_t *UKF_op, matrix_f32_t *Y_matrix, matrix_f32_t *U_matrix, 
     matrix_f32_t _temp_T;
     matrix_f32_t _temp_M;
     matrix_f32_t _temp_M2;
-    Matrix_vinit(&_temp_T);
-    Matrix_vinit(&_temp_M);
-    Matrix_vinit(&_temp_M2);
+    Matrix_vinit_f32(&_temp_T);
+    Matrix_vinit_f32(&_temp_M);
+    Matrix_vinit_f32(&_temp_M2);
     /* Run once every sampling time */
     /* XSigma(k-1) = [x(k-1) Xs(k-1)+GPsq Xs(k-1)-GPsq]                     ...{UKF_4}  */
     if (!UKF_bCalculateSigmaPoint(UKF_op)) {
@@ -157,49 +157,49 @@ bool UKF_bUpdate(UKF_t *UKF_op, matrix_f32_t *Y_matrix, matrix_f32_t *U_matrix, 
             UKF_op->DX.p2Data[_i][_j] *= UKF_op->Wc.p2Data[0][_j];
         }
     }
-    Matrix_vTranspose_nsame(&UKF_op->DY, &_temp_T);
-    Matrix_vmult_nsame(&UKF_op->DX, &_temp_T, &UKF_op->Pxy);
+    Matrix_vTranspose_nsame_f32(&UKF_op->DY, &_temp_T);
+    Matrix_vmult_nsame_f32(&UKF_op->DX, &_temp_T, &UKF_op->Pxy);
 
     /* Calculate the Kalman Gain:
      *  K           = Pxy(k) * (Py(k)^-1)                                   ...{UKF_10}
      */
     matrix_f32_t PyInv;
-    Matrix_vinit(&PyInv);
-    Matrix_vInverse_nsame(&UKF_op->Py, &PyInv);
-    if (!Matrix_bMatrixIsValid(&PyInv)) {
-        Matrix_vSetMatrixInvalid(&PyInv);
+    Matrix_vinit_f32(&PyInv);
+    Matrix_vInverse_nsame_f32(&UKF_op->Py, &PyInv);
+    if (!Matrix_bMatrixIsValid_f32(&PyInv)) {
+        Matrix_vSetMatrixInvalid_f32(&PyInv);
         return false;
     }
-    Matrix_vmult_nsame(&UKF_op->Pxy, &PyInv, &UKF_op->Gain);
+    Matrix_vmult_nsame_f32(&UKF_op->Pxy, &PyInv, &UKF_op->Gain);
 
 
     /* Update the Estimated State Variable:
      *  x(k|k)      = x(k|k-1) + K * (y(k) - y_est(k))                      ...{UKF_11}
      */
-    Matrix_vsub(Y_matrix, &UKF_op->Y_Est, &UKF_op->Err);
-    Matrix_vmult_nsame(&UKF_op->Gain, &UKF_op->Err, &_temp_M);
-    Matrix_vadd(&UKF_op->X_Est, &_temp_M, &UKF_op->X_Est);
+    Matrix_vsub_f32(Y_matrix, &UKF_op->Y_Est, &UKF_op->Err);
+    Matrix_vmult_nsame_f32(&UKF_op->Gain, &UKF_op->Err, &_temp_M);
+    Matrix_vadd_f32(&UKF_op->X_Est, &_temp_M, &UKF_op->X_Est);
 
     /* Update the Covariance Matrix:
      *  P(k|k)      = P(k|k-1) - K*Py(k)*K'                                 ...{UKF_12}
      */
-    Matrix_vTranspose_nsame(&UKF_op->Gain, &_temp_T);
-    Matrix_vmult_nsame(&UKF_op->Gain, &UKF_op->Py, &_temp_M);
-    Matrix_vmult_nsame(&_temp_M, &_temp_T, &_temp_M2);
-    Matrix_vsub(&UKF_op->P, &_temp_M2, &UKF_op->P);
-    Matrix_vSetMatrixInvalid(&PyInv);
-    Matrix_vSetMatrixInvalid(&_temp_T);
-    Matrix_vSetMatrixInvalid(&_temp_M);
-    Matrix_vSetMatrixInvalid(&_temp_M2);
+    Matrix_vTranspose_nsame_f32(&UKF_op->Gain, &_temp_T);
+    Matrix_vmult_nsame_f32(&UKF_op->Gain, &UKF_op->Py, &_temp_M);
+    Matrix_vmult_nsame_f32(&_temp_M, &_temp_T, &_temp_M2);
+    Matrix_vsub_f32(&UKF_op->P, &_temp_M2, &UKF_op->P);
+    Matrix_vSetMatrixInvalid_f32(&PyInv);
+    Matrix_vSetMatrixInvalid_f32(&_temp_T);
+    Matrix_vSetMatrixInvalid_f32(&_temp_M);
+    Matrix_vSetMatrixInvalid_f32(&_temp_M2);
 
     return true;
 }
 
 void UKF_vReset(UKF_t *UKF_op, matrix_f32_t *XInit, matrix_f32_t *P, matrix_f32_t *Rv, matrix_f32_t *Rn) {
     UKF_op->X_Est = *XInit;
-    Matrix_vCopy(&UKF_op->P, P);
-    Matrix_vCopy(&UKF_op->Rv, Rv);
-    Matrix_vCopy(&UKF_op->Rn, Rn);
+    Matrix_vCopy_f32(&UKF_op->P, P);
+    Matrix_vCopy_f32(&UKF_op->Rv, Rv);
+    Matrix_vCopy_f32(&UKF_op->Rn, Rn);
 }
 
 bool UKF_bCalculateSigmaPoint(UKF_t *UKF_op) {
@@ -209,32 +209,32 @@ bool UKF_bCalculateSigmaPoint(UKF_t *UKF_op) {
      */
     /* Use Cholesky Decomposition to compute sqrt(P) */
     matrix_f32_t _temp;
-    Matrix_vinit(&_temp);
-    Matrix_vCholeskyDec(&UKF_op->P, &UKF_op->P_Chol);
-    if (!Matrix_bMatrixIsValid(&UKF_op->P_Chol)) {
+    Matrix_vinit_f32(&_temp);
+    Matrix_vCholeskyDec_f32(&UKF_op->P, &UKF_op->P_Chol);
+    if (!Matrix_bMatrixIsValid_f32(&UKF_op->P_Chol)) {
         /* System Fail */
         return false;
     }
-    Matrix_vscale(&UKF_op->P_Chol, UKF_op->Gamma);
+    Matrix_vscale_f32(&UKF_op->P_Chol, UKF_op->Gamma);
 
     /* Xs(k-1) = [x(k-1) ... x(k-1)]            ; Xs(k-1) = NxN */
     matrix_f32_t Y_;
-    Matrix_nodata_creat(&Y_, SS_X_LEN, SS_X_LEN, InitMatWithZero);
+    Matrix_nodata_creat_f32(&Y_, SS_X_LEN, SS_X_LEN, InitMatWithZero);
     for (int16_t _i = 0; _i < SS_X_LEN; _i++) {
-        Matrix_vInsertVector(&Y_, &UKF_op->X_Est, _i, &Y_);
+        Matrix_vInsertVector_f32(&Y_, &UKF_op->X_Est, _i, &Y_);
     }
 
-    Matrix_vSetToZero(&UKF_op->X_Sigma);
+    Matrix_vSetToZero_f32(&UKF_op->X_Sigma);
     /* XSigma(k-1) = [x(k-1) 0 0] */
-    Matrix_vInsertVector(&UKF_op->X_Sigma, &UKF_op->X_Est, 0, &UKF_op->X_Sigma);
+    Matrix_vInsertVector_f32(&UKF_op->X_Sigma, &UKF_op->X_Est, 0, &UKF_op->X_Sigma);
     /* XSigma(k-1) = [x(k-1) Xs(k-1)+GPsq  0] */
-    Matrix_vadd(&Y_, &UKF_op->P_Chol, &_temp);
-    Matrix_vInsertAllSubMatrix(&UKF_op->X_Sigma, &_temp, 0, 1, &UKF_op->X_Sigma);
+    Matrix_vadd_f32(&Y_, &UKF_op->P_Chol, &_temp);
+    Matrix_vInsertAllSubMatrix_f32(&UKF_op->X_Sigma, &_temp, 0, 1, &UKF_op->X_Sigma);
     /* XSigma(k-1) = [x(k-1) Xs(k-1)+GPsq Xs(k-1)-GPsq] */
-    Matrix_vsub(&Y_, &UKF_op->P_Chol, &_temp);
-    Matrix_vInsertAllSubMatrix(&UKF_op->X_Sigma, &_temp, 0, (1 + SS_X_LEN), &UKF_op->X_Sigma);
-    Matrix_vSetMatrixInvalid(&Y_);
-    Matrix_vSetMatrixInvalid(&_temp);
+    Matrix_vsub_f32(&Y_, &UKF_op->P_Chol, &_temp);
+    Matrix_vInsertAllSubMatrix_f32(&UKF_op->X_Sigma, &_temp, 0, (1 + SS_X_LEN), &UKF_op->X_Sigma);
+    Matrix_vSetMatrixInvalid_f32(&Y_);
+    Matrix_vSetMatrixInvalid_f32(&_temp);
 
     return true;
 }
@@ -247,58 +247,58 @@ UKF_bUnscentedTransform(UKF_t *UKF_op, matrix_f32_t *Out, matrix_f32_t *OutSigma
                         matrix_f32_t *_CovNoise, AHRS_t *AHRS_op) {
     matrix_f32_t _temp_T;
     matrix_f32_t _temp_M;
-    Matrix_vinit(&_temp_T);
-    Matrix_vinit(&_temp_M);
+    Matrix_vinit_f32(&_temp_T);
+    Matrix_vinit_f32(&_temp_M);
     /* XSigma(k) = f(XSigma(k-1), u(k-1))                                  ...{UKF_5a}  */
     /* x(k|k-1) = sum(Wm(i) * XSigma(k)(i))    ; i = 1 ... (2N+1)          ...{UKF_6a}  */
-    Matrix_vSetToZero(Out);
+    Matrix_vSetToZero_f32(Out);
     for (int16_t _j = 0; _j < InpSigma->arm_matrix.numCols; _j++) {
         /* Transform the column submatrix of sigma-points input matrix (InpSigma) */
         matrix_f32_t _AuxSigma1;
         matrix_f32_t _AuxSigma2;
-        Matrix_nodata_creat(&_AuxSigma1, InpSigma->arm_matrix.numRows, 1, InitMatWithZero);
-        Matrix_nodata_creat(&_AuxSigma2, OutSigma->arm_matrix.numRows, 1, InitMatWithZero);
+        Matrix_nodata_creat_f32(&_AuxSigma1, InpSigma->arm_matrix.numRows, 1, InitMatWithZero);
+        Matrix_nodata_creat_f32(&_AuxSigma2, OutSigma->arm_matrix.numRows, 1, InitMatWithZero);
         for (int16_t _i = 0; _i < InpSigma->arm_matrix.numRows; _i++) {
             _AuxSigma1.p2Data[_i][0] = InpSigma->p2Data[_i][_j];
         }
         if (!_vFuncNonLinear(&_AuxSigma2, &_AuxSigma1, InpVector, AHRS_op)) {
-            Matrix_vSetMatrixInvalid(&_AuxSigma1);
-            Matrix_vSetMatrixInvalid(&_AuxSigma2);
+            Matrix_vSetMatrixInvalid_f32(&_AuxSigma1);
+            Matrix_vSetMatrixInvalid_f32(&_AuxSigma2);
             /* Somehow the transformation function is failed, propagate the error */
             return false;
         }
 
         /* Combine the transformed vector to construct sigma-points output matrix (OutSigma) */
-        Matrix_vInsertVector(OutSigma, &_AuxSigma2, _j, OutSigma);
+        Matrix_vInsertVector_f32(OutSigma, &_AuxSigma2, _j, OutSigma);
 
         /* Calculate x(k|k-1) as weighted mean of OutSigma */
-        Matrix_vscale(&_AuxSigma2, UKF_op->Wm.p2Data[0][_j]);
-        Matrix_vadd(Out, &_AuxSigma2, Out);
-        Matrix_vSetMatrixInvalid(&_AuxSigma1);
-        Matrix_vSetMatrixInvalid(&_AuxSigma2);
+        Matrix_vscale_f32(&_AuxSigma2, UKF_op->Wm.p2Data[0][_j]);
+        Matrix_vadd_f32(Out, &_AuxSigma2, Out);
+        Matrix_vSetMatrixInvalid_f32(&_AuxSigma1);
+        Matrix_vSetMatrixInvalid_f32(&_AuxSigma2);
     }
 
     /* DX = XSigma(k)(i) - Xs(k)   ; Xs(k) = [x(k|k-1) ... x(k|k-1)]
      *                             ; Xs(k) = Nx(2N+1)                      ...{UKF_7a}  */
     matrix_f32_t _AuxSigma1;
-    Matrix_nodata_creat(&_AuxSigma1, OutSigma->arm_matrix.numRows, OutSigma->arm_matrix.numCols, InitMatWithZero);
+    Matrix_nodata_creat_f32(&_AuxSigma1, OutSigma->arm_matrix.numRows, OutSigma->arm_matrix.numCols, InitMatWithZero);
     for (int16_t _j = 0; _j < OutSigma->arm_matrix.numCols; _j++) {
-        Matrix_vInsertVector(&_AuxSigma1, Out, _j, &_AuxSigma1);
+        Matrix_vInsertVector_f32(&_AuxSigma1, Out, _j, &_AuxSigma1);
     }
-    Matrix_vsub(OutSigma, &_AuxSigma1, DSig);
+    Matrix_vsub_f32(OutSigma, &_AuxSigma1, DSig);
     /* P(k|k-1) = sum(Wc(i)*DX*DX') + Rv       ; i = 1 ... (2N+1)          ...{UKF_8a}  */
-    Matrix_vCopy(DSig, &_AuxSigma1);
+    Matrix_vCopy_f32(DSig, &_AuxSigma1);
     for (int16_t _i = 0; _i < DSig->arm_matrix.numRows; _i++) {
         for (int16_t _j = 0; _j < DSig->arm_matrix.numCols; _j++) {
             _AuxSigma1.p2Data[_i][_j] *= UKF_op->Wc.p2Data[0][_j];
         }
     }
-    Matrix_vTranspose_nsame(DSig, &_temp_T);
-    Matrix_vmult_nsame(&_AuxSigma1, &_temp_T, &_temp_M);
-    Matrix_vadd(&_temp_M, _CovNoise, P);
-    Matrix_vSetMatrixInvalid(&_AuxSigma1);
-    Matrix_vSetMatrixInvalid(&_temp_T);
-    Matrix_vSetMatrixInvalid(&_temp_M);
+    Matrix_vTranspose_nsame_f32(DSig, &_temp_T);
+    Matrix_vmult_nsame_f32(&_AuxSigma1, &_temp_T, &_temp_M);
+    Matrix_vadd_f32(&_temp_M, _CovNoise, P);
+    Matrix_vSetMatrixInvalid_f32(&_AuxSigma1);
+    Matrix_vSetMatrixInvalid_f32(&_temp_T);
+    Matrix_vSetMatrixInvalid_f32(&_temp_M);
 
     return true;
 }
@@ -339,7 +339,7 @@ bool AHRS_bUpdateNonlinearX(matrix_f32_t *X_Next, matrix_f32_t *X_matrix, matrix
 
 
     /* ======= Additional ad-hoc quaternion normalization to make sure the quaternion is a unit vector (i.e. ||q|| = 1) ======= */
-    if (!Matrix_bNormVector(X_Next)) {
+    if (!Matrix_bNormVector_f32(X_Next)) {
         /* System error, return false so we can reset the UKF */
         return false;
     }
@@ -394,34 +394,34 @@ bool AHRS_bUpdateNonlinearY(matrix_f32_t *Y_matrix, matrix_f32_t *X_matrix, matr
 }
 
 void NEWAHRS_init(AHRS_t *AHRS_op) {
-    Matrix_data_creat(&AHRS_op->IMU_MAG_B0, 3, 1, IMU_MAG_B0_data, InitMatWithZero);
-    Matrix_data_creat(&AHRS_op->HARD_IRON_BIAS, 3, 1, HARD_IRON_BIAS_data, InitMatWithZero);
-    Matrix_data_creat(&quaternionData, SS_X_LEN, 1, INS_quat, InitMatWithZero);
+    Matrix_data_creat_f32(&AHRS_op->IMU_MAG_B0, 3, 1, IMU_MAG_B0_data, InitMatWithZero);
+    Matrix_data_creat_f32(&AHRS_op->HARD_IRON_BIAS, 3, 1, HARD_IRON_BIAS_data, InitMatWithZero);
+    Matrix_data_creat_f32(&quaternionData, SS_X_LEN, 1, INS_quat, InitMatWithZero);
 
-    Matrix_nodata_creat(&RLS_theta, 4, 1, InitMatWithZero);
-    Matrix_nodata_creat(&RLS_P, 4, 4, InitMatWithZero);
-    Matrix_nodata_creat(&RLS_in, 4, 1, InitMatWithZero);
-    Matrix_nodata_creat(&RLS_out, 1, 1, InitMatWithZero);
-    Matrix_nodata_creat(&RLS_gain, 4, 1, InitMatWithZero);
+    Matrix_nodata_creat_f32(&RLS_theta, 4, 1, InitMatWithZero);
+    Matrix_nodata_creat_f32(&RLS_P, 4, 4, InitMatWithZero);
+    Matrix_nodata_creat_f32(&RLS_in, 4, 1, InitMatWithZero);
+    Matrix_nodata_creat_f32(&RLS_out, 1, 1, InitMatWithZero);
+    Matrix_nodata_creat_f32(&RLS_gain, 4, 1, InitMatWithZero);
 
-    Matrix_nodata_creat(&Y, SS_Z_LEN, 1, InitMatWithZero);
-    Matrix_nodata_creat(&U, SS_U_LEN, 1, InitMatWithZero);
+    Matrix_nodata_creat_f32(&Y, SS_Z_LEN, 1, InitMatWithZero);
+    Matrix_nodata_creat_f32(&U, SS_U_LEN, 1, InitMatWithZero);
 
-    Matrix_data_creat(&UKF_PINIT, SS_X_LEN, SS_X_LEN, UKF_PINIT_data, NoInitMatZero);
+    Matrix_data_creat_f32(&UKF_PINIT, SS_X_LEN, SS_X_LEN, UKF_PINIT_data, NoInitMatZero);
 
-    Matrix_data_creat(&UKF_Rv, SS_X_LEN, SS_X_LEN, UKF_Rv_data, NoInitMatZero);
+    Matrix_data_creat_f32(&UKF_Rv, SS_X_LEN, SS_X_LEN, UKF_Rv_data, NoInitMatZero);
 
-    Matrix_data_creat(&UKF_Rn, SS_Z_LEN, SS_Z_LEN, UKF_Rn_data, NoInitMatZero);
+    Matrix_data_creat_f32(&UKF_Rn, SS_Z_LEN, SS_Z_LEN, UKF_Rn_data, NoInitMatZero);
 
     /* UKF initialization ----------------------------------------- */
     /* x(k=0) = [1 0 0 0]' */
-//    Matrix_vSetToZero(&quaternionData);
+//    Matrix_vSetToZero_f32(&quaternionData);
 
     UKF_init(&UKF_IMU, &quaternionData, &UKF_PINIT, &UKF_Rv, &UKF_Rn, AHRS_bUpdateNonlinearX, AHRS_bUpdateNonlinearY);
     /* RLS initialization ----------------------------------------- */
-    Matrix_vSetToZero(&RLS_theta);
-    Matrix_vSetIdentity(&RLS_P);
-    Matrix_vscale(&RLS_P, 1000.0f);
+    Matrix_vSetToZero_f32(&RLS_theta);
+    Matrix_vSetIdentity_f32(&RLS_P);
+    Matrix_vscale_f32(&RLS_P, 1000.0f);
 }
 
 void AHRS_quaternion_init(AHRS_t *AHRS_op) {
@@ -480,10 +480,10 @@ void AHRS_quaternion_init(AHRS_t *AHRS_op) {
 //    SEGGER_RTT_printf(0,"%f\r\n",INS_quat[1]);
 //    SEGGER_RTT_printf(0,"%f\r\n",INS_quat[2]);
 //    SEGGER_RTT_printf(0,"%f\r\n",INS_quat[3]);
-    Matrix_vassignment(&quaternionData, 1, 1, INS_quat[0]);
-    Matrix_vassignment(&quaternionData, 2, 1, INS_quat[1]);
-    Matrix_vassignment(&quaternionData, 3, 1, INS_quat[2]);
-    Matrix_vassignment(&quaternionData, 4, 1, INS_quat[3]);
+    Matrix_vassignment_f32(&quaternionData, 1, 1, INS_quat[0]);
+    Matrix_vassignment_f32(&quaternionData, 2, 1, INS_quat[1]);
+    Matrix_vassignment_f32(&quaternionData, 3, 1, INS_quat[2]);
+    Matrix_vassignment_f32(&quaternionData, 4, 1, INS_quat[3]);
 //    AHRS_op->IMU_MAG_B0.p2Data[0][0] = cosf(yaw);
 //    AHRS_op->IMU_MAG_B0.p2Data[1][0] = sinf(yaw);
 //    AHRS_op->IMU_MAG_B0.p2Data[2][0] = 0;
