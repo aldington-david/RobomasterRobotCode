@@ -3,7 +3,7 @@ cmake_policy(SET CMP0077 NEW)
 project(CMSISDSP)
 
 # DSP Sources
-SET(DSP ..)
+SET(DSP ${CMAKE_CURRENT_SOURCE_DIR}/..)
 
 option(NEON "Neon acceleration" OFF)
 option(NEONEXPERIMENTAL "Neon experimental acceleration" OFF)
@@ -37,6 +37,7 @@ option(BAYES                "Bayesian Estimators"               ON)
 option(DISTANCE             "Distance Functions"                ON)
 option(INTERPOLATION        "Interpolation Functions"                ON)
 option(QUATERNIONMATH       "Quaternion Math Functions"                ON)
+option(WINDOW               "Window Functions"                ON)
 
 # When OFF it is the default behavior : all tables are included.
 option(CONFIGTABLE          "Configuration of table allowed"    OFF)
@@ -281,6 +282,10 @@ endif()
 
 if (INTERPOLATION)
   include(InterpolationFunctions/Config.cmake)
+endif()
+
+if (WINDOW)
+  include(WindowFunctions/Config.cmake)
 endif()
 
 ### Includes

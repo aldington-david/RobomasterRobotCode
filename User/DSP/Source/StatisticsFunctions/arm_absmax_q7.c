@@ -46,7 +46,12 @@
   @return        none
  */
 
-#if defined(ARM_MATH_MVEI) && !defined(ARM_MATH_AUTOVECTORIZE)
+#if defined(ARM_MATH_MVE_FLOAT16) && !defined(ARM_MATH_AUTOVECTORIZE) && defined(__CMSIS_GCC_H)
+#pragma GCC warning "Scalar version of arm_absmax_q7 built. Helium version has build issues with gcc."
+#endif 
+
+
+#if defined(ARM_MATH_MVEI) && !defined(ARM_MATH_AUTOVECTORIZE) &&  !defined(__CMSIS_GCC_H)
 
 #include <stdint.h>
 #include "arm_helium_utils.h"
@@ -79,7 +84,7 @@ static void arm_small_blk_absmax_q7(
          * Get current max per lane and current index per lane
          * when a max is selected
          */
-        p0 = vcmpgeq_m(extremIdxVal, extremValVec, p);
+        p0 = vcmpgtq_m(extremIdxVal, extremValVec, p);
 
         extremValVec = vorrq_m(extremValVec, extremIdxVal, extremIdxVal, p0);
         /* store per-lane extrema indexes */

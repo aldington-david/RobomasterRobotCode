@@ -174,14 +174,14 @@ referee usart:%s\r\n\
 //            SEGGER_RTT_WriteString(0, print_buf);
             //裁判系统
             //裁判系统限速
-            SEGGER_RTT_SetTerminal(1);
-            sprintf(print_buf,
-                    "power=%fW,bullet_speed=%f，robot_id=%d\r\n",
-                    global_judge_info.PowerHeatData.chassis_power,
-                    global_judge_info.ShootData.bullet_speed,
-                    global_judge_info.GameRobotStatus.robot_id
-                    );
-            SEGGER_RTT_WriteString(0, print_buf);
+//            SEGGER_RTT_SetTerminal(1);
+//            sprintf(print_buf,
+//                    "power=%fW,bullet_speed=%f，robot_id=%d\r\n",
+//                    global_judge_info.PowerHeatData.chassis_power,
+//                    global_judge_info.ShootData.bullet_speed,
+//                    global_judge_info.GameRobotStatus.robot_id
+//                    );
+//            SEGGER_RTT_WriteString(0, print_buf);
 
 
             //传感器
@@ -202,14 +202,14 @@ referee usart:%s\r\n\
 //            SEGGER_RTT_WriteString(0, print_buf);
 
             //IMU数据
-//            SEGGER_RTT_SetTerminal(4);
-//            sprintf(print_buf, "imu_tmp=%f,YAW=%f,PITCH=%f,ROLL=%f\r\n",
-//                    bmi088_real_data.temp,
-//                    INS_angle[0],
-//                    INS_angle[1],
-//                    INS_angle[2]);
-//            SEGGER_RTT_WriteString(0, print_buf);
-//            SEGGER_RTT_SetTerminal(4);
+            SEGGER_RTT_SetTerminal(4);
+            sprintf(print_buf, "imu_tmp=%f,YAW=%f,PITCH=%f,ROLL=%f\r\n",
+                    bmi088_real_data.temp,
+                    INS_angle[0],
+                    INS_angle[1],
+                    INS_angle[2]);
+            SEGGER_RTT_WriteString(0, print_buf);
+            SEGGER_RTT_SetTerminal(4);
 
 //            sprintf(print_buf, "imu_tmp=%f,uYAW=%f,uPITCH=%f,uROLL=%f\r\n",
 //                    bmi088_real_data.temp,
@@ -224,12 +224,12 @@ referee usart:%s\r\n\
 //                    bmi088_real_data.accel[1],
 //                    bmi088_real_data.accel[2]);
 //            SEGGER_RTT_WriteString(0, print_buf);
-            SEGGER_RTT_SetTerminal(5);
-            sprintf(print_buf, "acc_x=%f,acc_y=%f,acc_z=%f\r\n",
-                    INS_accel[0],
-                    INS_accel[1],
-                    INS_accel[2]);
-            SEGGER_RTT_WriteString(0, print_buf);
+//            SEGGER_RTT_SetTerminal(5);
+//            sprintf(print_buf, "acc_x=%f,acc_y=%f,acc_z=%f\r\n",
+//                    INS_accel[0],
+//                    INS_accel[1],
+//                    INS_accel[2]);
+//            SEGGER_RTT_WriteString(0, print_buf);
 //              gyro
 //            SEGGER_RTT_SetTerminal(6);
 //            sprintf(print_buf, "imu_tmp=%f,gyro_x=%f,gyro_y=%f,gyro_z=%f\r\n",
@@ -369,30 +369,30 @@ referee usart:%s\r\n\
 //                    gimbal_control.gimbal_yaw_motor.gimbal_motor_measure->speed_rpm);
 //            SEGGER_RTT_WriteString(0, print_buf);
             //pitch
-            SEGGER_RTT_SetTerminal(2);
-            sprintf(print_buf,
-                    "Pitch_max_ang=%f,Pitch_min_ang=%f,Pitch_now_ang=%f,Pitch_now_set_ang=%f,Pitch_now_ecd=%d,Pitch_total_ecd=%d,Pitch_turncount=%d,Pitch_offset_ecd=%d,Pitch_cl_max_ecd=%d,Pitch_cl_min_ecd=%d\r\n",
-                    gimbal_control.gimbal_pitch_motor.max_relative_angle,
-                    gimbal_control.gimbal_pitch_motor.min_relative_angle,
-                    gimbal_control.gimbal_pitch_motor.relative_angle,
-                    gimbal_control.gimbal_pitch_motor.relative_angle_set,
-                    gimbal_control.gimbal_pitch_motor.gimbal_motor_measure->ecd,
-                    gimbal_control.gimbal_pitch_motor.gimbal_motor_measure->total_ecd,
-                    gimbal_control.gimbal_pitch_motor.gimbal_motor_measure->turnCount,
-                    gimbal_control.gimbal_pitch_motor.offset_ecd,
-                    gimbal_control.gimbal_cali.max_pitch_ecd,
-                    gimbal_control.gimbal_cali.min_pitch_ecd);
-            SEGGER_RTT_WriteString(0, print_buf);
+//            SEGGER_RTT_SetTerminal(2);
+//            sprintf(print_buf,
+//                    "Pitch_max_ang=%f,Pitch_min_ang=%f,Pitch_now_ang=%f,Pitch_now_set_ang=%f,Pitch_now_ecd=%d,Pitch_total_ecd=%d,Pitch_turncount=%d,Pitch_offset_ecd=%d,Pitch_cl_max_ecd=%d,Pitch_cl_min_ecd=%d\r\n",
+//                    gimbal_control.gimbal_pitch_motor.max_relative_angle,
+//                    gimbal_control.gimbal_pitch_motor.min_relative_angle,
+//                    gimbal_control.gimbal_pitch_motor.relative_angle,
+//                    gimbal_control.gimbal_pitch_motor.relative_angle_set,
+//                    gimbal_control.gimbal_pitch_motor.gimbal_motor_measure->ecd,
+//                    gimbal_control.gimbal_pitch_motor.gimbal_motor_measure->total_ecd,
+//                    gimbal_control.gimbal_pitch_motor.gimbal_motor_measure->turnCount,
+//                    gimbal_control.gimbal_pitch_motor.offset_ecd,
+//                    gimbal_control.gimbal_cali.max_pitch_ecd,
+//                    gimbal_control.gimbal_cali.min_pitch_ecd);
+//            SEGGER_RTT_WriteString(0, print_buf);
 
-            SEGGER_RTT_SetTerminal(3);
-            sprintf(print_buf,
-                    "Pitch_cl_max=%f,Pitch_cl_min=%f,Pitch_cl_max_ecd=%d,Pitch_cl_min_ecd=%d,Pitch_speed=%d\r\n",
-                    gimbal_control.gimbal_cali.max_pitch,
-                    gimbal_control.gimbal_cali.min_pitch,
-                    gimbal_control.gimbal_cali.max_pitch_ecd,
-                    gimbal_control.gimbal_cali.min_pitch_ecd,
-                    gimbal_control.gimbal_pitch_motor.gimbal_motor_measure->speed_rpm);
-            SEGGER_RTT_WriteString(0, print_buf);
+//            SEGGER_RTT_SetTerminal(3);
+//            sprintf(print_buf,
+//                    "Pitch_cl_max=%f,Pitch_cl_min=%f,Pitch_cl_max_ecd=%d,Pitch_cl_min_ecd=%d,Pitch_speed=%d\r\n",
+//                    gimbal_control.gimbal_cali.max_pitch,
+//                    gimbal_control.gimbal_cali.min_pitch,
+//                    gimbal_control.gimbal_cali.max_pitch_ecd,
+//                    gimbal_control.gimbal_cali.min_pitch_ecd,
+//                    gimbal_control.gimbal_pitch_motor.gimbal_motor_measure->speed_rpm);
+//            SEGGER_RTT_WriteString(0, print_buf);
 
             //拨盘pid
 //            拨盘数据

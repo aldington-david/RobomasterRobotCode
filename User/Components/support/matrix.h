@@ -44,13 +44,30 @@ typedef struct {
     bool is_valid;
 } matrix_f32_t;
 
-extern void Matrix_nodata_creat(matrix_f32_t *matrix_op, const int16_t _i16row, const int16_t _i16col, InitZero _init);
+typedef struct {
+    arm_matrix_instance_f64 arm_matrix;
+    float64_t **p2Data;
+    bool is_valid;
+} matrix_f64_t;
 
 extern void
-Matrix_data_creat(matrix_f32_t *matrix_op, const int16_t _i16row, const int16_t _i16col, float32_t *initData,
-                  InitZero _init);
+Matrix_nodata_creat_f32(matrix_f32_t *matrix_op, const uint16_t _i16row, const uint16_t _i16col, InitZero _init);
 
-extern void Matrix_vSetHomogen(matrix_f32_t *matrix_op, const float32_t _val);
+extern void
+Matrix_nodata_creat_f64(matrix_f64_t *matrix_op, const uint16_t _i16row, const uint16_t _i16col, InitZero _init);
+
+
+extern void
+Matrix_data_creat_f32(matrix_f32_t *matrix_op, const uint16_t _i16row, const uint16_t _i16col, float32_t *initData,
+                      InitZero _init);
+
+extern void
+Matrix_data_creat_f64(matrix_f64_t *matrix_op, const uint16_t _i16row, const uint16_t _i16col, float64_t *initData,
+                      InitZero _init);
+
+extern void Matrix_vSetHomogen_f32(matrix_f32_t *matrix_op, const float32_t _val);
+
+extern void Matrix_vSetHomogen_f64(matrix_f64_t *matrix_op, const float64_t _val);
 
 /**
   * @brief          Check whether the matrix is valid or not.
@@ -58,39 +75,71 @@ extern void Matrix_vSetHomogen(matrix_f32_t *matrix_op, const float32_t _val);
   * @param[out]     matrix_op:矩阵指针
   * @retval         bool
   */
-extern bool Matrix_bMatrixIsValid(matrix_f32_t *matrix_op);
+extern bool Matrix_bMatrixIsValid_f32(matrix_f32_t *matrix_op);
 
-extern void Matrix_vSetMatrixInvalid(matrix_f32_t *matrix_op);
+extern bool Matrix_bMatrixIsValid_f64(matrix_f64_t *matrix_op);
 
-extern bool Matrix_bMatrixIsSquare(matrix_f32_t *matrix_op);
+extern void Matrix_vSetMatrixInvalid_f32(matrix_f32_t *matrix_op);
 
-extern int16_t Matrix_i16getRow(matrix_f32_t *matrix_op);
+extern void Matrix_vSetMatrixInvalid_f64(matrix_f64_t *matrix_op);
 
-extern int16_t Matrix_i16getCol(matrix_f32_t *matrix_op);
+extern bool Matrix_bMatrixIsSquare_f32(matrix_f32_t *matrix_op);
 
-extern bool Matrix_bMatrixIsEqual(matrix_f32_t *matrix_L, matrix_f32_t *matrix_R);
+extern bool Matrix_bMatrixIsSquare_f64(matrix_f64_t *matrix_op);
+
+extern uint16_t Matrix_i16getRow_f32(matrix_f32_t *matrix_op);
+
+extern uint16_t Matrix_i16getRow_f64(matrix_f64_t *matrix_op);
+
+extern uint16_t Matrix_i16getCol_f32(matrix_f32_t *matrix_op);
+
+extern uint16_t Matrix_i16getCol_f64(matrix_f64_t *matrix_op);
+
+extern bool Matrix_bMatrixIsEqual_f32(matrix_f32_t *matrix_L, matrix_f32_t *matrix_R);
+
+extern bool Matrix_bMatrixIsEqual_f64(matrix_f64_t *matrix_L, matrix_f64_t *matrix_R);
 
 /*Will overwrite matrix_resualt*/
-extern void Matrix_vadd(matrix_f32_t *matrix_L, matrix_f32_t *matrix_R, matrix_f32_t *matrix_result);
+extern void Matrix_vadd_f32(matrix_f32_t *matrix_L, matrix_f32_t *matrix_R, matrix_f32_t *matrix_result);
+
+extern void Matrix_vadd_f64(matrix_f64_t *matrix_L, matrix_f64_t *matrix_R, matrix_f64_t *matrix_result);
 
 /*Will overwrite matrix_resualt*/
-extern void Matrix_vsub(matrix_f32_t *matrix_L, matrix_f32_t *matrix_R, matrix_f32_t *matrix_result);
+extern void Matrix_vsub_f32(matrix_f32_t *matrix_L, matrix_f32_t *matrix_R, matrix_f32_t *matrix_result);
 
-extern void Matrix_vGetNegative(matrix_f32_t *matrix_op);
+extern void Matrix_vsub_f64(matrix_f64_t *matrix_L, matrix_f64_t *matrix_R, matrix_f64_t *matrix_result);
 
-extern void Matrix_vmult_nsame(matrix_f32_t *matrix_L, matrix_f32_t *matrix_R, matrix_f32_t *matrix_result);
+extern void Matrix_vGetNegative_f32(matrix_f32_t *matrix_op);
 
-extern void Matrix_vRoundingElementToZero(matrix_f32_t *matrix_op, const int16_t _i, const int16_t _j);
+extern void Matrix_vGetNegative_f64(matrix_f64_t *matrix_op);
 
-extern void Matrix_vRoundingMatrixToZero(matrix_f32_t *matrix_op);
+extern void Matrix_vmult_nsame_f32(matrix_f32_t *matrix_L, matrix_f32_t *matrix_R, matrix_f32_t *matrix_result);
 
-extern void Matrix_vSetToZero(matrix_f32_t *matrix_op);
+extern void Matrix_vmult_nsame_f64(matrix_f64_t *matrix_L, matrix_f64_t *matrix_R, matrix_f64_t *matrix_result);
 
-extern void Matrix_vSetRandom(matrix_f32_t *matrix_op, const int32_t _maxRand, const int32_t _minRand);
+extern void Matrix_vRoundingElementToZero_f32(matrix_f32_t *matrix_op, const uint16_t _i, const uint16_t _j);
 
-extern void Matrix_vSetDiag(matrix_f32_t *matrix_op, const float _val);
+extern void Matrix_vRoundingElementToZero_f64(matrix_f64_t *matrix_op, const uint16_t _i, const uint16_t _j);
 
-extern void Matrix_vSetIdentity(matrix_f32_t *matrix_op);
+extern void Matrix_vRoundingMatrixToZero_f32(matrix_f32_t *matrix_op);
+
+extern void Matrix_vRoundingMatrixToZero_f64(matrix_f64_t *matrix_op);
+
+extern void Matrix_vSetToZero_f32(matrix_f32_t *matrix_op);
+
+extern void Matrix_vSetToZero_f64(matrix_f64_t *matrix_op);
+
+extern void Matrix_vSetRandom_f32(matrix_f32_t *matrix_op, const int32_t _maxRand, const int32_t _minRand);
+
+extern void Matrix_vSetRandom_f64(matrix_f64_t *matrix_op, const int32_t _maxRand, const int32_t _minRand);
+
+extern void Matrix_vSetDiag_f32(matrix_f32_t *matrix_op, const float32_t _val);
+
+extern void Matrix_vSetDiag_f64(matrix_f64_t *matrix_op, const float64_t _val);
+
+extern void Matrix_vSetIdentity_f32(matrix_f32_t *matrix_op);
+
+extern void Matrix_vSetIdentity_f64(matrix_f64_t *matrix_op);
 
 /* Insert vector into matrix at _posColumn position
  * Example: A = Matrix 3x3, B = Vector 3x1
@@ -105,8 +154,11 @@ extern void Matrix_vSetIdentity(matrix_f32_t *matrix_op);
  *      [A10  B10  A12]
  *      [A20  B20  A22]
  */
-extern void Matrix_vInsertVector(matrix_f32_t *matrix_op, matrix_f32_t *_vector, const int16_t _posColumn,
-                                 matrix_f32_t *matrix_result);
+extern void Matrix_vInsertVector_f32(matrix_f32_t *matrix_op, matrix_f32_t *_vector, const uint16_t _posColumn,
+                                     matrix_f32_t *matrix_result);
+
+extern void Matrix_vInsertVector_f64(matrix_f64_t *matrix_op, matrix_f64_t *_vector, const uint16_t _posColumn,
+                                     matrix_f64_t *matrix_result);
 
 /* Insert submatrix into matrix at _posRow & _posColumn position
  * Example: A = Matrix 4x4, B = Matrix 2x3
@@ -124,8 +176,11 @@ extern void Matrix_vInsertVector(matrix_f32_t *matrix_op, matrix_f32_t *_vector,
  *      [A20  B10  B11  B12]
  *      [A30  A31  A32  A33]
  */
-extern void Matrix_vInsertAllSubMatrix(matrix_f32_t *matrix_op, matrix_f32_t *_subMatrix, const int16_t _posRow,
-                                       const int16_t _posColumn, matrix_f32_t *matrix_result);
+extern void Matrix_vInsertAllSubMatrix_f32(matrix_f32_t *matrix_op, matrix_f32_t *_subMatrix, const uint16_t _posRow,
+                                           const uint16_t _posColumn, matrix_f32_t *matrix_result);
+
+extern void Matrix_vInsertAllSubMatrix_f64(matrix_f64_t *matrix_op, matrix_f64_t *_subMatrix, const uint16_t _posRow,
+                                           const uint16_t _posColumn, matrix_f64_t *matrix_result);
 
 /* Insert the first _lenRow-th and first _lenColumn-th submatrix into matrix; at the matrix's _posRow and _posColumn position.
  * Example: A = Matrix 4x4, B = Matrix 2x3
@@ -143,9 +198,15 @@ extern void Matrix_vInsertAllSubMatrix(matrix_f32_t *matrix_op, matrix_f32_t *_s
  *      [A20  B10  B11  A23]
  *      [A30  A31  A32  A33]
  */
-extern void Matrix_vInsertPartSubMatrix_fixed(matrix_f32_t *matrix_op, matrix_f32_t *_subMatrix, const int16_t _posRow,
-                                              const int16_t _posColumn, const int16_t _lenRow, const int16_t _lenColumn,
-                                              matrix_f32_t *matrix_result);
+extern void
+Matrix_vInsertPartSubMatrix_fixed_f32(matrix_f32_t *matrix_op, matrix_f32_t *_subMatrix, const uint16_t _posRow,
+                                      const uint16_t _posColumn, const uint16_t _lenRow, const uint16_t _lenColumn,
+                                      matrix_f32_t *matrix_result);
+
+extern void
+Matrix_vInsertPartSubMatrix_fixed_f64(matrix_f64_t *matrix_op, matrix_f64_t *_subMatrix, const uint16_t _posRow,
+                                      const uint16_t _posColumn, const uint16_t _lenRow, const uint16_t _lenColumn,
+                                      matrix_f64_t *matrix_result);
 
 /* Insert the _lenRow & _lenColumn submatrix, start from _posRowSub & _posColumnSub submatrix;
  *  into matrix at the matrix's _posRow and _posColumn position.
@@ -167,23 +228,37 @@ extern void Matrix_vInsertPartSubMatrix_fixed(matrix_f32_t *matrix_op, matrix_f3
  */
 
 extern void
-Matrix_vInsertPartSubMatrix_unstuck(matrix_f32_t *matrix_op, matrix_f32_t *_subMatrix, const int16_t _posRow,
-                                    const int16_t _posColumn, const int16_t _posRowSub, const int16_t _posColumnSub,
-                                    const int16_t _lenRow, const int16_t _lenColumn,
-                                    matrix_f32_t *matrix_result);
+Matrix_vInsertPartSubMatrix_unstuck_f32(matrix_f32_t *matrix_op, matrix_f32_t *_subMatrix, const uint16_t _posRow,
+                                        const uint16_t _posColumn, const uint16_t _posRowSub, const uint16_t _posColumnSub,
+                                        const uint16_t _lenRow, const uint16_t _lenColumn,
+                                        matrix_f32_t *matrix_result);
 
-extern void Matrix_vTranspose_nsame(matrix_f32_t *matrix_op, matrix_f32_t *matrix_result);
+extern void
+Matrix_vInsertPartSubMatrix_unstuck_f64(matrix_f64_t *matrix_op, matrix_f64_t *_subMatrix, const uint16_t _posRow,
+                                        const uint16_t _posColumn, const uint16_t _posRowSub, const uint16_t _posColumnSub,
+                                        const uint16_t _lenRow, const uint16_t _lenColumn,
+                                        matrix_f64_t *matrix_result);
 
-extern bool Matrix_bNormVector(matrix_f32_t *matrix_op);
+extern void Matrix_vTranspose_nsame_f32(matrix_f32_t *matrix_op, matrix_f32_t *matrix_result);
+
+extern void Matrix_vTranspose_nsame_f64(matrix_f64_t *matrix_op, matrix_f64_t *matrix_result);
+
+extern bool Matrix_bNormVector_f32(matrix_f32_t *matrix_op);
+
+extern bool Matrix_bNormVector_f64(matrix_f64_t *matrix_op);
 
 /* Invers operation using Gauss-Jordan algorithm */
-extern void Matrix_vInverse_nsame(matrix_f32_t *matrix_op, matrix_f32_t *matrix_result);
+extern void Matrix_vInverse_nsame_f32(matrix_f32_t *matrix_op, matrix_f32_t *matrix_result);
+
+extern void Matrix_vInverse_nsame_f64(matrix_f64_t *matrix_op, matrix_f64_t *matrix_result);
 
 /* Use elemtary row operation to reduce the matrix into upper triangular form (like in the first phase of gauss-jordan algorithm).
  *
  * Useful if we want to check the matrix as positive definite or not (can be used before calling CholeskyDec function).
  */
-extern bool Matrix_bMatrixIsPositiveDefinite(matrix_f32_t *matrix_op, bool checkPosSemidefinite);
+extern bool Matrix_bMatrixIsPositiveDefinite_f32(matrix_f32_t *matrix_op, bool checkPosSemidefinite);
+
+extern bool Matrix_bMatrixIsPositiveDefinite_f64(matrix_f64_t *matrix_op, bool checkPosSemidefinite);
 
 /* For square matrix 'this' with size MxM, return vector Mx1 with entries corresponding with diagonal entries of 'this'.
  *  Example:    this = [a11 a12 a13]
@@ -194,7 +269,9 @@ extern bool Matrix_bMatrixIsPositiveDefinite(matrix_f32_t *matrix_op, bool check
  *                                   [a22]
  *                                   [a33]
  */
-extern void Matrix_vGetDiagonalEntries(matrix_f32_t *matrix_op, matrix_f32_t *matrix_result);
+extern void Matrix_vGetDiagonalEntries_f32(matrix_f32_t *matrix_op, matrix_f32_t *matrix_result);
+
+extern void Matrix_vGetDiagonalEntries_f64(matrix_f64_t *matrix_op, matrix_f64_t *matrix_result);
 
 /* Do the Cholesky Decomposition using Cholesky-Crout algorithm.
  *
@@ -210,14 +287,20 @@ extern void Matrix_vGetDiagonalEntries(matrix_f32_t *matrix_op, matrix_f32_t *ma
  *           the upper triangular of _A. The result should be equal mathematically if A
  *           is symmetry).
  */
-extern void Matrix_vCholeskyDec(matrix_f32_t *matrix_op, matrix_f32_t *matrix_result);
+extern void Matrix_vCholeskyDec_f32(matrix_f32_t *matrix_op, matrix_f32_t *matrix_result);
+
+extern void Matrix_vCholeskyDec_f64(matrix_f64_t *matrix_op, matrix_f64_t *matrix_result);
 
 /* Do the Householder Transformation for QR Decomposition operation.
  *              out = HouseholderTransformQR(A, i, j)
  */
 extern void
-Matrix_vHouseholderTransformQR(matrix_f32_t *matrix_op, const int16_t _rowTransform, const int16_t _columnTransform,
-                               matrix_f32_t *matrix_result);
+Matrix_vHouseholderTransformQR_f32(matrix_f32_t *matrix_op, const uint16_t _rowTransform, const uint16_t _columnTransform,
+                                   matrix_f32_t *matrix_result);
+
+extern void
+Matrix_vHouseholderTransformQR_f64(matrix_f64_t *matrix_op, const uint16_t _rowTransform, const uint16_t _columnTransform,
+                                   matrix_f64_t *matrix_result);
 
 /* Do the QR Decomposition for matrix using Householder Transformation.
  *                      A = Q*R
@@ -231,7 +314,9 @@ Matrix_vHouseholderTransformQR(matrix_f32_t *matrix_op, const int16_t _rowTransf
  *                   (QR)x = b
  *                      Rx = Q'b    --> Afterward use back-subtitution to solve x
  */
-extern bool Matrix_bQRDec(matrix_f32_t *matrix_op, matrix_f32_t *Qt, matrix_f32_t *R);
+extern bool Matrix_bQRDec_f32(matrix_f32_t *matrix_op, matrix_f32_t *Qt, matrix_f32_t *R);
+
+extern bool Matrix_bQRDec_f64(matrix_f64_t *matrix_op, matrix_f64_t *Qt, matrix_f64_t *R);
 
 /* Do the back-subtitution opeartion for upper triangular matrix A & column matrix B to solve x:
  *                      Ax = B
@@ -241,7 +326,9 @@ extern bool Matrix_bQRDec(matrix_f32_t *matrix_op, matrix_f32_t *Qt, matrix_f32_
  * CATATAN! NOTE! To lower the computation cost, we don't check that A is a upper triangular
  *  matrix (it's assumed that user already make sure before calling this routine).
  */
-extern void Matrix_vBackSubtitution(matrix_f32_t *upper_tri_A, matrix_f32_t *matrix_B, matrix_f32_t *matrix_result);
+extern void Matrix_vBackSubtitution_f32(matrix_f32_t *upper_tri_A, matrix_f32_t *matrix_B, matrix_f32_t *matrix_result);
+
+extern void Matrix_vBackSubtitution_f64(matrix_f64_t *upper_tri_A, matrix_f64_t *matrix_B, matrix_f64_t *matrix_result);
 /*Not yet tested, but should be working (?)*/
 
 /* Melakukan operasi Forward-subtitution pada matrix triangular A & matrix kolom B.
@@ -250,23 +337,54 @@ extern void Matrix_vBackSubtitution(matrix_f32_t *upper_tri_A, matrix_f32_t *mat
  *  Untuk menghemat komputansi, matrix A tidak dilakukan pengecekan triangular
  * (diasumsikan sudah lower-triangular).
  */
-extern void Matrix_vForwardSubtitution(matrix_f32_t *lower_tri_A, matrix_f32_t *matrix_B, matrix_f32_t *matrix_result);
-
-extern void Matrix_vRoundingadd(matrix_f32_t *matrix_op, const float32_t _val);
-
-extern void Matrix_vRoundingsub(matrix_f32_t *matrix_op, const float32_t _val, bool minuend__val);
-
-extern void Matrix_vscale(matrix_f32_t *matrix_op, const float32_t _val);
-
-extern void Matrix_vCopy(matrix_f32_t *matrix_op, matrix_f32_t *matrix_result);
-
-extern void Matrix_vMove(matrix_f32_t *matrix_op, matrix_f32_t *matrix_result);
+extern void
+Matrix_vForwardSubtitution_f32(matrix_f32_t *lower_tri_A, matrix_f32_t *matrix_B, matrix_f32_t *matrix_result);
 
 extern void
-Matrix_vassignment(matrix_f32_t *matrix_op, const int16_t _i16row, const int16_t _i16col, const float32_t _val);
+Matrix_vForwardSubtitution_f64(matrix_f64_t *lower_tri_A, matrix_f64_t *matrix_B, matrix_f64_t *matrix_result);
 
-extern void Matrix_print(matrix_f32_t *matrix_op, PrintWay printway);
+extern void Matrix_vRoundingadd_f32(matrix_f32_t *matrix_op, const float32_t _val);
 
-extern void Matrix_vinit(matrix_f32_t *matrix_op);
+extern void Matrix_vRoundingadd_f64(matrix_f64_t *matrix_op, const float64_t _val);
 
+extern void Matrix_vRoundingsub_f32(matrix_f32_t *matrix_op, const float32_t _val, bool minuend__val);
+
+extern void Matrix_vRoundingsub_f64(matrix_f64_t *matrix_op, const float64_t _val, bool minuend__val);
+
+extern void Matrix_vscale_f32(matrix_f32_t *matrix_op, const float32_t _val);
+
+extern void Matrix_vscale_f64(matrix_f64_t *matrix_op, const float64_t _val);
+
+extern void Matrix_vCopy_f32(matrix_f32_t *matrix_op, matrix_f32_t *matrix_result);
+
+extern void Matrix_vCopy_f64(matrix_f64_t *matrix_op, matrix_f64_t *matrix_result);
+
+extern void Matrix_vMove_f32(matrix_f32_t *matrix_op, matrix_f32_t *matrix_result);
+
+extern void Matrix_vMove_f64(matrix_f64_t *matrix_op, matrix_f64_t *matrix_result);
+
+extern void
+Matrix_vassignment_f32(matrix_f32_t *matrix_op, const uint16_t _i16row, const uint16_t _i16col, const float32_t _val);
+
+extern void
+Matrix_vassignment_f64(matrix_f64_t *matrix_op, const uint16_t _i16row, const uint16_t _i16col, const float64_t _val);
+
+extern void Matrix_print_f32(matrix_f32_t *matrix_op, PrintWay printway);
+
+extern void Matrix_print_f64(matrix_f64_t *matrix_op, PrintWay printway);
+
+extern void Matrix_vinit_f32(matrix_f32_t *matrix_op);
+
+extern void Matrix_vinit_f64(matrix_f64_t *matrix_op);
+
+/* self add arm matrix calculation for the future replacement*/
+arm_status arm_mat_add_f64(
+        const arm_matrix_instance_f64 *pSrcA,
+        const arm_matrix_instance_f64 *pSrcB,
+        arm_matrix_instance_f64 *pDst);
+
+arm_status arm_mat_scale_f64(
+        const arm_matrix_instance_f64 *pSrc,
+        float64_t scale,
+        arm_matrix_instance_f64 *pDst);
 #endif //ROBOMASTERROBOTCODE_MATRIX_H

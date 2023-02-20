@@ -230,49 +230,49 @@ void INS_task(void const *pvParameters) {
 //            float32_t By_RLS = INS_mag[1];
 //            float32_t Bz_RLS = INS_mag[2];
 //            matrix_f32_t P_check;
-//            Matrix_vinit(&P_check);
+//            Matrix_vinit_f32(&P_check);
 //            matrix_f32_t _temp_T;
 //            matrix_f32_t _temp_M;
 //            matrix_f32_t _temp_M2;
 //            matrix_f32_t _temp_AS;
-//            Matrix_vinit(&_temp_T);
-//            Matrix_vinit(&_temp_M);
-//            Matrix_vinit(&_temp_M2);
-//            Matrix_vinit(&_temp_AS);
+//            Matrix_vinit_f32(&_temp_T);
+//            Matrix_vinit_f32(&_temp_M);
+//            Matrix_vinit_f32(&_temp_M2);
+//            Matrix_vinit_f32(&_temp_AS);
 //            RLS_in.p2Data[0][0] = Bx_RLS;
 //            RLS_in.p2Data[1][0] = By_RLS;
 //            RLS_in.p2Data[2][0] = Bz_RLS;
 //            RLS_in.p2Data[3][0] = 1;
 //            RLS_out.p2Data[0][0] = (Bx_RLS * Bx_RLS) + (By_RLS * By_RLS) + (Bz_RLS * Bz_RLS);
-//            Matrix_vTranspose_nsame(&RLS_in, &_temp_T);
-//            Matrix_vmult_nsame(&_temp_T, &RLS_theta, &_temp_M);
+//            Matrix_vTranspose_nsame_f32(&RLS_in, &_temp_T);
+//            Matrix_vmult_nsame_f32(&_temp_T, &RLS_theta, &_temp_M);
 //
-//            Matrix_vsub(&RLS_out, &_temp_M, &_temp_AS);
+//            Matrix_vsub_f32(&RLS_out, &_temp_M, &_temp_AS);
 //            float32_t err = 0.01f*_temp_AS.p2Data[0][0];
 //            SEGGER_RTT_printf(0, "%f\r\n", P_check_num);
-//            Matrix_vmult_nsame(&_temp_T, &RLS_P, &_temp_M);
-//            Matrix_vmult_nsame(&_temp_M, &RLS_in, &_temp_M2);
-//            Matrix_vRoundingadd(&_temp_M2, RLS_lambda);
-//            Matrix_vmult_nsame(&RLS_P, &RLS_in, &_temp_M);
-//            Matrix_vscale(&_temp_M, (1.0f / _temp_M2.p2Data[0][0]));
-//            Matrix_vMove(&_temp_M, &RLS_gain);
-//            Matrix_vmult_nsame(&RLS_gain, &_temp_T, &_temp_M);
-//            Matrix_vmult_nsame(&_temp_M, &RLS_P, &_temp_M2);
-//            Matrix_vsub(&RLS_P, &_temp_M2, &RLS_P);
-//            Matrix_vscale(&RLS_P, (1.0f / RLS_lambda));
-//            Matrix_vCopy(&RLS_gain, &_temp_AS);
-//            Matrix_vscale(&_temp_AS, err);
-//            Matrix_vsub(&RLS_theta, &_temp_AS, &RLS_theta);
+//            Matrix_vmult_nsame_f32(&_temp_T, &RLS_P, &_temp_M);
+//            Matrix_vmult_nsame_f32(&_temp_M, &RLS_in, &_temp_M2);
+//            Matrix_vRoundingadd_f32(&_temp_M2, RLS_lambda);
+//            Matrix_vmult_nsame_f32(&RLS_P, &RLS_in, &_temp_M);
+//            Matrix_vscale_f32(&_temp_M, (1.0f / _temp_M2.p2Data[0][0]));
+//            Matrix_vMove_f32(&_temp_M, &RLS_gain);
+//            Matrix_vmult_nsame_f32(&RLS_gain, &_temp_T, &_temp_M);
+//            Matrix_vmult_nsame_f32(&_temp_M, &RLS_P, &_temp_M2);
+//            Matrix_vsub_f32(&RLS_P, &_temp_M2, &RLS_P);
+//            Matrix_vscale_f32(&RLS_P, (1.0f / RLS_lambda));
+//            Matrix_vCopy_f32(&RLS_gain, &_temp_AS);
+//            Matrix_vscale_f32(&_temp_AS, err);
+//            Matrix_vsub_f32(&RLS_theta, &_temp_AS, &RLS_theta);
 //
-//            Matrix_vGetDiagonalEntries(&RLS_P, &P_check);
-//            Matrix_vTranspose_nsame(&P_check, &_temp_T);
-//            Matrix_vmult_nsame(&_temp_T, &P_check, &_temp_M);
+//            Matrix_vGetDiagonalEntries_f32(&RLS_P, &P_check);
+//            Matrix_vTranspose_nsame_f32(&P_check, &_temp_T);
+//            Matrix_vmult_nsame_f32(&_temp_T, &P_check, &_temp_M);
 //            P_check_num = _temp_M.p2Data[0][0];
-//            Matrix_vSetMatrixInvalid(&P_check);
-//            Matrix_vSetMatrixInvalid(&_temp_T);
-//            Matrix_vSetMatrixInvalid(&_temp_M);
-//            Matrix_vSetMatrixInvalid(&_temp_M2);
-//            Matrix_vSetMatrixInvalid(&_temp_AS);
+//            Matrix_vSetMatrixInvalid_f32(&P_check);
+//            Matrix_vSetMatrixInvalid_f32(&_temp_T);
+//            Matrix_vSetMatrixInvalid_f32(&_temp_M);
+//            Matrix_vSetMatrixInvalid_f32(&_temp_M2);
+//            Matrix_vSetMatrixInvalid_f32(&_temp_AS);
 //        }
 //        osDelay(5);
 //    }
@@ -316,7 +316,7 @@ void INS_task(void const *pvParameters) {
 //    SEGGER_RTT_printf(0,"Q1=%f",INS_quat[1]);
 //    SEGGER_RTT_printf(0,"Q2=%f",INS_quat[2]);
 //    SEGGER_RTT_printf(0,"Q3=%f",INS_quat[3]);
-//    Matrix_data_creat(&quaternionData, SS_X_LEN, 1, INS_quat, InitMatWithZero);
+//    Matrix_data_creat_f32(&quaternionData, SS_X_LEN, 1, INS_quat, InitMatWithZero);
     UKF_vReset(&UKF_IMU, &quaternionData, &UKF_PINIT, &UKF_Rv, &UKF_Rn);
 //    TRICAL_init(&mag_calib);
 //    TRICAL_norm_set(&mag_calib, 54.305f);
@@ -443,15 +443,15 @@ void INS_task(void const *pvParameters) {
             float32_t p = INS_gyro[0];
             float32_t q = INS_gyro[1];
             float32_t r = INS_gyro[2];
-            Matrix_vassignment(&U, 1, 1, p);
-            Matrix_vassignment(&U, 2, 1, q);
-            Matrix_vassignment(&U, 3, 1, r);
-            Matrix_vassignment(&Y, 1, 1, Ax);
-            Matrix_vassignment(&Y, 2, 1, Ay);
-            Matrix_vassignment(&Y, 3, 1, Az);
-            Matrix_vassignment(&Y, 4, 1, Bx);
-            Matrix_vassignment(&Y, 5, 1, By);
-            Matrix_vassignment(&Y, 6, 1, Bz);
+            Matrix_vassignment_f32(&U, 1, 1, p);
+            Matrix_vassignment_f32(&U, 2, 1, q);
+            Matrix_vassignment_f32(&U, 3, 1, r);
+            Matrix_vassignment_f32(&Y, 1, 1, Ax);
+            Matrix_vassignment_f32(&Y, 2, 1, Ay);
+            Matrix_vassignment_f32(&Y, 3, 1, Az);
+            Matrix_vassignment_f32(&Y, 4, 1, Bx);
+            Matrix_vassignment_f32(&Y, 5, 1, By);
+            Matrix_vassignment_f32(&Y, 6, 1, Bz);
 
             /* Normalizing the output vector */
             float32_t _normG = sqrtf((Y.p2Data[0][0] * Y.p2Data[0][0]) + (Y.p2Data[1][0] * Y.p2Data[1][0]) +
@@ -467,8 +467,8 @@ void INS_task(void const *pvParameters) {
             /* ------------------ Read the sensor data / simulate the system here ------------------ */
             /* ============================= Update the Kalman Filter ============================== */
             if (!UKF_bUpdate(&UKF_IMU, &Y, &U, &IMU)) {
-                Matrix_vSetToZero(&quaternionData);
-                Matrix_vassignment(&quaternionData, 1, 1, 1.0f);
+                Matrix_vSetToZero_f32(&quaternionData);
+                Matrix_vassignment_f32(&quaternionData, 1, 1, 1.0f);
                 UKF_vReset(&UKF_IMU, &quaternionData, &UKF_PINIT, &UKF_Rv, &UKF_Rn);
             }
 //            AHRS_update(INS_quat, timing_time, INS_gyro, INS_accel, INS_mag);
@@ -484,47 +484,47 @@ void INS_task(void const *pvParameters) {
 //        float32_t P_check_num = 0;
 //        while (P_check_num < 1e-4f) {
 //            matrix_f32_t P_check;
-//            Matrix_vinit(&P_check);
+//            Matrix_vinit_f32(&P_check);
 //            matrix_f32_t _temp_T;
 //            matrix_f32_t _temp_M;
 //            matrix_f32_t _temp_M2;
 //            matrix_f32_t _temp_AS;
-//            Matrix_vinit(&_temp_T);
-//            Matrix_vinit(&_temp_M);
-//            Matrix_vinit(&_temp_M2);
-//            Matrix_vinit(&_temp_AS);
+//            Matrix_vinit_f32(&_temp_T);
+//            Matrix_vinit_f32(&_temp_M);
+//            Matrix_vinit_f32(&_temp_M2);
+//            Matrix_vinit_f32(&_temp_AS);
 //            RLS_in.p2Data[0][0] = Bx;
 //            RLS_in.p2Data[1][0] = By;
 //            RLS_in.p2Data[2][0] = Bz;
 //            RLS_in.p2Data[3][0] = 1;
 //            RLS_out.p2Data[0][0] = (Bx * Bx) + (By * By) + (Bz * Bz);
-//            Matrix_vTranspose_nsame(&RLS_in, &_temp_T);
-//            Matrix_vmult_nsame(&_temp_T, &RLS_theta, &_temp_M);
-//            Matrix_vsub(&RLS_out, &_temp_M, &_temp_AS);
+//            Matrix_vTranspose_nsame_f32(&RLS_in, &_temp_T);
+//            Matrix_vmult_nsame_f32(&_temp_T, &RLS_theta, &_temp_M);
+//            Matrix_vsub_f32(&RLS_out, &_temp_M, &_temp_AS);
 //            float32_t err = _temp_AS.p2Data[0][0];
-//            Matrix_vmult_nsame(&_temp_T, &RLS_P, &_temp_M);
-//            Matrix_vmult_nsame(&_temp_M, &RLS_in, &_temp_M2);
-//            Matrix_vRoundingadd(&_temp_M2, RLS_lambda);
-//            Matrix_vmult_nsame(&RLS_P, &RLS_in, &_temp_M);
-//            Matrix_vscale(&_temp_M, (1.0f / _temp_M2.p2Data[0][0]));
-//            Matrix_vMove(&_temp_M, &RLS_gain);
-//            Matrix_vmult_nsame(&RLS_gain, &_temp_T, &_temp_M);
-//            Matrix_vmult_nsame(&_temp_M, &RLS_P, &_temp_M2);
-//            Matrix_vsub(&RLS_P, &_temp_M2, &RLS_P);
-//            Matrix_vscale(&RLS_P, (1.0f / RLS_lambda));
-//            Matrix_vCopy(&RLS_gain, &_temp_AS);
-//            Matrix_vscale(&_temp_AS, err);
-//            Matrix_vsub(&RLS_theta, &_temp_AS, &RLS_theta);
+//            Matrix_vmult_nsame_f32(&_temp_T, &RLS_P, &_temp_M);
+//            Matrix_vmult_nsame_f32(&_temp_M, &RLS_in, &_temp_M2);
+//            Matrix_vRoundingadd_f32(&_temp_M2, RLS_lambda);
+//            Matrix_vmult_nsame_f32(&RLS_P, &RLS_in, &_temp_M);
+//            Matrix_vscale_f32(&_temp_M, (1.0f / _temp_M2.p2Data[0][0]));
+//            Matrix_vMove_f32(&_temp_M, &RLS_gain);
+//            Matrix_vmult_nsame_f32(&RLS_gain, &_temp_T, &_temp_M);
+//            Matrix_vmult_nsame_f32(&_temp_M, &RLS_P, &_temp_M2);
+//            Matrix_vsub_f32(&RLS_P, &_temp_M2, &RLS_P);
+//            Matrix_vscale_f32(&RLS_P, (1.0f / RLS_lambda));
+//            Matrix_vCopy_f32(&RLS_gain, &_temp_AS);
+//            Matrix_vscale_f32(&_temp_AS, err);
+//            Matrix_vsub_f32(&RLS_theta, &_temp_AS, &RLS_theta);
 //
-//            Matrix_vGetDiagonalEntries(&RLS_P, &P_check);
-//            Matrix_vTranspose_nsame(&P_check, &_temp_T);
-//            Matrix_vmult_nsame(&_temp_T, &P_check, &_temp_M);
+//            Matrix_vGetDiagonalEntries_f32(&RLS_P, &P_check);
+//            Matrix_vTranspose_nsame_f32(&P_check, &_temp_T);
+//            Matrix_vmult_nsame_f32(&_temp_T, &P_check, &_temp_M);
 //            P_check_num = _temp_M.p2Data[0][0];
-//            Matrix_vSetMatrixInvalid(&P_check);
-//            Matrix_vSetMatrixInvalid(&_temp_T);
-//            Matrix_vSetMatrixInvalid(&_temp_M);
-//            Matrix_vSetMatrixInvalid(&_temp_M2);
-//            Matrix_vSetMatrixInvalid(&_temp_AS);
+//            Matrix_vSetMatrixInvalid_f32(&P_check);
+//            Matrix_vSetMatrixInvalid_f32(&_temp_T);
+//            Matrix_vSetMatrixInvalid_f32(&_temp_M);
+//            Matrix_vSetMatrixInvalid_f32(&_temp_M2);
+//            Matrix_vSetMatrixInvalid_f32(&_temp_AS);
 //        }
 
 //        IMU.HARD_IRON_BIAS.p2Data[0][0] = RLS_theta.p2Data[0][0] / 2.0f;

@@ -1,5 +1,23 @@
 #include "kalman_filter.h"
 #include "user_lib.h"
+
+kalman_filter_init_t vision_kf2_data =
+        {0.0f, \
+    {0.0f}, \
+    {0.0f}, \
+    {0.0f}, \
+    {0.0f}, \
+    {1.0f, 0.0f, 0.0f, 1.0f}, \
+    {0.0f}, \
+    {1.0f, 0.0f, 0.0f, 1.0f}, \
+    {0.0f}, \
+    {0.0f}, \
+    {1.0f, 0.025f, 0.0f, 1.0f}, \
+    {1.0f, 0.0f, 0.0f, 1.0f}, \
+    {1.0f, 0.0f, 0.0f, 1.0f}, \
+    {20.0f, 0.0f, 0.0f, 150.0f}\
+        };
+
 /**    
   * @author  Liu heng
   * 一阶卡尔曼滤波器来自RoboMaster论坛
@@ -94,19 +112,19 @@ float KalmanFilter_test(extKalman_t *p, float dat) {
   */
 
 void second_order_kalman_filter_init(kalman_filter_t *F, kalman_filter_init_t *I) {
-    Matrix_data_creat(&F->xhat,2,1,I->xhat_data,NoInitMatZero);
-    Matrix_data_creat(&F->xhat, 2, 1, (float *) I->xhat_data,NoInitMatZero);
-    Matrix_data_creat(&F->xhatminus, 2, 1, (float *) I->xhatminus_data,NoInitMatZero);
-    Matrix_data_creat(&F->z, 2, 1, (float *) I->z_data,NoInitMatZero);
-    Matrix_data_creat(&F->A, 2, 2, (float *) I->A_data,NoInitMatZero);
-    Matrix_data_creat(&F->H, 2, 2, (float *) I->H_data,NoInitMatZero);
-    Matrix_data_creat(&F->Q, 2, 2, (float *) I->Q_data,NoInitMatZero);
-    Matrix_data_creat(&F->R, 2, 2, (float *) I->R_data,NoInitMatZero);
-    Matrix_data_creat(&F->P, 2, 2, (float *) I->P_data,NoInitMatZero);
-    Matrix_data_creat(&F->Pminus, 2, 2, (float *) I->Pminus_data,NoInitMatZero);
-    Matrix_data_creat(&F->K, 2, 2, (float *) I->K_data,NoInitMatZero);
-    Matrix_vTranspose_nsame(&F->A, &F->AT);
-    Matrix_vTranspose_nsame(&F->H, &F->HT);
+    Matrix_data_creat_f32(&F->xhat, 2, 1, I->xhat_data, NoInitMatZero);
+    Matrix_data_creat_f32(&F->xhat, 2, 1, (float *) I->xhat_data, NoInitMatZero);
+    Matrix_data_creat_f32(&F->xhatminus, 2, 1, (float *) I->xhatminus_data, NoInitMatZero);
+    Matrix_data_creat_f32(&F->z, 2, 1, (float *) I->z_data, NoInitMatZero);
+    Matrix_data_creat_f32(&F->A, 2, 2, (float *) I->A_data, NoInitMatZero);
+    Matrix_data_creat_f32(&F->H, 2, 2, (float *) I->H_data, NoInitMatZero);
+    Matrix_data_creat_f32(&F->Q, 2, 2, (float *) I->Q_data, NoInitMatZero);
+    Matrix_data_creat_f32(&F->R, 2, 2, (float *) I->R_data, NoInitMatZero);
+    Matrix_data_creat_f32(&F->P, 2, 2, (float *) I->P_data, NoInitMatZero);
+    Matrix_data_creat_f32(&F->Pminus, 2, 2, (float *) I->Pminus_data, NoInitMatZero);
+    Matrix_data_creat_f32(&F->K, 2, 2, (float *) I->K_data, NoInitMatZero);
+    Matrix_vTranspose_nsame_f32(&F->A, &F->AT);
+    Matrix_vTranspose_nsame_f32(&F->H, &F->HT);
 }
 
 // xhatminus==x(k|k-1)  xhat==X(k-1|k-1)
@@ -121,38 +139,38 @@ void second_order_kalman_filter_init(kalman_filter_t *F, kalman_filter_init_t *I
 */
 float32_t *second_order_kalman_filter_calc(kalman_filter_t *F, float32_t signal1, float32_t signal2) {
     matrix_f32_t _temp_M;
-    Matrix_vinit(&_temp_M);
+    Matrix_vinit_f32(&_temp_M);
 
     F->z.arm_matrix.pData[0] = signal1; //z(k)
     F->z.arm_matrix.pData[1] = signal2; //z(k)
 
     //1. xhat'(k)= A xhat(k-1)
-    Matrix_vmult_nsame(&F->A, &F->xhat, &F->xhatminus); //  x(k|k-1) = A*X(k-1|k-1)+B*U(k)+W(K)
+    Matrix_vmult_nsame_f32(&F->A, &F->xhat, &F->xhatminus); //  x(k|k-1) = A*X(k-1|k-1)+B*U(k)+W(K)
 
     //2. P'(k) = A P(k-1) AT + Q
-    Matrix_vmult_nsame(&F->A, &F->P, &F->Pminus);  //   p(k|k-1) = A*p(k-1|k-1)*A'+Q
-    Matrix_vmult_nsame(&F->Pminus, &F->AT, &_temp_M); //  p(k|k-1) = A*p(k-1|k-1)*A'+Q
-    Matrix_vadd(&_temp_M, &F->Q, &F->Pminus);   //    p(k|k-1) = A*p(k-1|k-1)*A'+Q
+    Matrix_vmult_nsame_f32(&F->A, &F->P, &F->Pminus);  //   p(k|k-1) = A*p(k-1|k-1)*A'+Q
+    Matrix_vmult_nsame_f32(&F->Pminus, &F->AT, &_temp_M); //  p(k|k-1) = A*p(k-1|k-1)*A'+Q
+    Matrix_vadd_f32(&_temp_M, &F->Q, &F->Pminus);   //    p(k|k-1) = A*p(k-1|k-1)*A'+Q
 
     //3. K(k) = P'(k) HT / (H P'(k) HT + R)
-    Matrix_vmult_nsame(&F->H, &F->Pminus, &F->K); //  kg(k) = p(k|k-1)*H'/(H*p(k|k-1)*H'+R)
-    Matrix_vmult_nsame(&F->K, &F->HT, &_temp_M);     //      kg(k) = p(k|k-1)*H'/(H*p(k|k-1)*H'+R)
-    Matrix_vadd(&_temp_M, &F->R, &F->K);       //        kg(k) = p(k|k-1)*H'/(H*p(k|k-1)*H'+R)
+    Matrix_vmult_nsame_f32(&F->H, &F->Pminus, &F->K); //  kg(k) = p(k|k-1)*H'/(H*p(k|k-1)*H'+R)
+    Matrix_vmult_nsame_f32(&F->K, &F->HT, &_temp_M);     //      kg(k) = p(k|k-1)*H'/(H*p(k|k-1)*H'+R)
+    Matrix_vadd_f32(&_temp_M, &F->R, &F->K);       //        kg(k) = p(k|k-1)*H'/(H*p(k|k-1)*H'+R)
 
-    Matrix_vInverse_nsame(&F->K, &F->P);               //
-    Matrix_vmult_nsame(&F->Pminus, &F->HT, &_temp_M); //
-    Matrix_vmult_nsame(&_temp_M, &F->P, &F->K);       //
+    Matrix_vInverse_nsame_f32(&F->K, &F->P);               //
+    Matrix_vmult_nsame_f32(&F->Pminus, &F->HT, &_temp_M); //
+    Matrix_vmult_nsame_f32(&_temp_M, &F->P, &F->K);       //
 
     //4. xhat(k) = xhat'(k) + K(k) (z(k) - H xhat'(k))
-    Matrix_vmult_nsame(&F->H, &F->xhatminus, &_temp_M);   //      x(k|k) = X(k|k-1)+kg(k)*(Z(k)-H*X(k|k-1))
-    Matrix_vsub(&F->z, &_temp_M, &F->xhat);         //            x(k|k) = X(k|k-1)+kg(k)*(Z(k)-H*X(k|k-1))
-    Matrix_vmult_nsame(&F->K, &F->xhat, &_temp_M);        //           x(k|k) = X(k|k-1)+kg(k)*(Z(k)-H*X(k|k-1))
-    Matrix_vadd(&F->xhatminus, &_temp_M, &F->xhat); //    x(k|k) = X(k|k-1)+kg(k)*(Z(k)-H*X(k|k-1))
+    Matrix_vmult_nsame_f32(&F->H, &F->xhatminus, &_temp_M);   //      x(k|k) = X(k|k-1)+kg(k)*(Z(k)-H*X(k|k-1))
+    Matrix_vsub_f32(&F->z, &_temp_M, &F->xhat);         //            x(k|k) = X(k|k-1)+kg(k)*(Z(k)-H*X(k|k-1))
+    Matrix_vmult_nsame_f32(&F->K, &F->xhat, &_temp_M);        //           x(k|k) = X(k|k-1)+kg(k)*(Z(k)-H*X(k|k-1))
+    Matrix_vadd_f32(&F->xhatminus, &_temp_M, &F->xhat); //    x(k|k) = X(k|k-1)+kg(k)*(Z(k)-H*X(k|k-1))
 
     //5. P(k) = (1-K(k)H)P'(k)
-    Matrix_vmult_nsame(&F->K, &F->H, &F->P); //            p(k|k) = (I-kg(k)*H)*P(k|k-1)
-    Matrix_vsub(&F->Q, &F->P, &_temp_M);  //
-    Matrix_vmult_nsame(&_temp_M, &F->Pminus, &F->P);
+    Matrix_vmult_nsame_f32(&F->K, &F->H, &F->P); //            p(k|k) = (I-kg(k)*H)*P(k|k-1)
+    Matrix_vsub_f32(&F->Q, &F->P, &_temp_M);  //
+    Matrix_vmult_nsame_f32(&_temp_M, &F->Pminus, &F->P);
 
     F->filtered_value[0] = F->xhat.arm_matrix.pData[0];
     F->filtered_value[1] = F->xhat.arm_matrix.pData[1];
