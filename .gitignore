@@ -1,12 +1,6 @@
 *.obj
 *.log
 /.idea
-/cmake-build-debug-stm32/CMakeFiles
-/cmake-build-debug-stm32/.cmake
-/cmake-build-debug-stm32/Testing
-/cmake-build-debug-stm32/.ninja_deps
-/cmake-build-debug-stm32/.ninja_log
-/cmake-build-debug-stm32/CMakeCache.txt
 /cmake-build-debug/
 /cmake-build-default/
 /cmake-build-minsizerel/
