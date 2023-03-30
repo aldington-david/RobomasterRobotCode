@@ -47,6 +47,8 @@
 #include "matlab_sync_task.h"
 #include "global_control_define.h"
 //#include "calibrate_ukf.h"
+#include "bsxlite_interface.h"
+#include "print_task.h"
 
 
 #define IMU_temp_PWM(pwm)  imu_pwm_set(pwm)                    //pwm给定
@@ -219,7 +221,7 @@ void INS_task(void const *pvParameters) {
 //    SEGGER_RTT_printf(0,"%f\r\n",FAhrs.quaternion.array[2]);
 //    SEGGER_RTT_printf(0,"%f\r\n",FAhrs.quaternion.array[3]);
 //    AHRS_init(INS_quat, INS_accel, INS_mag);
-    NEWAHRS_init(&IMU);
+//    NEWAHRS_init(&IMU);
 //    float32_t P_check_num = 10;
 //    while (!(P_check_num < 2e-6f)) {
 //        if (mag_update_flag & (1 << IMU_IST_DR_SHFITS)) {
@@ -306,7 +308,7 @@ void INS_task(void const *pvParameters) {
 //    INS_mag[1] -=IMU.HARD_IRON_BIAS.p2Data[1][0];
 //    INS_mag[2] -=IMU.HARD_IRON_BIAS.p2Data[2][0];
 //    AHRS_init(INS_quat, INS_accel, INS_mag);
-    AHRS_quaternion_init(&IMU);
+//    AHRS_quaternion_init(&IMU);
 //    SEGGER_RTT_printf(0,"Q0=%f",INS_quat[0]);
 //    SEGGER_RTT_printf(0,"Q1=%f",INS_quat[1]);
 //    SEGGER_RTT_printf(0,"Q2=%f",INS_quat[2]);
@@ -317,12 +319,20 @@ void INS_task(void const *pvParameters) {
 //    SEGGER_RTT_printf(0,"Q2=%f",INS_quat[2]);
 //    SEGGER_RTT_printf(0,"Q3=%f",INS_quat[3]);
 //    Matrix_data_creat_f32(&quaternionData, SS_X_LEN, 1, INS_quat, InitMatWithZero);
-    UKF_vReset(&UKF_IMU, &quaternionData, &UKF_PINIT, &UKF_Rv, &UKF_Rn);
+//    UKF_vReset(&UKF_IMU, &quaternionData, &UKF_PINIT, &UKF_Rv, &UKF_Rn);
 //    TRICAL_init(&mag_calib);
 //    TRICAL_norm_set(&mag_calib, 54.305f);
 //    TRICAL_noise_set(&mag_calib, 2e-1f);
     memset(&mag_data_tx_buf, 0, MAG_FIFO_BUF_LENGTH);
     fifo_s_init(&mag_data_tx_fifo, mag_data_tx_buf, MAG_FIFO_BUF_LENGTH);
+    vector_3d_t accel_in, gyro_in;
+    int32_t w_time_stamp = 0U;
+    bsxlite_out_t bsxlite_fusion_out;
+    bsxlite_return_t  result;
+    bsxlite_instance_t instance = 0x00;
+    result = bsxlite_init(&instance);
+    memset(&accel_in, 0x00, sizeof(accel_in));
+    memset(&gyro_in, 0x00, sizeof(gyro_in));
     TickType_t LoopStartTime;
     while (1) {
         DWT_update_task_time_us(&global_task_time.tim_INS_task);
@@ -389,28 +399,74 @@ void INS_task(void const *pvParameters) {
 //                SEGGER_RTT_WriteString(0,"no\r\n");
                 }
             }
+            accel_in.x=INS_accel[0];
+            accel_in.y=INS_accel[1];
+            accel_in.z=INS_accel[2];
+//            SEGGER_RTT_printf(0,"accel:%f,%f,%f\r\n",accel_in.x,accel_in.y,accel_in.z);
+            gyro_in.x=INS_gyro[0];
+            gyro_in.y=INS_gyro[1];
+            gyro_in.z=INS_gyro[2];
+            w_time_stamp+=9000U;
+            result=bsxlite_do_step(&instance,
+                                     w_time_stamp,
+                                     &accel_in,
+                                     &gyro_in,
+                                     &(bsxlite_fusion_out));
+            /** evaluate library return */
+            if (result != BSXLITE_OK)
+            {
+                switch(result)
+                {
+                    case (BSXLITE_E_DOSTEPS_TSINTRADIFFOUTOFRANGE):
+                    {
+                        SEGGER_RTT_WriteString(0,"Error: Subsequent time stamps in input data were found to be out of range from the expected sample rate!!!\n");
+                        break;
+                    }
+                    case (BSXLITE_E_FATAL):
+                    {
+                        SEGGER_RTT_WriteString(0,"Fatal Error: Process terminating!!!\n");
+                        break;
+                    }
+                    case (BSXLITE_I_DOSTEPS_NOOUTPUTSRETURNABLE):
+                    {
+                        SEGGER_RTT_WriteString(0,"Info: Sufficient memory not allocated for output,  all outputs cannot be returned because no memory provided!!!\n");
+                        break;
+                    }
+                    default:
+                    {
+                        SEGGER_RTT_WriteString(0,"Info: Unknown return \n");
+                        break;
+                    }
+                }
+            }
+
+
+            RTT_PrintWave(3,
+                          &bsxlite_fusion_out.orientation.yaw,
+                          &bsxlite_fusion_out.orientation.pitch,
+                          &bsxlite_fusion_out.orientation.roll);
 //        }
 //            TRICAL_estimate_update(&mag_calib, ist8310_real_data.mag, expected_field);
-            accel_fliter_1[0] = accel_fliter_2[0];
-            accel_fliter_2[0] = accel_fliter_3[0];
-
-            accel_fliter_3[0] =
-                    accel_fliter_2[0] * fliter_num[0] + accel_fliter_1[0] * fliter_num[1] +
-                    INS_accel[0] * fliter_num[2];
-
-            accel_fliter_1[1] = accel_fliter_2[1];
-            accel_fliter_2[1] = accel_fliter_3[1];
-
-            accel_fliter_3[1] =
-                    accel_fliter_2[1] * fliter_num[0] + accel_fliter_1[1] * fliter_num[1] +
-                    INS_accel[1] * fliter_num[2];
-
-            accel_fliter_1[2] = accel_fliter_2[2];
-            accel_fliter_2[2] = accel_fliter_3[2];
-
-            accel_fliter_3[2] =
-                    accel_fliter_2[2] * fliter_num[0] + accel_fliter_1[2] * fliter_num[1] +
-                    INS_accel[2] * fliter_num[2];
+//            accel_fliter_1[0] = accel_fliter_2[0];
+//            accel_fliter_2[0] = accel_fliter_3[0];
+//
+//            accel_fliter_3[0] =
+//                    accel_fliter_2[0] * fliter_num[0] + accel_fliter_1[0] * fliter_num[1] +
+//                    INS_accel[0] * fliter_num[2];
+//
+//            accel_fliter_1[1] = accel_fliter_2[1];
+//            accel_fliter_2[1] = accel_fliter_3[1];
+//
+//            accel_fliter_3[1] =
+//                    accel_fliter_2[1] * fliter_num[0] + accel_fliter_1[1] * fliter_num[1] +
+//                    INS_accel[1] * fliter_num[2];
+//
+//            accel_fliter_1[2] = accel_fliter_2[2];
+//            accel_fliter_2[2] = accel_fliter_3[2];
+//
+//            accel_fliter_3[2] =
+//                    accel_fliter_2[2] * fliter_num[0] + accel_fliter_1[2] * fliter_num[1] +
+//                    INS_accel[2] * fliter_num[2];
 
 
 
@@ -431,50 +487,50 @@ void INS_task(void const *pvParameters) {
 //        float32_t p = bmi088_real_data.gyro[0];
 //        float32_t q = bmi088_real_data.gyro[1];
 //        float32_t r = bmi088_real_data.gyro[2];
-            float32_t Ax = INS_accel[0];
-            float32_t Ay = INS_accel[1];
-            float32_t Az = INS_accel[2];
-            float32_t Bx = INS_mag[0];
-            float32_t By = INS_mag[1];
-            float32_t Bz = INS_mag[2];
+//            float32_t Ax = INS_accel[0];
+//            float32_t Ay = INS_accel[1];
+//            float32_t Az = INS_accel[2];
+//            float32_t Bx = INS_mag[0];
+//            float32_t By = INS_mag[1];
+//            float32_t Bz = INS_mag[2];
 ////        float32_t Bx = ist8310_real_data.mag[0] - IMU.HARD_IRON_BIAS.p2Data[0][0];
 ////        float32_t By = ist8310_real_data.mag[1] - IMU.HARD_IRON_BIAS.p2Data[1][0];
 ////        float32_t Bz = ist8310_real_data.mag[2] - IMU.HARD_IRON_BIAS.p2Data[2][0];
-            float32_t p = INS_gyro[0];
-            float32_t q = INS_gyro[1];
-            float32_t r = INS_gyro[2];
-            Matrix_vassignment_f32(&U, 1, 1, p);
-            Matrix_vassignment_f32(&U, 2, 1, q);
-            Matrix_vassignment_f32(&U, 3, 1, r);
-            Matrix_vassignment_f32(&Y, 1, 1, Ax);
-            Matrix_vassignment_f32(&Y, 2, 1, Ay);
-            Matrix_vassignment_f32(&Y, 3, 1, Az);
-            Matrix_vassignment_f32(&Y, 4, 1, Bx);
-            Matrix_vassignment_f32(&Y, 5, 1, By);
-            Matrix_vassignment_f32(&Y, 6, 1, Bz);
+//            float32_t p = INS_gyro[0];
+//            float32_t q = INS_gyro[1];
+//            float32_t r = INS_gyro[2];
+//            Matrix_vassignment_f32(&U, 1, 1, p);
+//            Matrix_vassignment_f32(&U, 2, 1, q);
+//            Matrix_vassignment_f32(&U, 3, 1, r);
+//            Matrix_vassignment_f32(&Y, 1, 1, Ax);
+//            Matrix_vassignment_f32(&Y, 2, 1, Ay);
+//            Matrix_vassignment_f32(&Y, 3, 1, Az);
+//            Matrix_vassignment_f32(&Y, 4, 1, Bx);
+//            Matrix_vassignment_f32(&Y, 5, 1, By);
+//            Matrix_vassignment_f32(&Y, 6, 1, Bz);
 
-            /* Normalizing the output vector */
-            float32_t _normG = sqrtf((Y.p2Data[0][0] * Y.p2Data[0][0]) + (Y.p2Data[1][0] * Y.p2Data[1][0]) +
-                                     (Y.p2Data[2][0] * Y.p2Data[2][0]));
-            Y.p2Data[0][0] = Y.p2Data[0][0] / _normG;
-            Y.p2Data[1][0] = Y.p2Data[1][0] / _normG;
-            Y.p2Data[2][0] = Y.p2Data[2][0] / _normG;
-            float32_t _normM = sqrtf((Y.p2Data[3][0] * Y.p2Data[3][0]) + (Y.p2Data[4][0] * Y.p2Data[4][0]) +
-                                     (Y.p2Data[5][0] * Y.p2Data[5][0]));
-            Y.p2Data[3][0] = Y.p2Data[3][0] / _normM;
-            Y.p2Data[4][0] = Y.p2Data[4][0] / _normM;
-            Y.p2Data[5][0] = Y.p2Data[5][0] / _normM;
-            /* ------------------ Read the sensor data / simulate the system here ------------------ */
-            /* ============================= Update the Kalman Filter ============================== */
-            if (!UKF_bUpdate(&UKF_IMU, &Y, &U, &IMU)) {
-                Matrix_vSetToZero_f32(&quaternionData);
-                Matrix_vassignment_f32(&quaternionData, 1, 1, 1.0f);
-                UKF_vReset(&UKF_IMU, &quaternionData, &UKF_PINIT, &UKF_Rv, &UKF_Rn);
-            }
-//            AHRS_update(INS_quat, timing_time, INS_gyro, INS_accel, INS_mag);
-            get_angle(UKF_IMU.X_Est.arm_matrix.pData, INS_angle + INS_YAW_ADDRESS_OFFSET,
-                      INS_angle + INS_PITCH_ADDRESS_OFFSET,
-                      INS_angle + INS_ROLL_ADDRESS_OFFSET);
+//            /* Normalizing the output vector */
+//            float32_t _normG = sqrtf((Y.p2Data[0][0] * Y.p2Data[0][0]) + (Y.p2Data[1][0] * Y.p2Data[1][0]) +
+//                                     (Y.p2Data[2][0] * Y.p2Data[2][0]));
+//            Y.p2Data[0][0] = Y.p2Data[0][0] / _normG;
+//            Y.p2Data[1][0] = Y.p2Data[1][0] / _normG;
+//            Y.p2Data[2][0] = Y.p2Data[2][0] / _normG;
+//            float32_t _normM = sqrtf((Y.p2Data[3][0] * Y.p2Data[3][0]) + (Y.p2Data[4][0] * Y.p2Data[4][0]) +
+//                                     (Y.p2Data[5][0] * Y.p2Data[5][0]));
+//            Y.p2Data[3][0] = Y.p2Data[3][0] / _normM;
+//            Y.p2Data[4][0] = Y.p2Data[4][0] / _normM;
+//            Y.p2Data[5][0] = Y.p2Data[5][0] / _normM;
+//            /* ------------------ Read the sensor data / simulate the system here ------------------ */
+//            /* ============================= Update the Kalman Filter ============================== */
+//            if (!UKF_bUpdate(&UKF_IMU, &Y, &U, &IMU)) {
+//                Matrix_vSetToZero_f32(&quaternionData);
+//                Matrix_vassignment_f32(&quaternionData, 1, 1, 1.0f);
+//                UKF_vReset(&UKF_IMU, &quaternionData, &UKF_PINIT, &UKF_Rv, &UKF_Rn);
+//            }
+////            AHRS_update(INS_quat, timing_time, INS_gyro, INS_accel, INS_mag);
+//            get_angle(UKF_IMU.X_Est.arm_matrix.pData, INS_angle + INS_YAW_ADDRESS_OFFSET,
+//                      INS_angle + INS_PITCH_ADDRESS_OFFSET,
+//                      INS_angle + INS_ROLL_ADDRESS_OFFSET);
 //            get_angle(INS_quat, INS_angle + INS_YAW_ADDRESS_OFFSET,
 //                      INS_angle + INS_PITCH_ADDRESS_OFFSET,
 //                      INS_angle + INS_ROLL_ADDRESS_OFFSET);
@@ -564,7 +620,7 @@ void INS_task(void const *pvParameters) {
 #if INCLUDE_uxTaskGetStackHighWaterMark
         INS_task_stack = uxTaskGetStackHighWaterMark(NULL);
 #endif
-        vTaskDelayUntil(&LoopStartTime, pdMS_TO_TICKS(5));
+        vTaskDelayUntil(&LoopStartTime, pdMS_TO_TICKS(9));
     }
 }
 

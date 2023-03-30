@@ -7,3 +7,8 @@
 /cmake-build-debug-stm32/.ninja_deps
 /cmake-build-debug-stm32/.ninja_log
 /cmake-build-debug-stm32/CMakeCache.txt
+/cmake-build-debug/
+/cmake-build-default/
+/cmake-build-minsizerel/
+/cmake-build-release/
+/cmake-build-relwithdebinfo/

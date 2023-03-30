@@ -65,6 +65,7 @@ add_link_options(-lm -Wl,-gc-sections,--print-memory-usage,-Map=${PROJECT_BINARY
 add_link_options(-mcpu=cortex-m4 -mthumb -mthumb-interwork)
 add_link_options(-T ${LINKER_SCRIPT})
 link_libraries(${PROJECT_BINARY_DIR}/../User/Components/algorithm/libahrs.a)
+link_libraries(${PROJECT_BINARY_DIR}/../User/Components/algorithm/libalgobsx.a)
 #link_libraries(${PROJECT_BINARY_DIR}/../User/Components/algorithm/libarm_cortexM4lf_math.a)
 
 add_executable(${PROJECT_NAME}.elf ${SOURCES} ${DSP_SOURCES} ${LINKER_SCRIPT})
