@@ -107,7 +107,7 @@ uint32_t INS_task_stack;
 #endif
 
 
-static TaskHandle_t INS_task_local_handler;
+TaskHandle_t INS_task_local_handler;
 
 uint8_t gyro_dma_rx_buf[SPI_DMA_GYRO_LENGHT];
 uint8_t gyro_dma_tx_buf[SPI_DMA_GYRO_LENGHT] = {0x82, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
@@ -128,18 +128,16 @@ volatile uint8_t imu_start_dma_flag = 0;
 
 
 bmi088_real_data_t bmi088_real_data;
-float32_t gyro_scale_factor[3][3] = {BMI088_BOARD_INSTALL_SPIN_MATRIX};
-float32_t gyro_offset[3] = {0};
-float32_t gyro_cali_offset[3] = {0};
-
-float32_t accel_scale_factor[3][3] = {BMI088_BOARD_INSTALL_SPIN_MATRIX};
-float32_t accel_offset[3];
-float32_t accel_cali_offset[3];
-
 ist8310_real_data_t ist8310_real_data;
-float32_t mag_scale_factor[3][3] = {IST8310_BOARD_INSTALL_SPIN_MATRIX};
-float32_t mag_offset[3];
-float32_t mag_cali_offset[3];
+IMU_MAG_Cali_t gyro_cali_data = {{BMI088_BOARD_INSTALL_SPIN_MATRIX},
+                                 {0},
+                                 {1.0f, 1.0f, 1.0f}};
+IMU_MAG_Cali_t accel_cali_data = {{BMI088_BOARD_INSTALL_SPIN_MATRIX},
+                                  {0},
+                                  {1.0f, 1.0f, 1.0f}};
+IMU_MAG_Cali_t mag_cali_data = {{IST8310_BOARD_INSTALL_SPIN_MATRIX},
+                                {0},
+                                {1.0f, 1.0f, 1.0f}};
 
 static uint8_t first_temperate;
 static const float32_t imu_temp_PID[3] = {TEMPERATURE_PID_KP, TEMPERATURE_PID_KI, TEMPERATURE_PID_KD};
@@ -158,6 +156,9 @@ static const float32_t fliter_num[3] = {1.929454039488895f, -0.93178349823448126
 float32_t INS_gyro[3] = {0.0f, 0.0f, 0.0f};
 float32_t INS_accel[3] = {0.0f, 0.0f, 0.0f};
 float32_t INS_mag[3] = {0.0f, 0.0f, 0.0f};
+float32_t INS_gyro_cali[3] = {0.0f, 0.0f, 0.0f};
+float32_t INS_accel_cali[3] = {0.0f, 0.0f, 0.0f};
+float32_t INS_mag_cali[3] = {0.0f, 0.0f, 0.0f};
 float32_t INS_quat[4] = {1.0f, 0.0f, 0.0f, 0.0f}; //w x y z 标量在前同matlab
 float32_t INS_angle[3] = {0.0f, 0.0f, 0.0f};      //yaw-pitch-roll euler angle, unit rad.欧拉角 单位 rad
 float32_t INS_angle_ukf[3] = {0.0f, 0.0f, 0.0f};      //euler angle, unit rad.欧拉角 单位 rad
@@ -191,19 +192,20 @@ void INS_task(void const *pvParameters) {
         osDelay(100);
     }
     BMI088_read(bmi088_real_data.gyro, bmi088_real_data.accel, &bmi088_real_data.temp);
-    while (!ist8310_read_mag( ist8310_real_data.mag)){
+    while (!ist8310_read_mag(ist8310_real_data.mag)) {
         osDelay(1);
     }
     //rotate and zero drift
-    imu_cali_slove(INS_gyro, INS_accel, INS_mag, &bmi088_real_data, &ist8310_real_data);
+    imu_mag_rotate(INS_gyro, INS_accel, INS_mag, &bmi088_real_data, &ist8310_real_data);
+    imu_mag_cali(INS_gyro, INS_accel, INS_mag, INS_gyro_cali, INS_accel_cali, INS_mag_cali);
 
     PID_init(&imu_temp_pid, PID_POSITION, imu_temp_PID, TEMPERATURE_PID_MAX_OUT, TEMPERATURE_PID_MAX_IOUT, 1000, 0, 0,
-             0,0, 0, 0, 0, 0, 0, 0);
+             0, 0, 0, 0, 0, 0, 0, 0);
 //    AHRS_init(INS_quat, INS_accel, INS_mag);
 
-    accel_fliter_1[0] = accel_fliter_2[0] = accel_fliter_3[0] = INS_accel[0];
-    accel_fliter_1[1] = accel_fliter_2[1] = accel_fliter_3[1] = INS_accel[1];
-    accel_fliter_1[2] = accel_fliter_2[2] = accel_fliter_3[2] = INS_accel[2];
+    accel_fliter_1[0] = accel_fliter_2[0] = accel_fliter_3[0] = INS_accel_cali[0];
+    accel_fliter_1[1] = accel_fliter_2[1] = accel_fliter_3[1] = INS_accel_cali[1];
+    accel_fliter_1[2] = accel_fliter_2[2] = accel_fliter_3[2] = INS_accel_cali[2];
     //get the handle of task
     //获取当前任务的任务句柄，
 //    INS_task_local_handler = xTaskGetHandle(pcTaskGetName(NULL));
@@ -224,10 +226,10 @@ void INS_task(void const *pvParameters) {
 //    NEWAHRS_init(&IMU);
 //    float32_t P_check_num = 10;
 //    while (!(P_check_num < 2e-6f)) {
-//        if (mag_update_flag & (1 << IMU_IST_DR_SHFITS)) {
-//            mag_update_flag &= ~(1 << IMU_IST_DR_SHFITS);
+//        if (mag_update_flag & (1 << IMU_MAG_DR_SHFITS)) {
+//            mag_update_flag &= ~(1 << IMU_MAG_DR_SHFITS);
 //            ist8310_read_over(mag_dma_rx_buf, ist8310_real_data.mag);
-//            imu_cali_slove(INS_gyro, INS_accel, INS_mag, &bmi088_real_data, &ist8310_real_data);
+//            imu_mag_rotate(INS_gyro, INS_accel, INS_mag, &bmi088_real_data, &ist8310_real_data);
 //            float32_t Bx_RLS = INS_mag[0];
 //            float32_t By_RLS = INS_mag[1];
 //            float32_t Bz_RLS = INS_mag[2];
@@ -290,7 +292,7 @@ void INS_task(void const *pvParameters) {
 //    while (stable_cnt < 400) {
 //        BMI088_read(bmi088_real_data.gyro, bmi088_real_data.accel, &bmi088_real_data.temp);
 //        ist8310_read_over(mag_dma_rx_buf, ist8310_real_data.mag);
-//        imu_cali_slove(INS_gyro, INS_accel, INS_mag, &bmi088_real_data, &ist8310_real_data);
+//        imu_mag_rotate(INS_gyro, INS_accel, INS_mag, &bmi088_real_data, &ist8310_real_data);
 //        bmi088_real_data.accel_err[0] = bmi088_real_data.accel_last[0] - bmi088_real_data.accel[0];
 //        bmi088_real_data.accel_err[1] = bmi088_real_data.accel_last[1] - bmi088_real_data.accel[1];
 //        bmi088_real_data.accel_err[2] = bmi088_real_data.accel_last[2] - bmi088_real_data.accel[2];
@@ -328,7 +330,7 @@ void INS_task(void const *pvParameters) {
     vector_3d_t accel_in, gyro_in;
     int32_t w_time_stamp = 0U;
     bsxlite_out_t bsxlite_fusion_out;
-    bsxlite_return_t  result;
+    bsxlite_return_t result;
     bsxlite_instance_t instance = 0x00;
     result = bsxlite_init(&instance);
     memset(&accel_in, 0x00, sizeof(accel_in));
@@ -343,108 +345,104 @@ void INS_task(void const *pvParameters) {
         }
 
 
-//        if (gyro_update_flag & (1 << IMU_IST_NOTIFY_SHFITS)) {
-//            gyro_update_flag &= ~(1 << IMU_IST_NOTIFY_SHFITS);
+//        if (gyro_update_flag & (1 << IMU_MAG_NOTIFY_SHFITS)) {
+//            gyro_update_flag &= ~(1 << IMU_MAG_NOTIFY_SHFITS);
 //            BMI088_gyro_read_over(gyro_dma_rx_buf + BMI088_GYRO_RX_BUF_DATA_OFFSET, bmi088_real_data.gyro);
 //            DWT_update_task_time_us(&IMU_time_record.gyro);
 //        }
 //
-//        if (accel_update_flag & (1 << IMU_IST_UPDATE_SHFITS)) {
-//            accel_update_flag &= ~(1 << IMU_IST_UPDATE_SHFITS);
+//        if (accel_update_flag & (1 << IMU_MAG_UPDATE_SHFITS)) {
+//            accel_update_flag &= ~(1 << IMU_MAG_UPDATE_SHFITS);
 //            BMI088_accel_read_over(accel_dma_rx_buf + BMI088_ACCEL_RX_BUF_DATA_OFFSET, bmi088_real_data.accel,
 //                                   &bmi088_real_data.time);
 //            DWT_update_task_time_us(&IMU_time_record.accel);
 //        }
 //
-//        if (accel_temp_update_flag & (1 << IMU_IST_UPDATE_SHFITS)) {
-//            accel_temp_update_flag &= ~(1 << IMU_IST_UPDATE_SHFITS);
+//        if (accel_temp_update_flag & (1 << IMU_MAG_UPDATE_SHFITS)) {
+//            accel_temp_update_flag &= ~(1 << IMU_MAG_UPDATE_SHFITS);
 //            BMI088_temperature_read_over(accel_temp_dma_rx_buf + BMI088_ACCEL_RX_BUF_DATA_OFFSET,
 //                                         &bmi088_real_data.temp);
 //            imu_temp_control(bmi088_real_data.temp);
 //        }
 //
-//        if (mag_update_flag & (1 << IMU_IST_DR_SHFITS)) {
-//            mag_update_flag &= ~(1 << IMU_IST_DR_SHFITS);
+//        if (mag_update_flag & (1 << IMU_MAG_DR_SHFITS)) {
+//            mag_update_flag &= ~(1 << IMU_MAG_DR_SHFITS);
 //            ist8310_read_over(mag_dma_rx_buf, ist8310_real_data.mag);
 //            DWT_update_task_time_us(&IMU_time_record.mag);
 //        }
 
-        if (accel_temp_update_flag & (1 << IMU_IST_UPDATE_SHFITS)) {
-            accel_temp_update_flag &= ~(1 << IMU_IST_UPDATE_SHFITS);
+        if (accel_temp_update_flag & (1 << IMU_MAG_UPDATE_SHFITS)) {
+            accel_temp_update_flag &= ~(1 << IMU_MAG_UPDATE_SHFITS);
             BMI088_temperature_read_over(accel_temp_dma_rx_buf + BMI088_ACCEL_RX_BUF_DATA_OFFSET,
                                          &bmi088_real_data.temp);
             imu_temp_control(bmi088_real_data.temp);
         }
         //以统一间隔更新
-        if ((gyro_update_flag & (1 << IMU_IST_NOTIFY_SHFITS)) && (accel_update_flag & (1 << IMU_IST_UPDATE_SHFITS)) &&
-            (mag_update_flag & (1 << IMU_IST_UPDATE_SHFITS))) {
-            gyro_update_flag &= ~(1 << IMU_IST_NOTIFY_SHFITS);
+        if ((gyro_update_flag & (1 << IMU_MAG_NOTIFY_SHFITS)) && (accel_update_flag & (1 << IMU_MAG_UPDATE_SHFITS)) &&
+            (mag_update_flag & (1 << IMU_MAG_UPDATE_SHFITS))) {
+            gyro_update_flag &= ~(1 << IMU_MAG_NOTIFY_SHFITS);
             BMI088_gyro_read_over(gyro_dma_rx_buf + BMI088_GYRO_RX_BUF_DATA_OFFSET, bmi088_real_data.gyro);
             DWT_update_task_time_us(&IMU_time_record.gyro);
-            accel_update_flag &= ~(1 << IMU_IST_UPDATE_SHFITS);
+            accel_update_flag &= ~(1 << IMU_MAG_UPDATE_SHFITS);
             BMI088_accel_read_over(accel_dma_rx_buf + BMI088_ACCEL_RX_BUF_DATA_OFFSET, bmi088_real_data.accel,
                                    &bmi088_real_data.time);
             DWT_update_task_time_us(&IMU_time_record.accel);
-            mag_update_flag &= ~(1 << IMU_IST_UPDATE_SHFITS);
+            mag_update_flag &= ~(1 << IMU_MAG_UPDATE_SHFITS);
             ist8310_read_over(mag_dma_rx_buf, ist8310_real_data.mag);
             DWT_update_task_time_us(&IMU_time_record.mag);
-            imu_cali_slove(INS_gyro, INS_accel, INS_mag, &bmi088_real_data, &ist8310_real_data);
+            imu_mag_rotate(INS_gyro, INS_accel, INS_mag, &bmi088_real_data, &ist8310_real_data);
+            imu_mag_cali(INS_gyro, INS_accel, INS_mag, INS_gyro_cali, INS_accel_cali, INS_mag_cali);
             if (UART1_TARGET_MODE == Matlab_MODE) {
                 if (fifo_s_free(&mag_data_tx_fifo)) {
-                    fifo_s_puts(&mag_data_tx_fifo, (char *) INS_mag, sizeof(INS_mag));
+                    fifo_s_puts(&mag_data_tx_fifo, (char *) INS_mag_cali, sizeof(INS_mag_cali));
 //                SEGGER_RTT_WriteString(0,"yes\r\n");
                 } else {
                     fifo_s_flush(&mag_data_tx_fifo);
-                    fifo_s_puts(&mag_data_tx_fifo, (char *) INS_mag, sizeof(INS_mag));
+                    fifo_s_puts(&mag_data_tx_fifo, (char *) INS_mag_cali, sizeof(INS_mag_cali));
 //                SEGGER_RTT_WriteString(0,"no\r\n");
                 }
-            }
-            accel_in.x=INS_accel[0];
-            accel_in.y=INS_accel[1];
-            accel_in.z=INS_accel[2];
+                accel_in.x = INS_accel[0];
+                accel_in.y = INS_accel[1];
+                accel_in.z = INS_accel[2];
 //            SEGGER_RTT_printf(0,"accel:%f,%f,%f\r\n",accel_in.x,accel_in.y,accel_in.z);
-            gyro_in.x=INS_gyro[0];
-            gyro_in.y=INS_gyro[1];
-            gyro_in.z=INS_gyro[2];
-            w_time_stamp+=9000U;
-            result=bsxlite_do_step(&instance,
-                                     w_time_stamp,
-                                     &accel_in,
-                                     &gyro_in,
-                                     &(bsxlite_fusion_out));
-            /** evaluate library return */
-            if (result != BSXLITE_OK)
-            {
-                switch(result)
-                {
-                    case (BSXLITE_E_DOSTEPS_TSINTRADIFFOUTOFRANGE):
-                    {
-                        SEGGER_RTT_WriteString(0,"Error: Subsequent time stamps in input data were found to be out of range from the expected sample rate!!!\n");
-                        break;
-                    }
-                    case (BSXLITE_E_FATAL):
-                    {
-                        SEGGER_RTT_WriteString(0,"Fatal Error: Process terminating!!!\n");
-                        break;
-                    }
-                    case (BSXLITE_I_DOSTEPS_NOOUTPUTSRETURNABLE):
-                    {
-                        SEGGER_RTT_WriteString(0,"Info: Sufficient memory not allocated for output,  all outputs cannot be returned because no memory provided!!!\n");
-                        break;
-                    }
-                    default:
-                    {
-                        SEGGER_RTT_WriteString(0,"Info: Unknown return \n");
-                        break;
+                gyro_in.x = INS_gyro[0];
+                gyro_in.y = INS_gyro[1];
+                gyro_in.z = INS_gyro[2];
+                w_time_stamp += 9000U;
+                result = bsxlite_do_step(&instance,
+                                         w_time_stamp,
+                                         &accel_in,
+                                         &gyro_in,
+                                         &(bsxlite_fusion_out));
+                /** evaluate library return */
+                if (result != BSXLITE_OK) {
+                    switch (result) {
+                        case (BSXLITE_E_DOSTEPS_TSINTRADIFFOUTOFRANGE): {
+                            SEGGER_RTT_WriteString(0,
+                                                   "Error: Subsequent time stamps in input data were found to be out of range from the expected sample rate!!!\n");
+                            break;
+                        }
+                        case (BSXLITE_E_FATAL): {
+                            SEGGER_RTT_WriteString(0, "Fatal Error: Process terminating!!!\n");
+                            break;
+                        }
+                        case (BSXLITE_I_DOSTEPS_NOOUTPUTSRETURNABLE): {
+                            SEGGER_RTT_WriteString(0,
+                                                   "Info: Sufficient memory not allocated for output,  all outputs cannot be returned because no memory provided!!!\n");
+                            break;
+                        }
+                        default: {
+                            SEGGER_RTT_WriteString(0, "Info: Unknown return \n");
+                            break;
+                        }
                     }
                 }
-            }
 
 
-            RTT_PrintWave(3,
-                          &bsxlite_fusion_out.orientation.yaw,
-                          &bsxlite_fusion_out.orientation.pitch,
-                          &bsxlite_fusion_out.orientation.roll);
+                RTT_PrintWave(3,
+                              &bsxlite_fusion_out.orientation.yaw,
+                              &bsxlite_fusion_out.orientation.pitch,
+                              &bsxlite_fusion_out.orientation.roll);
 //        }
 //            TRICAL_estimate_update(&mag_calib, ist8310_real_data.mag, expected_field);
 //            accel_fliter_1[0] = accel_fliter_2[0];
@@ -452,21 +450,21 @@ void INS_task(void const *pvParameters) {
 //
 //            accel_fliter_3[0] =
 //                    accel_fliter_2[0] * fliter_num[0] + accel_fliter_1[0] * fliter_num[1] +
-//                    INS_accel[0] * fliter_num[2];
+//                    INS_accel_cali[0] * fliter_num[2];
 //
 //            accel_fliter_1[1] = accel_fliter_2[1];
 //            accel_fliter_2[1] = accel_fliter_3[1];
 //
 //            accel_fliter_3[1] =
 //                    accel_fliter_2[1] * fliter_num[0] + accel_fliter_1[1] * fliter_num[1] +
-//                    INS_accel[1] * fliter_num[2];
+//                    INS_accel_cali[1] * fliter_num[2];
 //
 //            accel_fliter_1[2] = accel_fliter_2[2];
 //            accel_fliter_2[2] = accel_fliter_3[2];
 //
 //            accel_fliter_3[2] =
 //                    accel_fliter_2[2] * fliter_num[0] + accel_fliter_1[2] * fliter_num[1] +
-//                    INS_accel[2] * fliter_num[2];
+//                    INS_accel_cali[2] * fliter_num[2];
 
 
 
@@ -487,18 +485,18 @@ void INS_task(void const *pvParameters) {
 //        float32_t p = bmi088_real_data.gyro[0];
 //        float32_t q = bmi088_real_data.gyro[1];
 //        float32_t r = bmi088_real_data.gyro[2];
-//            float32_t Ax = INS_accel[0];
-//            float32_t Ay = INS_accel[1];
-//            float32_t Az = INS_accel[2];
-//            float32_t Bx = INS_mag[0];
-//            float32_t By = INS_mag[1];
-//            float32_t Bz = INS_mag[2];
+//            float32_t Ax = INS_accel_cali[0];
+//            float32_t Ay = INS_accel_cali[1];
+//            float32_t Az = INS_accel_cali[2];
+//            float32_t Bx = INS_mag_cali[0];
+//            float32_t By = INS_mag_cali[1];
+//            float32_t Bz = INS_mag_cali[2];
 ////        float32_t Bx = ist8310_real_data.mag[0] - IMU.HARD_IRON_BIAS.p2Data[0][0];
 ////        float32_t By = ist8310_real_data.mag[1] - IMU.HARD_IRON_BIAS.p2Data[1][0];
 ////        float32_t Bz = ist8310_real_data.mag[2] - IMU.HARD_IRON_BIAS.p2Data[2][0];
-//            float32_t p = INS_gyro[0];
-//            float32_t q = INS_gyro[1];
-//            float32_t r = INS_gyro[2];
+//            float32_t p = INS_gyro_cali[0];
+//            float32_t q = INS_gyro_cali[1];
+//            float32_t r = INS_gyro_cali[2];
 //            Matrix_vassignment_f32(&U, 1, 1, p);
 //            Matrix_vassignment_f32(&U, 2, 1, q);
 //            Matrix_vassignment_f32(&U, 3, 1, r);
@@ -528,15 +526,15 @@ void INS_task(void const *pvParameters) {
 //                UKF_vReset(&UKF_IMU, &quaternionData, &UKF_PINIT, &UKF_Rv, &UKF_Rn);
 //            }
 ////            AHRS_update(INS_quat, timing_time, INS_gyro, INS_accel, INS_mag);
-//            get_angle(UKF_IMU.X_Est.arm_matrix.pData, INS_angle + INS_YAW_ADDRESS_OFFSET,
-//                      INS_angle + INS_PITCH_ADDRESS_OFFSET,
-//                      INS_angle + INS_ROLL_ADDRESS_OFFSET);
+//            get_angle(UKF_IMU.X_Est.arm_matrix.pData, INS_angle_ukf + INS_YAW_ADDRESS_OFFSET,
+//                      INS_angle_ukf + INS_PITCH_ADDRESS_OFFSET,
+//                      INS_angle_ukf + INS_ROLL_ADDRESS_OFFSET);
 //            get_angle(INS_quat, INS_angle + INS_YAW_ADDRESS_OFFSET,
 //                      INS_angle + INS_PITCH_ADDRESS_OFFSET,
 //                      INS_angle + INS_ROLL_ADDRESS_OFFSET);
-        }
-        /* ----------------------------- Update the Kalman Filter ------------------------------ */
-        /* ================== Read the sensor data / simulate the system here ================== */
+            }
+            /* ----------------------------- Update the Kalman Filter ------------------------------ */
+            /* ================== Read the sensor data / simulate the system here ================== */
 //        float32_t P_check_num = 0;
 //        while (P_check_num < 1e-4f) {
 //            matrix_f32_t P_check;
@@ -586,12 +584,12 @@ void INS_task(void const *pvParameters) {
 //        IMU.HARD_IRON_BIAS.p2Data[0][0] = RLS_theta.p2Data[0][0] / 2.0f;
 //        IMU.HARD_IRON_BIAS.p2Data[1][0] = RLS_theta.p2Data[1][0] / 2.0f;
 //        IMU.HARD_IRON_BIAS.p2Data[2][0] = RLS_theta.p2Data[2][0] / 2.0f;
-        //rotate and zero drift
-//        imu_cali_slove(INS_gyro, INS_accel, INS_mag, &bmi088_real_data, &ist8310_real_data);
+            //rotate and zero drift
+//        imu_mag_rotate(INS_gyro, INS_accel, INS_mag, &bmi088_real_data, &ist8310_real_data);
 
 
-        //加速度计低通滤波
-        //accel low-pass filter
+            //加速度计低通滤波
+            //accel low-pass filter
 //        accel_fliter_1[0] = accel_fliter_2[0];
 //        accel_fliter_2[0] = accel_fliter_3[0];
 //
@@ -613,14 +611,16 @@ void INS_task(void const *pvParameters) {
 
 //        get_angle(INS_quat, INS_angle + INS_YAW_ADDRESS_OFFSET, INS_angle + INS_PITCH_ADDRESS_OFFSET,
 //                  INS_angle + INS_ROLL_ADDRESS_OFFSET);
-//        get_angle(INS_quat, INS_angle + INS_YAW_ADDRESS_OFFSET, INS_angle + INS_PITCH_ADDRESS_OFFSET,
-//                  INS_angle + INS_ROLL_ADDRESS_OFFSET);
+//        get_angle(UKF_IMU.X_Est.arm_matrix.pData, INS_angle_ukf + INS_YAW_ADDRESS_OFFSET,
+//                  INS_angle_ukf + INS_PITCH_ADDRESS_OFFSET,
+//                  INS_angle_ukf + INS_ROLL_ADDRESS_OFFSET);
 
 
 #if INCLUDE_uxTaskGetStackHighWaterMark
-        INS_task_stack = uxTaskGetStackHighWaterMark(NULL);
+            INS_task_stack = uxTaskGetStackHighWaterMark(NULL);
 #endif
-        vTaskDelayUntil(&LoopStartTime, pdMS_TO_TICKS(9));
+            vTaskDelayUntil(&LoopStartTime, pdMS_TO_TICKS(9));
+        }
     }
 }
 
@@ -653,28 +653,28 @@ uint32_t get_stack_of_INS_task(void) {
   * @param[in]      ist8310: 磁力计数据
   * @retval         none
   */
-//static void
-//imu_cali_slove(float32_t gyro[3], float32_t accel[3], float32_t mag[3], bmi088_real_data_t *bmi088,
-//               ist8310_real_data_t *ist8310) {
-//    for (uint8_t i = 0; i < 3; i++) {
-//        gyro[i] = bmi088->gyro[0] * gyro_scale_factor[i][0] + bmi088->gyro[1] * gyro_scale_factor[i][1] +
-//                  bmi088->gyro[2] * gyro_scale_factor[i][2] + gyro_offset[i];
-//        accel[i] = bmi088->accel[0] * accel_scale_factor[i][0] + bmi088->accel[1] * accel_scale_factor[i][1] +
-//                   bmi088->accel[2] * accel_scale_factor[i][2] + accel_offset[i];
-//        mag[i] = ist8310->mag[0] * mag_scale_factor[i][0] + ist8310->mag[1] * mag_scale_factor[i][1] +
-//                 ist8310->mag[2] * mag_scale_factor[i][2] + mag_offset[i];
-//    }
-//}
 void
-imu_cali_slove(float32_t gyro[3], float32_t accel[3], float32_t mag[3], bmi088_real_data_t *bmi088,
-               ist8310_real_data_t *ist8310) {
+imu_mag_cali(float32_t gyro[3], float32_t accel[3], float32_t mag[3], float32_t gyro_cali[3], float32_t accel_cali[3],
+             float32_t mag_cali[3]) {
     for (uint8_t i = 0; i < 3; i++) {
-        gyro[i] = bmi088->gyro[0] * gyro_scale_factor[i][0] + bmi088->gyro[1] * gyro_scale_factor[i][1] +
-                  bmi088->gyro[2] * gyro_scale_factor[i][2];
-        accel[i] = bmi088->accel[0] * accel_scale_factor[i][0] + bmi088->accel[1] * accel_scale_factor[i][1] +
-                   bmi088->accel[2] * accel_scale_factor[i][2];
-        mag[i] = ist8310->mag[0] * mag_scale_factor[i][0] + ist8310->mag[1] * mag_scale_factor[i][1] +
-                 ist8310->mag[2] * mag_scale_factor[i][2];
+        gyro_cali[i] = gyro[i] * gyro_cali_data.scale[i] + gyro_cali_data.offset[i];
+        accel_cali[i] = accel[i] * accel_cali_data.scale[i] + accel_cali_data.offset[i];
+        mag_cali[i] = mag[i] * mag_cali_data.scale[i] + mag_cali_data.offset[i];
+    }
+}
+
+void imu_mag_rotate(float32_t gyro[3], float32_t accel[3], float32_t mag[3], bmi088_real_data_t *bmi088,
+                    ist8310_real_data_t *ist8310) {
+    for (uint8_t i = 0; i < 3; i++) {
+        gyro[i] = bmi088->gyro[0] * gyro_cali_data.rotation_factor[i][0] +
+                  bmi088->gyro[1] * gyro_cali_data.rotation_factor[i][1] +
+                  bmi088->gyro[2] * gyro_cali_data.rotation_factor[i][2];
+        accel[i] = bmi088->accel[0] * accel_cali_data.rotation_factor[i][0] +
+                   bmi088->accel[1] * accel_cali_data.rotation_factor[i][1] +
+                   bmi088->accel[2] * accel_cali_data.rotation_factor[i][2];
+        mag[i] = ist8310->mag[0] * mag_cali_data.rotation_factor[i][0] +
+                 ist8310->mag[1] * mag_cali_data.rotation_factor[i][1] +
+                 ist8310->mag[2] * mag_cali_data.rotation_factor[i][2];
     }
 }
 
@@ -735,16 +735,49 @@ void gyro_offset_calc(float32_t gyro_offset[3], float32_t gyro[3], uint16_t *off
         return;
     }
 
-    gyro_offset[0] = gyro_offset[0] - 0.0003f * gyro[0];
-    gyro_offset[1] = gyro_offset[1] - 0.0003f * gyro[1];
-    gyro_offset[2] = gyro_offset[2] - 0.0003f * gyro[2];
+    gyro_offset[0] -= 0.00005f * gyro[0];
+    gyro_offset[1] -= 0.00005f * gyro[1];
+    gyro_offset[2] -= 0.00005f * gyro[2];
     (*offset_time_count)++;
 }
 
-void mag_scale_offset_calc(float32_t mag_offset[3], float32_t mag[3], uint16_t *offset_time_count) {
-    if (gyro_offset == NULL || mag == NULL || offset_time_count == NULL) {
+void mag_cali_data_record(float32_t *mag_x_max, float32_t *mag_x_min, float32_t *mag_y_max, float32_t *mag_y_min,
+                          float32_t mag[3]) {
+    if (mag_x_max == NULL || mag_x_min == NULL || mag_y_max == NULL || mag_y_min == NULL || mag == NULL) {
         return;
     }
+    if (*mag_x_max < mag[0]) {
+        *mag_x_max = mag[0];
+    }
+    if (*mag_x_min > mag[0]) {
+        *mag_x_min = mag[0];
+    }
+    if (*mag_y_max < mag[1]) {
+        *mag_y_max = mag[1];
+    }
+    if (*mag_y_min > mag[1]) {
+        *mag_y_min = mag[1];
+    }
+}
+
+void calc_mag_cali(float32_t *mag_x_offset, float32_t *mag_y_offset, float32_t *mag_z_offset, float32_t *mag_x_scale,
+                   float32_t *mag_y_scale, float32_t *mag_z_scale, float32_t *mag_x_max, float32_t *mag_x_min,
+                   float32_t *mag_y_max, float32_t *mag_y_min) {
+    if (mag_x_offset == NULL || mag_y_offset == NULL || mag_z_offset == NULL || mag_x_scale == NULL ||
+        mag_y_scale == NULL || mag_z_scale == NULL ||
+        mag_x_max == NULL || mag_x_min == NULL || mag_y_max == NULL || mag_y_min == NULL) {
+        return;
+    }
+    float32_t mag_x_len, mag_y_len;
+
+    mag_x_len = *mag_x_max - *mag_x_min;
+    mag_y_len = *mag_y_max - *mag_y_min;
+    *mag_x_scale = 1.0f;
+    *mag_y_scale = mag_x_len / mag_y_len;
+    *mag_z_scale = 1.0f;
+    *mag_x_offset = *mag_x_scale * (0.5f * mag_x_len - *mag_x_max);
+    *mag_y_offset = *mag_y_scale * (0.5f * mag_y_len - *mag_y_max);
+    *mag_z_offset = 0.0f;
 
 }
 
@@ -764,32 +797,11 @@ void mag_scale_offset_calc(float32_t mag_offset[3], float32_t mag[3], uint16_t *
   */
 void INS_cali_gyro(float32_t cali_scale[3], float32_t cali_offset[3], uint16_t *time_count) {
     if (*time_count == 0) {
-        gyro_offset[0] = gyro_cali_offset[0];
-        gyro_offset[1] = gyro_cali_offset[1];
-        gyro_offset[2] = gyro_cali_offset[2];
+        cali_offset[0] = 0.0f;
+        cali_offset[1] = 0.0f;
+        cali_offset[2] = 0.0f;
     }
-    gyro_offset_calc(gyro_offset, INS_gyro, time_count);
-
-    cali_offset[0] = gyro_offset[0];
-    cali_offset[1] = gyro_offset[1];
-    cali_offset[2] = gyro_offset[2];
-    cali_scale[0] = 1.0f;
-    cali_scale[1] = 1.0f;
-    cali_scale[2] = 1.0f;
-
-}
-
-void IST_cali_mag(float32_t cali_scale[3], float32_t cali_offset[3], uint16_t *time_count) {
-    if (*time_count == 0) {
-        gyro_offset[0] = gyro_cali_offset[0];
-        gyro_offset[1] = gyro_cali_offset[1];
-        gyro_offset[2] = gyro_cali_offset[2];
-    }
-    gyro_offset_calc(gyro_offset, INS_gyro, time_count);
-
-    cali_offset[0] = gyro_offset[0];
-    cali_offset[1] = gyro_offset[1];
-    cali_offset[2] = gyro_offset[2];
+    gyro_offset_calc(cali_offset, INS_gyro, time_count);
     cali_scale[0] = 1.0f;
     cali_scale[1] = 1.0f;
     cali_scale[2] = 1.0f;
@@ -808,13 +820,22 @@ void IST_cali_mag(float32_t cali_scale[3], float32_t cali_offset[3], uint16_t *t
   * @param[in]      陀螺仪的零漂
   * @retval         none
   */
-void INS_set_cali_gyro(float32_t cali_scale[3], float32_t cali_offset[3]) {
-    gyro_cali_offset[0] = cali_offset[0];
-    gyro_cali_offset[1] = cali_offset[1];
-    gyro_cali_offset[2] = cali_offset[2];
-    gyro_offset[0] = gyro_cali_offset[0];
-    gyro_offset[1] = gyro_cali_offset[1];
-    gyro_offset[2] = gyro_cali_offset[2];
+void gyro_set_cali(float32_t cali_scale[3], float32_t cali_offset[3]) {
+    gyro_cali_data.offset[0] = cali_offset[0];
+    gyro_cali_data.offset[1] = cali_offset[1];
+    gyro_cali_data.offset[2] = cali_offset[2];
+    gyro_cali_data.scale[0] = cali_scale[0];
+    gyro_cali_data.scale[1] = cali_scale[1];
+    gyro_cali_data.scale[2] = cali_scale[2];
+}
+
+void mag_set_cali(float32_t cali_scale[3], float32_t cali_offset[3]) {
+    mag_cali_data.offset[0] = cali_offset[0];
+    mag_cali_data.offset[1] = cali_offset[1];
+    mag_cali_data.offset[2] = cali_offset[2];
+    mag_cali_data.scale[0] = cali_scale[0];
+    mag_cali_data.scale[1] = cali_scale[1];
+    mag_cali_data.scale[2] = cali_scale[2];
 }
 
 /**
@@ -855,7 +876,7 @@ const float32_t *get_INS_angle_point(void) {
   * @retval         INS_gyro的指针
   */
 extern const float32_t *get_gyro_data_point(void) {
-    return INS_gyro;
+    return INS_gyro_cali;
 }
 /**
   * @brief          get aceel, 0:x-axis, 1:y-axis, 2:roll-axis unit m/s2
@@ -868,7 +889,7 @@ extern const float32_t *get_gyro_data_point(void) {
   * @retval         INS_accel的指针
   */
 extern const float32_t *get_accel_data_point(void) {
-    return INS_accel;
+    return INS_accel_cali;
 }
 /**
   * @brief          get mag, 0:x-axis, 1:y-axis, 2:roll-axis unit ut
@@ -881,27 +902,27 @@ extern const float32_t *get_accel_data_point(void) {
   * @retval         INS_mag的指针
   */
 extern const float32_t *get_mag_data_point(void) {
-    return INS_mag;
+    return INS_mag_cali;
 }
 
 
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
     if (GPIO_Pin == INT1_ACCEL_Pin) {
         detect_hook(BOARD_ACCEL_TOE);
-        accel_update_flag |= 1 << IMU_IST_DR_SHFITS;
-        accel_temp_update_flag |= 1 << IMU_IST_DR_SHFITS;
+        accel_update_flag |= 1 << IMU_MAG_DR_SHFITS;
+        accel_temp_update_flag |= 1 << IMU_MAG_DR_SHFITS;
         if (imu_start_dma_flag) {
             imu_cmd_spi_dma();
         }
     } else if (GPIO_Pin == INT1_GYRO_Pin) {
         detect_hook(BOARD_GYRO_TOE);
-        gyro_update_flag |= 1 << IMU_IST_DR_SHFITS;
+        gyro_update_flag |= 1 << IMU_MAG_DR_SHFITS;
         if (imu_start_dma_flag) {
             imu_cmd_spi_dma();
         }
     } else if (GPIO_Pin == DRDY_IST8310_Pin) {
         detect_hook(BOARD_MAG_TOE);
-        mag_update_flag |= 1 << IMU_IST_DR_SHFITS;
+        mag_update_flag |= 1 << IMU_MAG_DR_SHFITS;
         if (imu_start_dma_flag) {
             ist_cmd_i2c_dma();
         }
@@ -935,9 +956,9 @@ static void ist_cmd_i2c_dma(void) {
     UBaseType_t uxSavedInterruptStatus;
     uxSavedInterruptStatus = taskENTER_CRITICAL_FROM_ISR();
     //开启磁力计的DMA传输
-    if ((mag_update_flag & (1 << IMU_IST_DR_SHFITS)) && !(hi2c3.hdmarx->Instance->CR & DMA_SxCR_EN)) {
-        mag_update_flag &= ~(1 << IMU_IST_DR_SHFITS);
-        mag_update_flag |= (1 << IMU_IST_SPI_I2C_SHFITS);
+    if ((mag_update_flag & (1 << IMU_MAG_DR_SHFITS)) && !(hi2c3.hdmarx->Instance->CR & DMA_SxCR_EN)) {
+        mag_update_flag &= ~(1 << IMU_MAG_DR_SHFITS);
+        mag_update_flag |= (1 << IMU_MAG_SPI_I2C_SHFITS);
         ist8310_IIC_DMA_read_muli_reg(0x03, mag_dma_rx_buf, 6);
         taskEXIT_CRITICAL_FROM_ISR(uxSavedInterruptStatus);
         return;
@@ -960,12 +981,12 @@ static void imu_cmd_spi_dma(void) {
     uxSavedInterruptStatus = taskENTER_CRITICAL_FROM_ISR();
 
     //开启陀螺仪的DMA传输
-    if ((gyro_update_flag & (1 << IMU_IST_DR_SHFITS)) && !(hspi1.hdmatx->Instance->CR & DMA_SxCR_EN) &&
+    if ((gyro_update_flag & (1 << IMU_MAG_DR_SHFITS)) && !(hspi1.hdmatx->Instance->CR & DMA_SxCR_EN) &&
         !(hspi1.hdmarx->Instance->CR & DMA_SxCR_EN)
-        && !(accel_update_flag & (1 << IMU_IST_SPI_I2C_SHFITS)) &&
-        !(accel_temp_update_flag & (1 << IMU_IST_SPI_I2C_SHFITS))) {
-        gyro_update_flag &= ~(1 << IMU_IST_DR_SHFITS);
-        gyro_update_flag |= (1 << IMU_IST_SPI_I2C_SHFITS);
+        && !(accel_update_flag & (1 << IMU_MAG_SPI_I2C_SHFITS)) &&
+        !(accel_temp_update_flag & (1 << IMU_MAG_SPI_I2C_SHFITS))) {
+        gyro_update_flag &= ~(1 << IMU_MAG_DR_SHFITS);
+        gyro_update_flag |= (1 << IMU_MAG_SPI_I2C_SHFITS);
 
         HAL_GPIO_WritePin(CS1_GYRO_GPIO_Port, CS1_GYRO_Pin, GPIO_PIN_RESET);
         SPI1_DMA_enable((uint32_t) gyro_dma_tx_buf, (uint32_t) gyro_dma_rx_buf, SPI_DMA_GYRO_LENGHT);
@@ -973,12 +994,12 @@ static void imu_cmd_spi_dma(void) {
         return;
     }
     //开启加速度计的DMA传输
-    if ((accel_update_flag & (1 << IMU_IST_DR_SHFITS)) && !(hspi1.hdmatx->Instance->CR & DMA_SxCR_EN) &&
+    if ((accel_update_flag & (1 << IMU_MAG_DR_SHFITS)) && !(hspi1.hdmatx->Instance->CR & DMA_SxCR_EN) &&
         !(hspi1.hdmarx->Instance->CR & DMA_SxCR_EN)
-        && !(gyro_update_flag & (1 << IMU_IST_SPI_I2C_SHFITS)) &&
-        !(accel_temp_update_flag & (1 << IMU_IST_SPI_I2C_SHFITS))) {
-        accel_update_flag &= ~(1 << IMU_IST_DR_SHFITS);
-        accel_update_flag |= (1 << IMU_IST_SPI_I2C_SHFITS);
+        && !(gyro_update_flag & (1 << IMU_MAG_SPI_I2C_SHFITS)) &&
+        !(accel_temp_update_flag & (1 << IMU_MAG_SPI_I2C_SHFITS))) {
+        accel_update_flag &= ~(1 << IMU_MAG_DR_SHFITS);
+        accel_update_flag |= (1 << IMU_MAG_SPI_I2C_SHFITS);
 
         HAL_GPIO_WritePin(CS1_ACCEL_GPIO_Port, CS1_ACCEL_Pin, GPIO_PIN_RESET);
         SPI1_DMA_enable((uint32_t) accel_dma_tx_buf, (uint32_t) accel_dma_rx_buf, SPI_DMA_ACCEL_LENGHT);
@@ -987,12 +1008,12 @@ static void imu_cmd_spi_dma(void) {
     }
 
 
-    if ((accel_temp_update_flag & (1 << IMU_IST_DR_SHFITS)) && !(hspi1.hdmatx->Instance->CR & DMA_SxCR_EN) &&
+    if ((accel_temp_update_flag & (1 << IMU_MAG_DR_SHFITS)) && !(hspi1.hdmatx->Instance->CR & DMA_SxCR_EN) &&
         !(hspi1.hdmarx->Instance->CR & DMA_SxCR_EN)
-        && !(gyro_update_flag & (1 << IMU_IST_SPI_I2C_SHFITS)) &&
-        !(accel_update_flag & (1 << IMU_IST_SPI_I2C_SHFITS))) {
-        accel_temp_update_flag &= ~(1 << IMU_IST_DR_SHFITS);
-        accel_temp_update_flag |= (1 << IMU_IST_SPI_I2C_SHFITS);
+        && !(gyro_update_flag & (1 << IMU_MAG_SPI_I2C_SHFITS)) &&
+        !(accel_update_flag & (1 << IMU_MAG_SPI_I2C_SHFITS))) {
+        accel_temp_update_flag &= ~(1 << IMU_MAG_DR_SHFITS);
+        accel_temp_update_flag |= (1 << IMU_MAG_SPI_I2C_SHFITS);
 
         HAL_GPIO_WritePin(CS1_ACCEL_GPIO_Port, CS1_ACCEL_Pin, GPIO_PIN_RESET);
         SPI1_DMA_enable((uint32_t) accel_temp_dma_tx_buf, (uint32_t) accel_temp_dma_rx_buf, SPI_DMA_ACCEL_TEMP_LENGHT);
@@ -1010,9 +1031,9 @@ void DMA2_Stream2_IRQHandler(void) {
 
         //gyro read over
         //陀螺仪读取完毕
-        if (gyro_update_flag & (1 << IMU_IST_SPI_I2C_SHFITS)) {
-            gyro_update_flag &= ~(1 << IMU_IST_SPI_I2C_SHFITS);
-            gyro_update_flag |= (1 << IMU_IST_UPDATE_SHFITS);
+        if (gyro_update_flag & (1 << IMU_MAG_SPI_I2C_SHFITS)) {
+            gyro_update_flag &= ~(1 << IMU_MAG_SPI_I2C_SHFITS);
+            gyro_update_flag |= (1 << IMU_MAG_UPDATE_SHFITS);
 
             HAL_GPIO_WritePin(CS1_GYRO_GPIO_Port, CS1_GYRO_Pin, GPIO_PIN_SET);
 
@@ -1020,26 +1041,26 @@ void DMA2_Stream2_IRQHandler(void) {
 
         //accel read over
         //加速度计读取完毕
-        if (accel_update_flag & (1 << IMU_IST_SPI_I2C_SHFITS)) {
-            accel_update_flag &= ~(1 << IMU_IST_SPI_I2C_SHFITS);
-            accel_update_flag |= (1 << IMU_IST_UPDATE_SHFITS);
+        if (accel_update_flag & (1 << IMU_MAG_SPI_I2C_SHFITS)) {
+            accel_update_flag &= ~(1 << IMU_MAG_SPI_I2C_SHFITS);
+            accel_update_flag |= (1 << IMU_MAG_UPDATE_SHFITS);
 
             HAL_GPIO_WritePin(CS1_ACCEL_GPIO_Port, CS1_ACCEL_Pin, GPIO_PIN_SET);
         }
         //temperature read over
         //温度读取完毕
-        if (accel_temp_update_flag & (1 << IMU_IST_SPI_I2C_SHFITS)) {
-            accel_temp_update_flag &= ~(1 << IMU_IST_SPI_I2C_SHFITS);
-            accel_temp_update_flag |= (1 << IMU_IST_UPDATE_SHFITS);
+        if (accel_temp_update_flag & (1 << IMU_MAG_SPI_I2C_SHFITS)) {
+            accel_temp_update_flag &= ~(1 << IMU_MAG_SPI_I2C_SHFITS);
+            accel_temp_update_flag |= (1 << IMU_MAG_UPDATE_SHFITS);
 
             HAL_GPIO_WritePin(CS1_ACCEL_GPIO_Port, CS1_ACCEL_Pin, GPIO_PIN_SET);
         }
         //循环DMA读取(每次读取1一个8位寄存器)
         imu_cmd_spi_dma();
         //以更新速率最快的触发IMU数据处理任务(按需修改)
-        if (gyro_update_flag & (1 << IMU_IST_UPDATE_SHFITS)) {
-            gyro_update_flag &= ~(1 << IMU_IST_UPDATE_SHFITS);
-            gyro_update_flag |= (1 << IMU_IST_NOTIFY_SHFITS);
+        if (gyro_update_flag & (1 << IMU_MAG_UPDATE_SHFITS)) {
+            gyro_update_flag &= ~(1 << IMU_MAG_UPDATE_SHFITS);
+            gyro_update_flag |= (1 << IMU_MAG_NOTIFY_SHFITS);
             __HAL_GPIO_EXTI_GENERATE_SWIT(GPIO_PIN_0);
         }
     }
@@ -1047,9 +1068,9 @@ void DMA2_Stream2_IRQHandler(void) {
 
 void HAL_I2C_MemRxCpltCallback(I2C_HandleTypeDef *hi2c) {
     if (hi2c == &hi2c3) {
-        if (mag_update_flag & (1 << IMU_IST_SPI_I2C_SHFITS)) {
-            mag_update_flag &= ~(1 << IMU_IST_SPI_I2C_SHFITS);
-            mag_update_flag |= (1 << IMU_IST_UPDATE_SHFITS);
+        if (mag_update_flag & (1 << IMU_MAG_SPI_I2C_SHFITS)) {
+            mag_update_flag &= ~(1 << IMU_MAG_SPI_I2C_SHFITS);
+            mag_update_flag |= (1 << IMU_MAG_UPDATE_SHFITS);
         }
     }
 }
