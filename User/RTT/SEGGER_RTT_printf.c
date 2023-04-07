@@ -464,20 +464,16 @@ int SEGGER_RTT_vprintf(unsigned BufferIndex, const char *sFormat, va_list *pPara
                     //----------输出浮点-----------------------------
                 case 'f':
                 case 'F': {
-
-                    double fv;
-                    fv = (double) va_arg(*pParamList, double);    //取出输入的浮点数值
-
-                    v = (int) fv;                                //取整数部分
-
-                    _PrintInt(&BufferDesc, v, 10u, NumDigits, FieldWidth, FormatFlags); //显示整数，支持负数
+                    float fv = (float)va_arg(*pParamList, double);    // 取出输入的浮点数值
+                    if(fv < 0) _StoreChar(&BufferDesc, '-');          // 判断正负号
+                    v = abs((int)fv);                                 // 取正整数部分
+                    _PrintInt(&BufferDesc, v, 10u, NumDigits, FieldWidth, FormatFlags);  //显示整数
                     _StoreChar(&BufferDesc, '.');                                        //显示小数点
-
-                    v = abs((int) (fv * 10000));
+                    v = abs((int)(fv * 10000));
                     v = v % 10000;
-                    _PrintInt(&BufferDesc, v, 10u, 4, FieldWidth + 1, FormatFlags);          //显示小数点后两位
-                }
+                    _PrintInt(&BufferDesc, v, 10u, 4, FieldWidth, FormatFlags);          //显示小数点后两位
                     break;
+                }
                     //---------------------------------------
                 default:
                     break;

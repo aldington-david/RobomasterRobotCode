@@ -207,4 +207,5 @@ AHRS_bUpdateNonlinearY(matrix_f32_t *Y_matrix, matrix_f32_t *X_matrix, matrix_f3
 extern void AHRS_quaternion_init(AHRS_t *AHRS_op);
 extern float32_t AHRS_get_instant_pitch(void);
 extern float32_t AHRS_get_instant_roll(void);
+extern float32_t AHRS_get_instant_yaw(void);
 #endif //ROBOMASTERROBOTCODE_AHRS_UKF_H

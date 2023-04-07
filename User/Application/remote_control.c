@@ -69,8 +69,7 @@ static uint8_t sbus_rx_buf[2][SBUS_RX_BUF_NUM];
   * @param[in]      none
   * @retval         none
   */
-void remote_control_init(void)
-{
+void remote_control_init(void) {
     RC_Init(sbus_rx_buf[0], sbus_rx_buf[1], SBUS_RX_BUF_NUM);
 }
 /**
@@ -83,46 +82,37 @@ void remote_control_init(void)
   * @param[in]      none
   * @retval         遥控器数据指针
   */
-const volatile RC_ctrl_t *get_remote_control_point(void)
-{
+const volatile RC_ctrl_t *get_remote_control_point(void) {
     return &rc_ctrl;
 }
 
 //判断遥控器数据是否出错，
-uint8_t RC_data_is_error(void)
-{
+uint8_t RC_data_is_error(void) {
     //使用了go to语句 方便出错统一处理遥控器变量数据归零
-    if (RC_abs(rc_ctrl.rc.ch[0]) > RC_CHANNAL_ERROR_VALUE)
-    {
+    if (RC_abs(rc_ctrl.rc.ch[0]) > RC_CHANNAL_ERROR_VALUE) {
         goto error;
     }
-    if (RC_abs(rc_ctrl.rc.ch[1]) > RC_CHANNAL_ERROR_VALUE)
-    {
+    if (RC_abs(rc_ctrl.rc.ch[1]) > RC_CHANNAL_ERROR_VALUE) {
         goto error;
     }
-    if (RC_abs(rc_ctrl.rc.ch[2]) > RC_CHANNAL_ERROR_VALUE)
-    {
+    if (RC_abs(rc_ctrl.rc.ch[2]) > RC_CHANNAL_ERROR_VALUE) {
         goto error;
     }
-    if (RC_abs(rc_ctrl.rc.ch[3]) > RC_CHANNAL_ERROR_VALUE)
-    {
+    if (RC_abs(rc_ctrl.rc.ch[3]) > RC_CHANNAL_ERROR_VALUE) {
         goto error;
     }
-    if (RC_abs(rc_ctrl.rc.ch[4]) > RC_CHANNAL_ERROR_VALUE)
-    {
+    if (RC_abs(rc_ctrl.rc.ch[4]) > RC_CHANNAL_ERROR_VALUE) {
         goto error;
     }
-    if (rc_ctrl.rc.s[0] == 0)
-    {
+    if (rc_ctrl.rc.s[0] == 0) {
         goto error;
     }
-    if (rc_ctrl.rc.s[1] == 0)
-    {
+    if (rc_ctrl.rc.s[1] == 0) {
         goto error;
     }
     return 0;
 
-error:
+    error:
     rc_ctrl.rc.ch[0] = 0;
     rc_ctrl.rc.ch[1] = 0;
     rc_ctrl.rc.ch[2] = 0;
@@ -136,33 +126,29 @@ error:
     rc_ctrl.mouse.press_l = 0;
     rc_ctrl.mouse.press_r = 0;
     rc_ctrl.key.v = 0;
+    rc_ctrl.update_flag=0;
     return 1;
 }
 
-void slove_RC_lost(void)
-{
+void slove_RC_lost(void) {
     RC_restart(SBUS_RX_BUF_NUM);
 }
-void slove_data_error(void)
-{
+
+void slove_data_error(void) {
     RC_restart(SBUS_RX_BUF_NUM);
 }
 
 //串口中断
-void USART3_IRQHandler(void)
-{
-    if(huart3.Instance->SR & UART_FLAG_RXNE)//接收到数据
+void USART3_IRQHandler(void) {
+    if (huart3.Instance->SR & UART_FLAG_RXNE)//接收到数据
     {
         __HAL_UART_CLEAR_PEFLAG(&huart3);
-    }
-    else if(USART3->SR & UART_FLAG_IDLE)
-    {
+    } else if (USART3->SR & UART_FLAG_IDLE) {
         static uint16_t this_time_rx_len = 0;
 
         __HAL_UART_CLEAR_PEFLAG(&huart3);
 
-        if ((hdma_usart3_rx.Instance->CR & DMA_SxCR_CT) == RESET)
-        {
+        if ((hdma_usart3_rx.Instance->CR & DMA_SxCR_CT) == RESET) {
             /* Current memory buffer used is Memory 0 */
 
             //disable DMA
@@ -180,21 +166,18 @@ void USART3_IRQHandler(void)
             //set memory buffer 1
             //设定缓冲区1
             hdma_usart3_rx.Instance->CR |= DMA_SxCR_CT;
-            
+
             //enable DMA
             //使能DMA
             __HAL_DMA_ENABLE(&hdma_usart3_rx);
 
-            if(this_time_rx_len == RC_FRAME_LENGTH)
-            {
+            if (this_time_rx_len == RC_FRAME_LENGTH) {
                 sbus_to_rc(sbus_rx_buf[0], &rc_ctrl);
                 //记录数据接收时间
                 detect_hook(DBUS_TOE);
 //                sbus_to_usart1(sbus_rx_buf[0]);
             }
-        }
-        else
-        {
+        } else {
             /* Current memory buffer used is Memory 1 */
             //disable DMA
             //失效DMA
@@ -211,13 +194,12 @@ void USART3_IRQHandler(void)
             //set memory buffer 0
             //设定缓冲区0
             DMA1_Stream1->CR &= ~(DMA_SxCR_CT);
-            
+
             //enable DMA
             //使能DMA
             __HAL_DMA_ENABLE(&hdma_usart3_rx);
 
-            if(this_time_rx_len == RC_FRAME_LENGTH)
-            {
+            if (this_time_rx_len == RC_FRAME_LENGTH) {
                 //处理遥控器数据
                 sbus_to_rc(sbus_rx_buf[1], &rc_ctrl);
                 //记录数据接收时间
@@ -230,14 +212,10 @@ void USART3_IRQHandler(void)
 }
 
 //取正函数
-static int16_t RC_abs(int16_t value)
-{
-    if (value > 0)
-    {
+static int16_t RC_abs(int16_t value) {
+    if (value > 0) {
         return value;
-    }
-    else
-    {
+    } else {
         return -value;
     }
 }
@@ -253,17 +231,15 @@ static int16_t RC_abs(int16_t value)
   * @param[out]     rc_ctrl: 遥控器数据指
   * @retval         none
   */
-static void sbus_to_rc(volatile const uint8_t *sbus_buf, RC_ctrl_t *rc_ctrl)
-{
-    if (sbus_buf == NULL || rc_ctrl == NULL)
-    {
+static void sbus_to_rc(volatile const uint8_t *sbus_buf, RC_ctrl_t *rc_ctrl) {
+    if (sbus_buf == NULL || rc_ctrl == NULL) {
         return;
     }
 
     rc_ctrl->rc.ch[0] = (sbus_buf[0] | (sbus_buf[1] << 8)) & 0x07ff;        //!< Channel 0
     rc_ctrl->rc.ch[1] = ((sbus_buf[1] >> 3) | (sbus_buf[2] << 5)) & 0x07ff; //!< Channel 1
     rc_ctrl->rc.ch[2] = ((sbus_buf[2] >> 6) | (sbus_buf[3] << 2) |          //!< Channel 2
-                         (sbus_buf[4] << 10)) &0x07ff;
+                         (sbus_buf[4] << 10)) & 0x07ff;
     rc_ctrl->rc.ch[3] = ((sbus_buf[4] >> 1) | (sbus_buf[5] << 7)) & 0x07ff; //!< Channel 3
     rc_ctrl->rc.s[0] = ((sbus_buf[5] >> 4) & 0x0003);                  //!< Switch right
     rc_ctrl->rc.s[1] = ((sbus_buf[5] >> 4) & 0x000C) >> 2;                       //!< Switch left
@@ -280,6 +256,8 @@ static void sbus_to_rc(volatile const uint8_t *sbus_buf, RC_ctrl_t *rc_ctrl)
     rc_ctrl->rc.ch[2] -= RC_CH_VALUE_OFFSET;
     rc_ctrl->rc.ch[3] -= RC_CH_VALUE_OFFSET;
     rc_ctrl->rc.ch[4] -= RC_CH_VALUE_OFFSET;
+
+    rc_ctrl->update_flag = 1;
 }
 //abundant
 /**
@@ -292,14 +270,12 @@ static void sbus_to_rc(volatile const uint8_t *sbus_buf, RC_ctrl_t *rc_ctrl)
   * @param[in]      sbus: sbus数据, 18字节
   * @retval         none
   */
-void sbus_to_usart1(uint8_t *sbus)
-{
+void sbus_to_usart1(uint8_t *sbus) {
     static uint8_t usart_tx_buf[20];
-    static uint8_t i =0;
+    static uint8_t i = 0;
     usart_tx_buf[0] = 0xA6;
     memcpy(usart_tx_buf + 1, sbus, 18);
-    for(i = 0, usart_tx_buf[19] = 0; i < 19; i++)
-    {
+    for (i = 0, usart_tx_buf[19] = 0; i < 19; i++) {
         usart_tx_buf[19] += usart_tx_buf[i];
     }
     usart1_tx_dma_enable(usart_tx_buf, 20);

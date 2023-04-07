@@ -1,6 +1,6 @@
 #ifndef STRUCT_TYPEDEF_H
 #define STRUCT_TYPEDEF_H
-
+#include "stdint.h"
 
 typedef signed char int8_t;
 typedef signed short int int16_t;

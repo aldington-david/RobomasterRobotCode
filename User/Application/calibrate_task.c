@@ -668,7 +668,7 @@ static bool_t cali_gyro_mag_hook(uint32_t *cali, bool_t cmd) {
                               &mag_x_max,&mag_x_min,&mag_y_max,&mag_y_min);
                 gyro_set_cali(local_cali_t->gyro_scale, local_cali_t->gyro_offset);
                 mag_set_cali(local_cali_t->mag_scale, local_cali_t->mag_offset);
-                gimbal_offset_ecd_cali(&gimbal_control);
+//                gimbal_offset_ecd_cali(&gimbal_control);
                 gimbal_control.gimbal_yaw_motor.relative_angle_set = gimbal_control.gimbal_yaw_motor.relative_angle;
                 gimbal_control.gimbal_pitch_motor.relative_angle_set = gimbal_control.gimbal_pitch_motor.relative_angle;
                 IMU_MAG_select_flag = 0;

@@ -4,10 +4,6 @@
 
 #include "ahrs_ukf.h"
 #include "matrix.h"
-#include "SEGGER_RTT.h"
-#include "FreeRTOS.h"
-#include "ist8310driver.h"
-#include "BMI088driver.h"
 #include "INS_task.h"
 #include "global_control_define.h"
 
@@ -51,8 +47,9 @@ UKF_t UKF_IMU;
 //X北向，北东地对前右下
 /* Magnetic vector constant (align with local magnetic vector) */
 //float32_t IMU_MAG_B0_data[3] = {COS(0), SIN(0), 0.000000f};
-float32_t IMU_MAG_B0_data[3] = {North_Comp/Total_Field, East_Comp/Total_Field,
-                                Vertical_Comp/Total_Field};//由经纬度和海拔从WMM世界磁场模型计算获得，需旋转并修正磁偏角(need True north magnetic vector),并归一化
+float32_t IMU_MAG_B0_data[3] = {North_Comp / Total_Field, East_Comp / Total_Field,
+                                Vertical_Comp /
+                                Total_Field};//由经纬度和海拔从WMM世界磁场模型计算获得，需旋转并修正磁偏角(need True north magnetic vector),并归一化
 /* The hard-magnet bias */
 float32_t HARD_IRON_BIAS_data[3] = {0.0f, 0.0f, 0.0f};
 
@@ -495,8 +492,8 @@ float32_t AHRS_get_instant_pitch(void) {
     float32_t Ay = INS_accel_cali[1];
     float32_t Az = INS_accel_cali[2];
     float32_t _normG = sqrtf((Ax * Ax) + (Ay * Ay) + (Az * Az));
-    Ax = Ax / _normG;
-    return asinf(Ax);
+    Ay = Ay / _normG;
+    return -asinf(Ay);
 }
 
 float32_t AHRS_get_instant_roll(void) {
@@ -504,7 +501,18 @@ float32_t AHRS_get_instant_roll(void) {
     float32_t Ay = INS_accel_cali[1];
     float32_t Az = INS_accel_cali[2];
     float32_t _normG = sqrtf((Ax * Ax) + (Ay * Ay) + (Az * Az));
+    Ax = Ax / _normG;
+    Az = Az / _normG;
+    return atan2f(Ax, Az);
+}
+
+float32_t AHRS_get_instant_yaw(void) {
+    float32_t Ax = INS_mag_cali[0];
+    float32_t Ay = INS_mag_cali[1];
+    float32_t Az = INS_mag_cali[2];
+    float32_t _normG = sqrtf((Ax * Ax) + (Ay * Ay) + (Az * Az));
+    Ax = Ax / _normG;
     Ay = Ay / _normG;
     Az = Az / _normG;
-    return atan2f(Ay, Az);
+    return atan2f(Ax*cosf(AHRS_get_instant_pitch())+Ay*sinf(AHRS_get_instant_pitch())*sinf(AHRS_get_instant_roll()+Az*cosf(AHRS_get_instant_roll())*sinf(AHRS_get_instant_pitch())), Ay*cosf(AHRS_get_instant_roll())-Az*sinf(AHRS_get_instant_roll())) + M_PI;
 }

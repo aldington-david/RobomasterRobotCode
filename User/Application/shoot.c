@@ -110,8 +110,8 @@ void shoot_init(void) {
     KalmanCreate(&shoot_control.Trigger_Motor_Current_Kalman_Filter, 10.0f, 0.5f);
     //更新数据
     shoot_feedback_update();
-    ramp_init(&shoot_control.fric1_ramp, SHOOT_CONTROL_TIME * 0.001f, FRIC_DOWN, FRIC_OFF);
-    ramp_init(&shoot_control.fric2_ramp, SHOOT_CONTROL_TIME * 0.001f, FRIC_DOWN, FRIC_OFF);
+//    ramp_init(&shoot_control.fric1_ramp, SHOOT_CONTROL_TIME * 0.001f, FRIC_DOWN, FRIC_OFF);
+//    ramp_init(&shoot_control.fric2_ramp, SHOOT_CONTROL_TIME * 0.001f, FRIC_DOWN, FRIC_OFF);
 //    shoot_control.fric_pwm1 = FRIC_OFF;
 //    shoot_control.fric_pwm2 = FRIC_OFF;
     shoot_control.ecd_count = 0;
@@ -167,11 +167,13 @@ int16_t shoot_control_loop(void) {
     } else if (shoot_control.shoot_mode == SHOOT_DONE) {
         shoot_control.angle_set = shoot_control.angle;
         shoot_control.speed_set = 0.0f;
+        shoot_control.angle_set = shoot_control.angle;
     }
 
     if (shoot_control.shoot_mode == SHOOT_STOP || toe_is_error(DBUS_TOE)) {
         shoot_laser_off();
         shoot_control.given_current = 0;
+        shoot_control.angle_set = shoot_control.angle;
 //        //摩擦轮需要一个个斜波开启，不能同时直接开启，否则可能电机不转
 //        ramp_calc(&shoot_control.fric1_ramp, -shoot_control.pwm);
 //        ramp_calc(&shoot_control.fric2_ramp, -shoot_control.pwm);
@@ -194,12 +196,13 @@ int16_t shoot_control_loop(void) {
         } else {
             shoot_control.angle_set = shoot_control.angle;
         }
-        ALL_PID(&shoot_control.trigger_motor_speed_pid, shoot_control.speed, shoot_control.speed_set);
-        shoot_control.current_set = shoot_control.trigger_motor_speed_pid.out;
+        shoot_control.current_set = ALL_PID(&shoot_control.trigger_motor_speed_pid, shoot_control.speed,
+                                            shoot_control.speed_set);
         shoot_control.given_current = (int16_t) KalmanFilter(&shoot_control.Trigger_Motor_Current_Kalman_Filter,
                                                              shoot_control.current_set);
         if (shoot_control.shoot_mode < SHOOT_READY) {
             shoot_control.given_current = 0;
+            shoot_control.angle_set = shoot_control.angle;
         }
 //        //摩擦轮需要一个个斜波开启，不能同时直接开启，否则可能电机不转
 //        ramp_calc(&shoot_control.fric1_ramp, shoot_control.pwm);
@@ -217,8 +220,8 @@ int16_t shoot_control_loop(void) {
 //    shoot_control.fric_pwm2 = (uint16_t) (shoot_control.fric2_ramp.out);
 //    shoot_fric1_on(shoot_control.fric_pwm1);
 //    shoot_fric2_on(shoot_control.fric_pwm2);
-    gimbal_control.fric1_give_current = (int16_t)(gimbal_control.fric1_current_set);
-    gimbal_control.fric2_give_current = (int16_t)(gimbal_control.fric2_current_set);
+    gimbal_control.fric1_give_current = (int16_t) (gimbal_control.fric1_current_set);
+    gimbal_control.fric2_give_current = (int16_t) (gimbal_control.fric2_current_set);
     return shoot_control.given_current;
 }
 
@@ -446,11 +449,10 @@ static void shoot_bullet_control(void) {
 //    }
     //到达角度判断
 //    if (fabsf(rad_format(shoot_control.angle_set - shoot_control.angle)) > 0.05f) {
-    if (fabsf(shoot_control.angle_set - shoot_control.angle) > 0.005f) {
+    if (fabsf(shoot_control.angle_set - shoot_control.angle) > 0.2f) {
 //        //没到达一直设置旋转速度
-//        shoot_control.trigger_speed_set = -10.0f;
-////        trigger_motor_turn_back();
-//        shoot_control.speed_set = -shoot_control.trigger_speed_set;
+        trigger_motor_turn_back();
+        shoot_control.speed_set = -shoot_control.trigger_speed_set;
     } else {
         shoot_control.shoot_mode = SHOOT_DONE;
         shoot_control.move_flag = 0;

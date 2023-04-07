@@ -41,7 +41,7 @@
 /************ Init To Offset End*******************/
 
 /************ Motor turn define Start*******************/
-#define PITCH_TURN  1
+#define PITCH_TURN  0
 #define YAW_TURN    1
 #define SHOOT_TRIGGER_TURN    0
 /************ Motor turn define End*******************/
@@ -64,8 +64,8 @@
 #define Vision_MODE 0
 #define Matlab_MODE 1
 #define Vision_rx_Matlab_tx_MODE 2
-//#define UART1_TARGET_MODE Vision_MODE // UART1 rx_tx to vision
-#define UART1_TARGET_MODE Matlab_MODE //UART1 rx_tx to matlab
+#define UART1_TARGET_MODE Vision_MODE // UART1 rx_tx to vision
+//#define UART1_TARGET_MODE Matlab_MODE //UART1 rx_tx to matlab
 //#define UART1_TARGET_MODE Vision_rx_Matlab_tx_MODE //UART1 rx to vision tx to matlab //not_use
 /************ Choose UART1 TX Target End*******************/
 
@@ -75,8 +75,8 @@
 #define Block_All_Device 1
 #define Block_All_Device_ecp_Control 2
 //#define DETECT_BLOCK Block_None_Device // do not block devices
-#define DETECT_BLOCK Block_All_Device // block whole device
-//#define DETECT_BLOCK Block_All_Device_ecp_Control //block whole device except Radio Control
+//#define DETECT_BLOCK Block_All_Device // block whole device
+#define DETECT_BLOCK Block_All_Device_ecp_Control //block whole device except Radio Control
 /************ Choose Detect Block Device End*******************/
 
 /************ Choose Calibrate Block Start*******************/

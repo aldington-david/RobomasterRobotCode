@@ -209,8 +209,9 @@ referee usart:%s\r\n\
 //                    INS_angle[1],
 //                    INS_angle[2]);
 //            SEGGER_RTT_WriteString(0, print_buf);
-//            SEGGER_RTT_SetTerminal(4);
+//            SEGGER_RTT_printf(0,"%f",INS_angle[1]);
 
+//            SEGGER_RTT_SetTerminal(4);
 //            sprintf(print_buf, "imu_tmp=%f,uYAW=%f,uPITCH=%f,uROLL=%f\r\n",
 //                    bmi088_real_data.temp,
 //                    INS_angle_ukf[0],
@@ -261,8 +262,13 @@ referee usart:%s\r\n\
 //                    UKF_IMU.X_Est.arm_matrix.pData[2],
 //                    UKF_IMU.X_Est.arm_matrix.pData[3]);
 //            SEGGER_RTT_WriteString(0, print_buf);
-
-
+            //mag
+//            SEGGER_RTT_SetTerminal(5);
+//            sprintf(print_buf, "mag_x=%f,mag_y=%f,mag_z=%f\r\n",
+//                    INS_mag_cali[0],
+//                    INS_mag_cali[1],
+//                    INS_mag_cali[2]);
+//            SEGGER_RTT_WriteString(0, print_buf);
             //视觉
 
 //            SEGGER_RTT_SetTerminal(1);
@@ -343,10 +349,71 @@ referee usart:%s\r\n\
 //            SEGGER_RTT_WriteString(0, print_buf);
 
 //            cali校准
+            //angle
             //yaw
+//            SEGGER_RTT_SetTerminal(1);
+//            sprintf(print_buf,
+//                    "relative_fun=%f,absolute=%f,ecd=%d,total_ecd=%d,offset_ecd=%d\r\n",
+//                    motor_ecd_to_yaw_angle_change(gimbal_control.gimbal_yaw_motor.gimbal_motor_measure->ecd,
+//                                                  gimbal_control.gimbal_yaw_motor.offset_ecd),
+//                    INS_angle[0],
+//                    gimbal_control.gimbal_yaw_motor.gimbal_motor_measure->ecd,
+//                    gimbal_control.gimbal_yaw_motor.gimbal_motor_measure->total_ecd,
+//                    gimbal_control.gimbal_yaw_motor.offset_ecd);
+//            SEGGER_RTT_WriteString(0, print_buf);
+            //pitch
 //            SEGGER_RTT_SetTerminal(2);
 //            sprintf(print_buf,
-//                    "Yaw_max_ang=%f,Yaw_min_ang=%f,Yaw_now_ang=%f,Yaw_now_set_ang=%f,Yaw_now_ecd=%d,Yaw_total_ecd=%d,Yaw_turncount=%d,Yaw_offset_ecd=%d,Yaw_cl_max_ecd=%d,Yaw_cl_min_ecd=%d\r\n",
+//                    "relative_fun=%f,relative=%f,absolute=%f,ecd=%d,total_ecd=%d,offset_ecd=%d\r\n",
+//                    motor_ecd_to_pitch_angle_change(gimbal_control.gimbal_pitch_motor.gimbal_motor_measure->ecd,
+//                                                    gimbal_control.gimbal_pitch_motor.offset_ecd),
+//                    gimbal_control.gimbal_pitch_motor.relative_angle,
+//                    INS_angle[1],
+//                    gimbal_control.gimbal_pitch_motor.gimbal_motor_measure->ecd,
+//                    gimbal_control.gimbal_pitch_motor.gimbal_motor_measure->total_ecd,
+//                    gimbal_control.gimbal_pitch_motor.offset_ecd);
+//            SEGGER_RTT_WriteString(0, print_buf);
+            //拨盘
+//            SEGGER_RTT_SetTerminal(3);
+//            sprintf(print_buf,
+//                    "relative_fun=%f,relative=%f,absolute=%f,ecd=%d,total_ecd=%d,offset_ecd=%d\r\n",
+//                    motor_ecd_to_pitch_angle_change(gimbal_control.gimbal_pitch_motor.gimbal_motor_measure->ecd,
+//                                                    gimbal_control.gimbal_pitch_motor.offset_ecd),
+//                    gimbal_control.gimbal_pitch_motor.relative_angle,
+//                    INS_angle[1],
+//                    gimbal_control.gimbal_pitch_motor.gimbal_motor_measure->ecd,
+//                    gimbal_control.gimbal_pitch_motor.gimbal_motor_measure->total_ecd,
+//                    gimbal_control.gimbal_pitch_motor.offset_ecd);
+//            SEGGER_RTT_WriteString(0, print_buf);
+            //instant angle
+//            SEGGER_RTT_SetTerminal(8);
+//            sprintf(print_buf,
+//                    "ins_pitch=%f,ins_roll=%f,ins_yaw=%f\r\n",
+//                    AHRS_get_instant_pitch(),
+//                    AHRS_get_instant_roll(),
+//                    AHRS_get_instant_yaw());
+//            SEGGER_RTT_WriteString(0, print_buf);
+            //mag
+//            SEGGER_RTT_SetTerminal(3);
+//            sprintf(print_buf,
+//                    "mag_offset_x=%f,mag_offset_y=%f,scale=%f\r\n",
+//                    mag_cali_data.offset[0],
+//                    mag_cali_data.offset[1],
+//                    mag_cali_data.scale[1]);
+//            SEGGER_RTT_WriteString(0, print_buf);
+            //gyro
+//            SEGGER_RTT_SetTerminal(4);
+//            sprintf(print_buf,
+//                    "gyro_offset_x=%f,gyro_offset_y=%f,gyro_offset_z=%f\r\n",
+//                    gyro_cali_data.offset[0],
+//                    gyro_cali_data.offset[1],
+//                    gyro_cali_data.offset[2]);
+//            SEGGER_RTT_WriteString(0, print_buf);
+
+            //yaw
+//            SEGGER_RTT_SetTerminal(3);
+//            sprintf(print_buf,
+//                    "Yaw_max_ang=%f,Yaw_min_ang=%f,Yaw_now_ang=%f,Yaw_now_set_ang=%f,Yaw_now_ecd=%d,Yaw_total_ecd=%d\r\nYaw_turncount=%d,Yaw_offset_ecd=%d,Yaw_cl_max_ecd=%d,Yaw_cl_min_ecd=%d\r\n",
 //                    gimbal_control.gimbal_yaw_motor.max_relative_angle,
 //                    gimbal_control.gimbal_yaw_motor.min_relative_angle,
 //                    gimbal_control.gimbal_yaw_motor.relative_angle,
@@ -396,19 +463,19 @@ referee usart:%s\r\n\
 
             //拨盘pid
 //            拨盘数据
-//            SEGGER_RTT_SetTerminal(8);
-//            sprintf(print_buf,
-//                    "shoot_mode=%d,pwm1=%d,pwm2=%d,ecd=%d,ecd_count=%d,angle=%f,t_sp_set=%f,mv_flag=%d,switch_test=%x\r\n",
-//                    shoot_control.shoot_mode,
-//                    shoot_control.fric_pwm1,
-//                    shoot_control.fric_pwm2,
-//                    shoot_control.shoot_motor_measure->ecd,
-//                    shoot_control.shoot_motor_measure->turnCount,
-//                    shoot_control.angle,
-//                    shoot_control.trigger_speed_set,
-//                    shoot_control.move_flag,
-//                    switch_test);
-//            SEGGER_RTT_WriteString(0, print_buf);
+            SEGGER_RTT_SetTerminal(8);
+            sprintf(print_buf,
+                    "shoot_mode=%d,pwm1=%d,pwm2=%d,total_ecd=%d,ecd_count=%d,angle=%f,t_sp_set=%f,mv_flag=%d,switch_test=%x\r\n",
+                    shoot_control.shoot_mode,
+                    shoot_control.fric_pwm1,
+                    shoot_control.fric_pwm2,
+                    shoot_control.shoot_motor_measure->total_ecd,
+                    shoot_control.shoot_motor_measure->turnCount,
+                    shoot_control.angle,
+                    shoot_control.trigger_speed_set,
+                    shoot_control.move_flag,
+                    switch_test);
+            SEGGER_RTT_WriteString(0, print_buf);
 //            //拨盘pid
 //            SEGGER_RTT_SetTerminal(9);
 //            sprintf(print_buf,

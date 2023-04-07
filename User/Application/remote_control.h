@@ -74,6 +74,7 @@ typedef struct __attribute__((packed))
         {
                 uint16_t v;
         } key;
+        bool_t update_flag;
 
 } RC_ctrl_t;
 

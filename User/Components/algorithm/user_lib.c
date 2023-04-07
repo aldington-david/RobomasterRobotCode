@@ -62,7 +62,8 @@ void ramp_calc(ramp_function_source_t *ramp_source_type, float32_t input) {
   * @param[in]      滤波参数
   * @retval         返回空
   */
-void first_order_filter_init(first_order_filter_type_t *first_order_filter_type, float32_t frame_period, float32_t num) {
+void
+first_order_filter_init(first_order_filter_type_t *first_order_filter_type, float32_t frame_period, float32_t num) {
     first_order_filter_type->frame_period = frame_period;
     first_order_filter_type->num = num;
     first_order_filter_type->input = 0.0f;
@@ -168,6 +169,25 @@ float32_t loop_fp32_constrain(float32_t Input, float32_t minValue, float32_t max
     return Input;
 }
 
+uint16_t loop_uint16_constrain(uint16_t Input, uint16_t minValue, uint16_t maxValue) {
+    if (maxValue < minValue) {
+        return Input;
+    }
+
+    if (Input > maxValue) {
+        uint16_t len = maxValue - minValue;
+        while (Input > maxValue) {
+            Input -= len;
+        }
+    } else if (Input < minValue) {
+        uint16_t len = maxValue - minValue;
+        while (Input < minValue) {
+            Input += len;
+        }
+    }
+    return Input;
+}
+
 //弧度格式化为-PI~PI
 
 //角度格式化为-180~180
@@ -196,3 +216,16 @@ void lms_filter_init(lms_filter_type_t *lmsFilterType, float32_t step_len, float
     lmsFilterType->lmsCoeffs32 = lmscoeffs;
     memset(&lmsFilterType->lmsS, 0, sizeof(lmsFilterType->lmsS));
 }
+
+float32_t jump_error(float32_t err, float32_t err_maxValue) {
+
+    if (err > (err_maxValue / 2.5f)) {
+        err = err - err_maxValue;
+    } else if (err < (-err_maxValue / 2.5f)) {
+        err = err + err_maxValue;
+    }
+
+    return err;
+}
+
+

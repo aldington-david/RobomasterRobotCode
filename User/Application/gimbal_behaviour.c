@@ -92,6 +92,7 @@
 #include "global_control_define.h"
 #include "ahrs_ukf.h"
 #include "calibrate_task.h"
+#include "gimbal_task.h"
 
 //when gimbal is in calibrating, set buzzer frequency and strenght
 //当云台在校准, 设置蜂鸣器频率和强度
@@ -634,8 +635,9 @@ static void gimbal_init_control(float32_t *yaw, float32_t *pitch, gimbal_control
             *pitch = 0.0f;
         }
         if (YAW_INIT == INIT) {
-            *yaw = (INIT_YAW_SET - gimbal_control_set->gimbal_yaw_motor.relative_angle) * GIMBAL_INIT_YAW_SPEED;
-        } else if (PITCH_INIT == NO_INIT) {
+            *yaw = jump_error(INIT_YAW_SET - gimbal_control_set->gimbal_yaw_motor.relative_angle,2*PI) * GIMBAL_INIT_YAW_SPEED;
+//            SEGGER_RTT_printf(0,"%f\r\n",jump_error(INIT_YAW_SET - gimbal_control_set->gimbal_yaw_motor.relative_angle,2*PI));
+        } else if (YAW_INIT== NO_INIT) {
             *yaw = 0.0f;
         }
     }
@@ -934,7 +936,7 @@ void gimbal_rc_to_control_vector(float32_t *yaw, float32_t *pitch, gimbal_contro
 //                         add_vision_pitch);
 //        SEGGER_RTT_printf(0,"%d\r\n",count);//for_test
 
-        yaw_set_channel = yaw_channel * YAW_RC_SEN +
+        yaw_set_channel = yaw_channel * YAW_RC_SEN/14.0f +
                           (vision_yaw * (((660 - abs(yaw_channel)) * YAW_RC_SEN) / (660 * YAW_RC_SEN)));
         pitch_set_channel = pitch_channel * PITCH_RC_SEN + add_vision_pitch;
 //        yaw_set_channel = yaw_channel * YAW_RC_SEN;

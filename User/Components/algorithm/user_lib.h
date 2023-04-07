@@ -65,9 +65,11 @@ extern int32_t int32_constrain(int32_t Value, int32_t minValue, int32_t maxValue
 
 //循环限幅函数
 extern float32_t loop_fp32_constrain(float32_t Input, float32_t minValue, float32_t maxValue);
-
+extern uint16_t loop_uint16_constrain(uint16_t Input, uint16_t minValue, uint16_t maxValue);
 //角度 °限幅 180 ~ -180
 extern float32_t theta_format(float32_t Ang);
+//过零跳跃误差计算 0~max
+extern float32_t jump_error(float32_t err, float32_t err_maxValue);
 
 //弧度格式化为-PI~PI
 #define rad_format(Ang) loop_fp32_constrain((Ang), -PI, PI)

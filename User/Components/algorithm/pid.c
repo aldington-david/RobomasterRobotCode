@@ -21,6 +21,7 @@
 #include "print_task.h"
 #include "shoot.h"
 #include "USER_Filter.h"
+#include "SEGGER_RTT.h"
 
 #define abs(x) ((x) > 0 ? (x) : (-x))
 #define LimitMax(input, max)   \
@@ -46,8 +47,10 @@
   * @param[in]      Integral: 积分分离参数，若误差大于此值则Iout置零，不启用请设一个较大值
   * @retval         none
   */
-void PID_init(pid_type_def *pid, uint8_t mode, const float32_t PID[3], float32_t max_out, float32_t max_iout, float32_t Integral,
-              bool Variable_I_Switch, float32_t Variable_I_Down, float32_t Variable_I_UP, bool D_First, float32_t D_Filter_Ratio,
+void PID_init(pid_type_def *pid, uint8_t mode, const float32_t PID[3], float32_t max_out, float32_t max_iout,
+              float32_t Integral,
+              bool Variable_I_Switch, float32_t Variable_I_Down, float32_t Variable_I_UP, bool D_First,
+              float32_t D_Filter_Ratio,
               bool D_Low_Pass, float32_t D_Low_Pass_Factor, bool NF_D, float32_t D_Alpha, bool D_KF) {
     if (pid == NULL || PID == NULL) {
         return;
@@ -214,10 +217,14 @@ float ALL_PID(pid_type_def *pid, float32_t ref, float32_t set) {
     }
     pid->set = set;
     pid->get = ref;
-    if (pid != &gimbal_control.gimbal_pitch_motor.gimbal_motor_relative_angle_pid) {
-        pid->error[0] = set - ref;
+    if (pid == &gimbal_control.gimbal_pitch_motor.gimbal_motor_relative_angle_pid) {
+        pid->error[0] = rad_format(set - ref);
+    } else if (pid == &gimbal_control.gimbal_yaw_motor.gimbal_motor_relative_angle_pid) {
+//        pid->error[0] = loop_fp32_constrain(set-ref,0,2*PI);
+        pid->error[0] = jump_error(set-ref,2*PI);
+//        SEGGER_RTT_printf(0,"set=%f,ref=%f,err_fun=%f,err=%f\r\n",set,ref,pid->error[0],set-ref);
     } else {
-        pid->error[0] = rad_format(set - ref);;
+        pid->error[0] = set - ref;
     }
 //探针
 //    if (pid == &gimbal_control.gimbal_yaw_motor.gimbal_motor_gyro_pid) {//for_test

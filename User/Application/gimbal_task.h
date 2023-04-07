@@ -96,7 +96,7 @@
 #define RC_DEADBAND   10
 
 //遥控器摇杆灵敏度
-#define YAW_RC_SEN    0.000023f
+#define YAW_RC_SEN    0.000161f
 #define PITCH_RC_SEN  0.000005f
 
 #define YAW_MOUSE_SEN   0.00084f
@@ -148,14 +148,13 @@
 
 #define IST_CALI_START_STEP  IST_CALI_FORWARD_STEP
 #define IST_CALI_END_STEP    3
-
 //判断遥控器无输入的时间以及遥控器无输入判断，设置云台yaw回中值以防陀螺仪漂移
 #define GIMBAL_MOTIONLESS_RC_DEADLINE 10
 #define GIMBAL_MOTIONLESS_TIME_MAX    3000
 
 //电机编码值转化成角度值
 #ifndef MOTOR_ECD_TO_RAD
-#define MOTOR_ECD_TO_RAD 0.000766990394f //      2*  PI  /8192
+#define MOTOR_ECD_TO_RAD 0.0007669903939208984375f //      2*  PI  /8192
 #endif
 
 typedef enum {
@@ -360,6 +359,20 @@ set_cali_gimbal_hook(const int32_t yaw_offset, const int32_t pitch_offset, const
   * @retval         none
   */
 extern void gimbal_offset_ecd_cali(gimbal_control_t *init);
+/**
+  * @brief          calculate the relative angle between ecd and offset_ecd
+  * @param[in]      ecd: motor now encode
+  * @param[in]      offset_ecd: gimbal offset encode
+  * @retval         relative angle, unit rad
+  */
+/**
+  * @brief          计算ecd与offset_ecd之间的相对角度
+  * @param[in]      ecd: 电机当前编码
+  * @param[in]      offset_ecd: 电机中值编码
+  * @retval         相对角度，单位rad
+  */
+extern float32_t motor_ecd_to_yaw_angle_change(uint16_t ecd, uint16_t offset_ecd);
+extern float32_t motor_ecd_to_pitch_angle_change(uint16_t ecd, uint16_t offset_ecd);
 
 extern gimbal_control_t gimbal_control;
 #endif
