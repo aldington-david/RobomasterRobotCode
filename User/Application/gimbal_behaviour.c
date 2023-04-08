@@ -903,11 +903,11 @@ void gimbal_rc_to_control_vector(float32_t *yaw, float32_t *pitch, gimbal_contro
 //        yaw_channel = test_control(CONSTANT, 10.491f, -1.6298f, 2000, 600, 1, 0, 1);
         err = gimbal_move_rc_to_vector->gimbal_rc_ctrl->rc.ch[YAW_CHANNEL] - yaw_rc_last;
 //        SEGGER_RTT_printf(0,"%d\r\n",err);//for_test
-        if (abs(err) > 33) {
-            yaw_channel = Filter_IIRLPF_np(yaw_channel, yaw_rc_last, 0.005f);
-        } else {
-            yaw_channel = Filter_IIRLPF_np(yaw_channel, yaw_rc_last, 0.53f);
-        }
+//        if (abs(err) > 33) {
+//            yaw_channel = Filter_IIRLPF_np(yaw_channel, yaw_rc_last, 0.005f);
+//        } else {
+//            yaw_channel = Filter_IIRLPF_np(yaw_channel, yaw_rc_last, 0.53f);
+//        }
 
         //视觉控制
         if (gimbal_move_rc_to_vector->gimbal_vision_ctrl->fps == 0) {
@@ -935,9 +935,17 @@ void gimbal_rc_to_control_vector(float32_t *yaw, float32_t *pitch, gimbal_contro
 //                         add_vision_yaw,
 //                         add_vision_pitch);
 //        SEGGER_RTT_printf(0,"%d\r\n",count);//for_test
-
-        yaw_set_channel = yaw_channel * YAW_RC_SEN/14.0f +
-                          (vision_yaw * (((660 - abs(yaw_channel)) * YAW_RC_SEN) / (660 * YAW_RC_SEN)));
+        if(gimbal_move_rc_to_vector->gimbal_rc_ctrl->update_flag){
+            float32_t rc_Interpolation[14]={0};
+            clear_rc_update_flag();
+            sigmoidInterpolation(0, yaw_channel, 14, rc_Interpolation);
+            for (int i = 0; i < 13 ; ++i) {
+                yaw_set_channel =rc_Interpolation[i]* YAW_RC_SEN;
+//                SEGGER_RTT_printf(0,"in=%f,set=%f\r\n",rc_Interpolation[i]* YAW_RC_SEN,yaw_channel * YAW_RC_SEN);
+            }
+        }
+//        yaw_set_channel = yaw_channel * YAW_RC_SEN/14.0f +
+//                          (vision_yaw * (((660 - abs(yaw_channel)) * YAW_RC_SEN) / (660 * YAW_RC_SEN)));
         pitch_set_channel = pitch_channel * PITCH_RC_SEN + add_vision_pitch;
 //        yaw_set_channel = yaw_channel * YAW_RC_SEN;
 //        pitch_set_channel = pitch_channel * PITCH_RC_SEN;

@@ -96,7 +96,7 @@
 #define RC_DEADBAND   10
 
 //遥控器摇杆灵敏度
-#define YAW_RC_SEN    0.000161f
+#define YAW_RC_SEN    0.011161f
 #define PITCH_RC_SEN  0.000005f
 
 #define YAW_MOUSE_SEN   0.00084f
@@ -250,6 +250,8 @@ typedef struct {
     gimbal_motor_t gimbal_pitch_motor;
     gimbal_step_cali_t gimbal_cali;
     ist_step_cali_t ist_cali;
+
+    uint8_t add_angle_point_num;
 
 
     float32_t fric1_current_set;

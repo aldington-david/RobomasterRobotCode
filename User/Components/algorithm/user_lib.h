@@ -73,6 +73,8 @@ extern float32_t jump_error(float32_t err, float32_t err_maxValue);
 
 //弧度格式化为-PI~PI
 #define rad_format(Ang) loop_fp32_constrain((Ang), -PI, PI)
+//sigmoid插值
+void sigmoidInterpolation(float32_t startValue, float32_t endValue, uint8_t numPoints, float32_t *output);
 /******************************/
 #include <stdint.h>
 #include <stdio.h>

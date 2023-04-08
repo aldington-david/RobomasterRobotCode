@@ -86,5 +86,6 @@ extern uint8_t RC_data_is_error(void);
 extern void slove_RC_lost(void);
 extern void slove_data_error(void);
 extern void sbus_to_usart1(uint8_t *sbus);
+extern void clear_rc_update_flag(void);
 extern volatile RC_ctrl_t rc_ctrl;
 #endif

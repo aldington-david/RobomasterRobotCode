@@ -281,3 +281,6 @@ void sbus_to_usart1(uint8_t *sbus) {
     usart1_tx_dma_enable(usart_tx_buf, 20);
 }
 
+void clear_rc_update_flag(void) {
+    rc_ctrl.update_flag = 0;
+}

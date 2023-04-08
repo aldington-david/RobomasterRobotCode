@@ -787,9 +787,9 @@ static void gimbal_init(gimbal_control_t *init) {
 
 
     static const float32_t Pitch_speed_pid[3] = {4000.0f, 0.0f, 0.0f};
-    static const float32_t Yaw_speed_pid[3] = {5000.0f, 0.0f, 0.0f};
+    static const float32_t Yaw_speed_pid[3] = {5000.0f, 25.0f, 0.0f};
 
-    static const float32_t Yaw_angle_pid[3] = {14.59f, 0.0f, 250.0f};
+    static const float32_t Yaw_angle_pid[3] = {12.59f, 0.0f, 800.0f};
     static const float32_t Pitch_angle_pid[3] = {29.2f, 0.0f, 500.0f};
     //电机数据指针获取
     init->gimbal_yaw_motor.gimbal_motor_measure = get_yaw_gimbal_motor_measure_point();
