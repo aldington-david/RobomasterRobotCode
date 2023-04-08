@@ -463,19 +463,19 @@ referee usart:%s\r\n\
 
             //拨盘pid
 //            拨盘数据
-            SEGGER_RTT_SetTerminal(8);
-            sprintf(print_buf,
-                    "shoot_mode=%d,pwm1=%d,pwm2=%d,total_ecd=%d,ecd_count=%d,angle=%f,t_sp_set=%f,mv_flag=%d,switch_test=%x\r\n",
-                    shoot_control.shoot_mode,
-                    shoot_control.fric_pwm1,
-                    shoot_control.fric_pwm2,
-                    shoot_control.shoot_motor_measure->total_ecd,
-                    shoot_control.shoot_motor_measure->turnCount,
-                    shoot_control.angle,
-                    shoot_control.trigger_speed_set,
-                    shoot_control.move_flag,
-                    switch_test);
-            SEGGER_RTT_WriteString(0, print_buf);
+//            SEGGER_RTT_SetTerminal(8);
+//            sprintf(print_buf,
+//                    "shoot_mode=%d,pwm1=%d,pwm2=%d,total_ecd=%d,ecd_count=%d,angle=%f,t_sp_set=%f,mv_flag=%d,switch_test=%x\r\n",
+//                    shoot_control.shoot_mode,
+//                    shoot_control.fric_pwm1,
+//                    shoot_control.fric_pwm2,
+//                    shoot_control.shoot_motor_measure->total_ecd,
+//                    shoot_control.shoot_motor_measure->turnCount,
+//                    shoot_control.angle,
+//                    shoot_control.trigger_speed_set,
+//                    shoot_control.move_flag,
+//                    switch_test);
+//            SEGGER_RTT_WriteString(0, print_buf);
 //            //拨盘pid
 //            SEGGER_RTT_SetTerminal(9);
 //            sprintf(print_buf,

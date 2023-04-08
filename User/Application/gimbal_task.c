@@ -937,7 +937,7 @@ static void gimbal_feedback_update(gimbal_control_t *feedback_update) {
             feedback_update->gimbal_pitch_motor.gimbal_motor_measure->speed_rpm * PI / 30.0f / PITCH_MOTOR_REDUCTION);
 
     feedback_update->gimbal_yaw_motor.motor_speed = (feedback_update->gimbal_yaw_motor.gimbal_motor_measure->speed_rpm *
-                                                     PI / 30.0f);
+                                                     PI / 30.0f / YAW_MOTOR_REDUCTION);
 
     feedback_update->gimbal_yaw_motor.absolute_angle = *(feedback_update->gimbal_INT_angle_point +
                                                          INS_YAW_ADDRESS_OFFSET);
@@ -1272,11 +1272,15 @@ static void gimbal_motor_relative_angle_control(gimbal_motor_t *gimbal_motor) {
     }
     gimbal_motor->motor_gyro_set = ALL_PID(&gimbal_motor->gimbal_motor_relative_angle_pid,
                                            gimbal_motor->relative_angle, gimbal_motor->relative_angle_set);
-//        if (gimbal_motor == &gimbal_control.gimbal_yaw_motor) {
-//            SEGGER_RTT_printf(0,"%f\r\n",gimbal_motor->motor_gyro_set);
-//    }
-    gimbal_motor->current_set = ALL_PID(&gimbal_motor->gimbal_motor_gyro_pid, gimbal_motor->motor_speed,
+
+    gimbal_motor->current_set = ALL_PID(&gimbal_motor->gimbal_motor_gyro_pid, -gimbal_motor->motor_speed,
                                         gimbal_motor->motor_gyro_set);
+
+    if (gimbal_motor == &gimbal_control.gimbal_yaw_motor) {
+//        SEGGER_RTT_printf(0,"%f\r\n",gimbal_motor->motor_gyro_set);
+//        SEGGER_RTT_printf(0,"speed_set=%f,speed=%f,current=%f\r\n",gimbal_motor->motor_gyro_set,gimbal_motor->motor_speed,gimbal_motor->current_set);
+
+    }
 
 //    if (gimbal_motor == &gimbal_control.gimbal_pitch_motor) {
 //        kalman_test = gimbal_motor->current_set;
