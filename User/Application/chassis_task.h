@@ -64,9 +64,9 @@
 //#define CHASSIS_ACCEL_X_NUM 0.1666666667f
 //#define CHASSIS_ACCEL_Y_NUM 0.3333333333f
 //for_test
-#define CHASSIS_ACCEL_X_NUM 0.00020f
-#define CHASSIS_ACCEL_Y_NUM 0.00020f
-#define CHASSIS_ACCEL_WZ_NUM 0.00015f
+#define CHASSIS_ACCEL_X_NUM 0.01080f
+#define CHASSIS_ACCEL_Y_NUM 0.01020f
+#define CHASSIS_ACCEL_WZ_NUM 0.01015f
 //rocker value deadline
 //摇杆死区
 #define CHASSIS_RC_DEADLINE 10
@@ -176,6 +176,7 @@ typedef struct {
     first_order_filter_type_t chassis_cmd_slow_set_vx;  //use first order filter to slow set-point.使用一阶低通滤波减缓设定值
     first_order_filter_type_t chassis_cmd_slow_set_vy;  //use first order filter to slow set-point.使用一阶低通滤波减缓设定值
     first_order_filter_type_t chassis_cmd_slow_set_wz;
+    first_order_filter_type_t chassis_cmd_slow_yaw_follow;
 
     float32_t vx;                          //chassis vertical speed, positive means forward,unit m/s. 底盘速度 前进方向 前为正，单位 m/s
     float32_t vy;                          //chassis horizontal speed, positive means letf,unit m/s.底盘速度 左右方向 左为正  单位 m/s

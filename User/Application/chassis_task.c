@@ -264,6 +264,7 @@ static void chassis_init(chassis_move_t *chassis_move_init) {
     first_order_filter_init(&chassis_move_init->chassis_cmd_slow_set_vx, CHASSIS_CONTROL_TIME, CHASSIS_ACCEL_X_NUM);
     first_order_filter_init(&chassis_move_init->chassis_cmd_slow_set_vy, CHASSIS_CONTROL_TIME, CHASSIS_ACCEL_Y_NUM);
     first_order_filter_init(&chassis_move_init->chassis_cmd_slow_set_wz, CHASSIS_CONTROL_TIME, CHASSIS_ACCEL_WZ_NUM);
+    first_order_filter_init(&chassis_move_init->chassis_cmd_slow_yaw_follow, CHASSIS_CONTROL_TIME, 0.00005f);
     //max and min speed
     //最大 最小速度
     chassis_move_init->vx_max_speed = NORMAL_MAX_CHASSIS_SPEED_X;
@@ -558,6 +559,7 @@ static void chassis_set_contorl(chassis_move_t *chassis_move_control) {
         chassis_move_control->wz_set = ALL_PID(&chassis_move_control->chassis_angle_pid,
                                                chassis_move_control->chassis_yaw,
                                                chassis_move_control->chassis_yaw_set);
+        first_order_filter_cali(&chassis_move_control->chassis_cmd_slow_yaw_follow, chassis_move_control->wz_set);
 //        SEGGER_RTT_printf(0, "chassis_move_control->wz_set = %f\r\n", chassis_move_control->wz_set);
         //speed limit
         //速度限幅

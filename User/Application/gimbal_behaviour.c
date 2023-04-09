@@ -947,11 +947,11 @@ void gimbal_rc_to_control_vector(float32_t *yaw, float32_t *pitch, gimbal_contro
         float32_t pitch_bias = jump_error(
                 gimbal_move_rc_to_vector->gimbal_pitch_motor.relative_angle_set -
                 gimbal_move_rc_to_vector->gimbal_pitch_motor.relative_angle, 2 * PI);
-        if ((fabs(yaw_bias) < 0.3) || (fabs(yaw_bias)) > 1) {
+        if ((fabs(yaw_bias) < 0.1) || (fabs(yaw_bias)) > 1) {
             yaw_bias = 0;
             no_bias_flag = 0;
         }
-        if ((fabs(pitch_bias) < 0.3) || (fabs(pitch_bias)) > 1) {
+        if ((fabs(pitch_bias) < 0.5) || (fabs(pitch_bias)) > 1) {
             pitch_bias = 0;
             no_bias_flag = 0;
         }
@@ -961,7 +961,7 @@ void gimbal_rc_to_control_vector(float32_t *yaw, float32_t *pitch, gimbal_contro
 //            sigmoidInterpolation(0, pitch_channel, 14, pitch_rc_Interpolation);
             sigmoidInterpolation(0, (yaw_channel * YAW_RC_SEN + yaw_bias/14) * 1000, 14,
                                  yaw_rc_Interpolation);
-            sigmoidInterpolation(0, (pitch_channel * PITCH_RC_SEN + pitch_bias/14) * 1000, 14,
+            sigmoidInterpolation(0, (pitch_channel * PITCH_RC_SEN) * 1000, 14,
                                  pitch_rc_Interpolation);
 //                SEGGER_RTT_printf(0,"in=%f,set=%f\r\n",yaw_rc_Interpolation[i]* YAW_RC_SEN,yaw_channel * YAW_RC_SEN);
 //                SEGGER_RTT_printf(0,"in=%f,set=%f\r\n",pitch_rc_Interpolation[i]* PITCH_RC_SEN,pitch_channel * YAW_RC_SEN);
