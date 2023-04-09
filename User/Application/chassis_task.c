@@ -265,6 +265,7 @@ static void chassis_init(chassis_move_t *chassis_move_init) {
     first_order_filter_init(&chassis_move_init->chassis_cmd_slow_set_vy, CHASSIS_CONTROL_TIME, CHASSIS_ACCEL_Y_NUM);
     first_order_filter_init(&chassis_move_init->chassis_cmd_slow_set_wz, CHASSIS_CONTROL_TIME, CHASSIS_ACCEL_WZ_NUM);
     first_order_filter_init(&chassis_move_init->chassis_cmd_slow_yaw_follow, CHASSIS_CONTROL_TIME, 0.00005f);
+    first_order_filter_init(&chassis_move_init->chassis_cmd_slow_spin, CHASSIS_CONTROL_TIME, 0.00005f);
     //max and min speed
     //最大 最小速度
     chassis_move_init->vx_max_speed = NORMAL_MAX_CHASSIS_SPEED_X;
@@ -316,16 +317,16 @@ static void chassis_mode_change_control_transit(chassis_move_t *chassis_move_tra
     }
 
     //change to follow gimbal angle mode
-    //切入跟随云台模式
+    //切入云台前向模式
     if ((chassis_move_transit->last_chassis_mode != CHASSIS_VECTOR_TO_GIMBAL_YAW) &&
         chassis_move_transit->chassis_mode == CHASSIS_VECTOR_TO_GIMBAL_YAW) {
-        chassis_move_transit->chassis_relative_angle_set = 0.0f;
+        chassis_move_transit->chassis_yaw_set = chassis_move_transit->chassis_yaw;
     }
         //change to follow chassis yaw angle
-        //切入跟随底盘角度模式
+        //切入底盘跟随云台角度模式
     else if ((chassis_move_transit->last_chassis_mode != CHASSIS_VECTOR_FOLLOW_GIMBAL_YAW) &&
              chassis_move_transit->chassis_mode == CHASSIS_VECTOR_FOLLOW_GIMBAL_YAW) {
-        chassis_move_transit->chassis_yaw_set = chassis_move_transit->chassis_yaw;
+        chassis_move_transit->chassis_yaw_set = 0.0f;
     }
         //change to no follow angle
         //切入不跟随云台模式

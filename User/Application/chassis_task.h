@@ -75,6 +75,9 @@
 #define MOTOR_SPEED_TO_CHASSIS_SPEED_VY 0.25f
 #define MOTOR_SPEED_TO_CHASSIS_SPEED_WZ 0.25f
 
+//小陀螺速度
+#define CHASSIS_SPIN_SPEED 6.0f
+
 
 //#define MOTOR_DISTANCE_TO_CENTER 0.2f
 #define MOTOR_DISTANCE_TO_CENTER 1.0f
@@ -177,6 +180,7 @@ typedef struct {
     first_order_filter_type_t chassis_cmd_slow_set_vy;  //use first order filter to slow set-point.使用一阶低通滤波减缓设定值
     first_order_filter_type_t chassis_cmd_slow_set_wz;
     first_order_filter_type_t chassis_cmd_slow_yaw_follow;
+    first_order_filter_type_t chassis_cmd_slow_spin;
 
     float32_t vx;                          //chassis vertical speed, positive means forward,unit m/s. 底盘速度 前进方向 前为正，单位 m/s
     float32_t vy;                          //chassis horizontal speed, positive means letf,unit m/s.底盘速度 左右方向 左为正  单位 m/s

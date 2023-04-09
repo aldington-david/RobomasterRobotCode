@@ -558,7 +558,7 @@ static void gimbal_behavour_set(gimbal_control_t *gimbal_mode_set) {
     } else if (switch_is_mid(gimbal_mode_set->gimbal_rc_ctrl->rc.s[RADIO_CONTROL_SWITCH_L]) &&
                switch_is_up(gimbal_mode_set->gimbal_rc_ctrl->rc.s[RADIO_CONTROL_SWITCH_R])) {
 //        gimbal_behaviour = GIMBAL_ABSOLUTE_ANGLE;
-        gimbal_behaviour = GIMBAL_RELATIVE_ANGLE;
+        gimbal_behaviour = GIMBAL_ABSOLUTE_ANGLE;
     }
 
     if (toe_is_error(DBUS_TOE)) {
