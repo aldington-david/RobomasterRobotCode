@@ -40,7 +40,6 @@
 #include "gimbal_task.h"
 
 
-
 #define IMU_temp_PWM(pwm)  imu_pwm_set(pwm)                    //pwm给定
 
 #define BMI088_BOARD_INSTALL_SPIN_MATRIX    \
@@ -129,7 +128,7 @@ IMU_MAG_Cali_t mag_cali_data = {{IST8310_BOARD_INSTALL_SPIN_MATRIX},
                                 {0},
                                 {1.0f, 1.0f, 1.0f}};
 
-static uint8_t first_temperate =0;
+static uint8_t first_temperate = 0;
 static const float32_t imu_temp_PID[3] = {TEMPERATURE_PID_KP, TEMPERATURE_PID_KI, TEMPERATURE_PID_KD};
 static pid_type_def imu_temp_pid;
 
@@ -192,7 +191,7 @@ void INS_task(void const *pvParameters) {
     bsxlite_return_t result;
     bsxlite_instance_t instance = 0x00;
     result = bsxlite_init(&instance);
-    float32_t init_relative_angle= motor_ecd_to_yaw_angle_change(
+    float32_t init_relative_angle = motor_ecd_to_yaw_angle_change(
             gimbal_control.gimbal_yaw_motor.gimbal_motor_measure->ecd, gimbal_control.gimbal_yaw_motor.offset_ecd);
     memset(&accel_in, 0x00, sizeof(accel_in));
     memset(&gyro_in, 0x00, sizeof(gyro_in));
@@ -226,68 +225,74 @@ void INS_task(void const *pvParameters) {
             DWT_update_task_time_us(&IMU_time_record.mag);
             imu_mag_rotate(INS_gyro, INS_accel, INS_mag, &bmi088_real_data, &ist8310_real_data);
             imu_mag_cali(INS_gyro, INS_accel, INS_mag, INS_gyro_cali, INS_accel_cali, INS_mag_cali);
-                if (fifo_s_free(&mag_data_tx_fifo)) {
-                    fifo_s_puts(&mag_data_tx_fifo, (char *) INS_mag_cali, sizeof(INS_mag_cali));
+            if (fifo_s_free(&mag_data_tx_fifo)) {
+                fifo_s_puts(&mag_data_tx_fifo, (char *) INS_mag_cali, sizeof(INS_mag_cali));
 //                SEGGER_RTT_WriteString(0,"yes\r\n");
-                } else {
-                    fifo_s_flush(&mag_data_tx_fifo);
-                    fifo_s_puts(&mag_data_tx_fifo, (char *) INS_mag_cali, sizeof(INS_mag_cali));
+            } else {
+                fifo_s_flush(&mag_data_tx_fifo);
+                fifo_s_puts(&mag_data_tx_fifo, (char *) INS_mag_cali, sizeof(INS_mag_cali));
 //                SEGGER_RTT_WriteString(0,"no\r\n");
-                }
-                accel_in.x = INS_accel_cali[0];
-                accel_in.y = INS_accel_cali[1];
-                accel_in.z = INS_accel_cali[2];
+            }
+            accel_in.x = INS_accel_cali[0];
+            accel_in.y = INS_accel_cali[1];
+            accel_in.z = INS_accel_cali[2];
 //            SEGGER_RTT_printf(0,"accel:%f,%f,%f\r\n",accel_in.x,accel_in.y,accel_in.z);
-                gyro_in.x = INS_gyro_cali[0];
-                gyro_in.y = INS_gyro_cali[1];
-                gyro_in.z = INS_gyro_cali[2];
-                w_time_stamp += 9000U;
-                result = bsxlite_do_step(&instance,
-                                         w_time_stamp,
-                                         &accel_in,
-                                         &gyro_in,
-                                         &(bsxlite_fusion_out));
-                /** evaluate library return */
-                if (result != BSXLITE_OK) {
-                    switch (result) {
-                        case (BSXLITE_E_DOSTEPS_TSINTRADIFFOUTOFRANGE): {
-                            SEGGER_RTT_WriteString(0,
-                                                   "Error: Subsequent time stamps in input data were found to be out of range from the expected sample rate!!!\n");
-                            break;
-                        }
-                        case (BSXLITE_E_FATAL): {
-                            SEGGER_RTT_WriteString(0, "Fatal Error: Process terminating!!!\n");
-                            break;
-                        }
-                        case (BSXLITE_I_DOSTEPS_NOOUTPUTSRETURNABLE): {
-                            SEGGER_RTT_WriteString(0,
-                                                   "Info: Sufficient memory not allocated for output,  all outputs cannot be returned because no memory provided!!!\n");
-                            break;
-                        }
-                        default: {
-                            SEGGER_RTT_WriteString(0, "Info: Unknown return \n");
-                            break;
-                        }
+            gyro_in.x = INS_gyro_cali[0];
+            gyro_in.y = INS_gyro_cali[1];
+            gyro_in.z = INS_gyro_cali[2];
+            w_time_stamp += 9000U;
+            result = bsxlite_do_step(&instance,
+                                     w_time_stamp,
+                                     &accel_in,
+                                     &gyro_in,
+                                     &(bsxlite_fusion_out));
+            /** evaluate library return */
+            if (result != BSXLITE_OK) {
+                switch (result) {
+                    case (BSXLITE_E_DOSTEPS_TSINTRADIFFOUTOFRANGE): {
+                        SEGGER_RTT_WriteString(0,
+                                               "Error: Subsequent time stamps in input data were found to be out of range from the expected sample rate!!!\n");
+                        break;
+                    }
+                    case (BSXLITE_E_FATAL): {
+                        SEGGER_RTT_WriteString(0, "Fatal Error: Process terminating!!!\n");
+                        break;
+                    }
+                    case (BSXLITE_I_DOSTEPS_NOOUTPUTSRETURNABLE): {
+                        SEGGER_RTT_WriteString(0,
+                                               "Info: Sufficient memory not allocated for output,  all outputs cannot be returned because no memory provided!!!\n");
+                        break;
+                    }
+                    default: {
+                        SEGGER_RTT_WriteString(0, "Info: Unknown return \n");
+                        break;
                     }
                 }
+            }
 
 //                RTT_PrintWave(3,
 //                              &bsxlite_fusion_out.orientation.yaw,
 //                              &bsxlite_fusion_out.orientation.pitch,
 //                              &bsxlite_fusion_out.orientation.roll);
-            if((bsxlite_fusion_out.orientation.yaw+init_relative_angle)>(2*M_PI)){
-                INS_angle[0]=bsxlite_fusion_out.orientation.yaw+init_relative_angle-2*M_PI;
-            } else{
-                INS_angle[0]=bsxlite_fusion_out.orientation.yaw+init_relative_angle;
+            if ((bsxlite_fusion_out.orientation.yaw + init_relative_angle) > (2 * M_PI)) {
+                INS_angle[0] = bsxlite_fusion_out.orientation.yaw + init_relative_angle - 2 * M_PI;
+            } else {
+                INS_angle[0] = bsxlite_fusion_out.orientation.yaw + init_relative_angle;
             }
 //            INS_angle[0]=bsxlite_fusion_out.orientation.yaw;
-            INS_angle[1]=bsxlite_fusion_out.orientation.pitch;
-            INS_angle[2]=bsxlite_fusion_out.orientation.roll;
+            INS_angle[1] = bsxlite_fusion_out.orientation.pitch;
+//            if (INS_angle[1] > gimbal_control.gimbal_pitch_motor.max_relative_angle) {
+//                INS_angle[1] = gimbal_control.gimbal_pitch_motor.max_relative_angle;
+//            } else if (INS_angle[1] < gimbal_control.gimbal_pitch_motor.min_relative_angle) {
+//                INS_angle[1] = gimbal_control.gimbal_pitch_motor.min_relative_angle;
+//            }
 
-            INS_quat[0]=bsxlite_fusion_out.rotation_vector.w;
-            INS_quat[1]=bsxlite_fusion_out.rotation_vector.x;
-            INS_quat[2]=bsxlite_fusion_out.rotation_vector.y;
-            INS_quat[3]=bsxlite_fusion_out.rotation_vector.z;
+            INS_angle[2] = bsxlite_fusion_out.orientation.roll;
+
+            INS_quat[0] = bsxlite_fusion_out.rotation_vector.w;
+            INS_quat[1] = bsxlite_fusion_out.rotation_vector.x;
+            INS_quat[2] = bsxlite_fusion_out.rotation_vector.y;
+            INS_quat[3] = bsxlite_fusion_out.rotation_vector.z;
 
 #if INCLUDE_uxTaskGetStackHighWaterMark
             INS_task_stack = uxTaskGetStackHighWaterMark(NULL);
@@ -295,6 +300,7 @@ void INS_task(void const *pvParameters) {
             vTaskDelayUntil(&LoopStartTime, pdMS_TO_TICKS(9));
         }
     }
+
 }
 
 /**

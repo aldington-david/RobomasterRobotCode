@@ -126,7 +126,8 @@ uint8_t RC_data_is_error(void) {
     rc_ctrl.mouse.press_l = 0;
     rc_ctrl.mouse.press_r = 0;
     rc_ctrl.key.v = 0;
-    rc_ctrl.update_flag=0;
+    rc_ctrl.gimbal_update_flag=0;
+    rc_ctrl.chassis_update_flag=0;
     return 1;
 }
 
@@ -257,7 +258,8 @@ static void sbus_to_rc(volatile const uint8_t *sbus_buf, RC_ctrl_t *rc_ctrl) {
     rc_ctrl->rc.ch[3] -= RC_CH_VALUE_OFFSET;
     rc_ctrl->rc.ch[4] -= RC_CH_VALUE_OFFSET;
 
-    rc_ctrl->update_flag = 1;
+    rc_ctrl->gimbal_update_flag = 1;
+    rc_ctrl->chassis_update_flag = 1;
 }
 //abundant
 /**
@@ -281,6 +283,9 @@ void sbus_to_usart1(uint8_t *sbus) {
     usart1_tx_dma_enable(usart_tx_buf, 20);
 }
 
-void clear_rc_update_flag(void) {
-    rc_ctrl.update_flag = 0;
+void clear_gimbal_rc_update_flag(void) {
+    rc_ctrl.gimbal_update_flag = 0;
+}
+void clear_chassis_rc_update_flag(void) {
+    rc_ctrl.chassis_update_flag = 0;
 }

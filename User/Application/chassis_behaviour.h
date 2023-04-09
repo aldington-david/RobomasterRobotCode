@@ -32,9 +32,9 @@
         and in the last of the function, add "else if(chassis_behaviour_mode == CHASSIS_XXX_XXX)" 
         choose a chassis control mode.
         four mode:
-        CHASSIS_VECTOR_FOLLOW_GIMBAL_YAW : 'vx' and 'vy' are speed control, 'wz' is angle set to control relative angle
+        CHASSIS_VECTOR_TO_GIMBAL_YAW : 'vx' and 'vy' are speed control, 'wz' is angle set to control relative angle
             between chassis and gimbal. you can name third param to 'xxx_angle_set' other than 'wz'
-        CHASSIS_VECTOR_FOLLOW_CHASSIS_YAW : 'vx' and 'vy' are speed control, 'wz' is angle set to control absolute angle calculated by gyro
+        CHASSIS_VECTOR_FOLLOW_GIMBAL_YAW : 'vx' and 'vy' are speed control, 'wz' is angle set to control absolute angle calculated by gyro
             you can name third param to 'xxx_angle_set.
         CHASSIS_VECTOR_NO_FOLLOW_YAW : 'vx' and 'vy' are speed control, 'wz' is rotation speed control.
         CHASSIS_VECTOR_RAW : will use 'vx' 'vy' and 'wz'  to linearly calculate four wheel current set, 
@@ -62,9 +62,9 @@
     3.  在"chassis_behaviour_mode_set"这个函数中，添加新的逻辑判断，给chassis_behaviour_mode赋值成CHASSIS_XXX_XXX
         在函数最后，添加"else if(chassis_behaviour_mode == CHASSIS_XXX_XXX)" ,然后选择一种底盘控制模式
         4种:
-        CHASSIS_VECTOR_FOLLOW_GIMBAL_YAW : 'vx' and 'vy'是速度控制， 'wz'是角度控制 云台和底盘的相对角度
+        CHASSIS_VECTOR_TO_GIMBAL_YAW : 'vx' and 'vy'是速度控制， 'wz'是角度控制 云台和底盘的相对角度
         你可以命名成"xxx_angle_set"而不是'wz'
-        CHASSIS_VECTOR_FOLLOW_CHASSIS_YAW : 'vx' and 'vy'是速度控制， 'wz'是角度控制 底盘的陀螺仪计算出的绝对角度
+        CHASSIS_VECTOR_FOLLOW_GIMBAL_YAW : 'vx' and 'vy'是速度控制， 'wz'是角度控制 底盘的陀螺仪计算出的绝对角度
         你可以命名成"xxx_angle_set"
         CHASSIS_VECTOR_NO_FOLLOW_YAW : 'vx' and 'vy'是速度控制， 'wz'是旋转速度控制
         CHASSIS_VECTOR_RAW : 使用'vx' 'vy' and 'wz'直接线性计算出车轮的电流值，电流值将直接发送到can 总线上
@@ -88,7 +88,8 @@ typedef enum
   CHASSIS_ZERO_FORCE,                   //chassis will be like no power,底盘无力, 跟没上电那样
   CHASSIS_NO_MOVE,                      //chassis will be stop,底盘保持不动
   CHASSIS_SPIN,                         //小陀螺
-  CHASSIS_INFANTRY_FOLLOW_GIMBAL_YAW,   //chassis will follow gimbal, usually in infantry,正常步兵底盘跟随云台
+  CHASSIS_FORWARD_TO_GIMBAL_YAW,   //正常步兵底盘前向跟随云台
+  CHASSIS_FORWARD_FOLLOW_GIMBAL_YAW,
   CHASSIS_ENGINEER_FOLLOW_CHASSIS_YAW,  //chassis will follow chassis yaw angle, usually in engineer,
                                         //because chassis does have gyro sensor, its yaw angle is calculed by gyro in gimbal and gimbal motor angle,
                                         //if you have a gyro sensor in chassis, please updata yaw, pitch, roll angle in "chassis_feedback_update"  function

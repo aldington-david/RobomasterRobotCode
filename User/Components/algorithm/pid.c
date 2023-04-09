@@ -18,6 +18,7 @@
 #include "pid.h"
 #include "main.h"
 #include "gimbal_task.h"
+#include "chassis_task.h"
 #include "print_task.h"
 #include "shoot.h"
 #include "USER_Filter.h"
@@ -217,22 +218,26 @@ float ALL_PID(pid_type_def *pid, float32_t ref, float32_t set) {
     }
     pid->set = set;
     pid->get = ref;
-    if (pid == &gimbal_control.gimbal_pitch_motor.gimbal_motor_relative_angle_pid) {
-        pid->error[0] = rad_format(set - ref);
-    } else if (pid == &gimbal_control.gimbal_yaw_motor.gimbal_motor_relative_angle_pid) {
+    if ((pid == &gimbal_control.gimbal_yaw_motor.gimbal_motor_relative_angle_pid) ||
+        (pid == &gimbal_control.gimbal_yaw_motor.gimbal_motor_absolute_angle_pid) ||
+        (pid == &gimbal_control.gimbal_pitch_motor.gimbal_motor_relative_angle_pid) ||
+        (pid == &gimbal_control.gimbal_pitch_motor.gimbal_motor_absolute_angle_pid) ||
+        (pid == &chassis_move.chassis_angle_pid)) {
 //        pid->error[0] = loop_fp32_constrain(set-ref,0,2*PI);
-        pid->error[0] = jump_error(set-ref,2*PI);
+        pid->error[0] = jump_error(set - ref, 2 * PI);
 //        SEGGER_RTT_printf(0,"set=%f,ref=%f,err_fun=%f,err=%f\r\n",set,ref,pid->error[0],set-ref);
     } else {
         pid->error[0] = set - ref;
     }
 //探针
-//    if (pid == &gimbal_control.gimbal_yaw_motor.gimbal_motor_gyro_pid) {//for_test
+//    if (pid == &gimbal_control.gimbal_pitch_motor.gimbal_motor_gyro_pid) {//for_test
 //        sp_err = pid->error[0];
 //    }
-//    if (pid == &gimbal_control.gimbal_yaw_motor.gimbal_motor_relative_angle_pid) {//for_test
+    if (pid == &gimbal_control.gimbal_pitch_motor.gimbal_motor_gyro_pid) {//for_test
 //        re_err = pid->error[0];
-//    }
+//        SEGGER_RTT_SetTerminal(1);
+//        SEGGER_RTT_printf(0,"err=%f\r\n",pid->error[0]);
+    }
 
     pid->Pout = pid->Kp * pid->error[0];
     if (pid->Variable_I) {
@@ -294,7 +299,7 @@ float ALL_PID(pid_type_def *pid, float32_t ref, float32_t set) {
     //积分限幅
     LimitMax(pid->Iout, pid->max_iout); //取消积分输出的限幅。
 
-    if (fabsf(pid->error[0]) >= pid->Integral_Separation) {
+    if (fabsf(pid->error[0]) <= pid->Integral_Separation) {
         pid->Iout = 0;
         pid->out = (pid->Pout + pid->Dout);
     } else {

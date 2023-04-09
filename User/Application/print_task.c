@@ -364,14 +364,10 @@ referee usart:%s\r\n\
             //pitch
 //            SEGGER_RTT_SetTerminal(2);
 //            sprintf(print_buf,
-//                    "relative_fun=%f,relative=%f,absolute=%f,ecd=%d,total_ecd=%d,offset_ecd=%d\r\n",
-//                    motor_ecd_to_pitch_angle_change(gimbal_control.gimbal_pitch_motor.gimbal_motor_measure->ecd,
-//                                                    gimbal_control.gimbal_pitch_motor.offset_ecd),
-//                    gimbal_control.gimbal_pitch_motor.relative_angle,
+//                    "absolute=%f,absolute_set=%f,p_out=%f\r\n",
 //                    INS_angle[1],
-//                    gimbal_control.gimbal_pitch_motor.gimbal_motor_measure->ecd,
-//                    gimbal_control.gimbal_pitch_motor.gimbal_motor_measure->total_ecd,
-//                    gimbal_control.gimbal_pitch_motor.offset_ecd);
+//                    gimbal_control.gimbal_pitch_motor.absolute_angle_set,
+//                    gimbal_control.gimbal_pitch_motor.gimbal_motor_absolute_angle_pid.out);
 //            SEGGER_RTT_WriteString(0, print_buf);
             //拨盘
 //            SEGGER_RTT_SetTerminal(3);
@@ -418,6 +414,20 @@ referee usart:%s\r\n\
 //                    gimbal_control.gimbal_yaw_motor.min_relative_angle,
 //                    gimbal_control.gimbal_yaw_motor.relative_angle,
 //                    gimbal_control.gimbal_yaw_motor.relative_angle_set,
+//                    gimbal_control.gimbal_yaw_motor.gimbal_motor_measure->ecd,
+//                    gimbal_control.gimbal_yaw_motor.gimbal_motor_measure->total_ecd,
+//                    gimbal_control.gimbal_yaw_motor.gimbal_motor_measure->turnCount,
+//                    gimbal_control.gimbal_yaw_motor.offset_ecd,
+//                    gimbal_control.gimbal_cali.max_yaw_ecd,
+//                    gimbal_control.gimbal_cali.min_yaw_ecd);
+//            SEGGER_RTT_WriteString(0, print_buf);
+//            SEGGER_RTT_SetTerminal(3);
+//            sprintf(print_buf,
+//                    "Yaw_max_ang=%f,Yaw_min_ang=%f,Yaw_now_ang=%f,Yaw_now_set_ang=%f,Yaw_now_ecd=%d,Yaw_total_ecd=%d\r\nYaw_turncount=%d,Yaw_offset_ecd=%d,Yaw_cl_max_ecd=%d,Yaw_cl_min_ecd=%d\r\n",
+//                    gimbal_control.gimbal_yaw_motor.max_relative_angle,
+//                    gimbal_control.gimbal_yaw_motor.min_relative_angle,
+//                    gimbal_control.gimbal_yaw_motor.absolute_angle,
+//                    gimbal_control.gimbal_yaw_motor.absolute_angle_set,
 //                    gimbal_control.gimbal_yaw_motor.gimbal_motor_measure->ecd,
 //                    gimbal_control.gimbal_yaw_motor.gimbal_motor_measure->total_ecd,
 //                    gimbal_control.gimbal_yaw_motor.gimbal_motor_measure->turnCount,
@@ -667,13 +677,24 @@ referee usart:%s\r\n\
 //                          &pid_pout_probe,
 //                          &pid_iout_probe,
 //                          &pid_dout_probe);
-//            RTT_PrintWave(6,
+//            RTT_PrintWave(5,
 //                          &gimbal_control.gimbal_yaw_motor.relative_angle_set,
 //                          &gimbal_control.gimbal_yaw_motor.relative_angle,
-//                          &gimbal_control.gimbal_yaw_motor.gimbal_motor_relative_angle_pid.PID_lms.outputF32,
 //                          &gimbal_control.gimbal_yaw_motor.motor_gyro_set,
 //                          &gimbal_control.gimbal_yaw_motor.motor_gyro,
 //                          &gimbal_control.gimbal_yaw_motor.motor_speed);
+            RTT_PrintWave(5,
+                          &gimbal_control.gimbal_yaw_motor.absolute_angle_set,
+                          &gimbal_control.gimbal_yaw_motor.absolute_angle,
+                          &gimbal_control.gimbal_yaw_motor.motor_gyro_set,
+                          &gimbal_control.gimbal_yaw_motor.motor_gyro,
+                          &gimbal_control.gimbal_yaw_motor.motor_speed);
+//            RTT_PrintWave(5,
+//                          &gimbal_control.gimbal_pitch_motor.absolute_angle_set,
+//                          &gimbal_control.gimbal_pitch_motor.absolute_angle,
+//                          &gimbal_control.gimbal_pitch_motor.motor_gyro_set,
+//                          &gimbal_control.gimbal_pitch_motor.motor_gyro,
+//                          &gimbal_control.gimbal_pitch_motor.motor_speed);
 //            RTT_PrintWave_np(4,
 //                          gimbal_control.gimbal_yaw_motor.relative_angle_set,
 //                          gimbal_control.gimbal_yaw_motor.relative_angle,

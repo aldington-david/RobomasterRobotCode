@@ -49,24 +49,24 @@
 //rocker value (max 660) change to vertial speed (m/s) 
 //遥控器前进摇杆（max 660）转化成车体前进速度（m/s）的比例
 //#define CHASSIS_VX_RC_SEN 0.0032f
-#define CHASSIS_VX_RC_SEN 0.0102f
+#define CHASSIS_VX_RC_SEN 1.5102f
 //rocker value (max 660) change to horizontal speed (m/s)
 //遥控器左右摇杆（max 660）转化成车体左右速度（m/s）的比例
 //#define CHASSIS_VY_RC_SEN 0.0030f
-#define CHASSIS_VY_RC_SEN 0.0102f
+#define CHASSIS_VY_RC_SEN 1.5102f
 //in following yaw angle mode, rocker value add to angle 
 //跟随底盘yaw模式下，遥控器的yaw遥杆（max 660）增加到车体角度的比例
 #define CHASSIS_ANGLE_Z_RC_SEN 0.000002f
 //in not following yaw angle mode, rocker value change to rotation speed
 //不跟随云台的时候 遥控器的yaw遥杆（max 660）转化成车体旋转速度的比例
-#define CHASSIS_WZ_RC_SEN 0.025f
+#define CHASSIS_WZ_RC_SEN 1.525f
 
 //#define CHASSIS_ACCEL_X_NUM 0.1666666667f
 //#define CHASSIS_ACCEL_Y_NUM 0.3333333333f
 //for_test
-#define CHASSIS_ACCEL_X_NUM 0.00005f
-#define CHASSIS_ACCEL_Y_NUM 0.00005f
-#define CHASSIS_ACCEL_WZ_NUM 0.00005f
+#define CHASSIS_ACCEL_X_NUM 0.00020f
+#define CHASSIS_ACCEL_Y_NUM 0.00020f
+#define CHASSIS_ACCEL_WZ_NUM 0.00015f
 //rocker value deadline
 //摇杆死区
 #define CHASSIS_RC_DEADLINE 10
@@ -82,9 +82,9 @@
 //chassis task control time  1ms
 //底盘任务控制间隔 1ms
 #define CHASSIS_CONTROL_TIME_MS 1
-//chassis task control time 0.002s
-//底盘任务控制间隔 0.002s
-#define CHASSIS_CONTROL_TIME 0.002f
+//chassis task control time 0.001s
+//底盘任务控制间隔 0.001s
+#define CHASSIS_CONTROL_TIME 0.001f
 //chassis control frequence, no use now.
 //底盘任务控制频率，尚未使用这个宏
 #define CHASSIS_CONTROL_FREQUENCE 1000.0f
@@ -104,8 +104,9 @@
 #define CHASSIS_SPIN_RIGHT_KEY KEY_PRESSED_OFFSET_E
 //m3508 rmp change to chassis speed,
 //m3508转化成底盘速度(m/s)的比例，
-#define M3508_MOTOR_RPM_TO_VECTOR 0.000415809748903494517209f
-#define CHASSIS_MOTOR_RPM_TO_VECTOR_SEN M3508_MOTOR_RPM_TO_VECTOR
+#define M3508_MOTOR_19_RPM_TO_VECTOR 0.000415809748903494517209f
+#define M3508_MOTOR_14_RPM_TO_VECTOR 0.000564313230654743f
+#define CHASSIS_MOTOR_RPM_TO_VECTOR_SEN M3508_MOTOR_14_RPM_TO_VECTOR
 
 //single chassis motor max speed
 //单个底盘电机最大速度
@@ -130,7 +131,7 @@
 
 //chassis motor speed PID
 //底盘电机速度环PID
-#define M3505_MOTOR_SPEED_PID_KP 15000.0f
+#define M3505_MOTOR_SPEED_PID_KP 8000.0f
 #define M3505_MOTOR_SPEED_PID_KI 10.0f
 #define M3505_MOTOR_SPEED_PID_KD 0.0f
 #define M3505_MOTOR_SPEED_PID_MAX_OUT MAX_MOTOR_CAN_CURRENT
@@ -138,15 +139,15 @@
 
 //chassis follow angle PID
 //底盘旋转跟随PID
-#define CHASSIS_FOLLOW_GIMBAL_PID_KP 40.0f
+#define CHASSIS_FOLLOW_GIMBAL_PID_KP 2.0f
 #define CHASSIS_FOLLOW_GIMBAL_PID_KI 0.0f
 #define CHASSIS_FOLLOW_GIMBAL_PID_KD 0.0f
-#define CHASSIS_FOLLOW_GIMBAL_PID_MAX_OUT 6.0f
+#define CHASSIS_FOLLOW_GIMBAL_PID_MAX_OUT 3.0f
 #define CHASSIS_FOLLOW_GIMBAL_PID_MAX_IOUT 0.2f
 
 typedef enum {
-    CHASSIS_VECTOR_FOLLOW_GIMBAL_YAW,   //chassis will follow yaw gimbal motor relative angle.底盘会跟随云台相对角度
-    CHASSIS_VECTOR_FOLLOW_CHASSIS_YAW,  //chassis will have yaw angle(chassis_yaw) close-looped control.底盘有底盘角度控制闭环
+    CHASSIS_VECTOR_TO_GIMBAL_YAW,   //chassis will follow yaw gimbal motor relative angle.底盘会跟随云台相对角度
+    CHASSIS_VECTOR_FOLLOW_GIMBAL_YAW,  //chassis will have yaw angle(chassis_yaw) close-looped control.底盘有底盘角度控制闭环
     CHASSIS_VECTOR_NO_FOLLOW_YAW,       //chassis will have rotation speed control. 底盘有旋转速度控制
     CHASSIS_VECTOR_RAW,                 //control-current will be sent to CAN bus derectly.
     CHASSIS_NOT_MOVE,
@@ -195,6 +196,8 @@ typedef struct {
     float32_t chassis_roll;  //the roll angle calculated by gyro sensor and gimbal motor.陀螺仪和云台电机叠加的roll角度
 
 } chassis_move_t;
+
+extern chassis_move_t chassis_move;
 
 /**
   * @brief          获取chassis_task栈大小

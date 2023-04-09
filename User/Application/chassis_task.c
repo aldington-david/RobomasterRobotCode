@@ -29,6 +29,7 @@
 #include "INS_task.h"
 #include "chassis_power_control.h"
 #include "DWT.h"
+#include "SEGGER_RTT.h"
 
 #define rc_deadband_limit(input, output, dealine)        \
     {                                                    \
@@ -119,6 +120,9 @@ static void chassis_control_loop(chassis_move_t *chassis_move_control_loop);
 uint32_t chassis_task_stack;
 #endif
 
+float32_t vx_rc_Interpolation[14] = {0};
+float32_t vy_rc_Interpolation[14] = {0};
+float32_t wz_rc_Interpolation[14] = {0};
 
 //底盘运动数据
 chassis_move_t chassis_move;
@@ -312,14 +316,14 @@ static void chassis_mode_change_control_transit(chassis_move_t *chassis_move_tra
 
     //change to follow gimbal angle mode
     //切入跟随云台模式
-    if ((chassis_move_transit->last_chassis_mode != CHASSIS_VECTOR_FOLLOW_GIMBAL_YAW) &&
-        chassis_move_transit->chassis_mode == CHASSIS_VECTOR_FOLLOW_GIMBAL_YAW) {
+    if ((chassis_move_transit->last_chassis_mode != CHASSIS_VECTOR_TO_GIMBAL_YAW) &&
+        chassis_move_transit->chassis_mode == CHASSIS_VECTOR_TO_GIMBAL_YAW) {
         chassis_move_transit->chassis_relative_angle_set = 0.0f;
     }
         //change to follow chassis yaw angle
         //切入跟随底盘角度模式
-    else if ((chassis_move_transit->last_chassis_mode != CHASSIS_VECTOR_FOLLOW_CHASSIS_YAW) &&
-             chassis_move_transit->chassis_mode == CHASSIS_VECTOR_FOLLOW_CHASSIS_YAW) {
+    else if ((chassis_move_transit->last_chassis_mode != CHASSIS_VECTOR_FOLLOW_GIMBAL_YAW) &&
+             chassis_move_transit->chassis_mode == CHASSIS_VECTOR_FOLLOW_GIMBAL_YAW) {
         chassis_move_transit->chassis_yaw_set = chassis_move_transit->chassis_yaw;
     }
         //change to no follow angle
@@ -374,8 +378,7 @@ static void chassis_feedback_update(chassis_move_t *chassis_move_update) {
 
     //calculate chassis euler angle, if chassis add a new gyro sensor,please change this code
     //计算底盘姿态角度, 如果底盘上有陀螺仪请更改这部分代码
-    chassis_move_update->chassis_yaw = rad_format(*(chassis_move_update->chassis_INS_angle + INS_YAW_ADDRESS_OFFSET) -
-                                                  chassis_move_update->chassis_yaw_motor->relative_angle);
+    chassis_move_update->chassis_yaw = chassis_move_update->chassis_yaw_motor->relative_angle;
     chassis_move_update->chassis_pitch = rad_format(
             *(chassis_move_update->chassis_INS_angle + INS_PITCH_ADDRESS_OFFSET) -
             chassis_move_update->chassis_pitch_motor->relative_angle);
@@ -397,11 +400,12 @@ static void chassis_feedback_update(chassis_move_t *chassis_move_update) {
   * @param[out]     chassis_move_rc_to_vector: "chassis_move" 变量指针
   * @retval         none
   */
-void chassis_rc_to_control_vector(float32_t *vx_set, float32_t *vy_set, float32_t *wz_set, chassis_move_t *chassis_move_rc_to_vector) {
+void chassis_rc_to_control_vector(float32_t *vx_set, float32_t *vy_set, float32_t *wz_set,
+                                  chassis_move_t *chassis_move_rc_to_vector) {
     if (chassis_move_rc_to_vector == NULL || vx_set == NULL || vy_set == NULL) {
         return;
     }
-
+    static uint8_t move_point = 0;
     int16_t vx_channel, vy_channel, wz_channel;
     float32_t vx_set_channel, vy_set_channel, wz_set_channel;
     vx_set_channel = vy_set_channel = wz_set_channel = vx_channel = vy_channel = wz_channel = 0;
@@ -416,9 +420,45 @@ void chassis_rc_to_control_vector(float32_t *vx_set, float32_t *vy_set, float32_
                           CHASSIS_RC_DEADLINE);
         rc_deadband_limit(chassis_move_rc_to_vector->chassis_RC->rc.ch[CHASSIS_WZ_CHANNEL], wz_channel,
                           CHASSIS_RC_DEADLINE);
-        vx_set_channel = vx_channel * CHASSIS_VX_RC_SEN;
-        vy_set_channel = vy_channel * -CHASSIS_VY_RC_SEN;
-        wz_set_channel = wz_channel * CHASSIS_WZ_RC_SEN;
+
+        if (chassis_move_rc_to_vector->chassis_RC->chassis_update_flag) {
+            clear_chassis_rc_update_flag();
+            sigmoidInterpolation(0, (vx_channel * CHASSIS_VX_RC_SEN +
+                                     (chassis_move_rc_to_vector->vx_set - chassis_move_rc_to_vector->vx)) * 1000, 14,
+                                 vx_rc_Interpolation);
+            sigmoidInterpolation(0, (vy_channel * -CHASSIS_VY_RC_SEN +
+                                     (chassis_move_rc_to_vector->vy_set - chassis_move_rc_to_vector->vy)) * 1000, 14,
+                                 vy_rc_Interpolation);
+            sigmoidInterpolation(0, (wz_channel * CHASSIS_WZ_RC_SEN +
+                                     (chassis_move_rc_to_vector->wz_set - chassis_move_rc_to_vector->wz)) * 1000, 14,
+                                 wz_rc_Interpolation);
+
+//            sigmoidInterpolation(0, vx_channel, 14, vx_rc_Interpolation);
+//            sigmoidInterpolation(0, vy_channel, 14, vy_rc_Interpolation);
+//            sigmoidInterpolation(0, wz_channel, 14, wz_rc_Interpolation);
+//            SEGGER_RTT_printf(0, "in=%f,set=%f\r\n", yaw_rc_Interpolation[i] * YAW_RC_SEN, yaw_channel * YAW_RC_SEN);
+//            SEGGER_RTT_printf(0, "in=%f,set=%f\r\n", pitch_rc_Interpolation[i] * PITCH_RC_SEN,
+//                              pitch_channel * YAW_RC_SEN);
+            move_point = 0;
+        }
+//        SEGGER_RTT_printf(0, "x=%d,y=%d,z=%d,vx-=%f,vy-=%f,vz-=%f\r\n", vx_channel, vy_channel, wz_channel,
+//                          1000 * (chassis_move_rc_to_vector->vx_set - chassis_move_rc_to_vector->vx),
+//                          1000 * (chassis_move_rc_to_vector->vy_set - chassis_move_rc_to_vector->vy),
+//                          1000 * (chassis_move_rc_to_vector->wz_set - chassis_move_rc_to_vector->wz));
+//        vx_set_channel = vx_rc_Interpolation[move_point] * CHASSIS_VX_RC_SEN;
+//        vy_set_channel = vy_rc_Interpolation[move_point] * -CHASSIS_VY_RC_SEN;
+//        wz_set_channel = wz_rc_Interpolation[move_point] * CHASSIS_WZ_RC_SEN;
+        vx_set_channel = vx_rc_Interpolation[move_point] /1000;
+        vy_set_channel = vy_rc_Interpolation[move_point] /1000;
+        wz_set_channel = wz_rc_Interpolation[move_point] /1000;
+//        vx_set_channel = vx_channel * CHASSIS_VX_RC_SEN;
+//        vy_set_channel = vy_channel * -CHASSIS_VY_RC_SEN;
+//        wz_set_channel = wz_channel * CHASSIS_WZ_RC_SEN;
+        move_point++;
+        if (move_point > 13) {
+            move_point = 0;
+        }
+//        SEGGER_RTT_printf(0, "wz_set_channel:%f\r\n", wz_set_channel);
     } else {
         //keyboard set speed set-point
         //键盘控制
@@ -457,6 +497,9 @@ void chassis_rc_to_control_vector(float32_t *vx_set, float32_t *vy_set, float32_
 //        chassis_move_rc_to_vector->chassis_cmd_slow_set_vy.out = 0.0f;
 //    }
 
+//    *vx_set = chassis_move_rc_to_vector->chassis_cmd_slow_set_vx.out;
+//    *vy_set = chassis_move_rc_to_vector->chassis_cmd_slow_set_vy.out;
+//    *wz_set = chassis_move_rc_to_vector->chassis_cmd_slow_set_wz.out;
     *vx_set = chassis_move_rc_to_vector->chassis_cmd_slow_set_vx.out;
     *vy_set = chassis_move_rc_to_vector->chassis_cmd_slow_set_vy.out;
     *wz_set = chassis_move_rc_to_vector->chassis_cmd_slow_set_wz.out;
@@ -484,7 +527,7 @@ static void chassis_set_contorl(chassis_move_t *chassis_move_control) {
 
     //follow gimbal mode
     //跟随云台模式
-    if (chassis_move_control->chassis_mode == CHASSIS_VECTOR_FOLLOW_GIMBAL_YAW) {
+    if (chassis_move_control->chassis_mode == CHASSIS_VECTOR_TO_GIMBAL_YAW) {
         float32_t sin_yaw = 0.0f, cos_yaw = 0.0f;
         //rotate chassis direction, make sure vertial direction follow gimbal 
         //旋转控制底盘速度方向，保证前进方向是云台方向，有利于运动平稳
@@ -494,7 +537,8 @@ static void chassis_set_contorl(chassis_move_t *chassis_move_control) {
         chassis_move_control->vy_set = -sin_yaw * vx_set + cos_yaw * vy_set;
         //set control relative angle  set-point
         //设置控制相对云台角度
-        chassis_move_control->chassis_relative_angle_set = rad_format(angle_set);
+//        chassis_move_control->chassis_relative_angle_set = rad_format(angle_set);
+        chassis_move_control->chassis_relative_angle_set = 0.0f;
         //calculate ratation speed
         //计算旋转PID角速度
 //        chassis_move_control->wz_set = -PID_calc(&chassis_move_control->chassis_angle_pid, chassis_move_control->chassis_yaw_motor->relative_angle, chassis_move_control->chassis_relative_angle_set);
@@ -505,15 +549,16 @@ static void chassis_set_contorl(chassis_move_t *chassis_move_control) {
                                                       chassis_move_control->vx_max_speed);
         chassis_move_control->vy_set = fp32_constrain(chassis_move_control->vy_set, chassis_move_control->vy_min_speed,
                                                       chassis_move_control->vy_max_speed);
-    } else if (chassis_move_control->chassis_mode == CHASSIS_VECTOR_FOLLOW_CHASSIS_YAW) {
-        float32_t delat_angle = 0.0f;
+    } else if (chassis_move_control->chassis_mode == CHASSIS_VECTOR_FOLLOW_GIMBAL_YAW) {
         //set chassis yaw angle set-point
         //设置底盘控制的角度
-        chassis_move_control->chassis_yaw_set = rad_format(angle_set);
-        delat_angle = rad_format(chassis_move_control->chassis_yaw_set - chassis_move_control->chassis_yaw);
+        chassis_move_control->chassis_yaw_set = 0;
         //calculate rotation speed
         //计算旋转的角速度
-        chassis_move_control->wz_set = ALL_PID(&chassis_move_control->chassis_angle_pid, 0.0f, delat_angle);
+        chassis_move_control->wz_set = ALL_PID(&chassis_move_control->chassis_angle_pid,
+                                               chassis_move_control->chassis_yaw,
+                                               chassis_move_control->chassis_yaw_set);
+//        SEGGER_RTT_printf(0, "chassis_move_control->wz_set = %f\r\n", chassis_move_control->wz_set);
         //speed limit
         //速度限幅
         chassis_move_control->vx_set = fp32_constrain(vx_set, chassis_move_control->vx_min_speed,
@@ -563,7 +608,8 @@ static void chassis_set_contorl(chassis_move_t *chassis_move_control) {
   * @retval         none
   */
 static void
-chassis_vector_to_mecanum_wheel_speed(const float32_t vx_set, const float32_t vy_set, const float32_t wz_set, float32_t wheel_speed[4]) {
+chassis_vector_to_mecanum_wheel_speed(const float32_t vx_set, const float32_t vy_set, const float32_t wz_set,
+                                      float32_t wheel_speed[4]) {
     //because the gimbal is in front of chassis, when chassis rotates, wheel 0 and wheel 1 should be slower and wheel 2 and wheel 3 should be faster
     //旋转的时候， 由于云台靠前，所以是前面两轮 0 ，1 旋转的速度变慢， 后面两轮 2,3 旋转的速度变快
 //    wheel_speed[0] = -vx_set - vy_set + (CHASSIS_WZ_SET_SCALE - 1.0f) * MOTOR_DISTANCE_TO_CENTER * wz_set;
