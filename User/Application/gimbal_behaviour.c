@@ -93,6 +93,7 @@
 #include "ahrs_ukf.h"
 #include "calibrate_task.h"
 #include "gimbal_task.h"
+#include "chassis_behaviour.h"
 
 //when gimbal is in calibrating, set buzzer frequency and strenght
 //当云台在校准, 设置蜂鸣器频率和强度
@@ -310,7 +311,7 @@ static void gimbal_relative_angle_control(float32_t *yaw, float32_t *pitch, gimb
 static void gimbal_motionless_control(float32_t *yaw, float32_t *pitch, gimbal_control_t *gimbal_control_set);
 
 //云台行为状态机
-static gimbal_behaviour_e gimbal_behaviour = GIMBAL_ZERO_FORCE;
+gimbal_behaviour_e gimbal_behaviour = GIMBAL_ZERO_FORCE;
 float32_t yaw_rc_Interpolation[14] = {0};
 float32_t pitch_rc_Interpolation[14] = {0};
 
@@ -561,6 +562,8 @@ static void gimbal_behavour_set(gimbal_control_t *gimbal_mode_set) {
         gimbal_behaviour = GIMBAL_ABSOLUTE_ANGLE;
     }
 
+//    SEGGER_RTT_printf(0,"b=%d\r\n",gimbal_behaviour);
+
     if (toe_is_error(DBUS_TOE)) {
         gimbal_behaviour = GIMBAL_ZERO_FORCE;
     }
@@ -569,7 +572,14 @@ static void gimbal_behavour_set(gimbal_control_t *gimbal_mode_set) {
     //判断进入init状态机
 
     if (last_gimbal_behaviour == GIMBAL_ZERO_FORCE && gimbal_behaviour != GIMBAL_ZERO_FORCE) {
-        gimbal_behaviour = GIMBAL_INIT;
+        if (INIT_ONLY_FIRST_TIME) {
+            if (!init_complete_flag) {
+                gimbal_behaviour = GIMBAL_INIT;
+            }
+        } else {
+            gimbal_behaviour = GIMBAL_INIT;
+        }
+
     }
     last_gimbal_behaviour = gimbal_behaviour;
 }
@@ -626,6 +636,7 @@ static void gimbal_init_control(float32_t *yaw, float32_t *pitch, gimbal_control
         if (PITCH_INIT == INIT) {
             *pitch = (INIT_PITCH_SET - gimbal_control_set->gimbal_pitch_motor.relative_angle) * GIMBAL_INIT_PITCH_SPEED;
             *yaw = 0.0f;
+//            SEGGER_RTT_printf(0, "angle=%f\r\n", gimbal_control_set->gimbal_pitch_motor.relative_angle);
 //            *yaw = (INIT_YAW_SET - gimbal_control_set->gimbal_yaw_motor.relative_angle) * GIMBAL_INIT_YAW_SPEED;
         } else if (PITCH_INIT == NO_INIT) {
             *pitch = 0.0f;
@@ -634,6 +645,7 @@ static void gimbal_init_control(float32_t *yaw, float32_t *pitch, gimbal_control
     } else {
         if (PITCH_INIT == INIT) {
             *pitch = (INIT_PITCH_SET - gimbal_control_set->gimbal_pitch_motor.relative_angle) * GIMBAL_INIT_PITCH_SPEED;
+//            SEGGER_RTT_printf(0, "angle=%f\r\n", gimbal_control_set->gimbal_pitch_motor.relative_angle);
         } else if (PITCH_INIT == NO_INIT) {
             *pitch = 0.0f;
         }
@@ -895,6 +907,8 @@ void gimbal_rc_to_control_vector(float32_t *yaw, float32_t *pitch, gimbal_contro
     static int16_t yaw_rc_last;
     static float32_t vision_yaw;
 //    static float32_t yaw_vision_last;
+    float32_t yaw_bias = 0;
+    float32_t pitch_bias = 0;
     int16_t err;
     int16_t yaw_channel, pitch_channel;
     float32_t yaw_set_channel, pitch_set_channel, add_vision_yaw, add_vision_pitch, lim_vision_yaw, lim_vision_pitch;
@@ -941,37 +955,52 @@ void gimbal_rc_to_control_vector(float32_t *yaw, float32_t *pitch, gimbal_contro
 //                         add_vision_yaw,
 //                         add_vision_pitch);
 //        SEGGER_RTT_printf(0,"%d\r\n",count);//for_test
-        float32_t yaw_bias = jump_error(
-                gimbal_move_rc_to_vector->gimbal_yaw_motor.relative_angle_set -
-                gimbal_move_rc_to_vector->gimbal_yaw_motor.relative_angle, 2 * PI);
-        float32_t pitch_bias = jump_error(
-                gimbal_move_rc_to_vector->gimbal_pitch_motor.relative_angle_set -
-                gimbal_move_rc_to_vector->gimbal_pitch_motor.relative_angle, 2 * PI);
+        if (gimbal_behaviour == GIMBAL_RELATIVE_ANGLE) {
+            yaw_bias = jump_error(
+                    gimbal_move_rc_to_vector->gimbal_yaw_motor.relative_angle_set -
+                    gimbal_move_rc_to_vector->gimbal_yaw_motor.relative_angle, 2 * PI);
+            pitch_bias = jump_error(
+                    gimbal_move_rc_to_vector->gimbal_pitch_motor.relative_angle_set -
+                    gimbal_move_rc_to_vector->gimbal_pitch_motor.relative_angle, 2 * PI);
+        } else if (gimbal_behaviour == GIMBAL_ABSOLUTE_ANGLE) {
+            yaw_bias = jump_error(
+                    gimbal_move_rc_to_vector->gimbal_yaw_motor.absolute_angle_set -
+                    gimbal_move_rc_to_vector->gimbal_yaw_motor.absolute_angle, 2 * PI);
+            pitch_bias = jump_error(
+                    gimbal_move_rc_to_vector->gimbal_pitch_motor.absolute_angle_set -
+                    gimbal_move_rc_to_vector->gimbal_pitch_motor.absolute_angle, 2 * PI);
+        } else {
+            yaw_bias = 0;
+            pitch_bias = 0;
+        }
         if ((fabs(yaw_bias) < 0.1) || (fabs(yaw_bias)) > 1) {
             yaw_bias = 0;
-            no_bias_flag = 0;
+            no_bias_flag = 1;
         }
-        if ((fabs(pitch_bias) < 0.5) || (fabs(pitch_bias)) > 1) {
+        if ((fabs(pitch_bias) < 0.1) || (fabs(pitch_bias)) > 1) {
             pitch_bias = 0;
-            no_bias_flag = 0;
+            no_bias_flag = 1;
         }
-        if (gimbal_move_rc_to_vector->gimbal_rc_ctrl->gimbal_update_flag || no_bias_flag) {
+        if (gimbal_move_rc_to_vector->gimbal_rc_ctrl->gimbal_update_flag ||
+            (gimbal_move_rc_to_vector->gimbal_rc_ctrl->gimbal_update_flag && no_bias_flag)) {
             clear_gimbal_rc_update_flag();
 //            sigmoidInterpolation(0, yaw_channel, 14, yaw_rc_Interpolation);
 //            sigmoidInterpolation(0, pitch_channel, 14, pitch_rc_Interpolation);
-            sigmoidInterpolation(0, (yaw_channel * YAW_RC_SEN + yaw_bias/14) * 1000, 14,
+            sigmoidInterpolation(0, (yaw_channel * YAW_RC_SEN) * 1000, 14,
                                  yaw_rc_Interpolation);
             sigmoidInterpolation(0, (pitch_channel * PITCH_RC_SEN) * 1000, 14,
                                  pitch_rc_Interpolation);
 //                SEGGER_RTT_printf(0,"in=%f,set=%f\r\n",yaw_rc_Interpolation[i]* YAW_RC_SEN,yaw_channel * YAW_RC_SEN);
 //                SEGGER_RTT_printf(0,"in=%f,set=%f\r\n",pitch_rc_Interpolation[i]* PITCH_RC_SEN,pitch_channel * YAW_RC_SEN);
-            SEGGER_RTT_printf(0, "yaw=%d,pitch=%d,y-=%f,p-=%f\r\n", yaw_channel, pitch_channel, jump_error(
-                                      gimbal_move_rc_to_vector->gimbal_yaw_motor.relative_angle_set -
-                                      gimbal_move_rc_to_vector->gimbal_yaw_motor.relative_angle, 2 * PI),
-                              jump_error(gimbal_move_rc_to_vector->gimbal_pitch_motor.relative_angle_set -
-                                         gimbal_move_rc_to_vector->gimbal_pitch_motor.relative_angle, 2 * PI));
+//            SEGGER_RTT_printf(0, "yaw=%d,pitch=%d,y-=%f,p-=%f\r\n", yaw_channel, pitch_channel, jump_error(
+//                                      gimbal_move_rc_to_vector->gimbal_yaw_motor.relative_angle_set -
+//                                      gimbal_move_rc_to_vector->gimbal_yaw_motor.relative_angle, 2 * PI),
+//                              jump_error(gimbal_move_rc_to_vector->gimbal_pitch_motor.relative_angle_set -
+//                                         gimbal_move_rc_to_vector->gimbal_pitch_motor.relative_angle, 2 * PI));
             move_point = 0;
+            no_bias_flag = 0;
         }
+//        SEGGER_RTT_printf(0,"yaw=%f,pitch=%f\r\n",yaw_rc_Interpolation[3],pitch_rc_Interpolation[3]);
 //        yaw_set_channel = yaw_rc_Interpolation[move_point] * YAW_RC_SEN;
 //        pitch_set_channel = pitch_rc_Interpolation[move_point] * PITCH_RC_SEN;
         yaw_set_channel = yaw_rc_Interpolation[move_point] / 1000;
@@ -1077,7 +1106,8 @@ int16_t test_control(int16_t mode, float32_t re_angle_pr_up, float32_t re_angle_
                 if (count > (2 * time_ms)) {
                     rc_control_variable =
                             (int16_t) ((float) rc_control_variable_ps -
-                                       ((count - 2 * time_ms) * ((float) rc_control_variable_ps / (float) time_ms)));
+                                       ((count - 2 * time_ms) *
+                                        ((float) rc_control_variable_ps / (float) time_ms)));
                     if (rc_control_variable == 0) {
                         rc_control_variable_ps = -rc_control_variable_ps;
                         count = 0;

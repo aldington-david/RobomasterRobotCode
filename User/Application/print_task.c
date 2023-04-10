@@ -341,7 +341,7 @@ referee usart:%s\r\n\
 //            SEGGER_RTT_WriteString(0, print_buf);
 
 //            //功率显示
-//            RTT_PrintWave(1,&global_judge_info.PowerHeatData.chassis_power);
+            RTT_PrintWave(1,&global_judge_info.PowerHeatData.chassis_power);
 //            //CAN_id
 //            SEGGER_RTT_SetTerminal(9);
 //            sprintf(print_buf, "can2_id=%d\r\n",
@@ -448,7 +448,7 @@ referee usart:%s\r\n\
             //pitch
 //            SEGGER_RTT_SetTerminal(2);
 //            sprintf(print_buf,
-//                    "Pitch_max_ang=%f,Pitch_min_ang=%f,Pitch_now_ang=%f,Pitch_now_set_ang=%f,Pitch_now_ecd=%d,Pitch_total_ecd=%d,Pitch_turncount=%d,Pitch_offset_ecd=%d,Pitch_cl_max_ecd=%d,Pitch_cl_min_ecd=%d\r\n",
+//                    "Pitch_max_ang=%f,Pitch_min_ang=%f,Pitch_now_ang=%f,Pitch_now_set_ang=%f,Pitch_now_ecd=%d,\r\nPitch_total_ecd=%d,Pitch_turncount=%d,Pitch_offset_ecd=%d,Pitch_cl_max_ecd=%d,Pitch_cl_min_ecd=%d\r\n",
 //                    gimbal_control.gimbal_pitch_motor.max_relative_angle,
 //                    gimbal_control.gimbal_pitch_motor.min_relative_angle,
 //                    gimbal_control.gimbal_pitch_motor.relative_angle,
@@ -683,12 +683,12 @@ referee usart:%s\r\n\
 //                          &gimbal_control.gimbal_yaw_motor.motor_gyro_set,
 //                          &gimbal_control.gimbal_yaw_motor.motor_gyro,
 //                          &gimbal_control.gimbal_yaw_motor.motor_speed);
-            RTT_PrintWave(5,
-                          &gimbal_control.gimbal_yaw_motor.absolute_angle_set,
-                          &gimbal_control.gimbal_yaw_motor.absolute_angle,
-                          &gimbal_control.gimbal_yaw_motor.motor_gyro_set,
-                          &gimbal_control.gimbal_yaw_motor.motor_gyro,
-                          &gimbal_control.gimbal_yaw_motor.motor_speed);
+//            RTT_PrintWave(5,
+//                          &gimbal_control.gimbal_yaw_motor.absolute_angle_set,
+//                          &gimbal_control.gimbal_yaw_motor.absolute_angle,
+//                          &gimbal_control.gimbal_yaw_motor.motor_gyro_set,
+//                          &gimbal_control.gimbal_yaw_motor.motor_gyro,
+//                          &gimbal_control.gimbal_yaw_motor.motor_speed);
 //            RTT_PrintWave(5,
 //                          &gimbal_control.gimbal_pitch_motor.absolute_angle_set,
 //                          &gimbal_control.gimbal_pitch_motor.absolute_angle,

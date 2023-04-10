@@ -20,11 +20,7 @@
 #define CHASSIS_TASK_H
 
 #include "struct_typedef.h"
-#include "CAN_receive.h"
 #include "gimbal_task.h"
-#include "pid.h"
-#include "remote_control.h"
-#include "user_lib.h"
 
 //in the beginning of task ,wait a time
 //任务开始空闲一段时间
@@ -76,7 +72,7 @@
 #define MOTOR_SPEED_TO_CHASSIS_SPEED_WZ 0.25f
 
 //小陀螺速度
-#define CHASSIS_SPIN_SPEED 6.0f
+#define CHASSIS_SPIN_SPEED 2.0f
 
 
 //#define MOTOR_DISTANCE_TO_CENTER 0.2f

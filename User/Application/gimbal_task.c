@@ -843,7 +843,7 @@ static void gimbal_init(gimbal_control_t *init) {
     init->gimbal_pitch_motor.LpfFactor = 0.9f;
     init->gimbal_yaw_motor.LpfFactor = 0.5f;
 
-    gimbal_offset_ecd_cali(init);
+//    gimbal_offset_ecd_cali(init);
     //清除所有PID
     gimbal_total_pid_clear(init);
 

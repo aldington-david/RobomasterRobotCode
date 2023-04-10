@@ -450,9 +450,9 @@ void chassis_rc_to_control_vector(float32_t *vx_set, float32_t *vy_set, float32_
 //        vx_set_channel = vx_rc_Interpolation[move_point] * CHASSIS_VX_RC_SEN;
 //        vy_set_channel = vy_rc_Interpolation[move_point] * -CHASSIS_VY_RC_SEN;
 //        wz_set_channel = wz_rc_Interpolation[move_point] * CHASSIS_WZ_RC_SEN;
-        vx_set_channel = vx_rc_Interpolation[move_point] /1000;
-        vy_set_channel = vy_rc_Interpolation[move_point] /1000;
-        wz_set_channel = wz_rc_Interpolation[move_point] /1000;
+        vx_set_channel = vx_rc_Interpolation[move_point] / 1000;
+        vy_set_channel = vy_rc_Interpolation[move_point] / 1000;
+        wz_set_channel = wz_rc_Interpolation[move_point] / 1000;
 //        vx_set_channel = vx_channel * CHASSIS_VX_RC_SEN;
 //        vy_set_channel = vy_channel * -CHASSIS_VY_RC_SEN;
 //        wz_set_channel = wz_channel * CHASSIS_WZ_RC_SEN;
