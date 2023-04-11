@@ -167,6 +167,8 @@ typedef struct {
     const gimbal_motor_t *chassis_yaw_motor;   //will use the relative angle of yaw gimbal motor to calculate the euler angle.底盘使用到yaw云台电机的相对角度来计算底盘的欧拉角.
     const gimbal_motor_t *chassis_pitch_motor; //will use the relative angle of pitch gimbal motor to calculate the euler angle.底盘使用到pitch云台电机的相对角度来计算底盘的欧拉角
     const float32_t *chassis_INS_angle;             //the point to the euler angle of gyro sensor.获取陀螺仪解算出的欧拉角指针
+
+    bool_t chassis_follow_reverse_flag;
     chassis_mode_e chassis_mode;               //state machine. 底盘控制状态机
     chassis_mode_e last_chassis_mode;          //last state machine.底盘上次控制状态机
     chassis_motor_t motor_chassis[4];          //chassis motor data.底盘电机数据

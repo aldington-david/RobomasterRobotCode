@@ -337,17 +337,19 @@ static void chassis_mode_change_control_transit(chassis_move_t *chassis_move_tra
     if ((chassis_move_transit->last_chassis_mode != CHASSIS_VECTOR_TO_GIMBAL_YAW) &&
         chassis_move_transit->chassis_mode == CHASSIS_VECTOR_TO_GIMBAL_YAW) {
         chassis_move_transit->chassis_yaw_set = chassis_move_transit->chassis_yaw;
-    }
+    } else if ((chassis_move_transit->last_chassis_mode != CHASSIS_VECTOR_FOLLOW_GIMBAL_YAW) &&
+               chassis_move_transit->chassis_mode == CHASSIS_VECTOR_FOLLOW_GIMBAL_YAW) {
         //change to follow chassis yaw angle
         //切入底盘跟随云台角度模式
-    else if ((chassis_move_transit->last_chassis_mode != CHASSIS_VECTOR_FOLLOW_GIMBAL_YAW) &&
-             chassis_move_transit->chassis_mode == CHASSIS_VECTOR_FOLLOW_GIMBAL_YAW) {
-        chassis_move_transit->chassis_yaw_set = 0.0f;
-    }
+        if (chassis_move_transit->chassis_yaw > HALF_PI || chassis_move_transit->chassis_yaw < THREE_HALF_PI) {
+            chassis_move_transit->chassis_follow_reverse_flag = 1;
+        } else {
+            chassis_move_transit->chassis_follow_reverse_flag = 0;
+        }
+    } else if ((chassis_move_transit->last_chassis_mode != CHASSIS_VECTOR_NO_FOLLOW_YAW) &&
+               chassis_move_transit->chassis_mode == CHASSIS_VECTOR_NO_FOLLOW_YAW) {
         //change to no follow angle
         //切入不跟随云台模式
-    else if ((chassis_move_transit->last_chassis_mode != CHASSIS_VECTOR_NO_FOLLOW_YAW) &&
-             chassis_move_transit->chassis_mode == CHASSIS_VECTOR_NO_FOLLOW_YAW) {
         chassis_move_transit->chassis_yaw_set = chassis_move_transit->chassis_yaw;
     }
 
@@ -591,12 +593,16 @@ static void chassis_set_contorl(chassis_move_t *chassis_move_control) {
         chassis_move_control->vy_set = -sin_yaw * vx_set + cos_yaw * vy_set;
         //set chassis yaw angle set-point
         //设置底盘控制的角度
-        chassis_move_control->chassis_yaw_set = 0;
+        if (chassis_move_control->chassis_follow_reverse_flag) {
+            chassis_move_control->chassis_yaw_set = PI;
+        } else {
+            chassis_move_control->chassis_yaw_set = 0;
+        }
         //calculate rotation speed
         //计算旋转的角速度
         wz_raw = ALL_PID(&chassis_move_control->chassis_angle_pid,
-                                               chassis_move_control->chassis_yaw,
-                                               chassis_move_control->chassis_yaw_set);
+                         chassis_move_control->chassis_yaw,
+                         chassis_move_control->chassis_yaw_set);
 //        SEGGER_RTT_printf(0, "chassis_move_control->wz_set = %f\r\n", chassis_move_control->wz_set);
         //speed limit
         //速度限幅
