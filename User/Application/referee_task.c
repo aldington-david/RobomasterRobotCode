@@ -177,6 +177,15 @@ void judge_update(uint8_t *rxBuf) {
                         memcpy((void *) &judge_info->DartClientCMD, (rxBuf + DATA_SEG), LEN_DART_CLIENT_COMMAND);
                         judge_info->dart_data_update = true;
                         break;
+                    case ID_GROUND_ROBOT_POSITION://!< 0x020B 地面机器人位置数据
+                        memcpy((void *) &judge_info->GroundRobotPosition, (rxBuf + DATA_SEG),
+                               LEN_GROUND_ROBOT_POSITION);
+                        judge_info->ground_robot_position_update = true;
+                        break;
+                    case ID_RADAR_MARK_DATA://!< 0x020C 雷达标记进度数据
+                        memcpy((void *) &judge_info->RadarMarkData, (rxBuf + DATA_SEG), LEN_RADAR_MARK_DATA);
+                        judge_info->radar_mark_data_update = true;
+                        break;
 
                     case ID_COMMUNICATION://!< 0x0301 机器人间交互数据（裁判系统），10HZ，最大128字节，数据段113字节
                         memcpy((void *) &judge_info->AerialData, (rxBuf + DATA_SEG), LEN_COMMUNICATION);
@@ -190,7 +199,7 @@ void judge_update(uint8_t *rxBuf) {
                         break;
 
                     case ID_MAP_INTERACTION_DATA://!< 0x0303 客户端小地图交互数据
-                        memcpy((void *) &judge_info->command, (rxBuf + DATA_SEG), LEN_MAP_INTERACTION_DATA);
+                        memcpy((void *) &judge_info->RobotCommand, (rxBuf + DATA_SEG), LEN_MAP_INTERACTION_DATA);
                         judge_info->map_data_update = true;
                         break;
                     case ID_CONTROL_UART_DATA://!< 0x0304 图传串口发送键盘、鼠标信息
@@ -200,6 +209,14 @@ void judge_update(uint8_t *rxBuf) {
                     case ID_MAP_DATA://!< 0x0305 客户端小地图接收信息
                         memcpy((void *) &judge_info->ClientMapCommand, (rxBuf + DATA_SEG), LEN_MAP_DATA);
                         judge_info->client_map_data_update = true;
+                        break;
+                    case ID_CUSTOM_CLIENT_DATA://!< 0x0306 客户端小地图接收信息
+                        memcpy((void *) &judge_info->CustomClientData, (rxBuf + DATA_SEG), LEN_CUSTOM_CLIENT_DATA);
+                        judge_info->custom_client_data_update = true;
+                        break;
+                    case ID_MAP_SENTRY_DATA://!< 0x0307 选手端小地图接收哨兵数据
+                        memcpy((void *) &judge_info->MapSentryData, (rxBuf + DATA_SEG), LEN_MAP_SENTRY_DATA);
+                        judge_info->map_sentry_data_update = true;
                         break;
                     default:
                         break;
