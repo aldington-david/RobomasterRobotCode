@@ -43,7 +43,8 @@ void ramp_calc(ramp_function_source_t *ramp_source_type, float32_t input);
 
 //一阶滤波初始化
 extern void first_order_filter_init(first_order_filter_type_t *first_order_filter_type, float32_t frame_period, float32_t num);
-
+//一阶滤波清除
+extern void first_order_filter_clear(first_order_filter_type_t *first_order_filter_type);
 //一阶滤波计算
 extern void first_order_filter_cali(first_order_filter_type_t *first_order_filter_type, float32_t input);
 //绝对限制

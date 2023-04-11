@@ -221,13 +221,13 @@ static void chassis_init(chassis_move_t *chassis_move_init) {
 
     //chassis motor speed PID
     //底盘速度环pid值
-    const static float32_t motor_speed_pid[3] = {M3505_MOTOR_SPEED_PID_KP, M3505_MOTOR_SPEED_PID_KI,
-                                                 M3505_MOTOR_SPEED_PID_KD};
-
+    const static float32_t motor_speed_pid[3] = {8000.0f, 10.0f, 0.0f};
+    const static float32_t chassis_vx_speed_pid[3] = {2.0f, 0.0f, 0.0f};
+    const static float32_t chassis_vy_speed_pid[3] = {2.0f, 0.0f, 0.0f};
+    const static float32_t chassis_wz_speed_pid[3] = {2.0f, 0.0f, 0.0f};
     //chassis angle PID
     //底盘角度pid值
-    const static float32_t chassis_yaw_pid[3] = {CHASSIS_FOLLOW_GIMBAL_PID_KP, CHASSIS_FOLLOW_GIMBAL_PID_KI,
-                                                 CHASSIS_FOLLOW_GIMBAL_PID_KD};
+    const static float32_t chassis_yaw_follow_pid[3] = {2.0f, 0.0f, 0.0f};
 
 //    const static float32_t chassis_x_order_filter[1] = {CHASSIS_ACCEL_X_NUM};
 //    const static float32_t chassis_y_order_filter[1] = {CHASSIS_ACCEL_Y_NUM};
@@ -256,16 +256,25 @@ static void chassis_init(chassis_move_t *chassis_move_init) {
     }
     //initialize angle PID
     //初始化角度PID
-    PID_init(&chassis_move_init->chassis_angle_pid, PID_POSITION, chassis_yaw_pid, CHASSIS_FOLLOW_GIMBAL_PID_MAX_OUT,
+    PID_init(&chassis_move_init->chassis_angle_pid, PID_POSITION, chassis_yaw_follow_pid,
+             CHASSIS_FOLLOW_GIMBAL_PID_MAX_OUT,
              CHASSIS_FOLLOW_GIMBAL_PID_MAX_IOUT, 1000, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
-
+    PID_init(&chassis_move_init->chassis_vx_speed_pid, PID_POSITION, chassis_vx_speed_pid,
+             CHASSIS_FOLLOW_GIMBAL_PID_MAX_OUT,
+             CHASSIS_FOLLOW_GIMBAL_PID_MAX_IOUT, 1000, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+    PID_init(&chassis_move_init->chassis_vy_speed_pid, PID_POSITION, chassis_vy_speed_pid,
+             CHASSIS_FOLLOW_GIMBAL_PID_MAX_OUT,
+             CHASSIS_FOLLOW_GIMBAL_PID_MAX_IOUT, 1000, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+    PID_init(&chassis_move_init->chassis_wz_speed_pid, PID_POSITION, chassis_wz_speed_pid,
+             CHASSIS_FOLLOW_GIMBAL_PID_MAX_OUT,
+             CHASSIS_FOLLOW_GIMBAL_PID_MAX_IOUT, 1000, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
     //first order low-pass filter  replace ramp function
     //用一阶滤波代替斜波函数生成
     first_order_filter_init(&chassis_move_init->chassis_cmd_slow_set_vx, CHASSIS_CONTROL_TIME, CHASSIS_ACCEL_X_NUM);
     first_order_filter_init(&chassis_move_init->chassis_cmd_slow_set_vy, CHASSIS_CONTROL_TIME, CHASSIS_ACCEL_Y_NUM);
     first_order_filter_init(&chassis_move_init->chassis_cmd_slow_set_wz, CHASSIS_CONTROL_TIME, CHASSIS_ACCEL_WZ_NUM);
-    first_order_filter_init(&chassis_move_init->chassis_cmd_slow_yaw_follow, CHASSIS_CONTROL_TIME, 0.00005f);
-    first_order_filter_init(&chassis_move_init->chassis_cmd_slow_spin, CHASSIS_CONTROL_TIME, 0.00005f);
+    first_order_filter_init(&chassis_move_init->chassis_cmd_slow_yaw_follow, CHASSIS_CONTROL_TIME, 0.0f);
+    first_order_filter_init(&chassis_move_init->chassis_cmd_slow_spin, CHASSIS_CONTROL_TIME, 0.7f);
     //max and min speed
     //最大 最小速度
     chassis_move_init->vx_max_speed = NORMAL_MAX_CHASSIS_SPEED_X;
@@ -311,6 +320,13 @@ static void chassis_mode_change_control_transit(chassis_move_t *chassis_move_tra
     if (chassis_move_transit == NULL) {
         return;
     }
+
+    if ((last_chassis_behaviour_mode != CHASSIS_SPIN) &&
+        (chassis_behaviour_mode == CHASSIS_SPIN)) {
+        first_order_filter_clear(&chassis_move_transit->chassis_cmd_slow_spin);
+    }
+
+    last_chassis_behaviour_mode = chassis_behaviour_mode;
 
     if (chassis_move_transit->last_chassis_mode == chassis_move_transit->chassis_mode) {
         return;
@@ -484,9 +500,6 @@ void chassis_rc_to_control_vector(float32_t *vx_set, float32_t *vy_set, float32_
     }
     //first order low-pass replace ramp function, calculate chassis speed set-point to improve control performance
     //一阶低通滤波代替斜波作为底盘速度输入
-    first_order_filter_cali(&chassis_move_rc_to_vector->chassis_cmd_slow_set_vx, vx_set_channel);
-    first_order_filter_cali(&chassis_move_rc_to_vector->chassis_cmd_slow_set_vy, vy_set_channel);
-    first_order_filter_cali(&chassis_move_rc_to_vector->chassis_cmd_slow_set_wz, wz_set_channel);
     //stop command, need not slow change, set zero derectly
     //停止信号，不需要缓慢加速，直接减速到零
 //    if (vx_set_channel < CHASSIS_RC_DEADLINE * CHASSIS_VX_RC_SEN && vx_set_channel > -CHASSIS_RC_DEADLINE * CHASSIS_VX_RC_SEN)
@@ -502,9 +515,9 @@ void chassis_rc_to_control_vector(float32_t *vx_set, float32_t *vy_set, float32_
 //    *vx_set = chassis_move_rc_to_vector->chassis_cmd_slow_set_vx.out;
 //    *vy_set = chassis_move_rc_to_vector->chassis_cmd_slow_set_vy.out;
 //    *wz_set = chassis_move_rc_to_vector->chassis_cmd_slow_set_wz.out;
-    *vx_set = chassis_move_rc_to_vector->chassis_cmd_slow_set_vx.out;
-    *vy_set = chassis_move_rc_to_vector->chassis_cmd_slow_set_vy.out;
-    *wz_set = chassis_move_rc_to_vector->chassis_cmd_slow_set_wz.out;
+    *vx_set = vx_set_channel;
+    *vy_set = vy_set_channel;
+    *wz_set = wz_set_channel;
 }
 /**
   * @brief          set chassis control set-point, three movement control value is set by "chassis_behaviour_control_set".
@@ -523,7 +536,7 @@ static void chassis_set_contorl(chassis_move_t *chassis_move_control) {
     }
 
 
-    float32_t vx_set = 0.0f, vy_set = 0.0f, angle_set = 0.0f;
+    float32_t vx_set = 0.0f, vy_set = 0.0f, angle_set = 0.0f, vx_raw = 0.0f, vy_raw = 0.0f, wz_raw = 0.0f;
     //get three control set-point, 获取三个控制设置值
     chassis_behaviour_control_set(&vx_set, &vy_set, &angle_set, chassis_move_control);
 
@@ -537,44 +550,100 @@ static void chassis_set_contorl(chassis_move_t *chassis_move_control) {
         cos_yaw = arm_cos_f32(chassis_move_control->chassis_yaw_motor->relative_angle);
         chassis_move_control->vx_set = cos_yaw * vx_set + sin_yaw * vy_set;
         chassis_move_control->vy_set = -sin_yaw * vx_set + cos_yaw * vy_set;
+        chassis_move_control->wz_set = angle_set;
         //set control relative angle  set-point
         //设置控制相对云台角度
 //        chassis_move_control->chassis_relative_angle_set = rad_format(angle_set);
-        chassis_move_control->chassis_relative_angle_set = 0.0f;
+//        chassis_move_control->chassis_relative_angle_set = 0.0f;
         //calculate ratation speed
         //计算旋转PID角速度
 //        chassis_move_control->wz_set = -PID_calc(&chassis_move_control->chassis_angle_pid, chassis_move_control->chassis_yaw_motor->relative_angle, chassis_move_control->chassis_relative_angle_set);
-        chassis_move_control->wz_set = angle_set;
         //speed limit
         //速度限幅
+        vx_raw = ALL_PID(&chassis_move_control->chassis_vx_speed_pid,
+                         chassis_move_control->vx,
+                         chassis_move_control->vx_set);
+        vy_raw = ALL_PID(&chassis_move_control->chassis_vy_speed_pid,
+                         chassis_move_control->vy,
+                         chassis_move_control->vy_set);
+        wz_raw = ALL_PID(&chassis_move_control->chassis_wz_speed_pid,
+                         chassis_move_control->wz,
+                         chassis_move_control->wz_set);
+        first_order_filter_cali(&chassis_move_control->chassis_cmd_slow_set_vx, vx_raw);
+        first_order_filter_cali(&chassis_move_control->chassis_cmd_slow_set_vy, vy_raw);
+        first_order_filter_cali(&chassis_move_control->chassis_cmd_slow_set_wz, wz_raw);
+        chassis_move_control->vx_set = chassis_move_control->chassis_cmd_slow_set_vx.out;
+        chassis_move_control->vy_set = chassis_move_control->chassis_cmd_slow_set_vy.out;
+        chassis_move_control->wz_set = chassis_move_control->chassis_cmd_slow_set_wz.out;
         chassis_move_control->vx_set = fp32_constrain(chassis_move_control->vx_set, chassis_move_control->vx_min_speed,
                                                       chassis_move_control->vx_max_speed);
         chassis_move_control->vy_set = fp32_constrain(chassis_move_control->vy_set, chassis_move_control->vy_min_speed,
                                                       chassis_move_control->vy_max_speed);
+        SEGGER_RTT_printf(0, "%f,%f,%f,%f\r\n", chassis_move_control->vx,
+                          chassis_move_control->vy, chassis_move_control->vx_set, chassis_move_control->vy_set);
     } else if (chassis_move_control->chassis_mode == CHASSIS_VECTOR_FOLLOW_GIMBAL_YAW) {
+        float32_t sin_yaw = 0.0f, cos_yaw = 0.0f;
+        //rotate chassis direction, make sure vertial direction follow gimbal
+        //旋转控制底盘速度方向，保证前进方向是云台方向，有利于运动平稳
+        sin_yaw = arm_sin_f32(chassis_move_control->chassis_yaw_motor->relative_angle);
+        cos_yaw = arm_cos_f32(chassis_move_control->chassis_yaw_motor->relative_angle);
+        chassis_move_control->vx_set = cos_yaw * vx_set + sin_yaw * vy_set;
+        chassis_move_control->vy_set = -sin_yaw * vx_set + cos_yaw * vy_set;
         //set chassis yaw angle set-point
         //设置底盘控制的角度
         chassis_move_control->chassis_yaw_set = 0;
         //calculate rotation speed
         //计算旋转的角速度
-        chassis_move_control->wz_set = ALL_PID(&chassis_move_control->chassis_angle_pid,
+        wz_raw = ALL_PID(&chassis_move_control->chassis_angle_pid,
                                                chassis_move_control->chassis_yaw,
                                                chassis_move_control->chassis_yaw_set);
-        first_order_filter_cali(&chassis_move_control->chassis_cmd_slow_yaw_follow, chassis_move_control->wz_set);
 //        SEGGER_RTT_printf(0, "chassis_move_control->wz_set = %f\r\n", chassis_move_control->wz_set);
         //speed limit
         //速度限幅
-        chassis_move_control->vx_set = fp32_constrain(vx_set, chassis_move_control->vx_min_speed,
+        vx_raw = ALL_PID(&chassis_move_control->chassis_vx_speed_pid,
+                         chassis_move_control->vx,
+                         chassis_move_control->vx_set);
+        vy_raw = ALL_PID(&chassis_move_control->chassis_vy_speed_pid,
+                         chassis_move_control->vy,
+                         chassis_move_control->vy_set);
+        first_order_filter_cali(&chassis_move_control->chassis_cmd_slow_set_vx, vx_raw);
+        first_order_filter_cali(&chassis_move_control->chassis_cmd_slow_set_vy, vy_raw);
+        first_order_filter_cali(&chassis_move_control->chassis_cmd_slow_yaw_follow, wz_raw);
+        chassis_move_control->vx_set = chassis_move_control->chassis_cmd_slow_set_vx.out;
+        chassis_move_control->vy_set = chassis_move_control->chassis_cmd_slow_set_vy.out;
+        chassis_move_control->wz_set = chassis_move_control->chassis_cmd_slow_yaw_follow.out;
+        chassis_move_control->vx_set = fp32_constrain(chassis_move_control->vx_set, chassis_move_control->vx_min_speed,
                                                       chassis_move_control->vx_max_speed);
-        chassis_move_control->vy_set = fp32_constrain(vy_set, chassis_move_control->vy_min_speed,
+        chassis_move_control->vy_set = fp32_constrain(chassis_move_control->vy_set, chassis_move_control->vy_min_speed,
                                                       chassis_move_control->vy_max_speed);
+//        chassis_move_control->vx_set = fp32_constrain(vx_set, chassis_move_control->vx_min_speed,
+//                                                      chassis_move_control->vx_max_speed);
+//        chassis_move_control->vy_set = fp32_constrain(vy_set, chassis_move_control->vy_min_speed,
+//                                                      chassis_move_control->vy_max_speed);
     } else if (chassis_move_control->chassis_mode == CHASSIS_VECTOR_NO_FOLLOW_YAW) {
         //"angle_set" is rotation speed set-point
         //“angle_set” 是旋转速度控制
+        chassis_move_control->vx_set = vx_set;
+        chassis_move_control->vy_set = vy_set;
         chassis_move_control->wz_set = angle_set;
-        chassis_move_control->vx_set = fp32_constrain(vx_set, chassis_move_control->vx_min_speed,
+        vx_raw = ALL_PID(&chassis_move_control->chassis_vx_speed_pid,
+                         chassis_move_control->vx,
+                         chassis_move_control->vx_set);
+        vy_raw = ALL_PID(&chassis_move_control->chassis_vy_speed_pid,
+                         chassis_move_control->vy,
+                         chassis_move_control->vy_set);
+        wz_raw = ALL_PID(&chassis_move_control->chassis_wz_speed_pid,
+                         chassis_move_control->wz,
+                         chassis_move_control->wz_set);
+        first_order_filter_cali(&chassis_move_control->chassis_cmd_slow_set_vx, vx_raw);
+        first_order_filter_cali(&chassis_move_control->chassis_cmd_slow_set_vy, vy_raw);
+        first_order_filter_cali(&chassis_move_control->chassis_cmd_slow_set_wz, wz_raw);
+        chassis_move_control->vx_set = chassis_move_control->chassis_cmd_slow_set_vx.out;
+        chassis_move_control->vy_set = chassis_move_control->chassis_cmd_slow_set_vy.out;
+        chassis_move_control->wz_set = chassis_move_control->chassis_cmd_slow_set_wz.out;
+        chassis_move_control->vx_set = fp32_constrain(chassis_move_control->vx_set, chassis_move_control->vx_min_speed,
                                                       chassis_move_control->vx_max_speed);
-        chassis_move_control->vy_set = fp32_constrain(vy_set, chassis_move_control->vy_min_speed,
+        chassis_move_control->vy_set = fp32_constrain(chassis_move_control->vy_set, chassis_move_control->vy_min_speed,
                                                       chassis_move_control->vy_max_speed);
     } else if (chassis_move_control->chassis_mode == CHASSIS_VECTOR_RAW) {
         //in raw mode, set-point is sent to CAN bus

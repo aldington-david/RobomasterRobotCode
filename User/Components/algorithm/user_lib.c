@@ -71,6 +71,11 @@ first_order_filter_init(first_order_filter_type_t *first_order_filter_type, floa
     first_order_filter_type->out = 0.0f;
 }
 
+void first_order_filter_clear(first_order_filter_type_t *first_order_filter_type) {
+first_order_filter_type->input = 0.0f;
+first_order_filter_type->out = 0.0f;
+}
+
 /**
   * @brief          一阶低通滤波计算
   * @author         RM

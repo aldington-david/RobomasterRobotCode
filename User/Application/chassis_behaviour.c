@@ -84,6 +84,7 @@
 #include "cmsis_os.h"
 #include "chassis_task.h"
 #include "gimbal_behaviour.h"
+#include "SEGGER_RTT.h"
 
 /**
   * @brief          when chassis behaviour mode is CHASSIS_ZERO_FORCE, the function is called
@@ -220,6 +221,7 @@ static void chassis_open_set_control(float32_t *vx_set, float32_t *vy_set, float
 //highlight, the variable chassis behaviour mode
 //留意，这个底盘行为模式变量
 chassis_behaviour_e chassis_behaviour_mode = CHASSIS_ZERO_FORCE;
+chassis_behaviour_e last_chassis_behaviour_mode = CHASSIS_ZERO_FORCE;
 
 
 /**
@@ -503,6 +505,7 @@ static void chassis_spin_control(float32_t *vx_set, float32_t *vy_set, float32_t
     //遥控器的通道值以及键盘按键 得出 一般情况下的速度设定值
     chassis_rc_to_control_vector(vx_set, vy_set, angle_set, chassis_move_rc_to_vector);
     first_order_filter_cali(&chassis_move_rc_to_vector->chassis_cmd_slow_spin,CHASSIS_SPIN_SPEED);
+//    SEGGER_RTT_printf(0,"out=%f\r\n",chassis_move_rc_to_vector->chassis_cmd_slow_spin.out);
     *angle_set = chassis_move_rc_to_vector->chassis_cmd_slow_spin.out;
 }
 
