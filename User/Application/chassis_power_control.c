@@ -24,9 +24,9 @@
 #include "arm_math.h"
 #include "detect_task.h"
 
-#define POWER_LIMIT         80.0f
-#define WARNING_POWER       40.0f
-#define WARNING_POWER_BUFF  50.0f
+#define POWER_LIMIT         60.0f
+#define WARNING_POWER       50.0f
+#define WARNING_POWER_BUFF  60.0f
 
 #define NO_JUDGE_TOTAL_CURRENT_LIMIT    64000.0f    //16000 * 4, 
 #define BUFFER_TOTAL_CURRENT_LIMIT      16000.0f
@@ -58,13 +58,13 @@ void chassis_power_control(chassis_move_t *chassis_power_control) {
         //功率超过80w 和缓冲能量小于60j,因为缓冲能量小于60意味着功率超过80w
         if (chassis_power_buffer < WARNING_POWER_BUFF) {
             float32_t power_scale;
-            if (chassis_power_buffer > 5.0f) {
+            if (chassis_power_buffer > 6.0f) {
                 //scale down WARNING_POWER_BUFF
                 //缩小WARNING_POWER_BUFF
                 power_scale = chassis_power_buffer / WARNING_POWER_BUFF;
             } else {
                 //only left 10% of WARNING_POWER_BUFF
-                power_scale = 5.0f / WARNING_POWER_BUFF;
+                power_scale = 6.0f / WARNING_POWER_BUFF;
             }
             //scale down
             //缩小
@@ -74,25 +74,23 @@ void chassis_power_control(chassis_move_t *chassis_power_control) {
             //功率大于WARNING_POWER
             if (chassis_power > WARNING_POWER) {
                 float32_t power_scale;
-                //power < 80w
-                //功率小于80w
+                //power < 60w
+                //功率小于60w
                 if (chassis_power < POWER_LIMIT) {
                     //scale down
                     //缩小
                     power_scale = (POWER_LIMIT - chassis_power) / (POWER_LIMIT - WARNING_POWER);
 
-                }
+                } else {
                     //power > 80w
                     //功率大于80w
-                else {
                     power_scale = 0.0f;
                 }
 
                 total_current_limit = BUFFER_TOTAL_CURRENT_LIMIT + POWER_TOTAL_CURRENT_LIMIT * power_scale;
-            }
+            } else {
                 //power < WARNING_POWER
                 //功率小于WARNING_POWER
-            else {
                 total_current_limit = BUFFER_TOTAL_CURRENT_LIMIT + POWER_TOTAL_CURRENT_LIMIT;
             }
         }

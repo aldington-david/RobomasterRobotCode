@@ -219,29 +219,27 @@ void lms_filter_init(lms_filter_type_t *lmsFilterType, float32_t step_len, float
 }
 
 float32_t jump_error(float32_t err, float32_t err_maxValue) {
-
-    if (err > (err_maxValue / 2.5f)) {
-        err = err - err_maxValue;
-    } else if (err < (-err_maxValue / 2.5f)) {
-        err = err + err_maxValue;
-    }
-
+        if (err > (err_maxValue / 2.0f)) {
+            err = err - err_maxValue;
+        } else if (err < (-err_maxValue / 2.0f)) {
+            err = err + err_maxValue;
+        }
     return err;
 }
 
 void sigmoidInterpolation(float32_t startValue, float32_t endValue, uint8_t numPoints, float32_t output[14]) {
-    if(endValue!=0){
+    if (endValue != 0) {
         float32_t step = 12.0f / (numPoints - 1);
         float32_t prevY = startValue;
-        for (uint8_t i = 0; i < numPoints-1; ++i) {
+        for (uint8_t i = 0; i < numPoints - 1; ++i) {
             float32_t x = -6.0 + i * step;
             float32_t y = startValue + (endValue - startValue) / (1.0 + expf(-x));
             output[i] = y - prevY;
             prevY = y;
 //            SEGGER_RTT_printf(0,"%f\r\n",output[i]);
         }
-    } else{
-        for (uint8_t i = 0; i < numPoints-1; ++i) {
+    } else {
+        for (uint8_t i = 0; i < numPoints - 1; ++i) {
             output[i] = 0;
         }
     }

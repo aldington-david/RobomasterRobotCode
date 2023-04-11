@@ -341,7 +341,8 @@ referee usart:%s\r\n\
 //            SEGGER_RTT_WriteString(0, print_buf);
 
 //            //功率显示
-            RTT_PrintWave(1,&global_judge_info.PowerHeatData.chassis_power);
+//            float32_t temp_buffer= global_judge_info.PowerHeatData.chassis_power_buffer*1.0f;
+//            RTT_PrintWave(2,&global_judge_info.PowerHeatData.chassis_power,&temp_buffer);
 //            //CAN_id
 //            SEGGER_RTT_SetTerminal(9);
 //            sprintf(print_buf, "can2_id=%d\r\n",
@@ -683,12 +684,12 @@ referee usart:%s\r\n\
 //                          &gimbal_control.gimbal_yaw_motor.motor_gyro_set,
 //                          &gimbal_control.gimbal_yaw_motor.motor_gyro,
 //                          &gimbal_control.gimbal_yaw_motor.motor_speed);
-//            RTT_PrintWave(5,
-//                          &gimbal_control.gimbal_yaw_motor.absolute_angle_set,
-//                          &gimbal_control.gimbal_yaw_motor.absolute_angle,
-//                          &gimbal_control.gimbal_yaw_motor.motor_gyro_set,
-//                          &gimbal_control.gimbal_yaw_motor.motor_gyro,
-//                          &gimbal_control.gimbal_yaw_motor.motor_speed);
+            RTT_PrintWave(5,
+                          &gimbal_control.gimbal_yaw_motor.absolute_angle_set,
+                          &gimbal_control.gimbal_yaw_motor.absolute_angle,
+                          &gimbal_control.gimbal_yaw_motor.motor_gyro_set,
+                          &gimbal_control.gimbal_yaw_motor.motor_gyro,
+                          &gimbal_control.gimbal_yaw_motor.motor_speed);
 //            RTT_PrintWave(5,
 //                          &gimbal_control.gimbal_pitch_motor.absolute_angle_set,
 //                          &gimbal_control.gimbal_pitch_motor.absolute_angle,

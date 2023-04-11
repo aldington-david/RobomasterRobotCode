@@ -908,6 +908,7 @@ void gimbal_rc_to_control_vector(float32_t *yaw, float32_t *pitch, gimbal_contro
     static float32_t vision_yaw;
 //    static float32_t yaw_vision_last;
     float32_t yaw_bias = 0;
+    static float32_t last_yaw_bias = 0;
     float32_t pitch_bias = 0;
     int16_t err;
     int16_t yaw_channel, pitch_channel;
@@ -931,7 +932,7 @@ void gimbal_rc_to_control_vector(float32_t *yaw, float32_t *pitch, gimbal_contro
 
         //视觉控制
         if (gimbal_move_rc_to_vector->gimbal_vision_ctrl->fps == 0) {
-            global_vision_info.vision_control.fps = 1.0f;
+            global_vision_info.vision_control.fps = 1;
         }
 
         if (gimbal_move_rc_to_vector->gimbal_vision_ctrl->update_flag) {
@@ -973,11 +974,11 @@ void gimbal_rc_to_control_vector(float32_t *yaw, float32_t *pitch, gimbal_contro
             yaw_bias = 0;
             pitch_bias = 0;
         }
-        if ((fabs(yaw_bias) < 0.1) || (fabs(yaw_bias)) > 1) {
+        if ((fabs(yaw_bias) < 0.1) || (fabs(yaw_bias)) > 1.5) {
             yaw_bias = 0;
             no_bias_flag = 1;
         }
-        if ((fabs(pitch_bias) < 0.1) || (fabs(pitch_bias)) > 1) {
+        if ((fabs(pitch_bias) < 0.1) || (fabs(pitch_bias)) > 1.5) {
             pitch_bias = 0;
             no_bias_flag = 1;
         }
@@ -986,8 +987,29 @@ void gimbal_rc_to_control_vector(float32_t *yaw, float32_t *pitch, gimbal_contro
             clear_gimbal_rc_update_flag();
 //            sigmoidInterpolation(0, yaw_channel, 14, yaw_rc_Interpolation);
 //            sigmoidInterpolation(0, pitch_channel, 14, pitch_rc_Interpolation);
-            sigmoidInterpolation(0, (yaw_channel * YAW_RC_SEN) * 1000, 14,
-                                 yaw_rc_Interpolation);
+            if (chassis_behaviour_mode == CHASSIS_FORWARD_FOLLOW_GIMBAL_YAW) {
+                sigmoidInterpolation(0, (yaw_channel * YAW_RC_SEN - yaw_bias / 15) * 1000, 14,
+                                     yaw_rc_Interpolation);
+            } else if (chassis_behaviour_mode == CHASSIS_SPIN) {
+                if (last_yaw_bias != 0) {
+                    float32_t yaw_bias_err = yaw_bias - last_yaw_bias;
+                    if (yaw_bias_err > 0) {
+                        sigmoidInterpolation(0, (yaw_channel * YAW_RC_SEN + yaw_bias_err / 10) * 1000, 14,
+                                             yaw_rc_Interpolation);
+                    } else {
+                        sigmoidInterpolation(0, (yaw_channel * YAW_RC_SEN) * 1000, 14,
+                                             yaw_rc_Interpolation);
+                    }
+//                    SEGGER_RTT_printf(0, "chanel=%f,bias=%f\r\n", yaw_channel * YAW_RC_SEN, yaw_bias_err);
+                } else {
+                    sigmoidInterpolation(0, (yaw_channel * YAW_RC_SEN) * 1000, 14,
+                                         yaw_rc_Interpolation);
+                }
+                last_yaw_bias = yaw_bias;
+            } else {
+                sigmoidInterpolation(0, (yaw_channel * YAW_RC_SEN + yaw_bias / 15) * 1000, 14,
+                                     yaw_rc_Interpolation);
+            }
             sigmoidInterpolation(0, (pitch_channel * PITCH_RC_SEN) * 1000, 14,
                                  pitch_rc_Interpolation);
 //                SEGGER_RTT_printf(0,"in=%f,set=%f\r\n",yaw_rc_Interpolation[i]* YAW_RC_SEN,yaw_channel * YAW_RC_SEN);

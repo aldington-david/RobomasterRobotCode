@@ -61,7 +61,7 @@
 //#define CHASSIS_ACCEL_Y_NUM 0.3333333333f
 //for_test
 #define CHASSIS_ACCEL_X_NUM 0.01080f
-#define CHASSIS_ACCEL_Y_NUM 0.01020f
+#define CHASSIS_ACCEL_Y_NUM 0.04020f
 #define CHASSIS_ACCEL_WZ_NUM 0.01015f
 //rocker value deadline
 //摇杆死区
