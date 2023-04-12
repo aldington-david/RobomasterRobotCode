@@ -630,6 +630,7 @@ static void gimbal_init_control(float32_t *yaw, float32_t *pitch, gimbal_control
     if (yaw == NULL || pitch == NULL || gimbal_control_set == NULL) {
         return;
     }
+    static float32_t last_err = 0;
 
     //初始化状态控制量计算
     if (fabsf(INIT_PITCH_SET - gimbal_control_set->gimbal_pitch_motor.relative_angle) > GIMBAL_INIT_PITCH_ANGLE_LIMIT) {
@@ -650,12 +651,13 @@ static void gimbal_init_control(float32_t *yaw, float32_t *pitch, gimbal_control
             *pitch = 0.0f;
         }
         if (YAW_INIT == INIT) {
-            *yaw = jump_error(INIT_YAW_SET - gimbal_control_set->gimbal_yaw_motor.relative_angle, 2 * PI) *
+            *yaw = jump_error(INIT_YAW_SET - gimbal_control_set->gimbal_yaw_motor.relative_angle, last_err, 2 * PI) *
                    GIMBAL_INIT_YAW_SPEED;
 //            SEGGER_RTT_printf(0,"%f\r\n",jump_error(INIT_YAW_SET - gimbal_control_set->gimbal_yaw_motor.relative_angle,2*PI));
         } else if (YAW_INIT == NO_INIT) {
             *yaw = 0.0f;
         }
+        last_err = INIT_YAW_SET - gimbal_control_set->gimbal_yaw_motor.relative_angle;
     }
 }
 
@@ -909,6 +911,10 @@ void gimbal_rc_to_control_vector(float32_t *yaw, float32_t *pitch, gimbal_contro
 //    static float32_t yaw_vision_last;
     float32_t yaw_bias = 0;
     static float32_t last_yaw_bias = 0;
+    static float32_t last_relative_yaw_err = 0;
+    static float32_t last_relative_pitch_err = 0;
+    static float32_t last_absolute_yaw_err = 0;
+    static float32_t last_absolute_pitch_err = 0;
     float32_t pitch_bias = 0;
     int16_t err;
     int16_t yaw_channel, pitch_channel;
@@ -959,17 +965,27 @@ void gimbal_rc_to_control_vector(float32_t *yaw, float32_t *pitch, gimbal_contro
         if (gimbal_behaviour == GIMBAL_RELATIVE_ANGLE) {
             yaw_bias = jump_error(
                     gimbal_move_rc_to_vector->gimbal_yaw_motor.relative_angle_set -
-                    gimbal_move_rc_to_vector->gimbal_yaw_motor.relative_angle, 2 * PI);
+                    gimbal_move_rc_to_vector->gimbal_yaw_motor.relative_angle, last_relative_yaw_err, 2 * PI);
             pitch_bias = jump_error(
                     gimbal_move_rc_to_vector->gimbal_pitch_motor.relative_angle_set -
-                    gimbal_move_rc_to_vector->gimbal_pitch_motor.relative_angle, 2 * PI);
+                    gimbal_move_rc_to_vector->gimbal_pitch_motor.relative_angle, last_relative_pitch_err, 2 * PI);
+            last_relative_yaw_err = gimbal_move_rc_to_vector->gimbal_yaw_motor.relative_angle_set -
+                                    gimbal_move_rc_to_vector->gimbal_yaw_motor.relative_angle;
+            last_relative_pitch_err = gimbal_move_rc_to_vector->gimbal_pitch_motor.relative_angle_set -
+                                      gimbal_move_rc_to_vector->gimbal_pitch_motor.relative_angle;
+            last_absolute_yaw_err = last_absolute_pitch_err = 0;
         } else if (gimbal_behaviour == GIMBAL_ABSOLUTE_ANGLE) {
             yaw_bias = jump_error(
                     gimbal_move_rc_to_vector->gimbal_yaw_motor.absolute_angle_set -
-                    gimbal_move_rc_to_vector->gimbal_yaw_motor.absolute_angle, 2 * PI);
+                    gimbal_move_rc_to_vector->gimbal_yaw_motor.absolute_angle, last_absolute_yaw_err, 2 * PI);
             pitch_bias = jump_error(
                     gimbal_move_rc_to_vector->gimbal_pitch_motor.absolute_angle_set -
-                    gimbal_move_rc_to_vector->gimbal_pitch_motor.absolute_angle, 2 * PI);
+                    gimbal_move_rc_to_vector->gimbal_pitch_motor.absolute_angle, last_absolute_pitch_err, 2 * PI);
+            last_absolute_yaw_err = gimbal_move_rc_to_vector->gimbal_yaw_motor.absolute_angle_set -
+                                    gimbal_move_rc_to_vector->gimbal_yaw_motor.absolute_angle;
+            last_absolute_pitch_err = gimbal_move_rc_to_vector->gimbal_pitch_motor.absolute_angle_set -
+                                      gimbal_move_rc_to_vector->gimbal_pitch_motor.absolute_angle;
+            last_relative_yaw_err = last_relative_pitch_err = 0;
         } else {
             yaw_bias = 0;
             pitch_bias = 0;
