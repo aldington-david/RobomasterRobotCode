@@ -49,10 +49,9 @@
   * @retval         none
   */
 void PID_init(pid_type_def *pid, uint8_t mode, const float32_t PID[3], float32_t max_out, float32_t max_iout,
-              float32_t Integral,
-              bool Variable_I_Switch, float32_t Variable_I_Down, float32_t Variable_I_UP, bool D_First,
-              float32_t D_Filter_Ratio,
-              bool D_Low_Pass, float32_t D_Low_Pass_Factor, bool NF_D, float32_t D_Alpha, bool D_KF) {
+              float32_t Integral, bool Variable_I_Switch, float32_t Variable_I_Down, float32_t Variable_I_UP,
+              bool D_First, float32_t D_Filter_Ratio, bool D_Low_Pass, float32_t D_Low_Pass_Factor, bool NF_D,
+              float32_t D_Alpha, bool D_KF, bool P_On_M, float32_t P_On_M_Ratio) {
     if (pid == NULL || PID == NULL) {
         return;
     }
@@ -81,7 +80,7 @@ void PID_init(pid_type_def *pid, uint8_t mode, const float32_t PID[3], float32_t
 
     pid->D_KF = D_KF;
 
-    pid->hal_tick=HAL_GetTick();
+    pid->hal_tick = HAL_GetTick();
 
 }
 
@@ -218,9 +217,9 @@ float ALL_PID(pid_type_def *pid, float32_t ref, float32_t set) {
     if (pid == NULL) {
         return 0.0f;
     }
-    if((HAL_GetTick()-pid->hal_tick)>90 &&(HAL_GetTick()-pid->hal_tick)<294967295){
-        pid->last_get= ref;
-        pid->Iout=pid->out;
+    if ((HAL_GetTick() - pid->hal_tick) > 90 && (HAL_GetTick() - pid->hal_tick) < 294967295) {
+        pid->last_get = ref;
+        pid->Iout = pid->out;
         LimitMax(pid->Iout, pid->max_iout);
     }
     pid->set = set;
@@ -245,8 +244,6 @@ float ALL_PID(pid_type_def *pid, float32_t ref, float32_t set) {
 //        SEGGER_RTT_SetTerminal(1);
 //        SEGGER_RTT_printf(0,"err=%f\r\n",pid->error[0]);
 //    }
-
-    pid->Pout = pid->Kp * pid->error[0];
     if (pid->Variable_I) {
         if ((pid->Variable_I_Down != 0.0 || pid->Variable_I_UP != 0.0) &&
             (pid->Variable_I_UP - pid->Variable_I_Down > 0)) {
@@ -307,6 +304,15 @@ float ALL_PID(pid_type_def *pid, float32_t ref, float32_t set) {
     if (pid->D_Kalman.A == 1 && pid->D_KF) {
         pid->Dout = KF_temp;
     }
+
+    if (pid->P_On_M) {
+        pid->P_On_M_out -= pid->P_On_M_Ratio * pid->Kp * pid->Dbuf[0];
+        pid->Pout = (1-pid->P_On_M_Ratio)*pid->Kp * pid->error[0] + pid->P_On_M_out;
+    } else {
+        pid->Pout = pid->Kp * pid->error[0];
+    }
+
+
 //for_test
 //    pid_out_probe += pid->out;
 //    pid_pout_probe += pid->Pout;
@@ -346,7 +352,7 @@ float ALL_PID(pid_type_def *pid, float32_t ref, float32_t set) {
     pid->error[1] = pid->error[0];
 
     pid->Dout_Last = pid->Dout;
-    pid->hal_tick=HAL_GetTick();
+    pid->hal_tick = HAL_GetTick();
     return pid->out;
 }
 /***********************************************************************/

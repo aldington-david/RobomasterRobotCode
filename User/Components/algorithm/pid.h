@@ -43,6 +43,7 @@ typedef struct {
 
     float32_t out;
     float32_t Pout;
+    float32_t P_On_M_out;
     float32_t Iout;
     float32_t Dout;
     float32_t Dbuf[3];  //微分项 0最新 1上一次 2上上次
@@ -54,22 +55,25 @@ typedef struct {
     float32_t Variable_I_UP;
     float32_t Variable_I_Down;
 
-    bool D_First;
+    bool D_First; //微分先行
     float32_t D_Filter_Ratio;
     float32_t last_get;
     float32_t D3;
     float32_t D2;
     float32_t D1;
 
-    bool NF_D;
+    bool NF_D; //不完全微分
     float32_t Dout_Last;
     float32_t D_Alpha;//0-1
 
-    bool D_KF;
+    bool D_KF; //微分卡尔曼滤波
     extKalman_t D_Kalman;
 
-    bool D_Low_Pass;
+    bool D_Low_Pass; //微分低通滤波
     float32_t D_Low_Pass_Factor;
+
+    bool P_On_M; //Proportional on Measurement
+    float32_t P_On_M_Ratio; //0-1
 
     uint32_t hal_tick
 } pid_type_def;
@@ -94,9 +98,10 @@ typedef struct {
   * @param[in]      max_iout: pid最大积分输出
   * @retval         none
   */
-extern void PID_init(pid_type_def *pid, uint8_t mode, const float32_t PID[3], float32_t max_out, float32_t max_iout, float32_t Integral,
-                     bool Variable_I_Switch, float32_t Variable_I_Down, float32_t Variable_I_UP, bool D_First,
-                     float32_t D_Filter_Ratio, bool D_Low_Pass, float32_t D_Low_Pass_Factor, bool NF_D, float32_t D_Alpha, bool D_KF);
+extern void PID_init(pid_type_def *pid, uint8_t mode, const float32_t PID[3], float32_t max_out, float32_t max_iout,
+                     float32_t Integral, bool Variable_I_Switch, float32_t Variable_I_Down, float32_t Variable_I_UP,
+                     bool D_First, float32_t D_Filter_Ratio, bool D_Low_Pass, float32_t D_Low_Pass_Factor, bool NF_D,
+                     float32_t D_Alpha, bool D_KF, bool P_On_M, float32_t P_On_M_Ratio);
 
 /**
   * @brief          pid calculate 

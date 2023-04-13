@@ -678,18 +678,18 @@ referee usart:%s\r\n\
 //                          &pid_pout_probe,
 //                          &pid_iout_probe,
 //                          &pid_dout_probe);
-//            RTT_PrintWave(5,
-//                          &gimbal_control.gimbal_yaw_motor.relative_angle_set,
-//                          &gimbal_control.gimbal_yaw_motor.relative_angle,
-//                          &gimbal_control.gimbal_yaw_motor.motor_gyro_set,
-//                          &gimbal_control.gimbal_yaw_motor.motor_gyro,
-//                          &gimbal_control.gimbal_yaw_motor.motor_speed);
             RTT_PrintWave(5,
-                          &gimbal_control.gimbal_yaw_motor.absolute_angle_set,
-                          &gimbal_control.gimbal_yaw_motor.absolute_angle,
+                          &gimbal_control.gimbal_yaw_motor.relative_angle_set,
+                          &gimbal_control.gimbal_yaw_motor.relative_angle,
                           &gimbal_control.gimbal_yaw_motor.motor_gyro_set,
                           &gimbal_control.gimbal_yaw_motor.motor_gyro,
                           &gimbal_control.gimbal_yaw_motor.motor_speed);
+//            RTT_PrintWave(5,
+//                          &gimbal_control.gimbal_yaw_motor.absolute_angle_set,
+//                          &gimbal_control.gimbal_yaw_motor.absolute_angle,
+//                          &gimbal_control.gimbal_yaw_motor.motor_gyro_set,
+//                          &gimbal_control.gimbal_yaw_motor.motor_gyro,
+//                          &gimbal_control.gimbal_yaw_motor.motor_speed);
 //            RTT_PrintWave(5,
 //                          &gimbal_control.gimbal_pitch_motor.absolute_angle_set,
 //                          &gimbal_control.gimbal_pitch_motor.absolute_angle,

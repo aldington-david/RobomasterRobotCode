@@ -792,7 +792,7 @@ static void gimbal_init(gimbal_control_t *init) {
     static const float32_t Yaw_speed_pid[3] = {6000.0f, 9.5f, 0.0f};
 
     static const float32_t Yaw_absolute_angle_pid[3] = {6.89f, 0.0f, 200.0f};
-    static const float32_t Yaw_relative_angle_pid[3] = {9.59f, 0.0f, 2.0f};
+    static const float32_t Yaw_relative_angle_pid[3] = {10.59f, 0.0f, 1.0f};
     static const float32_t Pitch_absolute_angle_pid[3] = {15.89f, 0.0f, 200.0f};
     static const float32_t Pitch_relative_angle_pid[3] = {29.2f, 0.0f, 500.0f};
     //电机数据指针获取
@@ -811,23 +811,23 @@ static void gimbal_init(gimbal_control_t *init) {
     //初始化yaw电机pid
     PID_init(&init->gimbal_yaw_motor.gimbal_motor_relative_angle_pid, PID_POSITION, Yaw_relative_angle_pid,
              YAW_ENCODE_RELATIVE_PID_MAX_OUT,
-             YAW_ENCODE_RELATIVE_PID_MAX_IOUT, 1000, 1, 0.01f, 2.0f, 0, 0.0f, 0, 0.0f, 0, 0, 0);
+             YAW_ENCODE_RELATIVE_PID_MAX_IOUT, 1000, 1, 0.01f, 2.0f, 0, 0.0f, 0, 0.0f, 0, 0, 0, 1, 0.9f);
     PID_init(&init->gimbal_yaw_motor.gimbal_motor_absolute_angle_pid, PID_POSITION, Yaw_absolute_angle_pid,
              YAW_ENCODE_RELATIVE_PID_MAX_OUT,
-             YAW_ENCODE_RELATIVE_PID_MAX_IOUT, 1000, 1, 0.01f, 2.0f, 0, 0.0f, 0, 0.0f, 0, 0, 0);
+             YAW_ENCODE_RELATIVE_PID_MAX_IOUT, 1000, 1, 0.01f, 2.0f, 0, 0.0f, 0, 0.0f, 0, 0, 0, 0, 0);
     PID_init(&init->gimbal_yaw_motor.gimbal_motor_gyro_pid, PID_POSITION, Yaw_speed_pid, YAW_SPEED_PID_MAX_OUT,
-             YAW_SPEED_PID_MAX_IOUT, 1000, 1, 0.15f, 3.0f, 0, 0, 0, 0, 0, 0, 0);
+             YAW_SPEED_PID_MAX_IOUT, 1000, 1, 0.15f, 3.0f, 0, 0, 0, 0, 0, 0, 0, 0, 0);
 
 
     //初始化pitch电机pid
     PID_init(&init->gimbal_pitch_motor.gimbal_motor_relative_angle_pid, PID_POSITION, Pitch_relative_angle_pid,
              PITCH_ENCODE_RELATIVE_PID_MAX_OUT,
-             PITCH_ENCODE_RELATIVE_PID_MAX_IOUT, 1000, 1, 0.01f, 2.0f, 0, 0, 0, 0, 0, 0, 0);
+             PITCH_ENCODE_RELATIVE_PID_MAX_IOUT, 1000, 1, 0.01f, 2.0f, 0, 0, 0, 0, 0, 0, 0, 0, 0);
     PID_init(&init->gimbal_pitch_motor.gimbal_motor_absolute_angle_pid, PID_POSITION, Pitch_absolute_angle_pid,
              PITCH_ENCODE_RELATIVE_PID_MAX_OUT,
-             PITCH_ENCODE_RELATIVE_PID_MAX_IOUT, 1000, 1, 0.01f, 2.0f, 0, 0, 0, 0, 0, 0, 0);
+             PITCH_ENCODE_RELATIVE_PID_MAX_IOUT, 1000, 1, 0.01f, 2.0f, 0, 0, 0, 0, 0, 0, 0, 0, 0);
     PID_init(&init->gimbal_pitch_motor.gimbal_motor_gyro_pid, PID_POSITION, Pitch_speed_pid, PITCH_SPEED_PID_MAX_OUT,
-             PITCH_SPEED_PID_MAX_IOUT, 0.8f, 1, 0.8f, 2.0f, 0, 0, 0, 0, 0, 0, 0);
+             PITCH_SPEED_PID_MAX_IOUT, 0.8f, 1, 0.8f, 2.0f, 0, 0, 0, 0, 0, 0, 0, 0, 0);
     KalmanCreate(&init->gimbal_pitch_motor.Cloud_Motor_Current_Kalman_Filter, 0.001f, 0.05f);
     KalmanCreate(&init->gimbal_yaw_motor.Cloud_Motor_Current_Kalman_Filter, 0.001f, 1.0f);
     KalmanCreate(&init->gimbal_yaw_motor.gimbal_motor_relative_angle_pid.D_Kalman, 1.0f, 1.0f);

@@ -168,7 +168,7 @@ void INS_task(void const *pvParameters) {
     imu_mag_cali(INS_gyro, INS_accel, INS_mag, INS_gyro_cali, INS_accel_cali, INS_mag_cali);
 
     PID_init(&imu_temp_pid, PID_POSITION, imu_temp_PID, TEMPERATURE_PID_MAX_OUT, TEMPERATURE_PID_MAX_IOUT, 1000, 0, 0,
-             0, 0, 0, 0, 0, 0, 0, 0);
+             0, 0, 0, 0, 0, 0, 0, 0,0,0);
     //get the handle of task
     //获取当前任务的任务句柄，
 //    INS_task_local_handler = xTaskGetHandle(pcTaskGetName(NULL));
