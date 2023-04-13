@@ -70,6 +70,8 @@ typedef struct {
 
     bool D_Low_Pass;
     float32_t D_Low_Pass_Factor;
+
+    uint32_t hal_tick
 } pid_type_def;
 
 /**
