@@ -224,8 +224,7 @@ float ALL_PID(pid_type_def *pid, float32_t ref, float32_t set) {
         (pid == &gimbal_control.gimbal_pitch_motor.gimbal_motor_absolute_angle_pid) ||
         (pid == &chassis_move.chassis_angle_pid)) {
 //        pid->error[0] = loop_fp32_constrain(set-ref,0,2*PI);
-        pid->error[0] = jump_error(set - ref, pid->last_error_raw, 2 * PI);
-        pid->last_error_raw=set - ref;
+        pid->error[0] = jump_error(set - ref, 2 * PI);
 //        SEGGER_RTT_printf(0,"set=%f,ref=%f,err_fun=%f,err=%f\r\n",set,ref,pid->error[0],set-ref);
     } else {
         pid->error[0] = set - ref;

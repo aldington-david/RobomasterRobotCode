@@ -34,6 +34,9 @@ typedef enum {
     CAN_3508_M4_ID = 0x204,
 
     CAN_YAW_MOTOR_ID = 0x205,
+
+    CAN_SUPER_CAPACITANCE_ID= 0x210,
+
     CAN_PITCH_MOTOR_ID = 0x205,
     CAN_TRIGGER_MOTOR_ID = 0x207,
     CAN_IDENTIFIER_0X1FF = 0x1FF,
@@ -76,6 +79,14 @@ extern void CAN2_cmd_0x200(int16_t ID1, int16_t ID2, int16_t ID3, int16_t ID4);
   * @retval         none
   */
 extern void CAN1_cmd_0x200(int16_t ID1, int16_t ID2, int16_t ID3, int16_t ID4);
+
+
+/**
+  * @brief          发送CAN1超级电容控制功率
+  * @param[in]      Power: 3000-13000 对应 30 W 到 130W
+  * @retval         none
+  */
+extern void CAN1_cmd_0x210(uint16_t Power);
 
 /**
   * @brief          send CAN packet of ID 0x700, it will set chassis motor 3508 to quick ID setting

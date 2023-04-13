@@ -47,7 +47,6 @@ typedef struct {
     float32_t Dout;
     float32_t Dbuf[3];  //微分项 0最新 1上一次 2上上次
     float32_t error[3]; //误差项 0最新 1上一次 2上上次
-    float32_t last_error_raw; //for jump_err
     float32_t Integral_Separation;
 
     bool Variable_I;

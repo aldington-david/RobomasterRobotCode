@@ -792,7 +792,7 @@ static void gimbal_init(gimbal_control_t *init) {
     static const float32_t Yaw_speed_pid[3] = {6000.0f, 9.5f, 0.0f};
 
     static const float32_t Yaw_absolute_angle_pid[3] = {6.89f, 0.0f, 200.0f};
-    static const float32_t Yaw_relative_angle_pid[3] = {12.59f, 0.0f, 800.0f};
+    static const float32_t Yaw_relative_angle_pid[3] = {9.59f, 0.0f, 2.0f};
     static const float32_t Pitch_absolute_angle_pid[3] = {15.89f, 0.0f, 200.0f};
     static const float32_t Pitch_relative_angle_pid[3] = {29.2f, 0.0f, 500.0f};
     //电机数据指针获取

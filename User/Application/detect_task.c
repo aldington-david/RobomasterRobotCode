@@ -249,13 +249,13 @@ static void detect_init(uint32_t time) {
                     {2,   3,   13},     //pitch
                     {10,  10,  12},   //trigger
                     {2,   3,   7},      //board gyro
-                    {5,   5,   7},      //board accel
-                    {40,  200, 7},   //board mag
-                    {100, 100, 5},  //referee_rx
-                    {100, 100, 5},  //referee_tx
-                    {10,  10,  7},    //rm imu
-                    {100, 100, 5},  //vision_rx
-                    {100, 100, 5},  //usart1_tx
+                    {5,   5,   6},      //board accel
+                    {40,  200, 5},   //board mag
+                    {100, 100, 4},  //referee_rx
+                    {100, 100, 3},  //referee_tx
+                    {100, 100, 2},  //vision_rx
+                    {100, 100, 1},  //usart1_tx
+                    {100, 100, 0},  //super_capacitance
             };
 
     if (DETECT_BLOCK != Block_All_Device_ecp_Control) {

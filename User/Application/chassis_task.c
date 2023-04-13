@@ -324,15 +324,23 @@ static void chassis_mode_change_control_transit(chassis_move_t *chassis_move_tra
     if ((last_chassis_behaviour_mode != CHASSIS_SPIN) &&
         (chassis_behaviour_mode == CHASSIS_SPIN)) {
         first_order_filter_clear(&chassis_move_transit->chassis_cmd_slow_spin);
+        chassis_mode_change_flag = 1;
     }
+
+    if ((last_chassis_behaviour_mode != CHASSIS_FORWARD_FOLLOW_GIMBAL_YAW) &&
+        (chassis_behaviour_mode == CHASSIS_FORWARD_FOLLOW_GIMBAL_YAW)) {
+        chassis_mode_change_flag = 1;
+    }
+
 
     last_chassis_behaviour_mode = chassis_behaviour_mode;
 
+//    SEGGER_RTT_printf(0,"%f\r\n",chassis_move_transit->chassis_yaw_motor->relative_angle);
+
+
     if (chassis_move_transit->last_chassis_mode == chassis_move_transit->chassis_mode) {
         return;
-    }
-
-    //change to follow gimbal angle mode
+    }//change to follow gimbal angle mode
     //切入云台前向模式
     if ((chassis_move_transit->last_chassis_mode != CHASSIS_VECTOR_TO_GIMBAL_YAW) &&
         chassis_move_transit->chassis_mode == CHASSIS_VECTOR_TO_GIMBAL_YAW) {
@@ -341,7 +349,8 @@ static void chassis_mode_change_control_transit(chassis_move_t *chassis_move_tra
                chassis_move_transit->chassis_mode == CHASSIS_VECTOR_FOLLOW_GIMBAL_YAW) {
         //change to follow chassis yaw angle
         //切入底盘跟随云台角度模式
-        if (chassis_move_transit->chassis_yaw > HALF_PI || chassis_move_transit->chassis_yaw < THREE_HALF_PI) {
+        if (chassis_move_transit->chassis_yaw_motor->relative_angle > HALF_PI &&
+            chassis_move_transit->chassis_yaw_motor->relative_angle < THREE_HALF_PI) {
             chassis_move_transit->chassis_follow_reverse_flag = 1;
         } else {
             chassis_move_transit->chassis_follow_reverse_flag = 0;
@@ -581,8 +590,8 @@ static void chassis_set_contorl(chassis_move_t *chassis_move_control) {
                                                       chassis_move_control->vx_max_speed);
         chassis_move_control->vy_set = fp32_constrain(chassis_move_control->vy_set, chassis_move_control->vy_min_speed,
                                                       chassis_move_control->vy_max_speed);
-        SEGGER_RTT_printf(0, "%f,%f,%f,%f\r\n", chassis_move_control->vx,
-                          chassis_move_control->vy, chassis_move_control->vx_set, chassis_move_control->vy_set);
+//        SEGGER_RTT_printf(0, "%f,%f,%f,%f\r\n", chassis_move_control->vx,
+//                          chassis_move_control->vy, chassis_move_control->vx_set, chassis_move_control->vy_set);
     } else if (chassis_move_control->chassis_mode == CHASSIS_VECTOR_FOLLOW_GIMBAL_YAW) {
         float32_t sin_yaw = 0.0f, cos_yaw = 0.0f;
         //rotate chassis direction, make sure vertial direction follow gimbal

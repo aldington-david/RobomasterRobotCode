@@ -29,6 +29,7 @@ typedef struct {
     time_record_struct tim_PC_receive_task;
     time_record_struct tim_battery_voltage_task;
     time_record_struct tim_led_RGB_flow_task;
+    time_record_struct tim_super_capacitance_control_task;
 } task_time_record_t;
 
 typedef struct {

@@ -24,7 +24,7 @@
 
 #include "main.h"
 #include "bsp_rng.h"
-
+#include "super_capacitance_control_task.h"
 
 #include "detect_task.h"
 #include "print_task.h"
@@ -54,6 +54,14 @@ extern CAN_HandleTypeDef hcan2;
            (ptr)->init_flag = 1;                                        \
         }                                                               \
     }
+
+#define get_super_capacitance_measure(ptr, data)                                          \
+    {                                                                                     \
+        (ptr)->InputVoltage = (uint16_t)((data)[1] << 8 | (data)[0]) / 100.0f;            \
+        (ptr)->CapacitanceVoltage = (uint16_t)((data)[3] << 8 | (data)[2]) / 100.0f;      \
+        (ptr)->InputCurrent = (uint16_t)((data)[5] << 8 | (data)[4]) / 100.0f;            \
+        (ptr)->Target_Power = (uint16_t)((data)[7] << 8 | (data)[6]) / 100.0f;            \
+    }
 /*
 motor data,  0:chassis motor1 3508;1:chassis motor3 3508;2:chassis motor3 3508;3:chassis motor4 3508;
 4:yaw gimbal motor 6020;5:pitch gimbal motor 6020;6:trigger motor 2006;
@@ -61,6 +69,7 @@ motor data,  0:chassis motor1 3508;1:chassis motor3 3508;2:chassis motor3 3508;3
 4:yaw云台电机 6020电机; 5:pitch云台电机 6020电机; 6:拨弹电机 2006电机*/
 static motor_measure_t can1_motor_data[7];
 static motor_measure_t can2_motor_data[7];
+static super_capacitance_measure_t super_capacitance_data;
 
 static CAN_TxHeaderTypeDef can_tx_message;
 static uint8_t can_send_data[8];
@@ -92,6 +101,12 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan) {
                 i = rx_header.StdId - CAN_3508_M1_ID;
                 get_motor_measure(&can1_motor_data[i], rx_data);
                 detect_hook(CHASSIS_MOTOR1_TOE + i);
+                break;
+            }
+
+            case CAN_SUPER_CAPACITANCE_ID: {
+                get_super_capacitance_measure(&super_capacitance_data, rx_data);
+                detect_hook(SUPER_CAPACITANCE_TOE);
                 break;
             }
 
@@ -255,6 +270,23 @@ void CAN1_cmd_0x200(int16_t ID1, int16_t ID2, int16_t ID3, int16_t ID4) {
 }
 
 /**
+  * @brief          发送CAN1超级电容控制功率
+  * @param[in]      Power: 3000-13000 对应 30 W 到 130W
+  * @retval         none
+  */
+void CAN1_cmd_0x210(uint16_t Power) {
+    uint32_t send_mail_box;
+    can_tx_message.StdId = CAN_SUPER_CAPACITANCE_ID;
+    can_tx_message.IDE = CAN_ID_STD;
+    can_tx_message.RTR = CAN_RTR_DATA;
+    can_tx_message.DLC = 0x08;
+    can_send_data[0] = Power >> 8;
+    can_send_data[1] = Power;
+
+    HAL_CAN_AddTxMessage(&hcan1, &can_tx_message, can_send_data, &send_mail_box);
+}
+
+/**
   * @brief          send CAN packet of ID 0x700, it will set chassis motor 3508 to quick ID setting
   * @param[in]      none
   * @retval         none
@@ -347,4 +379,13 @@ const motor_measure_t *get_trigger_motor1_measure_point(void) {
 
 const motor_measure_t *get_trigger_motor2_measure_point(void) {
     return &can2_motor_data[3];
+}
+
+/**
+  * @brief          返回超级电容数据指针
+  * @param[in]      none
+  * @retval         超级电容数据指针
+  */
+const super_capacitance_measure_t *get_super_capacitance_measure_point(void) {
+    return &super_capacitance_data;
 }

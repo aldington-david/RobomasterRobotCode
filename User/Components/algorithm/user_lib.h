@@ -81,7 +81,7 @@ extern uint16_t loop_uint16_constrain(uint16_t Input, uint16_t minValue, uint16_
 extern float32_t theta_format(float32_t Ang);
 
 //过零跳跃误差计算 0~max
-extern float32_t jump_error(float32_t err, float32_t last_err, float32_t err_maxValue);
+extern float32_t jump_error(float32_t err, float32_t err_maxValue);
 
 //弧度格式化为-PI~PI
 #define rad_format(Ang) loop_fp32_constrain((Ang), -PI, PI)

@@ -223,10 +223,10 @@ void lms_filter_init(lms_filter_type_t *lmsFilterType, float32_t step_len, float
     memset(&lmsFilterType->lmsS, 0, sizeof(lmsFilterType->lmsS));
 }
 
-float32_t jump_error(float32_t err, float32_t last_err, float32_t err_maxValue) {
-    if ((last_err <= 0) && (err > (err_maxValue / 2.0f))) {
+float32_t jump_error(float32_t err, float32_t err_maxValue) {
+    if (err > (err_maxValue / 2.0f)) {
         err = err - err_maxValue;
-    } else if ((last_err >= 0) && err < (-err_maxValue / 2.0f)) {
+    } else if (err < (-err_maxValue / 2.0f)) {
         err = err + err_maxValue;
     }
     return err;
