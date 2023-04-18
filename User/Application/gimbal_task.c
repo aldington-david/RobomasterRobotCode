@@ -220,80 +220,7 @@ gimbal_pid_auto_tune_set(gimbal_motor_t *gimbal_motor, const volatile pid_auto_t
 static void
 gimbal_motor_pid_auto_tune_control(gimbal_motor_t *gimbal_motor, const volatile pid_auto_tune_t *pid_auto_tune);
 
-/**
-  * @brief          gimbal angle pid init, because angle is in range(-pi,pi),can't use PID in pid.c
-  * @param[out]     pid: pid data pointer stucture
-  * @param[in]      maxout: pid max out
-  * @param[in]      intergral_limit: pid max iout
-  * @param[in]      kp: pid kp
-  * @param[in]      ki: pid ki
-  * @param[in]      kd: pid kd
-  * @retval         none
-  */
-/**
-  * @brief          云台角度PID初始化, 因为角度范围在(-pi,pi)，不能用PID.c的PID
-  * @param[out]     pid:云台PID指针
-  * @param[in]      maxout: pid最大输出
-  * @param[in]      intergral_limit: pid最大积分输出
-  * @param[in]      kp: pid kp
-  * @param[in]      ki: pid ki
-  * @param[in]      kd: pid kd
-  * @retval         none
-  */
-static void
-gimbal_PID_init(gimbal_PID_t *pid, float32_t maxout, float32_t max_iout, float32_t kp, float32_t ki, float32_t kd);
 
-/**
-  * @brief          gimbal PID clear, clear pid.out, iout.
-  * @param[out]     pid_clear: "gimbal_control" valiable point
-  * @retval         none
-  */
-/**
-  * @brief          云台PID清除，清除pid的out,iout
-  * @param[out]     pid_clear:"gimbal_control"变量指针.
-  * @retval         none
-  */
-static void gimbal_PID_clear(gimbal_PID_t *pid_clear);
-/**
-  * @brief          gimbal angle pid calc, because angle is in range(-pi,pi),can't use PID in pid.c
-  * @param[out]     pid: pid data pointer stucture
-  * @param[in]      get: angle feeback
-  * @param[in]      set: angle set-point
-  * @param[in]      error_delta: rotation speed
-  * @retval         pid out
-  */
-/**
-  * @brief          云台角度PID计算, 因为角度范围在(-pi,pi)，不能用PID.c的PID
-  * @param[out]     pid:云台PID指针
-  * @param[in]      get: 角度反馈
-  * @param[in]      set: 角度设定
-  * @param[in]      error_delta: 角速度
-  * @retval         pid 输出
-  */
-static float32_t gimbal_PID_calc(gimbal_PID_t *pid, float32_t get, float32_t set, float32_t error_delta);
-
-/**
-  * @brief          gimbal calibration calculate
-  * @param[in]      gimbal_cali: cali data
-  * @param[out]     yaw_offset:yaw motor middle place encode
-  * @param[out]     pitch_offset:pitch motor middle place encode
-  * @param[out]     max_yaw:yaw motor max machine angle
-  * @param[out]     min_yaw: yaw motor min machine angle
-  * @param[out]     max_pitch: pitch motor max machine angle
-  * @param[out]     min_pitch: pitch motor min machine angle
-  * @retval         none
-  */
-/**
-  * @brief          云台校准计算
-  * @param[in]      gimbal_cali: 校准数据
-  * @param[out]     yaw_offset:yaw电机云台中值
-  * @param[out]     pitch_offset:pitch 电机云台中值
-  * @param[out]     max_yaw:yaw 电机最大机械角度
-  * @param[out]     min_yaw: yaw 电机最小机械角度
-  * @param[out]     max_pitch: pitch 电机最大机械角度
-  * @param[out]     min_pitch: pitch 电机最小机械角度
-  * @retval         none
-  */
 static void
 calc_gimbal_cali(const gimbal_step_cali_t *gimbal_cali, int32_t *yaw_offset, int32_t *pitch_offset,
                  float32_t *max_yaw,
@@ -796,10 +723,10 @@ static void gimbal_init(gimbal_control_t *init) {
 
 
     static const float32_t Pitch_speed_pid[3] = {2000.0f, 3.5f, 0.0f};
-    static const float32_t Yaw_speed_pid[3] = {913.6868f, 365.4747f, 0.0f};
+    static const float32_t Yaw_speed_pid[3] = {1107.7814f, 295.4083f, 0.0f};
 
-    static const float32_t Yaw_absolute_angle_pid[3] = {6.89f, 0.0f, 200.0f};
-    static const float32_t Yaw_relative_angle_pid[3] = {11.1085f, 6.3475f, 4.86f};
+    static const float32_t Yaw_absolute_angle_pid[3] = {11.7039f, 5.5077f, 6.2177f};
+    static const float32_t Yaw_relative_angle_pid[3] = {10.61f, 3.1436f, 8.9522f};
     static const float32_t Pitch_absolute_angle_pid[3] = {15.89f, 0.0f, 200.0f};
     static const float32_t Pitch_relative_angle_pid[3] = {29.2f, 0.0f, 500.0f};
     //电机数据指针获取
@@ -1438,7 +1365,7 @@ static void gimbal_motor_raw_angle_control(gimbal_motor_t *gimbal_motor) {
 }
 
 /**
-  * @brief          双环PID自动调谐控制，数据来自pid调谐任务，电流卡尔曼滤波可加可不加
+  * @brief          双环PID自动调谐控制，数据来自pid调谐任务
   * @param[out]     gimbal_motor:任意云台电机
   * @retval         none
   */
@@ -1447,89 +1374,37 @@ gimbal_motor_pid_auto_tune_control(gimbal_motor_t *gimbal_motor, const volatile 
     if (gimbal_motor == NULL) {
         return;
     }
-//gimbal_motor->motor_gyro_set由PID调谐任务指定
-    if (pid_auto_tune->tune_type == ANGLE_TO_SPEED) {
-        gimbal_motor->
-                current_set = ALL_PID(&gimbal_motor->gimbal_motor_gyro_pid, -gimbal_motor->motor_speed,
-                                      gimbal_motor->motor_gyro_set);
-    } else if (pid_auto_tune->tune_type == SPEED_TO_CURRENT) {
+    if (!PID_AUTO_TUNE_CHASSIS_FOLLOW) {
+        //gimbal_motor->motor_gyro_set由PID调谐任务指定
+        if (pid_auto_tune->tune_type == ANGLE_TO_SPEED) {
+            gimbal_motor->
+                    current_set = ALL_PID(&gimbal_motor->gimbal_motor_gyro_pid, -gimbal_motor->motor_speed,
+                                          gimbal_motor->motor_gyro_set);
+        } else if (pid_auto_tune->tune_type == SPEED_TO_CURRENT) {
 //        gimbal_motor->motor_gyro_set = ALL_PID(&gimbal_motor->gimbal_motor_relative_angle_pid,
 //                                               gimbal_motor->relative_angle, gimbal_motor->relative_angle_set);
+            gimbal_motor->
+                    current_set = gimbal_motor->raw_cmd_current;
+        }
+
+//    gimbal_motor->
+//            current_set = KalmanFilter(&gimbal_motor->Cloud_Motor_Current_Kalman_Filter,
+//                                       gimbal_motor->current_set);
+
         gimbal_motor->
-                current_set = gimbal_motor->raw_cmd_current;
+                given_current = (int16_t) (gimbal_motor->current_set);
+
+    } else {
+        if (gimbal_motor == &gimbal_control.gimbal_yaw_motor) {
+            gimbal_motor->motor_gyro_set = ALL_PID(&gimbal_motor->gimbal_motor_absolute_angle_pid,
+                                                   gimbal_motor->absolute_angle, PI);
+            gimbal_motor->current_set = ALL_PID(&gimbal_motor->gimbal_motor_gyro_pid, -gimbal_motor->motor_speed,
+                                                gimbal_motor->motor_gyro_set);
+            gimbal_motor->current_set = KalmanFilter(&gimbal_motor->Cloud_Motor_Current_Kalman_Filter,
+                                                     gimbal_motor->current_set);
+            gimbal_motor->given_current = (int16_t) (gimbal_motor->current_set);
+        }
     }
-
-    gimbal_motor->
-            current_set = KalmanFilter(&gimbal_motor->Cloud_Motor_Current_Kalman_Filter,
-                                       gimbal_motor->current_set);
-
-    gimbal_motor->
-            given_current = (int16_t) (gimbal_motor->current_set);
-}
-
-/**
-  * @brief          "gimbal_control" valiable initialization, include pid initialization, remote control data point initialization, gimbal motors
-  *                 data point initialization, and gyro sensor angle point initialization.
-  * @param[out]     gimbal_init: "gimbal_control" valiable point
-  * @retval         none
-  */
-/**
-  * @brief          初始化"gimbal_control"变量，包括pid初始化， 遥控器指针初始化，云台电机指针初始化，陀螺仪角度指针初始化
-  * @param[out]     gimbal_init:"gimbal_control"变量指针.
-  * @retval         none
-  */
-static void
-gimbal_PID_init(gimbal_PID_t *pid, float32_t maxout, float32_t max_iout, float32_t kp, float32_t ki, float32_t kd) {
-    if (pid == NULL) {
-        return;
-    }
-    pid->kp = kp;
-    pid->ki = ki;
-    pid->kd = kd;
-
-    pid->err = 0.0f;
-    pid->get = 0.0f;
-
-    pid->max_iout = max_iout;
-    pid->max_out = maxout;
-}
-
-//not_use
-static float32_t gimbal_PID_calc(gimbal_PID_t *pid, float32_t get, float32_t set, float32_t error_delta) {
-    float32_t err;
-    if (pid == NULL) {
-        return 0.0f;
-    }
-    pid->get = get;
-    pid->set = set;
-
-    err = set - get;
-    pid->err = rad_format(err);
-    pid->Pout = pid->kp * pid->err;
-    pid->Iout += pid->ki * pid->err;
-    pid->Dout = pid->kd * error_delta;
-    abs_limit(&pid->Iout, pid->max_iout);
-    pid->out = pid->Pout + pid->Iout + pid->Dout;
-    abs_limit(&pid->out, pid->max_out);
-    return pid->out;
-}
-//not_use
-/**
-  * @brief          gimbal PID clear, clear pid.out, iout.
-  * @param[out]     gimbal_pid_clear: "gimbal_control" valiable point
-  * @retval         none
-  */
-/**
-  * @brief          云台PID清除，清除pid的out,iout
-  * @param[out]     gimbal_pid_clear:"gimbal_control"变量指针.
-  * @retval         none
-  */
-static void gimbal_PID_clear(gimbal_PID_t *gimbal_pid_clear) {
-    if (gimbal_pid_clear == NULL) {
-        return;
-    }
-    gimbal_pid_clear->err = gimbal_pid_clear->set = gimbal_pid_clear->get = 0.0f;
-    gimbal_pid_clear->out = gimbal_pid_clear->Pout = gimbal_pid_clear->Iout = gimbal_pid_clear->Dout = 0.0f;
 }
 
 /**

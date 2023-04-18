@@ -30,12 +30,8 @@ typedef struct {
     float32_t vx_control_value;
     float32_t vy_control_value;
     float32_t wz_control_value;
-    float32_t wz_follow_control_value;
 
-    float32_t wheel1_control_value;
-    float32_t wheel2_control_value;
-    float32_t wheel3_control_value;
-    float32_t wheel4_control_value;
+    float32_t wheel_control_value;
 
 
     float32_t regular_control_value;//单独给定值，该值不在同一循环控制两个不同电机
@@ -67,6 +63,8 @@ typedef struct {
 
     bool_t check_StartValue_mode;
 } pid_auto_tune_t;
+
+extern bool_t running_flag;
 
 extern void
 pid_auto_tune_init(pid_auto_tune_t *pidtune, float32_t *Input, float32_t *output, pid_auto_tune_type_e controlType,

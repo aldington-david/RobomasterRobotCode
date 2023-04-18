@@ -8,6 +8,8 @@
 #include "SEGGER_RTT.h"
 #include "arm_math.h"
 
+bool_t running_flag = 1;
+
 static void FinishUp(pid_auto_tune_t *pidtune);
 
 void pid_auto_tune_init(pid_auto_tune_t *pidtune, float32_t *Input, float32_t *output, pid_auto_tune_type_e controlType,
@@ -16,8 +18,9 @@ void pid_auto_tune_init(pid_auto_tune_t *pidtune, float32_t *Input, float32_t *o
     pidtune->input = Input;
     pidtune->output = output;
     pidtune->controlType = controlType;
+    pidtune->tune_type = control_value_type;
     pidtune->noiseBand = noiseBand;
-    pidtune->running = true;
+    pidtune->running = false;
     pidtune->oStep = oStep;
     pidtune->setpoint = setpoint;
     pidtune->outputStart = StartValue;
@@ -44,9 +47,9 @@ bool_t pid_auto_tune_runtime(pid_auto_tune_t *pidtune) {
         pidtune->justchanged = false;
         pidtune->absMax = refVal;
         pidtune->absMin = refVal;
-        pidtune->setpoint = refVal;
+//        pidtune->setpoint = refVal;
         pidtune->running = true;
-        pidtune->outputStart = *pidtune->output;
+//        pidtune->outputStart = *pidtune->output;
         *pidtune->output = pidtune->outputStart + pidtune->oStep;
     } else {
         if (refVal > pidtune->absMax)pidtune->absMax = refVal;
@@ -125,6 +128,7 @@ static void FinishUp(pid_auto_tune_t *pidtune) {
     *(pidtune->output) = 0;
     pidtune->Ku = 4 * (2 * pidtune->oStep) / ((pidtune->absMax - pidtune->absMin) * PI);
     pidtune->Pu = (float32_t) (pidtune->peak1 - pidtune->peak2) / 1000;
+    running_flag = 0;
     SEGGER_RTT_WriteString(0, "DONE\r\n");
 }
 

@@ -183,7 +183,7 @@ void MX_FREERTOS_Init(void) {
     osThreadDef(imuTask, INS_task, osPriorityRealtime, 0, 1024);
     imuTaskHandle = osThreadCreate(osThread(imuTask), NULL);
 
-    osThreadDef(PID_Auto_Tune_Task, pid_auto_tune_task, osPriorityHigh, 0, 1024);
+    osThreadDef(PID_Auto_Tune_Task, pid_auto_tune_task, osPriorityRealtime, 0, 1024);
     pidAutoTune_Task_Handle = osThreadCreate(osThread(PID_Auto_Tune_Task), NULL);
 
     osThreadDef(VISION_RX, vision_rx_task, osPriorityRealtime, 0, 256);

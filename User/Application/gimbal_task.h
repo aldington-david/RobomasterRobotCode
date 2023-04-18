@@ -69,13 +69,13 @@
 //pitch encode angle close-loop PID params, max out and max iout
 //pitch 角度环 角度由编码器 PID参数以及 PID最大输出，积分输出
 
-#define PITCH_ENCODE_RELATIVE_PID_MAX_OUT 20.0f
-#define PITCH_ENCODE_RELATIVE_PID_MAX_IOUT 0.0f
+#define PITCH_ENCODE_RELATIVE_PID_MAX_OUT 30.0f
+#define PITCH_ENCODE_RELATIVE_PID_MAX_IOUT 15.0f
 
 //yaw encode angle close-loop PID params, max out and max iout
 //yaw 角度环 角度由编码器 PID参数以及 PID最大输出，积分输出
-#define YAW_ENCODE_RELATIVE_PID_MAX_OUT   20.0f
-#define YAW_ENCODE_RELATIVE_PID_MAX_IOUT  0.0f
+#define YAW_ENCODE_RELATIVE_PID_MAX_OUT   30.0f
+#define YAW_ENCODE_RELATIVE_PID_MAX_IOUT  15.0f
 
 
 //任务初始化 空闲一段时间
@@ -121,7 +121,7 @@
 #define GIMBAL_INIT_ANGLE_ERROR     0.0074532f
 #define GIMBAL_INIT_PITCH_ANGLE_LIMIT     0.8726646f
 #define GIMBAL_INIT_STOP_TIME       100
-#define GIMBAL_INIT_TIME            10000
+#define GIMBAL_INIT_TIME            3000
 #define GIMBAL_CALI_REDUNDANT_ANGLE 0.0523598f
 //云台初始化回中值的速度以及控制到的角度
 #define GIMBAL_INIT_PITCH_SPEED     0.002f

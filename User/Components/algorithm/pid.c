@@ -23,6 +23,7 @@
 #include "USER_Filter.h"
 #include "SEGGER_RTT.h"
 #include "user_lib.h"
+#include "chassis_behaviour.h"
 
 //#define abs(x) ((x) > 0 ? (x) : (-x))
 
@@ -224,6 +225,14 @@ float ALL_PID(pid_type_def *pid, float32_t ref, float32_t set) {
     } else {
         pid->error[0] = pid->set - pid->get;
     }
+//    if(chassis_mode_change_flag){
+//        if(pid == &chassis_move.chassis_angle_pid){
+//            pid->Iout =;
+//            pid->Pout = 0;
+//            pid->Dout = 0;
+//            chassis_mode_change_flag = 0;
+//        }
+//    }
 //探针
 //    if (pid == &gimbal_control.gimbal_pitch_motor.gimbal_motor_gyro_pid) {//for_test
 //        sp_err = pid->error[0];

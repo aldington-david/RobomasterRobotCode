@@ -33,8 +33,8 @@
 /************ PID Auto Tune Start *******************/
 #define OFF    0
 #define ON     1
-#define PID_AUTO_TUNE  OFF
-
+#define PID_AUTO_TUNE OFF
+#define PID_AUTO_TUNE_CHASSIS_FOLLOW 0
 /************ PID Auto Tune End *******************/
 
 /************ Init To Offset Start*******************/

@@ -528,8 +528,8 @@ static void gimbal_behavour_set(gimbal_control_t *gimbal_mode_set) {
         static uint16_t init_stop_time = 0;
         init_time++;
 
-        if ((fabsf(gimbal_mode_set->gimbal_yaw_motor.relative_angle - INIT_YAW_SET) < GIMBAL_INIT_ANGLE_ERROR &&
-             fabsf(gimbal_mode_set->gimbal_pitch_motor.relative_angle - INIT_PITCH_SET) < GIMBAL_INIT_ANGLE_ERROR)) {
+        if ((jump_error(gimbal_mode_set->gimbal_yaw_motor.relative_angle - INIT_YAW_SET,2*PI) < GIMBAL_INIT_ANGLE_ERROR &&
+                jump_error(gimbal_mode_set->gimbal_yaw_motor.relative_angle - INIT_YAW_SET,2*PI) < GIMBAL_INIT_ANGLE_ERROR)) {
 
             if (init_stop_time < GIMBAL_INIT_STOP_TIME) {
                 init_stop_time++;
@@ -958,9 +958,13 @@ void gimbal_rc_to_control_vector(float32_t *yaw, float32_t *pitch, gimbal_contro
         rc_deadband_limit(gimbal_move_rc_to_vector->gimbal_rc_ctrl->rc.ch[PITCH_CHANNEL], pitch_channel, RC_DEADBAND);
         //for_test
         if (gimbal_behaviour == GIMBAL_RELATIVE_ANGLE) {
-            interpolation_num = 100;
+            interpolation_num = 30;
         } else if (gimbal_behaviour == GIMBAL_ABSOLUTE_ANGLE) {
-            interpolation_num = 15;
+            if (chassis_behaviour_mode == CHASSIS_FORWARD_FOLLOW_GIMBAL_YAW) {
+                interpolation_num = 80;
+            } else if (chassis_behaviour_mode == CHASSIS_SPIN) {
+                interpolation_num = 25;
+            }
         } else {
             interpolation_num = 20;
         }
@@ -996,6 +1000,7 @@ void gimbal_rc_to_control_vector(float32_t *yaw, float32_t *pitch, gimbal_contro
             yaw_bias = jump_error(
                     gimbal_move_rc_to_vector->gimbal_yaw_motor.relative_angle_set -
                     gimbal_move_rc_to_vector->gimbal_yaw_motor.relative_angle, 2 * PI);
+//            yaw_bias = 0.0f
             pitch_bias = jump_error(
                     gimbal_move_rc_to_vector->gimbal_pitch_motor.relative_angle_set -
                     gimbal_move_rc_to_vector->gimbal_pitch_motor.relative_angle, 2 * PI);
@@ -1010,20 +1015,24 @@ void gimbal_rc_to_control_vector(float32_t *yaw, float32_t *pitch, gimbal_contro
             yaw_bias = 0;
             pitch_bias = 0;
         }
-        if ((fabs(yaw_bias) < 0.1) || (fabs(yaw_bias)) > 1.5 || yaw_channel == 0) {
+        if ((fabs(yaw_bias) < 0.01f) || (fabs(yaw_bias)) > 1.5f) {
             yaw_bias = 0;
             no_bias_flag = 1;
         }
-        if ((fabs(pitch_bias) < 0.1) || (fabs(pitch_bias)) > 1.5) {
+        if ((fabs(pitch_bias) < 0.1f) || (fabs(pitch_bias)) > 1.5f) {
             pitch_bias = 0;
             no_bias_flag = 1;
         }
-        if (chassis_mode_change_flag) {
-            for (int i = 0; i < GIMBAL_CONTROL_TIME * 4000; ++i) {
-                chassis_mode_change_flag = 0;
-            }
-            yaw_bias = 0;
-        }
+//        if (chassis_mode_change_flag) {
+//            static uint16_t count = 0;
+//            if (count < GIMBAL_CONTROL_TIME * 2000) {
+//                interpolation_num = 1;
+//                no_bias_flag = 1;
+//            } else {
+//                chassis_mode_change_flag = 0;
+//            }
+//            count++;
+//        }
         if (gimbal_move_rc_to_vector->gimbal_rc_ctrl->gimbal_update_flag ||
             (gimbal_move_rc_to_vector->gimbal_rc_ctrl->gimbal_update_flag && no_bias_flag)) {
             clear_gimbal_rc_update_flag();
