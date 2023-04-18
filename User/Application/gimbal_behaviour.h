@@ -99,6 +99,7 @@
 
 typedef enum {
     GIMBAL_ZERO_FORCE = 0,
+    GIMBAL_PID_AUTO_TUNE,
     GIMBAL_INIT,
     GIMBAL_CALI,
     IST_CALI,

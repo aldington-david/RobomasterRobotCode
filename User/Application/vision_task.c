@@ -49,7 +49,7 @@ void vision_rx_task(void const *argument) {
     fifo_s_init(&vision_rx_fifo, vision_fifo_rx_buf, VISION_FIFO_BUF_LENGTH);
     usart1_rx_init(usart1_rx_buf[0], usart1_rx_buf[1], USART1_RX_BUF_LENGHT);
     while (1) {
-        DWT_update_task_time_us(&global_task_time.tim_vision_rx_task);
+        DWT_get_time_interval_us(&global_task_time.tim_vision_rx_task);
         while (ulTaskNotifyTake(pdTRUE, portMAX_DELAY) != pdPASS) {
         }
         vision_unpack_fifo_data();
@@ -71,7 +71,7 @@ void vision_tx_task(void const *argument) {
     usart1_tx_init(usart1_vision_tx_buf[0], usart1_vision_tx_buf[1], USART1_VISION_TX_BUF_LENGHT);
     TickType_t LoopStartTime;
     while (1) {
-        DWT_update_task_time_us(&global_task_time.tim_vision_tx_task);
+        DWT_get_time_interval_us(&global_task_time.tim_vision_tx_task);
         LoopStartTime = xTaskGetTickCount();
 //        referee_unpack_fifo_data();
 #if INCLUDE_uxTaskGetStackHighWaterMark

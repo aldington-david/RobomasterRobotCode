@@ -5,6 +5,18 @@
 #include "struct_typedef.h"
 #include "arm_math.h"
 
+#define LimitMax(input, max)   \
+    {                          \
+        if ((input) > (max))       \
+        {                      \
+            (input) = (max);       \
+        }                      \
+        else if ((input) < -(max)) \
+        {                      \
+            (input) = -(max);      \
+        }                      \
+    }
+
 typedef struct __attribute__((packed)) {
     float32_t input;        //输入数据
     float32_t out;          //输出数据

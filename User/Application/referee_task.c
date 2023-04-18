@@ -66,7 +66,7 @@ void referee_rx_task(void const *argument) {
                 USART6_TX_BUF_LENGHT);
     TickType_t LoopStartTime;
     while (1) {
-        DWT_update_task_time_us(&global_task_time.tim_referee_rx_task);
+        DWT_get_time_interval_us(&global_task_time.tim_referee_rx_task);
         LoopStartTime = xTaskGetTickCount();
         referee_unpack_fifo_data();
 #if INCLUDE_uxTaskGetStackHighWaterMark
@@ -414,7 +414,7 @@ void referee_tx_task(void const *argument) {
     UI_clean_all();
     TickType_t LoopStartTime;
     while (1) {
-        DWT_update_task_time_us(&global_task_time.tim_referee_tx_task);
+        DWT_get_time_interval_us(&global_task_time.tim_referee_tx_task);
         LoopStartTime = xTaskGetTickCount();
 //        SEGGER_RTT_WriteString(0, "referee_task_loop_on");
 //        draw_cnt++;

@@ -129,7 +129,7 @@ void PC_receive_task(void const *argument) {
     /********trigger end***********/
     TickType_t LoopStartTime;
     while (1) {
-        DWT_update_task_time_us(&global_task_time.tim_PC_receive_task);
+        DWT_get_time_interval_us(&global_task_time.tim_PC_receive_task);
         LoopStartTime = xTaskGetTickCount();
 //        SEGGER_RTT_printf(0,"%d",i);
         if (SEGGER_RTT_HasKey()) {

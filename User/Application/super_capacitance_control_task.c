@@ -13,7 +13,7 @@ uint32_t super_capacitance_control_stack;
 #endif
 const volatile RC_ctrl_t *super_capacitance_rc;
 /**
-  * @brief          超级电容输入功率控制任务
+  * @brief          超级电容输入功率控制任务，CAN ReSynchronization Jump Width 务必设高点，另外CAN芯片要给板子另行接电才工作
   * @param[in]      pvParameters: NULL
   * @retval         none
   */
@@ -21,7 +21,7 @@ void super_capacitance_control_task(void const *pvParameters) {
     super_capacitance_rc = get_remote_control_point();
     TickType_t LoopStartTime;
     while (1) {
-        DWT_update_task_time_us(&global_task_time.tim_super_capacitance_control_task);
+        DWT_get_time_interval_us(&global_task_time.tim_super_capacitance_control_task);
         LoopStartTime = xTaskGetTickCount();
         if (toe_is_error(DBUS_TOE)) {
             CAN1_cmd_0x210(SUPER_CAPACITANCE_30W_MIN);
@@ -31,8 +31,6 @@ void super_capacitance_control_task(void const *pvParameters) {
 //        if (!toe_is_error(DBUS_TOE)) {
 //            bullet_box_control();
 //        }
-
-
 #if INCLUDE_uxTaskGetStackHighWaterMark
         super_capacitance_control_stack = uxTaskGetStackHighWaterMark(NULL);
 #endif

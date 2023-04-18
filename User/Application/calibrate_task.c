@@ -267,7 +267,7 @@ void calibrate_task(void const *pvParameters) {
     calibrate_RC = get_remote_ctrl_point_cali();
     TickType_t LoopStartTime;
     while (1) {
-        DWT_update_task_time_us(&global_task_time.tim_calibrate_task);
+        DWT_get_time_interval_us(&global_task_time.tim_calibrate_task);
         LoopStartTime = xTaskGetTickCount();
         RC_cmd_to_calibrate();
 

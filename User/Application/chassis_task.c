@@ -30,6 +30,8 @@
 #include "chassis_power_control.h"
 #include "DWT.h"
 #include "SEGGER_RTT.h"
+#include "pid_auto_tune_task.h"
+#include "global_control_define.h"
 
 #define rc_deadband_limit(input, output, dealine)        \
     {                                                    \
@@ -154,7 +156,7 @@ void chassis_task(void const *pvParameters) {
     TickType_t LoopStartTime;
 
     while (1) {
-        DWT_update_task_time_us(&global_task_time.tim_chassis_task);
+        DWT_get_time_interval_us(&global_task_time.tim_chassis_task);
         LoopStartTime = xTaskGetTickCount();
         //set chassis control mode
         //设置底盘控制模式
@@ -246,6 +248,8 @@ static void chassis_init(chassis_move_t *chassis_move_init) {
     //获取云台电机数据指针
     chassis_move_init->chassis_yaw_motor = get_yaw_motor_point();
     chassis_move_init->chassis_pitch_motor = get_pitch_motor_point();
+    //pid调谐数据指针获取
+    chassis_move_init->pid_auto_tune_data_point = get_pid_auto_tune_data_point();
 
     //get chassis motor data point,  initialize motor speed PID
     //获取底盘电机数据指针，初始化PID 
@@ -258,16 +262,16 @@ static void chassis_init(chassis_move_t *chassis_move_init) {
     //初始化角度PID
     PID_init(&chassis_move_init->chassis_angle_pid, PID_POSITION, chassis_yaw_follow_pid,
              CHASSIS_FOLLOW_GIMBAL_PID_MAX_OUT,
-             CHASSIS_FOLLOW_GIMBAL_PID_MAX_IOUT, 1000, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,0, 0);
+             CHASSIS_FOLLOW_GIMBAL_PID_MAX_IOUT, 1000, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
     PID_init(&chassis_move_init->chassis_vx_speed_pid, PID_POSITION, chassis_vx_speed_pid,
              CHASSIS_FOLLOW_GIMBAL_PID_MAX_OUT,
-             CHASSIS_FOLLOW_GIMBAL_PID_MAX_IOUT, 1000, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,0, 0);
+             CHASSIS_FOLLOW_GIMBAL_PID_MAX_IOUT, 1000, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
     PID_init(&chassis_move_init->chassis_vy_speed_pid, PID_POSITION, chassis_vy_speed_pid,
              CHASSIS_FOLLOW_GIMBAL_PID_MAX_OUT,
-             CHASSIS_FOLLOW_GIMBAL_PID_MAX_IOUT, 1000, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,0, 0);
+             CHASSIS_FOLLOW_GIMBAL_PID_MAX_IOUT, 1000, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
     PID_init(&chassis_move_init->chassis_wz_speed_pid, PID_POSITION, chassis_wz_speed_pid,
              CHASSIS_FOLLOW_GIMBAL_PID_MAX_OUT,
-             CHASSIS_FOLLOW_GIMBAL_PID_MAX_IOUT, 1000, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,0, 0);
+             CHASSIS_FOLLOW_GIMBAL_PID_MAX_IOUT, 1000, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
     //first order low-pass filter  replace ramp function
     //用一阶滤波代替斜波函数生成
     first_order_filter_init(&chassis_move_init->chassis_cmd_slow_set_vx, CHASSIS_CONTROL_TIME, CHASSIS_ACCEL_X_NUM);
@@ -612,7 +616,8 @@ static void chassis_set_contorl(chassis_move_t *chassis_move_control) {
         wz_raw = ALL_PID(&chassis_move_control->chassis_angle_pid,
                          chassis_move_control->chassis_yaw,
                          chassis_move_control->chassis_yaw_set);
-//        SEGGER_RTT_printf(0, "chassis_move_control->wz_set = %f\r\n", chassis_move_control->wz_set);
+//        SEGGER_RTT_printf(0, "chassis_move_control->wz_set =
+
         //speed limit
         //速度限幅
         vx_raw = ALL_PID(&chassis_move_control->chassis_vx_speed_pid,
@@ -675,6 +680,14 @@ static void chassis_set_contorl(chassis_move_t *chassis_move_control) {
         chassis_move_control->wz_set = 0;
         chassis_move_control->chassis_cmd_slow_set_vx.out = 0.0f;
         chassis_move_control->chassis_cmd_slow_set_vy.out = 0.0f;
+    } else if (chassis_move_control->chassis_mode == CHASSIS_VECTOR_PID_AUTO_TUNE) {
+        if (chassis_move_control->pid_auto_tune_data_point->tune_type == SPEED_TO_SPEED) {
+            chassis_move_control->vx_set = pid_auto_tune_data.control_list.vx_control_value;
+            chassis_move_control->vy_set = pid_auto_tune_data.control_list.vy_control_value;
+            chassis_move_control->wz_set = pid_auto_tune_data.control_list.wz_control_value;
+        } else if (chassis_move_control->pid_auto_tune_data_point->tune_type == ANGLE_TO_SPEED) {
+            chassis_move_control->wz_set = pid_auto_tune_data.control_list.wz_control_value;
+        }
     }
 }
 
@@ -759,21 +772,48 @@ static void chassis_control_loop(chassis_move_t *chassis_move_control_loop) {
             chassis_move_control_loop->motor_chassis[i].speed_set *= vector_rate;
         }
     }
+    if (PID_AUTO_TUNE) {
+        if (chassis_move_control_loop->pid_auto_tune_data_point->tune_type == SPEED_TO_CURRENT) {
+            chassis_move_control_loop->motor_chassis[0].give_current = (int16_t) (chassis_move_control_loop->pid_auto_tune_data_point->control_list.wheel1_control_value);
+            chassis_move_control_loop->motor_chassis[1].give_current = (int16_t) (chassis_move_control_loop->pid_auto_tune_data_point->control_list.wheel2_control_value);
+            chassis_move_control_loop->motor_chassis[2].give_current = (int16_t) (chassis_move_control_loop->pid_auto_tune_data_point->control_list.wheel3_control_value);
+            chassis_move_control_loop->motor_chassis[3].give_current = (int16_t) (chassis_move_control_loop->pid_auto_tune_data_point->control_list.wheel4_control_value);
+        } else if (chassis_move_control_loop->pid_auto_tune_data_point->tune_type == ANGLE_TO_SPEED ||
+                   chassis_move_control_loop->pid_auto_tune_data_point->tune_type == SPEED_TO_SPEED) {
+            for (i = 0; i < 4; i++) {
+                chassis_move_control_loop->motor_chassis[i].speed_set = wheel_speed[i];
+            }
+            //calculate pid
+            //计算pid
+            for (i = 0; i < 4; i++) {
+                ALL_PID(&chassis_move_control_loop->motor_speed_pid[i],
+                        chassis_move_control_loop->motor_chassis[i].speed,
+                        chassis_move_control_loop->motor_chassis[i].speed_set);
+            }
+            //赋值电流值
+            for (i = 0; i < 4; i++) {
+                chassis_move_control_loop->motor_chassis[i].give_current = (int16_t) (chassis_move_control_loop->motor_speed_pid[i].out);
+            }
+        }
 
-    //calculate pid
-    //计算pid
-    for (i = 0; i < 4; i++) {
-        ALL_PID(&chassis_move_control_loop->motor_speed_pid[i], chassis_move_control_loop->motor_chassis[i].speed,
-                chassis_move_control_loop->motor_chassis[i].speed_set);
+
+    } else {
+        //calculate pid
+        //计算pid
+        for (i = 0; i < 4; i++) {
+            ALL_PID(&chassis_move_control_loop->motor_speed_pid[i], chassis_move_control_loop->motor_chassis[i].speed,
+                    chassis_move_control_loop->motor_chassis[i].speed_set);
+        }
+
+
+        //功率控制
+        chassis_power_control(chassis_move_control_loop);
+
+
+        //赋值电流值
+        for (i = 0; i < 4; i++) {
+            chassis_move_control_loop->motor_chassis[i].give_current = (int16_t) (chassis_move_control_loop->motor_speed_pid[i].out);
+        }
     }
 
-
-    //功率控制
-    chassis_power_control(chassis_move_control_loop);
-
-
-    //赋值电流值
-    for (i = 0; i < 4; i++) {
-        chassis_move_control_loop->motor_chassis[i].give_current = (int16_t) (chassis_move_control_loop->motor_speed_pid[i].out);
-    }
 }

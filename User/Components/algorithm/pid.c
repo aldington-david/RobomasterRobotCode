@@ -20,22 +20,11 @@
 #include "gimbal_task.h"
 #include "chassis_task.h"
 #include "print_task.h"
-#include "shoot.h"
 #include "USER_Filter.h"
 #include "SEGGER_RTT.h"
+#include "user_lib.h"
 
 //#define abs(x) ((x) > 0 ? (x) : (-x))
-#define LimitMax(input, max)   \
-    {                          \
-        if ((input) > (max))       \
-        {                      \
-            (input) = (max);       \
-        }                      \
-        else if ((input) < -(max)) \
-        {                      \
-            (input) = -(max);      \
-        }                      \
-    }
 
 /**
   * @brief          pid struct data init

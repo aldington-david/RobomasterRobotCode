@@ -34,15 +34,18 @@
 #include "kalman_filter.h"
 #include "pid.h"
 #include "vision_task.h"
+#include "PID_AutoTune.h"
+
+#define MAX_6020_MOTOR_CAN_CURRENT 30000.0f
 
 //pitch speed close-loop PID params, max out and max iout
 //pitch 速度环 PID参数以及 PID最大输出，积分输出
-#define PITCH_SPEED_PID_MAX_OUT   30000.0f
+#define PITCH_SPEED_PID_MAX_OUT   MAX_6020_MOTOR_CAN_CURRENT
 #define PITCH_SPEED_PID_MAX_IOUT  10000.0f
 
 //yaw speed close-loop PID params, max out and max iout
 //yaw 速度环 PID参数以及 PID最大输出，积分输出
-#define YAW_SPEED_PID_MAX_OUT   30000.0f
+#define YAW_SPEED_PID_MAX_OUT   MAX_6020_MOTOR_CAN_CURRENT
 #define YAW_SPEED_PID_MAX_IOUT  15000.0f
 
 //pitch gyro angle close-loop PID params, max out and max iout
@@ -161,6 +164,7 @@ typedef enum {
     GIMBAL_MOTOR_RAW = 0, //电机原始值控制
     GIMBAL_MOTOR_GYRO,    //电机陀螺仪角度控制
     GIMBAL_MOTOR_ENCONDE, //电机编码值角度控制
+    GIMBAL_MOTOR_PID_AUTO_TUNE, //电机PID自动调参控制
 } gimbal_motor_mode_e;
 //not_use
 typedef struct {
@@ -244,6 +248,7 @@ typedef struct {
 typedef struct {
     const volatile vision_control_t *gimbal_vision_ctrl;
     const volatile RC_ctrl_t *gimbal_rc_ctrl;
+    const volatile pid_auto_tune_t *pid_auto_tune_data_point;
     const float32_t *gimbal_INT_angle_point;
     const float32_t *gimbal_INT_gyro_point;
     gimbal_motor_t gimbal_yaw_motor;

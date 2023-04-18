@@ -85,6 +85,7 @@
 #include "chassis_task.h"
 #include "gimbal_behaviour.h"
 #include "SEGGER_RTT.h"
+#include "global_control_define.h"
 
 /**
   * @brief          when chassis behaviour mode is CHASSIS_ZERO_FORCE, the function is called
@@ -257,7 +258,11 @@ void chassis_behaviour_mode_set(chassis_move_t *chassis_move_mode) {
 //    {
 //        chassis_behaviour_mode = CHASSIS_FORWARD_TO_GIMBAL_YAW;
 //    }
-
+    if (PID_AUTO_TUNE) {
+        chassis_behaviour_mode = CHASSIS_PID_AUTO_TUNE;
+        chassis_move_mode->chassis_mode = CHASSIS_VECTOR_PID_AUTO_TUNE;
+        return;
+    }
     //remote control  set chassis behaviour mode
     //遥控器设置模式
     if (switch_is_mid(chassis_move_mode->chassis_RC->rc.s[RADIO_CONTROL_SWITCH_L]) &&

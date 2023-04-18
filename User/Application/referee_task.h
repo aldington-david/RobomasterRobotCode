@@ -56,7 +56,7 @@ typedef enum {
     //0x010x
     ID_EVENT_DATA = 0x0101,                 //!< 场地事件数据
     ID_SUPPLY_PROJECTILE_ACTION = 0x0102,   //!< 场地补给站动作标识数据
-//    ID_SUPPLY_PROJECTILE_BOOKING 	= 0x0103,	// 请求补给站补弹子弹(RM对抗赛尚未开放)
+    ID_SUPPLY_PROJECTILE_BOOKING 	= 0x0103,	// 请求补给站补弹子弹(RM对抗赛尚未开放)
     ID_REFEREE_WARNING = 0x0104,                //!< 裁判警告数据
     ID_DART_REMAINING_TIME = 0x0105,         //!< 飞镖发射口倒计时
     //0x020x
@@ -98,7 +98,7 @@ typedef enum {
     // 0x010x
     LEN_EVENT_DATA = 4,                     //!< 0x0101 场地事件数据
     LEN_SUPPLY_PROJECTILE_ACTION = 4,       //!< 0x0102 场地补给站动作标识数据
-//    LEN_SUPPLY_PROJECTILE_BOOKING = 2,       //!< 0x0103 请求补给站补弹数据(RM对抗赛尚未开放)
+    LEN_SUPPLY_PROJECTILE_BOOKING = 2,       //!< 0x0103 请求补给站补弹数据(RM对抗赛尚未开放)
     LEN_REFEREE_WARNING = 2,                //!< 0x0104 裁判警告数据
     LEN_DART_REMAINING_TIME = 1,            //!< 0x0105 飞镖发射口倒计时
     // 0x020x

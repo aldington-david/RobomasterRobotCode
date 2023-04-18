@@ -86,14 +86,13 @@
 #include "user_lib.h"
 #include "USER_Filter.h"
 #include "vision_task.h"
-#include "SEGGER_RTT.h"
 #include "math.h"
-#include "print_task.h"
 #include "global_control_define.h"
 #include "ahrs_ukf.h"
 #include "calibrate_task.h"
 #include "gimbal_task.h"
 #include "chassis_behaviour.h"
+#include "pid_auto_tune_task.h"
 
 //when gimbal is in calibrating, set buzzer frequency and strenght
 //当云台在校准, 设置蜂鸣器频率和强度
@@ -293,6 +292,16 @@ static void gimbal_absolute_angle_control(float32_t *yaw, float32_t *pitch, gimb
 static void gimbal_relative_angle_control(float32_t *yaw, float32_t *pitch, gimbal_control_t *gimbal_control_set);
 
 /**
+  * @brief          pid自动调节控制，电机是直接电流控制，
+  * @param[in]      yaw: yaw轴给定电流值
+  * @param[in]      pitch: pitch轴给定电流值
+  * @param[in]      gimbal_control_set: 云台数据指针
+  * @retval         none
+  */
+static void gimbal_pid_auto_tune_control(float32_t *yaw, float32_t *pitch, gimbal_control_t *gimbal_control_set,
+                                         const volatile pid_auto_tune_t *pid_auto_tune);
+
+/**
   * @brief          when gimbal behaviour mode is GIMBAL_MOTIONLESS, the function is called
   *                 and gimbal control mode is encode mode. 
   * @param[out]     yaw: yaw axia relative angle increment,  unit rad
@@ -340,6 +349,9 @@ void gimbal_behaviour_mode_set(gimbal_control_t *gimbal_mode_set) {
     if (gimbal_behaviour == GIMBAL_ZERO_FORCE) {
         gimbal_mode_set->gimbal_yaw_motor.gimbal_motor_mode = GIMBAL_MOTOR_RAW;
         gimbal_mode_set->gimbal_pitch_motor.gimbal_motor_mode = GIMBAL_MOTOR_RAW;
+    } else if (gimbal_behaviour == GIMBAL_PID_AUTO_TUNE) {
+        gimbal_mode_set->gimbal_yaw_motor.gimbal_motor_mode = GIMBAL_MOTOR_PID_AUTO_TUNE;
+        gimbal_mode_set->gimbal_pitch_motor.gimbal_motor_mode = GIMBAL_MOTOR_PID_AUTO_TUNE;
     } else if (gimbal_behaviour == GIMBAL_INIT) {
         gimbal_mode_set->gimbal_yaw_motor.gimbal_motor_mode = GIMBAL_MOTOR_ENCONDE;
         gimbal_mode_set->gimbal_pitch_motor.gimbal_motor_mode = GIMBAL_MOTOR_ENCONDE;
@@ -385,6 +397,9 @@ void gimbal_behaviour_control_set(float32_t *add_yaw, float32_t *add_pitch, gimb
 
     if (gimbal_behaviour == GIMBAL_ZERO_FORCE) {
         gimbal_zero_force_control(add_yaw, add_pitch, gimbal_control_set);
+    } else if (gimbal_behaviour == GIMBAL_PID_AUTO_TUNE) {
+        gimbal_pid_auto_tune_control(add_yaw, add_pitch, gimbal_control_set,
+                                     gimbal_control_set->pid_auto_tune_data_point);
     } else if (gimbal_behaviour == GIMBAL_INIT) {
         gimbal_init_control(add_yaw, add_pitch, gimbal_control_set);
     } else if (gimbal_behaviour == GIMBAL_CALI) {
@@ -461,6 +476,12 @@ static void gimbal_behavour_set(gimbal_control_t *gimbal_mode_set) {
     }
     static gimbal_behaviour_e last_gimbal_behaviour = GIMBAL_ZERO_FORCE;
     static bool_t init_complete_flag = 0;
+
+    if (PID_AUTO_TUNE) {
+        gimbal_behaviour = GIMBAL_PID_AUTO_TUNE;
+        return;
+    }
+
     if (gimbal_behaviour == GIMBAL_CALI && gimbal_control.gimbal_cali.step == GIMBAL_CALI_END_STEP &&
         cali_sensor[CALI_GIMBAL].cali_done == CALIED_FLAG) {
         gimbal_behaviour = GIMBAL_ZERO_FORCE;
@@ -839,6 +860,22 @@ static void gimbal_absolute_angle_control(float32_t *yaw, float32_t *pitch, gimb
 //    }
 }
 
+/**
+  * @brief          pid自动调节控制，电机是直接电流控制，
+  * @param[in]      yaw: yaw轴给定电流值
+  * @param[in]      pitch: pitch轴给定电流值
+  * @param[in]      gimbal_control_set: 云台数据指针
+  * @retval         none
+  */
+static void gimbal_pid_auto_tune_control(float32_t *yaw, float32_t *pitch, gimbal_control_t *gimbal_control_set,
+                                         const volatile pid_auto_tune_t *pid_auto_tune) {
+    if (yaw == NULL || pitch == NULL || gimbal_control_set == NULL) {
+        return;
+    }
+    *yaw = pid_auto_tune->control_list.yaw_control_value;
+    *pitch = pid_auto_tune->control_list.pitch_control_value;
+}
+
 
 /**
   * @brief          when gimbal behaviour mode is GIMBAL_RELATIVE_ANGLE, the function is called
@@ -860,8 +897,6 @@ static void gimbal_relative_angle_control(float32_t *yaw, float32_t *pitch, gimb
         return;
     }
     gimbal_rc_to_control_vector(yaw, pitch, gimbal_control_set);
-
-
 }
 
 /**
@@ -922,14 +957,12 @@ void gimbal_rc_to_control_vector(float32_t *yaw, float32_t *pitch, gimbal_contro
         rc_deadband_limit(gimbal_move_rc_to_vector->gimbal_rc_ctrl->rc.ch[YAW_CHANNEL], yaw_channel, RC_DEADBAND);
         rc_deadband_limit(gimbal_move_rc_to_vector->gimbal_rc_ctrl->rc.ch[PITCH_CHANNEL], pitch_channel, RC_DEADBAND);
         //for_test
-        if(gimbal_behaviour==GIMBAL_RELATIVE_ANGLE){
-            if (yaw_channel == 0) {
-                interpolation_num = 100;
-            } else {
-                interpolation_num = 10;
-            }
-        } else{
-            interpolation_num = 10;
+        if (gimbal_behaviour == GIMBAL_RELATIVE_ANGLE) {
+            interpolation_num = 100;
+        } else if (gimbal_behaviour == GIMBAL_ABSOLUTE_ANGLE) {
+            interpolation_num = 15;
+        } else {
+            interpolation_num = 20;
         }
 
 
@@ -977,7 +1010,7 @@ void gimbal_rc_to_control_vector(float32_t *yaw, float32_t *pitch, gimbal_contro
             yaw_bias = 0;
             pitch_bias = 0;
         }
-        if ((fabs(yaw_bias) < 0.1) || (fabs(yaw_bias)) > 1.5) {
+        if ((fabs(yaw_bias) < 0.1) || (fabs(yaw_bias)) > 1.5 || yaw_channel == 0) {
             yaw_bias = 0;
             no_bias_flag = 1;
         }
@@ -985,8 +1018,8 @@ void gimbal_rc_to_control_vector(float32_t *yaw, float32_t *pitch, gimbal_contro
             pitch_bias = 0;
             no_bias_flag = 1;
         }
-        if(chassis_mode_change_flag){
-            for (int i = 0; i < GIMBAL_CONTROL_TIME*4000; ++i) {
+        if (chassis_mode_change_flag) {
+            for (int i = 0; i < GIMBAL_CONTROL_TIME * 4000; ++i) {
                 chassis_mode_change_flag = 0;
             }
             yaw_bias = 0;
@@ -997,7 +1030,7 @@ void gimbal_rc_to_control_vector(float32_t *yaw, float32_t *pitch, gimbal_contro
 //            sigmoidInterpolation(0, yaw_channel, 14, yaw_rc_Interpolation);
 //            sigmoidInterpolation(0, pitch_channel, 14, pitch_rc_Interpolation);
             if (chassis_behaviour_mode == CHASSIS_FORWARD_FOLLOW_GIMBAL_YAW) {
-                sigmoidInterpolation(0, (yaw_channel * YAW_RC_SEN - yaw_bias / 15) * 1000, 14,
+                sigmoidInterpolation(0, (yaw_channel * YAW_RC_SEN - yaw_bias / interpolation_num) * 1000, 14,
                                      yaw_rc_Interpolation);
             } else if (chassis_behaviour_mode == CHASSIS_SPIN) {
                 if (last_yaw_bias != 0) {
@@ -1017,7 +1050,7 @@ void gimbal_rc_to_control_vector(float32_t *yaw, float32_t *pitch, gimbal_contro
                 }
                 last_yaw_bias = yaw_bias;
             } else {
-                sigmoidInterpolation(0, (yaw_channel * YAW_RC_SEN + yaw_bias / 15) * 1000, 14,
+                sigmoidInterpolation(0, (yaw_channel * YAW_RC_SEN + yaw_bias / interpolation_num) * 1000, 14,
                                      yaw_rc_Interpolation);
             }
             sigmoidInterpolation(0, (pitch_channel * PITCH_RC_SEN) * 1000, 14,

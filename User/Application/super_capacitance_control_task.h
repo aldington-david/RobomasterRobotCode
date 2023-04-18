@@ -31,6 +31,7 @@ typedef struct {
     float32_t Target_Power;
 } super_capacitance_measure_t;
 
+
 extern void super_capacitance_control_task(void const *pvParameters);
 
 #endif //ROBOMASTERROBOTCODE_SUPER_CAPACITANCE_CONTROL_TASK_H

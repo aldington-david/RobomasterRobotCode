@@ -42,6 +42,7 @@
 #include "ahrs_ukf.h"
 #include "bsp_buzzer.h"
 #include "bsp_adc.h"
+#include "super_capacitance_control_task.h"
 
 
 #if PRINTF_MODE == RTT_MODE
@@ -97,7 +98,7 @@ void print_task(void const *argument) {
         vTaskDelay(pdMS_TO_TICKS(500));
         TickType_t LoopStartTime;
         while (1) {
-            DWT_update_task_time_us(&global_task_time.tim_print_task);
+            DWT_get_time_interval_us(&global_task_time.tim_print_task);
             LoopStartTime = xTaskGetTickCount();
             usb_printf(
                     "******************************\r\n\
@@ -136,7 +137,7 @@ referee usart:%s\r\n\
         vTaskDelay(pdMS_TO_TICKS(500));
         TickType_t LoopStartTime;
         while (1) {
-            DWT_update_task_time_us(&global_task_time.tim_print_task);
+            DWT_get_time_interval_us(&global_task_time.tim_print_task);
             LoopStartTime = xTaskGetTickCount();
 //            SEGGER_RTT_printf(0,"%f\r\n",get_temprate());
 //            SEGGER_RTT_printf(0,"%d\r\n",HAL_RCC_GetPCLK1Freq());
@@ -670,6 +671,11 @@ referee usart:%s\r\n\
 //                    rc_ctrl.rc.ch[3],
 //                    rc_ctrl.rc.ch[4]);
 //            SEGGER_RTT_WriteString(0, print_buf);
+            //超级电容数据
+//            SEGGER_RTT_SetTerminal(7);
+//            sprintf(print_buf, "target_power=%f\r\n",
+//                    super_capacitance_data.Target_Power);
+//            SEGGER_RTT_WriteString(0, print_buf);
 
 //            波形显示
             //pid累计数据
@@ -678,12 +684,12 @@ referee usart:%s\r\n\
 //                          &pid_pout_probe,
 //                          &pid_iout_probe,
 //                          &pid_dout_probe);
-            RTT_PrintWave(5,
-                          &gimbal_control.gimbal_yaw_motor.relative_angle_set,
-                          &gimbal_control.gimbal_yaw_motor.relative_angle,
-                          &gimbal_control.gimbal_yaw_motor.motor_gyro_set,
-                          &gimbal_control.gimbal_yaw_motor.motor_gyro,
-                          &gimbal_control.gimbal_yaw_motor.motor_speed);
+//            RTT_PrintWave(5,
+//                          &gimbal_control.gimbal_yaw_motor.relative_angle_set,
+//                          &gimbal_control.gimbal_yaw_motor.relative_angle,
+//                          &gimbal_control.gimbal_yaw_motor.motor_gyro_set,
+//                          &gimbal_control.gimbal_yaw_motor.motor_gyro,
+//                          &gimbal_control.gimbal_yaw_motor.motor_speed);
 //            RTT_PrintWave(5,
 //                          &gimbal_control.gimbal_yaw_motor.absolute_angle_set,
 //                          &gimbal_control.gimbal_yaw_motor.absolute_angle,

@@ -45,7 +45,7 @@ void test_task(void const *argument) {
     error_list_test_local = get_error_list_point();
     TickType_t LoopStartTime;
     while (1) {
-        DWT_update_task_time_us(&global_task_time.tim_test_task);
+        DWT_get_time_interval_us(&global_task_time.tim_test_task);
         LoopStartTime = xTaskGetTickCount();
         error = 0;
 

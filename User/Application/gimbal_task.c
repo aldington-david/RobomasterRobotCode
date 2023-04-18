@@ -26,29 +26,19 @@
   */
 
 
-
+#include "gimbal_task.h"
+#include "gimbal_behaviour.h"
 #include "main.h"
-
 #include "cmsis_os.h"
-
-#include "arm_math.h"
-#include "CAN_receive.h"
 #include "user_lib.h"
 #include "detect_task.h"
-#include "remote_control.h"
-#include "gimbal_behaviour.h"
 #include "INS_task.h"
 #include "shoot.h"
-#include "pid.h"
-#include "print_task.h"
-#include "SEGGER_RTT.h"
-#include "USER_Filter.h"
-#include "gimbal_task.h"
-#include "kalman_filter.h"
 #include "arm_math.h"
-#include "arm_const_structs.h"
 #include "global_control_define.h"
-#include "DWT.h"
+#include "PID_AutoTune.h"
+#include "user_lib.h"
+#include "pid_auto_tune_task.h"
 
 //motor enconde value format, range[0-8191]
 //电机编码值规整 0—8191
@@ -215,6 +205,22 @@ static void gimbal_relative_angle_limit(gimbal_motor_t *gimbal_motor, float32_t 
 static void gimbal_relative_angle_yaw_unlimit(gimbal_motor_t *gimbal_motor, float32_t add);
 
 /**
+  * @brief          pid自动调谐控制设定控制值
+  * @param[out]     gimbal_motor:yaw电机或者pitch电机
+  * @retval         none
+  */
+static void
+gimbal_pid_auto_tune_set(gimbal_motor_t *gimbal_motor, const volatile pid_auto_tune_t *pid_auto_tune, float32_t add);
+
+/**
+  * @brief          双环PID自动调谐控制，数据来自pid调谐任务，电流卡尔曼滤波可加可不加
+  * @param[out]     gimbal_motor:任意云台电机
+  * @retval         none
+  */
+static void
+gimbal_motor_pid_auto_tune_control(gimbal_motor_t *gimbal_motor, const volatile pid_auto_tune_t *pid_auto_tune);
+
+/**
   * @brief          gimbal angle pid init, because angle is in range(-pi,pi),can't use PID in pid.c
   * @param[out]     pid: pid data pointer stucture
   * @param[in]      maxout: pid max out
@@ -336,7 +342,7 @@ void gimbal_task(void const *pvParameters) {
 //    gimbal_control.gimbal_yaw_motor.offset_ecd = gimbal_control.gimbal_yaw_motor.gimbal_motor_measure->total_ecd;
 
     while (1) {
-        DWT_update_task_time_us(&global_task_time.tim_gimbal_task);
+        DWT_get_time_interval_us(&global_task_time.tim_gimbal_task);
         LoopStartTime = xTaskGetTickCount();
         gimbal_set_mode(&gimbal_control);                    //设置云台控制模式
         gimbal_mode_change_control_transit(&gimbal_control); //控制模式切换 控制数据过渡
@@ -371,6 +377,7 @@ void gimbal_task(void const *pvParameters) {
 //                gimbal_control.gimbal_yaw_motor.offset_ecd = gimbal_control.gimbal_yaw_motor.gimbal_motor_measure->total_ecd;
 
             } else {
+//                SEGGER_RTT_printf(0,"%d\r\n",yaw_can_set_current);
                 CAN2_cmd_0x1ff(pitch_can_set_current, 0, shoot_can_set_current, 0);
                 CAN1_cmd_0x1ff(yaw_can_set_current, 0, 0, 0);
                 CAN2_cmd_0x200(gimbal_control.fric1_give_current, 0, 0, gimbal_control.fric2_give_current);
@@ -789,10 +796,10 @@ static void gimbal_init(gimbal_control_t *init) {
 
 
     static const float32_t Pitch_speed_pid[3] = {2000.0f, 3.5f, 0.0f};
-    static const float32_t Yaw_speed_pid[3] = {6000.0f, 9.5f, 0.0f};
+    static const float32_t Yaw_speed_pid[3] = {913.6868f, 365.4747f, 0.0f};
 
     static const float32_t Yaw_absolute_angle_pid[3] = {6.89f, 0.0f, 200.0f};
-    static const float32_t Yaw_relative_angle_pid[3] = {10.59f, 0.0f, 1.0f};
+    static const float32_t Yaw_relative_angle_pid[3] = {11.1085f, 6.3475f, 4.86f};
     static const float32_t Pitch_absolute_angle_pid[3] = {15.89f, 0.0f, 200.0f};
     static const float32_t Pitch_relative_angle_pid[3] = {29.2f, 0.0f, 500.0f};
     //电机数据指针获取
@@ -805,6 +812,8 @@ static void gimbal_init(gimbal_control_t *init) {
     init->gimbal_rc_ctrl = get_remote_control_point();
     //视觉数据指针获取
     init->gimbal_vision_ctrl = get_vision_control_point();
+    //pid调谐数据指针获取
+    init->pid_auto_tune_data_point = get_pid_auto_tune_data_point();
     //初始化电机模式
     init->gimbal_yaw_motor.gimbal_motor_mode = init->gimbal_yaw_motor.last_gimbal_motor_mode = GIMBAL_MOTOR_RAW;
     init->gimbal_pitch_motor.gimbal_motor_mode = init->gimbal_pitch_motor.last_gimbal_motor_mode = GIMBAL_MOTOR_RAW;
@@ -1089,6 +1098,8 @@ static void gimbal_set_control(gimbal_control_t *set_control) {
     if (set_control->gimbal_yaw_motor.gimbal_motor_mode == GIMBAL_MOTOR_RAW) {
         //raw模式下，直接发送控制值
         set_control->gimbal_yaw_motor.raw_cmd_current = add_yaw_angle;
+    } else if (set_control->gimbal_yaw_motor.gimbal_motor_mode == GIMBAL_MOTOR_PID_AUTO_TUNE) {
+        gimbal_pid_auto_tune_set(&set_control->gimbal_yaw_motor, set_control->pid_auto_tune_data_point, add_yaw_angle);
     } else if (set_control->gimbal_yaw_motor.gimbal_motor_mode == GIMBAL_MOTOR_GYRO) {
         //gyro模式下，陀螺仪角度控制
         if (YAW_LIMIT == YAW_HAVE_LIMIT) {
@@ -1109,6 +1120,9 @@ static void gimbal_set_control(gimbal_control_t *set_control) {
     if (set_control->gimbal_pitch_motor.gimbal_motor_mode == GIMBAL_MOTOR_RAW) {
         //raw模式下，直接发送控制值
         set_control->gimbal_pitch_motor.raw_cmd_current = add_pitch_angle;
+    } else if (set_control->gimbal_pitch_motor.gimbal_motor_mode == GIMBAL_MOTOR_PID_AUTO_TUNE) {
+        gimbal_pid_auto_tune_set(&set_control->gimbal_pitch_motor, set_control->pid_auto_tune_data_point,
+                                 add_pitch_angle);
     } else if (set_control->gimbal_pitch_motor.gimbal_motor_mode == GIMBAL_MOTOR_GYRO) {
         //gyro模式下，陀螺仪角度控制
         gimbal_absolute_angle_limit(&set_control->gimbal_pitch_motor, add_pitch_angle);
@@ -1251,6 +1265,25 @@ static void gimbal_relative_angle_yaw_unlimit(gimbal_motor_t *gimbal_motor, floa
 //    }
 }
 
+/**
+  * @brief          pid自动调谐控制
+  * @param[out]     gimbal_motor:yaw电机或者pitch电机
+  * @retval         none
+  */
+static void
+gimbal_pid_auto_tune_set(gimbal_motor_t *gimbal_motor, const volatile pid_auto_tune_t *pid_auto_tune, float32_t add) {
+    if (gimbal_motor == NULL) {
+        return;
+    }
+    if (pid_auto_tune->tune_type == ANGLE_TO_SPEED) {
+        gimbal_motor->
+                motor_gyro_set = add;
+    } else if (pid_auto_tune->tune_type == SPEED_TO_CURRENT) {
+        gimbal_motor->
+                raw_cmd_current = add;
+    }
+}
+
 
 /**
   * @brief          control loop, according to control set-point, calculate motor current, 
@@ -1270,6 +1303,8 @@ static void gimbal_control_loop(gimbal_control_t *control_loop) {
 
     if (control_loop->gimbal_yaw_motor.gimbal_motor_mode == GIMBAL_MOTOR_RAW) {
         gimbal_motor_raw_angle_control(&control_loop->gimbal_yaw_motor);
+    } else if (control_loop->gimbal_yaw_motor.gimbal_motor_mode == GIMBAL_MOTOR_PID_AUTO_TUNE) {
+        gimbal_motor_pid_auto_tune_control(&control_loop->gimbal_yaw_motor, control_loop->pid_auto_tune_data_point);
     } else if (control_loop->gimbal_yaw_motor.gimbal_motor_mode == GIMBAL_MOTOR_GYRO) {
         gimbal_motor_absolute_angle_control(&control_loop->gimbal_yaw_motor);
     } else if (control_loop->gimbal_yaw_motor.gimbal_motor_mode == GIMBAL_MOTOR_ENCONDE) {
@@ -1278,6 +1313,8 @@ static void gimbal_control_loop(gimbal_control_t *control_loop) {
 
     if (control_loop->gimbal_pitch_motor.gimbal_motor_mode == GIMBAL_MOTOR_RAW) {
         gimbal_motor_raw_angle_control(&control_loop->gimbal_pitch_motor);
+    } else if (control_loop->gimbal_pitch_motor.gimbal_motor_mode == GIMBAL_MOTOR_PID_AUTO_TUNE) {
+        gimbal_motor_pid_auto_tune_control(&control_loop->gimbal_pitch_motor, control_loop->pid_auto_tune_data_point);
     } else if (control_loop->gimbal_pitch_motor.gimbal_motor_mode == GIMBAL_MOTOR_GYRO) {
         gimbal_motor_absolute_angle_control(&control_loop->gimbal_pitch_motor);
     } else if (control_loop->gimbal_pitch_motor.gimbal_motor_mode == GIMBAL_MOTOR_ENCONDE) {
@@ -1396,7 +1433,38 @@ static void gimbal_motor_raw_angle_control(gimbal_motor_t *gimbal_motor) {
         return;
     }
     gimbal_motor->current_set = gimbal_motor->raw_cmd_current;
+    LimitMax(gimbal_motor->current_set, MAX_6020_MOTOR_CAN_CURRENT);
     gimbal_motor->given_current = (int16_t) (gimbal_motor->current_set);
+}
+
+/**
+  * @brief          双环PID自动调谐控制，数据来自pid调谐任务，电流卡尔曼滤波可加可不加
+  * @param[out]     gimbal_motor:任意云台电机
+  * @retval         none
+  */
+static void
+gimbal_motor_pid_auto_tune_control(gimbal_motor_t *gimbal_motor, const volatile pid_auto_tune_t *pid_auto_tune) {
+    if (gimbal_motor == NULL) {
+        return;
+    }
+//gimbal_motor->motor_gyro_set由PID调谐任务指定
+    if (pid_auto_tune->tune_type == ANGLE_TO_SPEED) {
+        gimbal_motor->
+                current_set = ALL_PID(&gimbal_motor->gimbal_motor_gyro_pid, -gimbal_motor->motor_speed,
+                                      gimbal_motor->motor_gyro_set);
+    } else if (pid_auto_tune->tune_type == SPEED_TO_CURRENT) {
+//        gimbal_motor->motor_gyro_set = ALL_PID(&gimbal_motor->gimbal_motor_relative_angle_pid,
+//                                               gimbal_motor->relative_angle, gimbal_motor->relative_angle_set);
+        gimbal_motor->
+                current_set = gimbal_motor->raw_cmd_current;
+    }
+
+    gimbal_motor->
+            current_set = KalmanFilter(&gimbal_motor->Cloud_Motor_Current_Kalman_Filter,
+                                       gimbal_motor->current_set);
+
+    gimbal_motor->
+            given_current = (int16_t) (gimbal_motor->current_set);
 }
 
 /**
@@ -1474,11 +1542,13 @@ void gimbal_offset_ecd_cali(gimbal_control_t *init) {
         HALF_ECD_RANGE) {
         if (init->gimbal_yaw_motor.offset_ecd < init->gimbal_yaw_motor.gimbal_motor_measure->total_ecd) {
             init->gimbal_yaw_motor.offset_ecd +=
-                    ((labs(init->gimbal_yaw_motor.gimbal_motor_measure->total_ecd - init->gimbal_yaw_motor.offset_ecd) /
+                    ((labs(init->gimbal_yaw_motor.gimbal_motor_measure->total_ecd -
+                           init->gimbal_yaw_motor.offset_ecd) /
                       8192) + 1) * 8192;
         } else if (init->gimbal_yaw_motor.offset_ecd > init->gimbal_yaw_motor.gimbal_motor_measure->total_ecd) {
             init->gimbal_yaw_motor.offset_ecd -=
-                    ((labs(init->gimbal_yaw_motor.gimbal_motor_measure->total_ecd - init->gimbal_yaw_motor.offset_ecd) /
+                    ((labs(init->gimbal_yaw_motor.gimbal_motor_measure->total_ecd -
+                           init->gimbal_yaw_motor.offset_ecd) /
                       8192) + 1) * 8192;
         }
     }

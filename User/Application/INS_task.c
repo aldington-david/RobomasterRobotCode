@@ -192,7 +192,7 @@ void INS_task(void const *pvParameters) {
     memset(&gyro_in, 0x00, sizeof(gyro_in));
     TickType_t LoopStartTime;
     while (1) {
-        DWT_update_task_time_us(&global_task_time.tim_INS_task);
+        DWT_get_time_interval_us(&global_task_time.tim_INS_task);
         LoopStartTime = xTaskGetTickCount();
         //wait spi DMA tansmit done
         //等待SPI DMA传输
@@ -210,14 +210,14 @@ void INS_task(void const *pvParameters) {
             (mag_update_flag & (1 << IMU_MAG_UPDATE_SHFITS))) {
             gyro_update_flag &= ~(1 << IMU_MAG_NOTIFY_SHFITS);
             BMI088_gyro_read_over(gyro_dma_rx_buf + BMI088_GYRO_RX_BUF_DATA_OFFSET, bmi088_real_data.gyro);
-            DWT_update_task_time_us(&IMU_time_record.gyro);
+            DWT_get_time_interval_us(&IMU_time_record.gyro);
             accel_update_flag &= ~(1 << IMU_MAG_UPDATE_SHFITS);
             BMI088_accel_read_over(accel_dma_rx_buf + BMI088_ACCEL_RX_BUF_DATA_OFFSET, bmi088_real_data.accel,
                                    &bmi088_real_data.time);
-            DWT_update_task_time_us(&IMU_time_record.accel);
+            DWT_get_time_interval_us(&IMU_time_record.accel);
             mag_update_flag &= ~(1 << IMU_MAG_UPDATE_SHFITS);
             ist8310_read_over(mag_dma_rx_buf, ist8310_real_data.mag);
-            DWT_update_task_time_us(&IMU_time_record.mag);
+            DWT_get_time_interval_us(&IMU_time_record.mag);
             imu_mag_rotate(INS_gyro, INS_accel, INS_mag, &bmi088_real_data, &ist8310_real_data);
             imu_mag_cali(INS_gyro, INS_accel, INS_mag, INS_gyro_cali, INS_accel_cali, INS_mag_cali);
             if (fifo_s_free(&mag_data_tx_fifo)) {

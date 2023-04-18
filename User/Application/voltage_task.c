@@ -56,7 +56,7 @@ void battery_voltage_task(void const *argument) {
     init_vrefint_reciprocal();
     TickType_t LoopStartTime;
     while (1) {
-        DWT_update_task_time_us(&global_task_time.tim_battery_voltage_task);
+        DWT_get_time_interval_us(&global_task_time.tim_battery_voltage_task);
         LoopStartTime = xTaskGetTickCount();
         battery_voltage = get_battery_voltage() + VOLTAGE_DROP;
         electricity_percentage = calc_battery_percentage(battery_voltage);

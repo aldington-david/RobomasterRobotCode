@@ -96,7 +96,7 @@ void detect_task(void const *pvParameters) {
     vTaskDelay(pdMS_TO_TICKS(DETECT_TASK_INIT_TIME));
     TickType_t LoopStartTime;
     while (1) {
-        DWT_update_task_time_us(&global_task_time.tim_detect_task);
+        DWT_get_time_interval_us(&global_task_time.tim_detect_task);
         LoopStartTime = xTaskGetTickCount();
         static uint8_t error_num_display = 0;
         system_time = xTaskGetTickCount();

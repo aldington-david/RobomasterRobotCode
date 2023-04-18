@@ -83,16 +83,17 @@
 #define TRIGGER_ANGLE_PID_KD        250.0f
 
 #define TRIGGER_BULLET_PID_MAX_OUT  10000.0f
-#define TRIGGER_BULLET_PID_MAX_IOUT 9000.0f
+#define TRIGGER_BULLET_PID_MAX_IOUT 5000.0f
 
-#define TRIGGER_READY_PID_MAX_OUT   150000.0f
-#define TRIGGER_READY_PID_MAX_IOUT  70000.0f
+#define TRIGGER_READY_PID_MAX_OUT   16000.0f
+#define TRIGGER_READY_PID_MAX_IOUT  8000.0f
 
 
 #define SHOOT_HEAT_REMAIN_VALUE     80
 
 typedef enum {
     SHOOT_STOP = 0,
+    SHOOT_PID_AUTO_TUNE,
     SHOOT_START,
     SHOOT_READY,
     SHOOT_BULLET,
@@ -104,6 +105,7 @@ typedef enum {
 typedef struct {
     shoot_mode_e shoot_mode;
     const volatile RC_ctrl_t *shoot_rc;
+    const volatile pid_auto_tune_t *pid_auto_tune_data_point;
     const motor_measure_t *shoot_motor_measure;
 
     const motor_measure_t *fric1_motor_measure;

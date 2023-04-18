@@ -69,7 +69,7 @@ motor data,  0:chassis motor1 3508;1:chassis motor3 3508;2:chassis motor3 3508;3
 4:yaw云台电机 6020电机; 5:pitch云台电机 6020电机; 6:拨弹电机 2006电机*/
 static motor_measure_t can1_motor_data[7];
 static motor_measure_t can2_motor_data[7];
-static super_capacitance_measure_t super_capacitance_data;
+super_capacitance_measure_t super_capacitance_data;
 
 static CAN_TxHeaderTypeDef can_tx_message;
 static uint8_t can_send_data[8];
@@ -104,7 +104,7 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan) {
                 break;
             }
 
-            case CAN_SUPER_CAPACITANCE_ID: {
+            case CAN_SUPER_CAPACITANCE_RECEIVE_ID: {
                 get_super_capacitance_measure(&super_capacitance_data, rx_data);
                 detect_hook(SUPER_CAPACITANCE_TOE);
                 break;
@@ -276,7 +276,7 @@ void CAN1_cmd_0x200(int16_t ID1, int16_t ID2, int16_t ID3, int16_t ID4) {
   */
 void CAN1_cmd_0x210(uint16_t Power) {
     uint32_t send_mail_box;
-    can_tx_message.StdId = CAN_SUPER_CAPACITANCE_ID;
+    can_tx_message.StdId = CAN_SUPER_CAPACITANCE_SENT_ID;
     can_tx_message.IDE = CAN_ID_STD;
     can_tx_message.RTR = CAN_RTR_DATA;
     can_tx_message.DLC = 0x08;

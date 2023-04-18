@@ -30,20 +30,29 @@
 #define YAW_MOTOR_REDUCTION 1.0f
 /************ Self Data define End*******************/
 
+/************ PID Auto Tune Start *******************/
+#define OFF    0
+#define ON     1
+#define PID_AUTO_TUNE  OFF
+
+/************ PID Auto Tune End *******************/
+
 /************ Init To Offset Start*******************/
-#define PITCH_INIT  1
-#define YAW_INIT    1
-
-#define INIT_ONLY_FIRST_TIME 1
-
 #define NO_INIT    0
 #define INIT    1
+
+#define PITCH_INIT  INIT
+#define YAW_INIT    INIT
+
+#define INIT_ONLY_FIRST_TIME 1
 /************ Init To Offset End*******************/
 
 /************ Motor turn define Start*******************/
-#define PITCH_TURN  0
-#define YAW_TURN    1
-#define SHOOT_TRIGGER_TURN    0
+#define NO_TURN    0
+#define TURN    1
+#define PITCH_TURN  NO_TURN
+#define YAW_TURN    TURN
+#define SHOOT_TRIGGER_TURN    NO_TURN
 /************ Motor turn define End*******************/
 
 /************ Choose Print Mode Start*******************/
@@ -145,6 +154,10 @@
 
 #if !defined(YAW_LIMIT_TURN)
 #error "You mast define YAW_LIMIT_TURN to limit yaw turn cnt"
+#endif
+
+#if !defined(PID_AUTO_TUNE)
+#error "You mast define PID_AUTO_TUNE to choose if let pid auto tune or not"
 #endif
 
 #if __CC_ARM

@@ -89,8 +89,8 @@
 #define CHASSIS_CONTROL_FREQUENCE 1000.0f
 //chassis 3508 max motor control current
 //底盘3508最大can发送电流值
-#define MAX_MOTOR_CAN_CURRENT 16000.0f
-//#define MAX_MOTOR_CAN_CURRENT 8000.0f
+#define MAX_3508_MOTOR_CAN_CURRENT 16000.0f
+//#define MAX_3508_MOTOR_CAN_CURRENT 8000.0f
 //press the key, chassis will swing
 //底盘摇摆按键
 //#define SWING_KEY KEY_PRESSED_OFFSET_CTRL
@@ -134,7 +134,7 @@
 #define M3505_MOTOR_SPEED_PID_KP 8000.0f
 #define M3505_MOTOR_SPEED_PID_KI 10.0f
 #define M3505_MOTOR_SPEED_PID_KD 0.0f
-#define M3505_MOTOR_SPEED_PID_MAX_OUT MAX_MOTOR_CAN_CURRENT
+#define M3505_MOTOR_SPEED_PID_MAX_OUT MAX_3508_MOTOR_CAN_CURRENT
 #define M3505_MOTOR_SPEED_PID_MAX_IOUT 2000.0f
 
 //chassis follow angle PID
@@ -150,6 +150,7 @@ typedef enum {
     CHASSIS_VECTOR_FOLLOW_GIMBAL_YAW,  //chassis will have yaw angle(chassis_yaw) close-looped control.底盘有底盘角度控制闭环
     CHASSIS_VECTOR_NO_FOLLOW_YAW,       //chassis will have rotation speed control. 底盘有旋转速度控制
     CHASSIS_VECTOR_RAW,                 //control-current will be sent to CAN bus derectly.
+    CHASSIS_VECTOR_PID_AUTO_TUNE,
     CHASSIS_NOT_MOVE,
 
 } chassis_mode_e;
@@ -167,6 +168,7 @@ typedef struct {
     const gimbal_motor_t *chassis_yaw_motor;   //will use the relative angle of yaw gimbal motor to calculate the euler angle.底盘使用到yaw云台电机的相对角度来计算底盘的欧拉角.
     const gimbal_motor_t *chassis_pitch_motor; //will use the relative angle of pitch gimbal motor to calculate the euler angle.底盘使用到pitch云台电机的相对角度来计算底盘的欧拉角
     const float32_t *chassis_INS_angle;             //the point to the euler angle of gyro sensor.获取陀螺仪解算出的欧拉角指针
+    const volatile pid_auto_tune_t *pid_auto_tune_data_point;
 
     bool_t chassis_follow_reverse_flag;
     chassis_mode_e chassis_mode;               //state machine. 底盘控制状态机

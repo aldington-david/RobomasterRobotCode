@@ -30,6 +30,7 @@ typedef struct {
     time_record_struct tim_battery_voltage_task;
     time_record_struct tim_led_RGB_flow_task;
     time_record_struct tim_super_capacitance_control_task;
+    time_record_struct tim_pid_auto_tune_task;
 } task_time_record_t;
 
 typedef struct {
@@ -46,6 +47,6 @@ extern void DWT_stop(void);
 
 extern uint32_t DWT_get_tick(void);
 
-extern void DWT_update_task_time_us(time_record_struct *task_time);
+extern void DWT_get_time_interval_us(time_record_struct *task_time);
 
 #endif //ROBOMASTERROBOTCODE_DWT_H

@@ -48,7 +48,7 @@ void matlab_sync_task(void const *argument) {
     matlab_tx_task_local_handler = xTaskGetCurrentTaskHandle();
 //    TickType_t LoopStartTime;
     while (1) {
-        DWT_update_task_time_us(&global_task_time.tim_matlab_sync_task);
+        DWT_get_time_interval_us(&global_task_time.tim_matlab_sync_task);
         while (ulTaskNotifyTake(pdTRUE, portMAX_DELAY) != pdPASS) {
         }
 //#if INCLUDE_uxTaskGetStackHighWaterMark

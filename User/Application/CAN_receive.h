@@ -23,6 +23,7 @@
 
 #include <stdint.h>
 #include <stdbool.h>
+#include "super_capacitance_control_task.h"
 
 
 /* CAN send and receive ID */
@@ -35,7 +36,8 @@ typedef enum {
 
     CAN_YAW_MOTOR_ID = 0x205,
 
-    CAN_SUPER_CAPACITANCE_ID= 0x210,
+    CAN_SUPER_CAPACITANCE_SENT_ID= 0x210,
+    CAN_SUPER_CAPACITANCE_RECEIVE_ID= 0x211,
 
     CAN_PITCH_MOTOR_ID = 0x205,
     CAN_TRIGGER_MOTOR_ID = 0x207,
@@ -55,6 +57,7 @@ typedef struct {
     bool init_flag;
 } motor_measure_t;
 
+extern super_capacitance_measure_t super_capacitance_data;
 
 /**
   * @brief          send control current of motor (0x205, 0x206, 0x207, 0x208)

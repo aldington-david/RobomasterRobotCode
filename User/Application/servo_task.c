@@ -54,7 +54,7 @@ void servo_task(void const *argument) {
     servo_rc = get_remote_control_point();
     TickType_t LoopStartTime;
     while (1) {
-        DWT_update_task_time_us(&global_task_time.tim_referee_rx_task);
+        DWT_get_time_interval_us(&global_task_time.tim_referee_rx_task);
         LoopStartTime = xTaskGetTickCount();
         if (toe_is_error(DBUS_TOE)) {
             for (uint8_t i = 0; i < 7; i++) {
