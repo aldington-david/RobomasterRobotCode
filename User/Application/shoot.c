@@ -264,7 +264,7 @@ static void shoot_set_mode(void) {
         shoot_control.shoot_mode = SHOOT_PID_AUTO_TUNE;
         return;
     }
-    SEGGER_RTT_printf(0,"set=%d\r\n",shoot_control.shoot_speed_referee_set);
+//    SEGGER_RTT_printf(0,"set=%d\r\n",shoot_control.shoot_speed_referee_set);
     if (shoot_control.shoot_speed_referee_set == SHOOT_SPEED_30_MS) {
         shoot_control.fric_all_speed = SHOOT_SPEED_30_MS_TO_FRIC;
     } else if (shoot_control.shoot_speed_referee_set == SHOOT_SPEED_18_MS) {
@@ -355,36 +355,48 @@ static void shoot_set_mode(void) {
     }
 
     if (shoot_control.shoot_mode == SHOOT_READY) {
-        //下拨一次或者鼠标按下一次，进入射击状态
-        if ((switch_is_down(shoot_control.shoot_rc->rc.s[RADIO_CONTROL_SWITCH_L]) &&
-             switch_is_down(shoot_control.shoot_rc->rc.s[RADIO_CONTROL_SWITCH_R]) && !switch_is_down(last_s)) ||
-            (shoot_control.press_l && shoot_control.last_press_l == 0)) {
-            shoot_control.shoot_mode = SHOOT_BULLET;
+        if (!toe_is_error(REFEREE_RX_TOE)) {
+            if ((global_judge_info.GameRobotStatus.shooter_id1_17mm_cooling_limit -
+                 global_judge_info.PowerHeatData.shooter_id1_17mm_cooling_heat) >= 10) {
+                //下拨一次或者鼠标按下一次，进入射击状态
+                if ((switch_is_down(shoot_control.shoot_rc->rc.s[RADIO_CONTROL_SWITCH_L]) &&
+                     switch_is_down(shoot_control.shoot_rc->rc.s[RADIO_CONTROL_SWITCH_R]) && !switch_is_down(last_s)) ||
+                    (shoot_control.press_l && shoot_control.last_press_l == 0)) {
+                    shoot_control.shoot_mode = SHOOT_BULLET;
+                }
+            }
+        } else {
+            //下拨一次或者鼠标按下一次，进入射击状态
+            if ((switch_is_down(shoot_control.shoot_rc->rc.s[RADIO_CONTROL_SWITCH_L]) &&
+                 switch_is_down(shoot_control.shoot_rc->rc.s[RADIO_CONTROL_SWITCH_R]) && !switch_is_down(last_s)) ||
+                (shoot_control.press_l && shoot_control.last_press_l == 0)) {
+                shoot_control.shoot_mode = SHOOT_BULLET;
+            }
         }
     } else if (shoot_control.shoot_mode == SHOOT_DONE) {
         shoot_control.shoot_mode = SHOOT_READY;
     }
-//    else if (shoot_control.shoot_mode == SHOOT_DONE) {
-//        if (shoot_control.key == SWITCH_TRIGGER_OFF) {
-//            shoot_control.key_time++;
-//            if (shoot_control.key_time > SHOOT_DONE_KEY_OFF_TIME) {
-//                shoot_control.key_time = 0;
-//                shoot_control.shoot_mode = SHOOT_READY_BULLET;
-//            }
-//        } else {
-//            shoot_control.key_time = 0;
-//            shoot_control.shoot_mode = SHOOT_BULLET;
-//        }
-//    }
-
 
     if (shoot_control.shoot_mode > SHOOT_START) {
-        //鼠标长按一直进入射击状态 保持连发
-        if ((shoot_control.press_l_time == PRESS_LONG_TIME) ||
-            (shoot_control.rc_s_time == RC_S_LONG_TIME)) {
-            shoot_control.shoot_mode = SHOOT_CONTINUE_BULLET;
-        } else if (shoot_control.shoot_mode == SHOOT_CONTINUE_BULLET) {
-            shoot_control.shoot_mode = SHOOT_READY;
+        if (!toe_is_error(REFEREE_RX_TOE)) {
+            if ((global_judge_info.GameRobotStatus.shooter_id1_17mm_cooling_limit -
+                 global_judge_info.PowerHeatData.shooter_id1_17mm_cooling_heat) >= 10) {
+                //鼠标长按一直进入射击状态 保持连发
+                if ((shoot_control.press_l_time == PRESS_LONG_TIME) ||
+                    (shoot_control.rc_s_time == RC_S_LONG_TIME)) {
+                    shoot_control.shoot_mode = SHOOT_CONTINUE_BULLET;
+                } else if (shoot_control.shoot_mode == SHOOT_CONTINUE_BULLET) {
+                    shoot_control.shoot_mode = SHOOT_READY;
+                }
+            }
+        } else {
+            //鼠标长按一直进入射击状态 保持连发
+            if ((shoot_control.press_l_time == PRESS_LONG_TIME) ||
+                (shoot_control.rc_s_time == RC_S_LONG_TIME)) {
+                shoot_control.shoot_mode = SHOOT_CONTINUE_BULLET;
+            } else if (shoot_control.shoot_mode == SHOOT_CONTINUE_BULLET) {
+                shoot_control.shoot_mode = SHOOT_READY;
+            }
         }
     }
 //for_test 枪口热量 服务器 屏蔽
