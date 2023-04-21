@@ -306,9 +306,7 @@ void gimbal_task(void const *pvParameters) {
 
             } else {
 //                SEGGER_RTT_printf(0,"%d\r\n",yaw_can_set_current);
-                CAN2_cmd_0x1ff(pitch_can_set_current, 0, shoot_can_set_current, 0);
-                CAN1_cmd_0x1ff(yaw_can_set_current, 0, 0, 0);
-                CAN2_cmd_0x200(gimbal_control.fric1_give_current, 0, 0, gimbal_control.fric2_give_current);
+//                CAN2_cmd_0x1ff(yaw_can_set_current, pitch_can_set_current, shoot_can_set_current, 0);
             }
         }
 
@@ -986,7 +984,7 @@ static void gimbal_mode_change_control_transit(gimbal_control_t *gimbal_mode_cha
                gimbal_mode_change->gimbal_yaw_motor.gimbal_motor_mode == GIMBAL_MOTOR_ENCONDE) {
         gimbal_mode_change->gimbal_yaw_motor.relative_angle_set = gimbal_mode_change->gimbal_yaw_motor.relative_angle;
     }
-    if(chassis_mode_change_flag){
+    if (chassis_mode_change_flag) {
         gimbal_mode_change->gimbal_yaw_motor.absolute_angle_set = gimbal_mode_change->gimbal_yaw_motor.absolute_angle;
         chassis_mode_change_flag = 0;
     }

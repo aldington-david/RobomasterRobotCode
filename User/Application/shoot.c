@@ -87,8 +87,8 @@ void shoot_init(void) {
 
     static const float32_t Trigger_speed_pid[3] = {TRIGGER_SPEED_PID_KP, TRIGGER_SPEED_PID_KI, TRIGGER_SPEED_PID_KD};
     static const float32_t Trigger_angle_pid[3] = {TRIGGER_ANGLE_PID_KP, TRIGGER_ANGLE_PID_KI, TRIGGER_ANGLE_PID_KD};
-    static const float32_t fric1_speed_pid[3] = {500, 0, 0};
-    static const float32_t fric2_speed_pid[3] = {500, 0, 0};
+//    static const fp32 fric1_speed_pid[3] = {230, 0, 0};
+//    static const fp32 fric2_speed_pid[3] = {230, 0, 0};
     shoot_control.shoot_mode = SHOOT_STOP;
     //遥控器指针
     shoot_control.shoot_rc = get_remote_control_point();
@@ -97,26 +97,28 @@ void shoot_init(void) {
 
     //电机指针
     shoot_control.shoot_motor_measure = get_trigger_motor_measure_point();
-    shoot_control.fric1_motor_measure = get_trigger_motor1_measure_point();
-    shoot_control.fric2_motor_measure = get_trigger_motor2_measure_point();
+//    shoot_control.fric1_motor_measure = get_trigger_motor1_measure_point();
+//    shoot_control.fric2_motor_measure = get_trigger_motor2_measure_point();
 
     //初始化PID
     PID_init(&shoot_control.trigger_motor_speed_pid, PID_POSITION, Trigger_speed_pid, TRIGGER_READY_PID_MAX_OUT,
              TRIGGER_READY_PID_MAX_IOUT, 1000, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
     PID_init(&shoot_control.trigger_motor_angle_pid, PID_POSITION, Trigger_angle_pid, CONTINUE_TRIGGER_SPEED_MAX,
              CONTINUE_TRIGGER_SPEED_MAX / 2, 1000, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
-    PID_init(&shoot_control.fric1_motor_pid, PID_POSITION, fric1_speed_pid, TRIGGER_READY_PID_MAX_OUT,
-             TRIGGER_READY_PID_MAX_IOUT, 1000, 0, 0, 0, 0, 0, 1, 0.003f, 0, 0, 0, 0, 0);
-    PID_init(&shoot_control.fric2_motor_pid, PID_POSITION, fric2_speed_pid, TRIGGER_READY_PID_MAX_OUT,
-             TRIGGER_READY_PID_MAX_IOUT, 1000, 0, 0, 0, 0, 0, 1, 0.003f, 0, 0, 0, 0, 0);
+//    PID_init(&shoot_control.fric1_motor_pid, PID_POSITION, fric1_speed_pid, TRIGGER_READY_PID_MAX_OUT,
+//             TRIGGER_READY_PID_MAX_IOUT, 100, 0, 0, 0, 0, 0, 1, 0, 0, 0);
+//    PID_init(&shoot_control.fric2_motor_pid, PID_POSITION, fric2_speed_pid, TRIGGER_READY_PID_MAX_OUT,
+//             TRIGGER_READY_PID_MAX_IOUT, 100, 0, 0, 0, 0, 0, 1, 0, 0, 0);
+//    first_order_filter_init(&shoot_control.fric2_motor_pid.D_Low_Pass_Filter, 0.001, 0.3);
+//    first_order_filter_init(&shoot_control.fric2_motor_pid.D_Low_Pass_Filter, 0.001, 0.3);
 //    shoot_control.pwm = SHOOT_FRIC_PWM_ADD_VALUE;
     KalmanCreate(&shoot_control.Trigger_Motor_Current_Kalman_Filter, 10.0f, 0.5f);
     //更新数据
     shoot_feedback_update();
-//    ramp_init(&shoot_control.fric1_ramp, SHOOT_CONTROL_TIME * 0.001f, FRIC_DOWN_PWM, FRIC_OFF_PWM);
-//    ramp_init(&shoot_control.fric2_ramp, SHOOT_CONTROL_TIME * 0.001f, FRIC_DOWN_PWM, FRIC_OFF_PWM);
-//    shoot_control.fric_pwm1 = FRIC_OFF_PWM;
-//    shoot_control.fric_pwm2 = FRIC_OFF_PWM;
+    ramp_init(&shoot_control.fric1_ramp, SHOOT_CONTROL_TIME * 0.001f, FRIC_DOWN_PWM, FRIC_OFF_PWM);
+    ramp_init(&shoot_control.fric2_ramp, SHOOT_CONTROL_TIME * 0.001f, FRIC_DOWN_PWM, FRIC_OFF_PWM);
+    shoot_control.fric_pwm1 = FRIC_OFF_PWM;
+    shoot_control.fric_pwm2 = FRIC_OFF_PWM;
     shoot_control.ecd_count = 0;
     shoot_control.angle = shoot_control.shoot_motor_measure->ecd * MOTOR_ECD_TO_ANGLE;
     shoot_control.given_current = 0;
@@ -125,13 +127,14 @@ void shoot_init(void) {
     shoot_control.speed = 0.0f;
     shoot_control.speed_set = 0.0f;
     shoot_control.key_time = 0;
-    shoot_control.fric1_speed = 0.0f;
-    shoot_control.fric2_speed = 0.0f;
+//    shoot_control.fric1_speed = 0.0f;
+//    shoot_control.fric2_speed = 0.0f;
     shoot_control.shoot_speed_referee_set = SHOOT_SPEED_15_MS;
-    shoot_control.fric_all_speed = SHOOT_SPEED_15_MS_TO_FRIC;
-    shoot_control.fric1_speed_set = shoot_control.fric_all_speed;
-    shoot_control.fric2_speed_set = -shoot_control.fric_all_speed;
+//    shoot_control.fric_all_speed = SHOOT_SPEED_15_MS_TO_FRIC;
+//    shoot_control.fric1_speed_set = shoot_control.fric_all_speed;
+//    shoot_control.fric2_speed_set = -shoot_control.fric_all_speed;
     shoot_control.shoot_fric_state = FRIC_OFF;
+//    shoot_fric_off();
 #if SHOOT_TRIGGER_TURN
     shoot_control.trigger_speed_set = -CONTINUE_TRIGGER_SPEED;
 #else
@@ -160,7 +163,6 @@ int16_t shoot_control_loop(void) {
         //设置拨弹轮的速度
         shoot_control.speed_set = 0.0f;
     } else if (shoot_control.shoot_mode == SHOOT_BULLET) {
-//        shoot_control.angle_set = shoot_control.angle;
         shoot_control.trigger_motor_speed_pid.max_out = TRIGGER_BULLET_PID_MAX_OUT;
         shoot_control.trigger_motor_speed_pid.max_iout = TRIGGER_BULLET_PID_MAX_IOUT;
         shoot_bullet_control();
@@ -197,21 +199,21 @@ int16_t shoot_control_loop(void) {
             shoot_control.given_current = 0;
             shoot_control.angle_set = shoot_control.angle;
 //        //摩擦轮需要一个个斜波开启，不能同时直接开启，否则可能电机不转
-//        ramp_calc(&shoot_control.fric1_ramp, -shoot_control.pwm);
-//        ramp_calc(&shoot_control.fric2_ramp, -shoot_control.pwm);
-            gimbal_control.fric1_current_set = 0;
-            gimbal_control.fric2_current_set = 0;
-            gimbal_control.fric1_give_current = 0;
-            gimbal_control.fric2_give_current = 0;
-            shoot_control.fric1_speed_set = 0;
-            shoot_control.fric2_speed_set = 0;
+        ramp_calc(&shoot_control.fric1_ramp, -shoot_control.pwm);
+        ramp_calc(&shoot_control.fric2_ramp, -shoot_control.pwm);
+//            gimbal_control.fric1_current_set = 0;
+//            gimbal_control.fric2_current_set = 0;
+//            gimbal_control.fric1_give_current = 0;
+//            gimbal_control.fric2_give_current = 0;
+//            shoot_control.fric1_speed_set = 0;
+//            shoot_control.fric2_speed_set = 0;
             shoot_control.block_time = 0;
             shoot_control.reverse_time = 0;
 
 
         } else {
-            shoot_control.fric1_speed_set = shoot_control.fric_all_speed;
-            shoot_control.fric2_speed_set = -shoot_control.fric_all_speed;
+//            shoot_control.fric1_speed_set = shoot_control.fric_all_speed;
+//            shoot_control.fric2_speed_set = -shoot_control.fric_all_speed;
             shoot_laser_on(); //激光开启
             //计算拨弹轮电机PID
             if (shoot_control.shoot_mode != SHOOT_CONTINUE_BULLET) {
@@ -229,24 +231,24 @@ int16_t shoot_control_loop(void) {
                 shoot_control.angle_set = shoot_control.angle;
             }
 //        //摩擦轮需要一个个斜波开启，不能同时直接开启，否则可能电机不转
-//        ramp_calc(&shoot_control.fric1_ramp, shoot_control.pwm);
-//        ramp_calc(&shoot_control.fric2_ramp, shoot_control.pwm);
+        ramp_calc(&shoot_control.fric1_ramp, shoot_control.pwm);
+        ramp_calc(&shoot_control.fric2_ramp, shoot_control.pwm);
 //        gimbal_control.fric1_current_set = Cloud_IPID(&shoot_control.fric1_motor_pid, shoot_control.fric1_speed,
 //                                                      shoot_control.fric1_speed_set);
-            gimbal_control.fric1_current_set = ALL_PID(&shoot_control.fric1_motor_pid, shoot_control.fric1_speed,
-                                                       shoot_control.fric1_speed_set);
-            gimbal_control.fric2_current_set = ALL_PID(&shoot_control.fric2_motor_pid, shoot_control.fric2_speed,
-                                                       shoot_control.fric2_speed_set);
+//            gimbal_control.fric1_current_set = ALL_PID(&shoot_control.fric1_motor_pid, shoot_control.fric1_speed,
+//                                                       shoot_control.fric1_speed_set);
+//            gimbal_control.fric2_current_set = ALL_PID(&shoot_control.fric2_motor_pid, shoot_control.fric2_speed,
+//                                                       shoot_control.fric2_speed_set);
 
         }
     }
 
-//    shoot_control.fric_pwm1 = (uint16_t) (shoot_control.fric1_ramp.out);
-//    shoot_control.fric_pwm2 = (uint16_t) (shoot_control.fric2_ramp.out);
-//    shoot_fric1_on(shoot_control.fric_pwm1);
-//    shoot_fric2_on(shoot_control.fric_pwm2);
-    gimbal_control.fric1_give_current = (int16_t) (gimbal_control.fric1_current_set);
-    gimbal_control.fric2_give_current = (int16_t) (gimbal_control.fric2_current_set);
+    shoot_control.fric_pwm1 = (uint16_t) (shoot_control.fric1_ramp.out);
+    shoot_control.fric_pwm2 = (uint16_t) (shoot_control.fric2_ramp.out);
+    shoot_fric1_on(shoot_control.fric_pwm1);
+    shoot_fric2_on(shoot_control.fric_pwm2);
+//    gimbal_control.fric1_give_current = (int16_t) (gimbal_control.fric1_current_set);
+//    gimbal_control.fric2_give_current = (int16_t) (gimbal_control.fric2_current_set);
     return shoot_control.given_current;
 }
 
@@ -344,8 +346,8 @@ static void shoot_set_mode(void) {
 //                      shoot_control.shoot_fric_state);
 //状态检测
     if (shoot_control.shoot_mode == SHOOT_START &&
-        (fabsf(100 * shoot_control.fric1_speed_set - 100 * shoot_control.fric1_speed) < 0.5f * 100) &&
-        (fabsf(100 * shoot_control.fric2_speed_set - 100 * shoot_control.fric2_speed) < 0.5f * 100)) {
+        shoot_control.fric1_ramp.out == shoot_control.fric1_ramp.max_value &&
+        shoot_control.fric2_ramp.out == shoot_control.fric2_ramp.max_value) {
         shoot_control.shoot_mode = SHOOT_READY;
         shoot_control.shoot_fric_state = FRIC_READY;
     } else if (shoot_control.shoot_mode == SHOOT_START) {
@@ -438,8 +440,8 @@ static void shoot_feedback_update(void) {
                      (shoot_control.shoot_motor_measure->speed_rpm * MOTOR_RPM_TO_SPEED) * fliter_num[2];
     shoot_control.speed = speed_fliter_3;
 
-    shoot_control.fric1_speed = (shoot_control.fric1_motor_measure->speed_rpm * PI / 30.0f);//47.123889802
-    shoot_control.fric2_speed = (shoot_control.fric2_motor_measure->speed_rpm * PI / 30.0f);
+//    shoot_control.fric1_speed = (shoot_control.fric1_motor_measure->speed_rpm * PI / 30.0f);//47.123889802
+//    shoot_control.fric2_speed = (shoot_control.fric2_motor_measure->speed_rpm * PI / 30.0f);
 
     //电机圈数重置， 因为输出轴旋转一圈， 电机轴旋转 36圈，将电机轴数据处理成输出轴数据，用于控制输出轴角度
 //    if (shoot_control.shoot_motor_measure->ecd - shoot_control.shoot_motor_measure->last_ecd > HALF_ECD_RANGE) {

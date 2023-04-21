@@ -41,8 +41,8 @@
 #define NO_INIT    0
 #define INIT    1
 
-#define PITCH_INIT  INIT
-#define YAW_INIT    INIT
+#define PITCH_INIT  NO_INIT
+#define YAW_INIT    NO_INIT
 
 #define INIT_ONLY_FIRST_TIME 0
 /************ Init To Offset End*******************/
@@ -50,9 +50,9 @@
 /************ Motor turn define Start*******************/
 #define NO_TURN    0
 #define TURN    1
-#define PITCH_TURN  NO_TURN
-#define YAW_TURN    TURN
-#define SHOOT_TRIGGER_TURN    NO_TURN
+#define PITCH_TURN  TURN
+#define YAW_TURN    NO_TURN
+#define SHOOT_TRIGGER_TURN    TURN
 /************ Motor turn define End*******************/
 
 /************ Choose Print Mode Start*******************/

@@ -281,16 +281,16 @@ void chassis_behaviour_mode_set(chassis_move_t *chassis_move_mode) {
                ((switch_is_up(chassis_move_mode->chassis_RC->rc.s[RADIO_CONTROL_SWITCH_L])) &&
                 (switch_is_up(chassis_move_mode->chassis_RC->rc.s[RADIO_CONTROL_SWITCH_R])) &&
                 (chassis_move_mode->chassis_RC->key.v & KEY_PRESSED_OFFSET_F))) {
-        chassis_behaviour_mode = CHASSIS_FORWARD_FOLLOW_GIMBAL_YAW;
+        chassis_behaviour_mode = CHASSIS_SPIN;
     } else if ((switch_is_mid(chassis_move_mode->chassis_RC->rc.s[RADIO_CONTROL_SWITCH_L]) &&
                switch_is_down(chassis_move_mode->chassis_RC->rc.s[RADIO_CONTROL_SWITCH_R])) ||
                ((switch_is_up(chassis_move_mode->chassis_RC->rc.s[RADIO_CONTROL_SWITCH_L])) &&
                 (switch_is_up(chassis_move_mode->chassis_RC->rc.s[RADIO_CONTROL_SWITCH_R])) &&
                 (chassis_move_mode->chassis_RC->key.v & KEY_PRESSED_OFFSET_G))) {
-        chassis_behaviour_mode = CHASSIS_FORWARD_TO_GIMBAL_YAW;
+        chassis_behaviour_mode = CHASSIS_SPIN;
     } else if((switch_is_up(chassis_move_mode->chassis_RC->rc.s[RADIO_CONTROL_SWITCH_L])) &&
               (switch_is_up(chassis_move_mode->chassis_RC->rc.s[RADIO_CONTROL_SWITCH_R]))){
-        chassis_behaviour_mode = CHASSIS_FORWARD_FOLLOW_GIMBAL_YAW;
+        chassis_behaviour_mode = CHASSIS_SPIN;
     }
 
     //when gimbal in some mode, such as init mode, chassis must's move

@@ -94,8 +94,7 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan) {
             case CAN_3508_M1_ID:
             case CAN_3508_M2_ID:
             case CAN_3508_M3_ID:
-            case CAN_3508_M4_ID:
-            case CAN_YAW_MOTOR_ID: {
+            case CAN_3508_M4_ID:{
 
                 //get motor id
                 i = rx_header.StdId - CAN_3508_M1_ID;
@@ -118,18 +117,12 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan) {
     } else if (hcan->Instance == CAN2) {
 //        id_test = rx_header.StdId;//for_test
         switch (rx_header.StdId) {
-            case CAN_PITCH_MOTOR_ID: {
-
-                get_motor_measure(&can2_motor_data[5], rx_data);
-                detect_hook(PITCH_GIMBAL_MOTOR_TOE);
-                break;
-            }
-            case CAN_3508_M1_ID:
-            case CAN_3508_M4_ID:
+            case CAN_YAW_MOTOR_ID:
+            case CAN_PITCH_MOTOR_ID:
             case CAN_TRIGGER_MOTOR_ID: {
                 //get motor id
                 i = rx_header.StdId - CAN_3508_M1_ID;
-                id_test = i;//for_test
+//                id_test = i;//for_test
                 get_motor_measure(&can2_motor_data[i], rx_data);
                 detect_hook(CHASSIS_MOTOR1_TOE + i);
                 break;
