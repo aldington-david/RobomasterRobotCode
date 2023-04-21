@@ -104,7 +104,7 @@
 #define PITCH_RC_SEN  0.000115f
 
 #define YAW_MOUSE_SEN   0.00084f
-#define PITCH_MOUSE_SEN 0.0004f
+#define PITCH_MOUSE_SEN 0.0008f
 
 //Original_vision_sen_define
 //#define YAW_VISION_SEN   0.35f

@@ -25,7 +25,7 @@
 #include "main.h"
 
 #define POWER_LIMIT         40.0f
-#define WARNING_POWER       5.0f
+#define WARNING_POWER       10.0f
 #define WARNING_POWER_BUFF  60.0f
 
 #define NO_JUDGE_TOTAL_CURRENT_LIMIT    64000.0f    //16000 * 4,

@@ -224,13 +224,13 @@ static void chassis_init(chassis_move_t *chassis_move_init) {
 
     //chassis motor speed PID
     //底盘速度环pid值
-    const static float32_t motor_speed_pid[3] = {1443.4315f, 1732.1176f, 0.0f};
-    const static float32_t chassis_vx_speed_pid[3] = {14.559f, 0.0f, 1.0f};
-    const static float32_t chassis_vy_speed_pid[3] = {14.1309f, 0.0f, 1.0f};
-    const static float32_t chassis_wz_speed_pid[3] = {6.8163f, 0.0f, 1.0f};
+    const static float32_t motor_speed_pid[3] = {2253.4472f, 1502.2981f, 845.0428f};
+    const static float32_t chassis_vx_speed_pid[3] = {2.6620f, 1.5211f, 1.1646f};
+    const static float32_t chassis_vy_speed_pid[3] = {2.7802f, 3.7070f, 0.5213f};
+    const static float32_t chassis_wz_speed_pid[3] = {1.8362f, 2.4483f, 0.3442f};
     //chassis angle PID
     //底盘角度pid值
-    const static float32_t chassis_yaw_follow_pid[3] = {1.9f, 4.5792f, 400.0f};
+    const static float32_t chassis_yaw_follow_pid[3] = {1.8f, 10.143f, 300.4152f};
 
 //    const static float32_t chassis_x_order_filter[1] = {CHASSIS_ACCEL_X_NUM};
 //    const static float32_t chassis_y_order_filter[1] = {CHASSIS_ACCEL_Y_NUM};
@@ -526,15 +526,15 @@ void chassis_rc_to_control_vector(float32_t *vx_set, float32_t *vy_set, float32_
         //keyboard set speed set-point
         //键盘控制
         if (chassis_move_rc_to_vector->chassis_RC->key.v & CHASSIS_FRONT_KEY) {
-            vx_raw = 300.0f;
+            vx_raw = 50.0f;
         } else if (chassis_move_rc_to_vector->chassis_RC->key.v & CHASSIS_BACK_KEY) {
-            vx_raw = -300.0f;
+            vx_raw = -50.0f;
         }
 
         if (chassis_move_rc_to_vector->chassis_RC->key.v & CHASSIS_LEFT_KEY) {
-            vy_raw = 300.0f;
+            vy_raw = 50.0f;
         } else if (chassis_move_rc_to_vector->chassis_RC->key.v & CHASSIS_RIGHT_KEY) {
-            vy_raw = -300.0f;
+            vy_raw = -50.0f;
         }
 
 
@@ -634,9 +634,12 @@ static void chassis_set_contorl(chassis_move_t *chassis_move_control) {
         first_order_filter_cali(&chassis_move_control->chassis_cmd_slow_set_vx, vx_raw);
         first_order_filter_cali(&chassis_move_control->chassis_cmd_slow_set_vy, vy_raw);
         first_order_filter_cali(&chassis_move_control->chassis_cmd_slow_set_wz, wz_raw);
-        chassis_move_control->vx_set = chassis_move_control->chassis_cmd_slow_set_vx.out;
-        chassis_move_control->vy_set = chassis_move_control->chassis_cmd_slow_set_vy.out;
-        chassis_move_control->wz_set = chassis_move_control->chassis_cmd_slow_set_wz.out;
+//        chassis_move_control->vx_set = chassis_move_control->chassis_cmd_slow_set_vx.out;
+//        chassis_move_control->vy_set = chassis_move_control->chassis_cmd_slow_set_vy.out;
+//        chassis_move_control->wz_set = chassis_move_control->chassis_cmd_slow_set_wz.out;
+        chassis_move_control->vx_set = vx_set;
+        chassis_move_control->vy_set = vy_set;
+        chassis_move_control->wz_set = wz_raw;
         chassis_move_control->vx_set = fp32_constrain(chassis_move_control->vx_set, chassis_move_control->vx_min_speed,
                                                       chassis_move_control->vx_max_speed);
         chassis_move_control->vy_set = fp32_constrain(chassis_move_control->vy_set, chassis_move_control->vy_min_speed,
@@ -682,8 +685,10 @@ static void chassis_set_contorl(chassis_move_t *chassis_move_control) {
         first_order_filter_cali(&chassis_move_control->chassis_cmd_slow_set_vx, vx_raw);
         first_order_filter_cali(&chassis_move_control->chassis_cmd_slow_set_vy, vy_raw);
         first_order_filter_cali(&chassis_move_control->chassis_cmd_slow_yaw_follow, wz_raw);
-        chassis_move_control->vx_set = chassis_move_control->chassis_cmd_slow_set_vx.out;
-        chassis_move_control->vy_set = chassis_move_control->chassis_cmd_slow_set_vy.out;
+//        chassis_move_control->vx_set = chassis_move_control->chassis_cmd_slow_set_vx.out;
+//        chassis_move_control->vy_set = chassis_move_control->chassis_cmd_slow_set_vy.out;
+        chassis_move_control->vx_set = vx_set;
+        chassis_move_control->vy_set = vy_set;
         chassis_move_control->wz_set = wz_raw;
 //        chassis_move_control->wz_set = chassis_move_control->chassis_cmd_slow_yaw_follow.out;
         chassis_move_control->vx_set = fp32_constrain(chassis_move_control->vx_set, chassis_move_control->vx_min_speed,
@@ -712,9 +717,12 @@ static void chassis_set_contorl(chassis_move_t *chassis_move_control) {
         first_order_filter_cali(&chassis_move_control->chassis_cmd_slow_set_vx, vx_raw);
         first_order_filter_cali(&chassis_move_control->chassis_cmd_slow_set_vy, vy_raw);
         first_order_filter_cali(&chassis_move_control->chassis_cmd_slow_set_wz, wz_raw);
-        chassis_move_control->vx_set = chassis_move_control->chassis_cmd_slow_set_vx.out;
-        chassis_move_control->vy_set = chassis_move_control->chassis_cmd_slow_set_vy.out;
-        chassis_move_control->wz_set = chassis_move_control->chassis_cmd_slow_set_wz.out;
+//        chassis_move_control->vx_set = chassis_move_control->chassis_cmd_slow_set_vx.out;
+//        chassis_move_control->vy_set = chassis_move_control->chassis_cmd_slow_set_vy.out;
+//        chassis_move_control->wz_set = chassis_move_control->chassis_cmd_slow_set_wz.out;
+        chassis_move_control->vx_set = vx_set;
+        chassis_move_control->vy_set = vy_set;
+        chassis_move_control->wz_set = wz_raw;
         chassis_move_control->vx_set = fp32_constrain(chassis_move_control->vx_set, chassis_move_control->vx_min_speed,
                                                       chassis_move_control->vx_max_speed);
         chassis_move_control->vy_set = fp32_constrain(chassis_move_control->vy_set, chassis_move_control->vy_min_speed,
@@ -859,7 +867,7 @@ static void chassis_control_loop(chassis_move_t *chassis_move_control_loop) {
                     chassis_move_control_loop->motor_chassis[i].speed_set);
         }
 
-
+//        SEGGER_RTT_printf(0,"%d",chassis_move_control_loop->soft_power_limit);
         //功率控制
         chassis_power_control(chassis_move_control_loop);
 

@@ -195,7 +195,7 @@ void MX_FREERTOS_Init(void) {
     osThreadDef(SERVO, servo_task, osPriorityAboveNormal, 0, 128);
     servo_task_handle = osThreadCreate(osThread(SERVO), NULL);
 
-    osThreadDef(REFEREE_RX, referee_rx_task, osPriorityNormal, 0, 512);
+    osThreadDef(REFEREE_RX, referee_rx_task, osPriorityRealtime, 0, 512);
     referee_rx_task_handle = osThreadCreate(osThread(REFEREE_RX), NULL);
 
     osThreadDef(USART6TXAactiveTask, USART6TX_active_task, osPriorityRealtime, 0, 256);

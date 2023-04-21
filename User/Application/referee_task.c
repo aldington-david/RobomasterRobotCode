@@ -109,6 +109,7 @@ void referee_rx_task(void const *argument) {
         if (referee_set_manual_flag == SET_AUTO) {
             if (!toe_is_error(REFEREE_RX_TOE)) {
                 if (global_judge_info.GameRobotStatus.robot_id) {
+//                    SEGGER_RTT_printf(0,"rf=%d\r\n",global_judge_info.GameRobotStatus.shooter_id1_17mm_speed_limit);
                     shoot_control.shoot_speed_referee_set = global_judge_info.GameRobotStatus.shooter_id1_17mm_speed_limit;
                     shoot_control.shoot_cooling_rate_referee_set = global_judge_info.GameRobotStatus.shooter_id1_17mm_speed_limit;
                     chassis_move.power_limit = global_judge_info.GameRobotStatus.chassis_power_limit;

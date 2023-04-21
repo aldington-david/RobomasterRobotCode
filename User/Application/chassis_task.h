@@ -74,7 +74,7 @@
 #define MOTOR_SPEED_TO_CHASSIS_SPEED_WZ 0.25f
 
 //小陀螺速度
-#define CHASSIS_SPIN_SPEED 2.0f
+#define CHASSIS_SPIN_SPEED 4.0f
 
 
 //#define MOTOR_DISTANCE_TO_CENTER 0.2f
@@ -116,11 +116,11 @@
 //chassis forward or back max speed
 //底盘运动过程最大前进速度
 //#define NORMAL_MAX_CHASSIS_SPEED_X 4.0f
-#define NORMAL_MAX_CHASSIS_SPEED_X 2.75f
+#define NORMAL_MAX_CHASSIS_SPEED_X 1.75f
 //chassis left or right max speed
 //底盘运动过程最大平移速度
 //#define NORMAL_MAX_CHASSIS_SPEED_Y 3.0f
-#define NORMAL_MAX_CHASSIS_SPEED_Y 2.75f
+#define NORMAL_MAX_CHASSIS_SPEED_Y 1.75f
 
 #define CHASSIS_WZ_SET_SCALE 0.5f
 

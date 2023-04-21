@@ -1093,7 +1093,7 @@ void gimbal_rc_to_control_vector(float32_t *yaw, float32_t *pitch, gimbal_contro
 //            sigmoidInterpolation(0, yaw_channel, 14, yaw_rc_Interpolation);
 //            sigmoidInterpolation(0, pitch_channel, 14, pitch_rc_Interpolation);
             if (chassis_behaviour_mode == CHASSIS_FORWARD_FOLLOW_GIMBAL_YAW) {
-                sigmoidInterpolation(0, (yaw_channel * YAW_RC_SEN - yaw_bias / rc_interpolation_num) * 1000, 14,
+                sigmoidInterpolation(0, (yaw_channel * YAW_RC_SEN) * 1000, 14,
                                      yaw_rc_Interpolation);
             } else if (chassis_behaviour_mode == CHASSIS_SPIN) {
                 static uint16_t count = 0;
@@ -1111,7 +1111,7 @@ void gimbal_rc_to_control_vector(float32_t *yaw, float32_t *pitch, gimbal_contro
                     if (last_yaw_bias != 0) {
                         float32_t yaw_bias_err = yaw_bias - last_yaw_bias;
                         if (yaw_bias_err > 0) {
-                            sigmoidInterpolation(0, (yaw_channel * YAW_RC_SEN + yaw_bias_err / rc_interpolation_num) *
+                            sigmoidInterpolation(0, (yaw_channel * YAW_RC_SEN) *
                                                     1000,
                                                  14,
                                                  yaw_rc_Interpolation);
@@ -1158,7 +1158,7 @@ void gimbal_rc_to_control_vector(float32_t *yaw, float32_t *pitch, gimbal_contro
 //            sigmoidInterpolation(0, yaw_channel, 14, yaw_rc_Interpolation);
 //            sigmoidInterpolation(0, pitch_channel, 14, pitch_rc_Interpolation);
             if (chassis_behaviour_mode == CHASSIS_FORWARD_FOLLOW_GIMBAL_YAW) {
-                sigmoidInterpolation(0, (yaw_channel * YAW_MOUSE_SEN - yaw_bias / rc_interpolation_num) * 1000, 14,
+                sigmoidInterpolation(0, (yaw_channel * YAW_MOUSE_SEN) * 1000, 14,
                                      yaw_rc_Interpolation);
             } else if (chassis_behaviour_mode == CHASSIS_SPIN) {
                 if (last_yaw_bias != 0) {
@@ -1179,7 +1179,7 @@ void gimbal_rc_to_control_vector(float32_t *yaw, float32_t *pitch, gimbal_contro
                 }
                 last_yaw_bias = yaw_bias;
             } else {
-                sigmoidInterpolation(0, (yaw_channel * YAW_MOUSE_SEN + yaw_bias / rc_interpolation_num) * 1000, 14,
+                sigmoidInterpolation(0, (yaw_channel * YAW_MOUSE_SEN) * 1000, 14,
                                      yaw_rc_Interpolation);
             }
             sigmoidInterpolation(0, (pitch_channel * PITCH_MOUSE_SEN) * 1000, 14,

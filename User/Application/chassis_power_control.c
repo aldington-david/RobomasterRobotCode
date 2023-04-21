@@ -23,7 +23,7 @@
 #include "referee_task.h"
 #include "arm_math.h"
 #include "detect_task.h"
-
+#include "SEGGER_RTT.h"
 /**
   * @brief          limit the power, mainly limit motor current
   * @param[in]      chassis_power_control: chassis data 
@@ -43,6 +43,7 @@ void chassis_power_control(chassis_move_t *chassis_power_control) {
     if (toe_is_error(SUPER_CAPACITANCE_TOE)) {
         chassis_power_control->soft_power_limit = chassis_power_control->power_limit;
     } else{
+//        SEGGER_RTT_printf(0,"%d",chassis_power_control->soft_power_limit);
         if(!super_capacitance_enable_flag){
             chassis_power_control->soft_power_limit = chassis_power_control->power_limit;
         }
@@ -52,6 +53,7 @@ void chassis_power_control(chassis_move_t *chassis_power_control) {
     } else if (robot_id == 2 || robot_id == 102 || robot_id == 0) {
         total_current_limit = NO_JUDGE_TOTAL_CURRENT_LIMIT;
     } else {
+//        SEGGER_RTT_printf(0,"%d\r\n",chassis_power_control->soft_power_limit);
         get_chassis_power_and_buffer(&chassis_power, &chassis_power_buffer);
         // power > 80w and buffer < 60j, because buffer < 60 means power has been more than 80w
         //功率超过80w 和缓冲能量小于60j,因为缓冲能量小于60意味着功率超过80w

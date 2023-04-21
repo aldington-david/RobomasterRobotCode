@@ -271,7 +271,7 @@ void chassis_behaviour_mode_set(chassis_move_t *chassis_move_mode) {
          switch_is_up(chassis_move_mode->chassis_RC->rc.s[RADIO_CONTROL_SWITCH_R])) ||
         ((switch_is_up(chassis_move_mode->chassis_RC->rc.s[RADIO_CONTROL_SWITCH_L])) &&
          (switch_is_up(chassis_move_mode->chassis_RC->rc.s[RADIO_CONTROL_SWITCH_R])) &&
-         (chassis_move_mode->chassis_RC->key.v & KEY_PRESSED_OFFSET_R))) {
+         (chassis_move_mode->chassis_RC->key.v & KEY_PRESSED_OFFSET_SHIFT))) {
         //can change to CHASSIS_ZERO_FORCE,CHASSIS_NO_MOVE,CHASSIS_FORWARD_TO_GIMBAL_YAW,
         //CHASSIS_ENGINEER_FOLLOW_CHASSIS_YAW,CHASSIS_NO_FOLLOW_YAW,CHASSIS_OPEN
 //          chassis_behaviour_mode = CHASSIS_FORWARD_TO_GIMBAL_YAW;

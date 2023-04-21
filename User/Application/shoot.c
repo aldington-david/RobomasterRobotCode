@@ -264,8 +264,9 @@ static void shoot_set_mode(void) {
         shoot_control.shoot_mode = SHOOT_PID_AUTO_TUNE;
         return;
     }
+    SEGGER_RTT_printf(0,"set=%d\r\n",shoot_control.shoot_speed_referee_set);
     if (shoot_control.shoot_speed_referee_set == SHOOT_SPEED_30_MS) {
-        shoot_control.fric_all_speed = SHOOT_SPEED_18_MS_TO_FRIC;
+        shoot_control.fric_all_speed = SHOOT_SPEED_30_MS_TO_FRIC;
     } else if (shoot_control.shoot_speed_referee_set == SHOOT_SPEED_18_MS) {
         shoot_control.fric_all_speed = SHOOT_SPEED_18_MS_TO_FRIC;
     } else {
@@ -339,8 +340,8 @@ static void shoot_set_mode(void) {
     if (key_count > 0) {
         key_count--;
     }
-    SEGGER_RTT_printf(0, "shoot_mode:%d,shoot_fric_state:%d\r\n", shoot_control.shoot_mode,
-                      shoot_control.shoot_fric_state);
+//    SEGGER_RTT_printf(0, "shoot_mode:%d,shoot_fric_state:%d\r\n", shoot_control.shoot_mode,
+//                      shoot_control.shoot_fric_state);
 //状态检测
     if (shoot_control.shoot_mode == SHOOT_START &&
         (fabsf(100 * shoot_control.fric1_speed_set - 100 * shoot_control.fric1_speed) < 0.5f * 100) &&
