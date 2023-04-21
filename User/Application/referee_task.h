@@ -10,6 +10,13 @@
 #define USART6_RX_BUF_LENGHT     512
 #define USART6_TX_BUF_LENGHT     128
 #define REFEREE_FIFO_BUF_LENGTH 1024
+
+//装甲板受击bit
+#define ARMOR_0            ((uint8_t)1 << 0)
+#define ARMOR_1            ((uint8_t)1 << 1)
+#define ARMOR_2            ((uint8_t)1 << 2)
+#define ARMOR_3            ((uint8_t)1 << 3)
+
 #pragma pack(push, 1)
 /**
  * @name std_frame_header_t
@@ -56,7 +63,7 @@ typedef enum {
     //0x010x
     ID_EVENT_DATA = 0x0101,                 //!< 场地事件数据
     ID_SUPPLY_PROJECTILE_ACTION = 0x0102,   //!< 场地补给站动作标识数据
-    ID_SUPPLY_PROJECTILE_BOOKING 	= 0x0103,	// 请求补给站补弹子弹(RM对抗赛尚未开放)
+    ID_SUPPLY_PROJECTILE_BOOKING = 0x0103,    // 请求补给站补弹子弹(RM对抗赛尚未开放)
     ID_REFEREE_WARNING = 0x0104,                //!< 裁判警告数据
     ID_DART_REMAINING_TIME = 0x0105,         //!< 飞镖发射口倒计时
     //0x020x
@@ -116,7 +123,7 @@ typedef enum {
     LEN_RADAR_MARK_DATA = 6,             //!< 0x020C 雷达标记进度数据
 
     // 0x030x
-    LEN_COMMUNICATION = 113+6,          //!< 0x0301 机器人间交互数据（裁判系统），10HZ，最大128字节，数据段113字节
+    LEN_COMMUNICATION = 113 + 6,          //!< 0x0301 机器人间交互数据（裁判系统），10HZ，最大128字节，数据段113字节
     LEN_CUSTOMIZE_CONTROL_DATA = 30,          //!< 0x0302 自定义控制器交互数据接口，30HZ
     LEN_MAP_INTERACTION_DATA = 15,          //!< 0x0303 客户端小地图交互数据
     LEN_CONTROL_UART_DATA = 12,          //!< 0x0304 图传串口发送键鼠信息
@@ -420,7 +427,6 @@ typedef struct {
 } radar_mark_data_t;
 
 
-
 /**
  * @name ext_student_interactive_header_data_t
  * @brief 机器人间通信 交互数据接收信息：0x0301
@@ -719,16 +725,138 @@ typedef struct {
     uint16_t CmdID;
 } FrameHeader;
 
+/* 图形配置操作指令，参照官方手册P23 */
 typedef enum {
     NULL_OPERATION = 0U,
     ADD_PICTURE = 1U,
     MODIFY_PICTURE = 2U,
-    CLEAR_ONE_PICTURE = 3U,
+    CLEAR_PICTURE = 3U,
 } drawOperate_e;
+
+/* 图形清除操作指令 */
+typedef enum {
+    CLEAR_ONE_LAYER = 1U,
+    CLEAR_ALL = 2U,
+} clearOperate_e;
+
+/* 图形绘制类型 */
+typedef enum {
+    LINE = 0U,
+    RECTANGLE = 1U,
+    CIRCLE = 2U,
+    OVAL = 3U,
+    ARC = 4U,
+    _FLOAT = 5U,
+    _INT = 6U,
+    _CHAR = 7U,
+} graphic_tpye_e;
+
+/* 图形色彩配置 */
+typedef enum {
+    RED = 0U,
+    BLUE = 0U,
+    YELLOW,
+    GREEN,
+    ORANGE,
+    PURPLE,
+    PINK,
+    DARKGREEN,
+    BLACK,
+    WHITE
+} colorType_e;
+
+/* 交互数据帧的通信类型，机器人间通信 or 自定义UI or 小地图通信 */
+typedef enum {
+    CV_OtherRobot = 0U,
+    UI_Client,
+    MiniMap_Client
+} receive_Type_e;
+
+typedef enum {
+    /* 机器人交互数据段的ID类型，注意这里是数据段内容ID！ */
+    RobotComData_ID = 0x0233,        //车间交互，该ID由各个队伍自定义 0x0200~0x02FF
+    CustomData_ID = 0xD180,        //自定义数据ID
+    Drawing_Clean_ID = 0x0100,
+    Drawing_1_ID = 0x0101,
+    Drawing_2_ID = 0x0102,
+    Drawing_5_ID = 0x0103,
+    Drawing_7_ID = 0x0104,
+    Drawing_Char_ID = 0x0110,
+} data_id_e;
 
 
 #pragma pack(pop)
 /***************define for fifo end*******************/
+/***************define for referee_tx start*******************/
+typedef enum {
+    VISION_OFF = 0U,
+    VISION_ON = 1U,
+} vision_state_e;
+
+typedef enum {
+    FOLLOW_GIMBAL = 0U,
+    TO_GIMBAL = 1U,
+    SPIN = 2U,
+} mode_change_e;
+
+typedef enum {
+    NOT_USE_CAPACITANCE = 0U,
+    USE_CAPACITANCE = 1U,
+} capacitance_state_e;
+
+typedef enum {
+    SHOOT_HEAT_COOLING_10_MS = 10U,
+    SHOOT_HEAT_COOLING_15_MS = 15U,
+    SHOOT_HEAT_COOLING_25_MS = 25U,
+    SHOOT_HEAT_COOLING_35_MS = 35U,
+    SHOOT_HEAT_COOLING_40_MS = 40U,
+    SHOOT_HEAT_COOLING_60_MS = 60U,
+    SHOOT_HEAT_COOLING_80_MS = 80U,
+} shoot_heat_cooling_rate_e;
+
+typedef enum {
+    MANUAL_CONTROL_OFF = 0U,
+    MANUAL_CONTROL_ON = 1U,
+} manual_control_state_e;
+
+typedef enum {
+    SHOOT_SPEED_15_MS = 15U,
+    SHOOT_SPEED_18_MS = 18U,
+    SHOOT_SPEED_30_MS = 30U,
+} shoot_speed_e;
+
+typedef enum {
+    POWER_LIMIT_POWER_FIRST_60W= 60U,
+    POWER_LIMIT_POWER_FIRST_80W = 80U,
+    POWER_LIMIT_POWER_FIRST_100W = 100U,
+} power_limit_power_first_e;
+
+typedef enum {
+    POWER_LIMIT_HP_FIRST_45W = 45U,
+    POWER_LIMIT_HP_FIRST_50W = 50U,
+    POWER_LIMIT_HP_FIRST_55W = 55U,
+} power_limit_hp_first_e;
+
+typedef enum {
+    FRIC_OFF = 0u,
+    FRIC_ON = 1U,
+    FRIC_READY = 2U,
+} shoot_state_e;
+
+typedef struct {
+    vision_state_e vision_state;
+    mode_change_e mode;
+    capacitance_state_e capacitance_state;
+    manual_control_state_e manual_control_state;
+    shoot_heat_cooling_rate_e shoot_heat_cooling_rate;
+    shoot_speed_e shoot_speed;
+    power_limit_hp_first_e power_limit_hp_first;
+    power_limit_power_first_e power_limit_power_first;
+} function_control_show_t;
+
+/***************define for referee_tx end*******************/
+
+
 /***************function and variable declare start*******************/
 //RX Declare
 extern judge_info_t global_judge_info;
@@ -800,18 +928,19 @@ void DMA2_Stream6_IRQHandler(void);
   */
 void USART6TX_active_task(void const *pvParameters);
 
-static void
-Hero_UI_ruler(uint8_t _layer, uint16_t start_x, uint16_t start_y, uint16_t *line_distance, uint16_t *line_length,
-              graphic_color_enum_t *_color, drawOperate_e _operate_type);
-
 extern void MY_USART_DMA_Stream6_TX_IRQHandler(void);
 
+
+/**
+ * @brief 直线绘制数据包
+ * @param line_width 线宽
+ * @retval
+ */
 static graphic_data_struct_t *
 line_drawing(uint8_t _layer, drawOperate_e _operate_type, uint16_t startx, uint16_t starty, uint16_t endx,
-             uint16_t endy, uint16_t line_width, graphic_color_enum_t vcolor, uint8_t name[]);
-//void line_drawing(uint8_t *name, drawOperate_e _operate_type, uint8_t _layer, graphic_color_enum_t vcolor, uint16_t line_width,uint16_t startx, uint16_t starty, uint16_t endx,
-//                  uint16_t endy );
+             uint16_t endy, uint16_t line_width, colorType_e vcolor, uint8_t name[]);
+
 /***************function and variable declare end*******************/
-unsigned char *out_float(double value, unsigned char decimal_digit, unsigned char *output_length);
+static unsigned char *out_float(double value, unsigned char decimal_digit, unsigned char *output_length);
 
 #endif

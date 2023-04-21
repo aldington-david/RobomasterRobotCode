@@ -8,6 +8,8 @@
 #include "detect_task.h"
 #include "struct_typedef.h"
 
+#define SUPER_CAPACITANCE_ADD_W 20
+
 #define SUPER_CAPACITANCE_30W_MIN 3000
 
 #define SUPER_CAPACITANCE_40W 4000
@@ -31,7 +33,7 @@ typedef struct {
     float32_t Target_Power;
 } super_capacitance_measure_t;
 
-
+extern volatile bool_t super_capacitance_enable_flag;
 extern void super_capacitance_control_task(void const *pvParameters);
 
 #endif //ROBOMASTERROBOTCODE_SUPER_CAPACITANCE_CONTROL_TASK_H

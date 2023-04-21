@@ -103,8 +103,8 @@ void shoot_init(void) {
     //初始化PID
     PID_init(&shoot_control.trigger_motor_speed_pid, PID_POSITION, Trigger_speed_pid, TRIGGER_READY_PID_MAX_OUT,
              TRIGGER_READY_PID_MAX_IOUT, 1000, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
-    PID_init(&shoot_control.trigger_motor_angle_pid, PID_POSITION, Trigger_angle_pid, CONTINUE_TRIGGER_SPEED,
-             CONTINUE_TRIGGER_SPEED, 1000, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+    PID_init(&shoot_control.trigger_motor_angle_pid, PID_POSITION, Trigger_angle_pid, CONTINUE_TRIGGER_SPEED_MAX,
+             CONTINUE_TRIGGER_SPEED_MAX / 2, 1000, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
     PID_init(&shoot_control.fric1_motor_pid, PID_POSITION, fric1_speed_pid, TRIGGER_READY_PID_MAX_OUT,
              TRIGGER_READY_PID_MAX_IOUT, 1000, 0, 0, 0, 0, 0, 1, 0.003f, 0, 0, 0, 0, 0);
     PID_init(&shoot_control.fric2_motor_pid, PID_POSITION, fric2_speed_pid, TRIGGER_READY_PID_MAX_OUT,
@@ -113,10 +113,10 @@ void shoot_init(void) {
     KalmanCreate(&shoot_control.Trigger_Motor_Current_Kalman_Filter, 10.0f, 0.5f);
     //更新数据
     shoot_feedback_update();
-//    ramp_init(&shoot_control.fric1_ramp, SHOOT_CONTROL_TIME * 0.001f, FRIC_DOWN, FRIC_OFF);
-//    ramp_init(&shoot_control.fric2_ramp, SHOOT_CONTROL_TIME * 0.001f, FRIC_DOWN, FRIC_OFF);
-//    shoot_control.fric_pwm1 = FRIC_OFF;
-//    shoot_control.fric_pwm2 = FRIC_OFF;
+//    ramp_init(&shoot_control.fric1_ramp, SHOOT_CONTROL_TIME * 0.001f, FRIC_DOWN_PWM, FRIC_OFF_PWM);
+//    ramp_init(&shoot_control.fric2_ramp, SHOOT_CONTROL_TIME * 0.001f, FRIC_DOWN_PWM, FRIC_OFF_PWM);
+//    shoot_control.fric_pwm1 = FRIC_OFF_PWM;
+//    shoot_control.fric_pwm2 = FRIC_OFF_PWM;
     shoot_control.ecd_count = 0;
     shoot_control.angle = shoot_control.shoot_motor_measure->ecd * MOTOR_ECD_TO_ANGLE;
     shoot_control.given_current = 0;
@@ -127,9 +127,16 @@ void shoot_init(void) {
     shoot_control.key_time = 0;
     shoot_control.fric1_speed = 0.0f;
     shoot_control.fric2_speed = 0.0f;
-    shoot_control.fric_all_speed = 760.0f; //max 968 27m/s 537.0 7m/s 800.0f 17.4m/s 710 12m/s 780 16m/s 770 15.7m/s 760 15.1m/s 755 14.8 m/s
+    shoot_control.shoot_speed_referee_set = SHOOT_SPEED_15_MS;
+    shoot_control.fric_all_speed = SHOOT_SPEED_15_MS_TO_FRIC;
     shoot_control.fric1_speed_set = shoot_control.fric_all_speed;
     shoot_control.fric2_speed_set = -shoot_control.fric_all_speed;
+    shoot_control.shoot_fric_state = FRIC_OFF;
+#if SHOOT_TRIGGER_TURN
+    shoot_control.trigger_speed_set = -CONTINUE_TRIGGER_SPEED;
+#else
+    shoot_control.trigger_speed_set = CONTINUE_TRIGGER_SPEED;
+#endif
 }
 
 /**
@@ -159,11 +166,6 @@ int16_t shoot_control_loop(void) {
         shoot_bullet_control();
     } else if (shoot_control.shoot_mode == SHOOT_CONTINUE_BULLET) {
         //设置拨弹轮的拨动速度,并开启堵转反转处理
-#if SHOOT_TRIGGER_TURN
-        shoot_control.trigger_speed_set = -CONTINUE_TRIGGER_SPEED;
-#else
-        shoot_control.trigger_speed_set = CONTINUE_TRIGGER_SPEED;
-#endif
 //        trigger_motor_turn_back();
         shoot_control.speed_set = shoot_control.trigger_speed_set;
 //        shoot_control.angle_set = shoot_control.angle;
@@ -172,13 +174,13 @@ int16_t shoot_control_loop(void) {
         shoot_control.angle_set = shoot_control.angle;
     }
     if (PID_AUTO_TUNE) {
-        if(shoot_control.pid_auto_tune_data_point->tune_type == ANGLE_TO_SPEED){
+        if (shoot_control.pid_auto_tune_data_point->tune_type == ANGLE_TO_SPEED) {
             shoot_control.speed_set = shoot_control.pid_auto_tune_data_point->control_list.trigger_control_value;
             shoot_control.current_set = ALL_PID(&shoot_control.trigger_motor_speed_pid, shoot_control.speed,
                                                 shoot_control.speed_set);
             shoot_control.given_current = (int16_t) KalmanFilter(&shoot_control.Trigger_Motor_Current_Kalman_Filter,
                                                                  shoot_control.current_set);
-        } else if (shoot_control.pid_auto_tune_data_point->tune_type == SPEED_TO_CURRENT){
+        } else if (shoot_control.pid_auto_tune_data_point->tune_type == SPEED_TO_CURRENT) {
             shoot_control.current_set = shoot_control.pid_auto_tune_data_point->control_list.trigger_control_value;
             shoot_control.given_current = (int16_t) KalmanFilter(&shoot_control.Trigger_Motor_Current_Kalman_Filter,
                                                                  shoot_control.current_set);
@@ -256,11 +258,55 @@ int16_t shoot_control_loop(void) {
 static void shoot_set_mode(void) {
     static char last_s = RC_SW_MID;
     static char last_s_switch = RC_SW_MID;
+    static uint16_t key_count = 0;
 //    SEGGER_RTT_WriteString(0, "inloop\r\n");
     if (PID_AUTO_TUNE) {
         shoot_control.shoot_mode = SHOOT_PID_AUTO_TUNE;
         return;
     }
+    if (shoot_control.shoot_speed_referee_set == SHOOT_SPEED_30_MS) {
+        shoot_control.fric_all_speed = SHOOT_SPEED_18_MS_TO_FRIC;
+    } else if (shoot_control.shoot_speed_referee_set == SHOOT_SPEED_18_MS) {
+        shoot_control.fric_all_speed = SHOOT_SPEED_18_MS_TO_FRIC;
+    } else {
+        shoot_control.fric_all_speed = SHOOT_SPEED_15_MS_TO_FRIC;
+    }
+
+#if SHOOT_TRIGGER_TURN
+    if (shoot_control.shoot_cooling_rate_referee_set == SHOOT_HEAT_COOLING_10_MS) {
+        shoot_control.trigger_speed_set = -TRIGGER_SPEED_10;
+    } else if (shoot_control.shoot_cooling_rate_referee_set == SHOOT_HEAT_COOLING_15_MS) {
+        shoot_control.trigger_speed_set = -TRIGGER_SPEED_15;
+    } else if (shoot_control.shoot_cooling_rate_referee_set == SHOOT_HEAT_COOLING_25_MS) {
+        shoot_control.trigger_speed_set = -TRIGGER_SPEED_25;
+    } else if(shoot_control.shoot_cooling_rate_referee_set==SHOOT_HEAT_COOLING_35_MS){
+        shoot_control.trigger_speed_set = -TRIGGER_SPEED_35;
+    }else if(shoot_control.shoot_cooling_rate_referee_set==SHOOT_HEAT_COOLING_40_MS){
+        shoot_control.trigger_speed_set = -TRIGGER_SPEED_40;
+    }else if(shoot_control.shoot_cooling_rate_referee_set==SHOOT_HEAT_COOLING_60_MS){
+        shoot_control.trigger_speed_set = -TRIGGER_SPEED_60;
+    }else if(shoot_control.shoot_cooling_rate_referee_set==SHOOT_HEAT_COOLING_80_MS){
+        shoot_control.trigger_speed_set = -TRIGGER_SPEED_80;
+    }
+#else
+    if (shoot_control.shoot_cooling_rate_referee_set == SHOOT_HEAT_COOLING_10_MS) {
+        shoot_control.trigger_speed_set = TRIGGER_SPEED_10;
+    } else if (shoot_control.shoot_cooling_rate_referee_set == SHOOT_HEAT_COOLING_15_MS) {
+        shoot_control.trigger_speed_set = TRIGGER_SPEED_15;
+    } else if (shoot_control.shoot_cooling_rate_referee_set == SHOOT_HEAT_COOLING_25_MS) {
+        shoot_control.trigger_speed_set = TRIGGER_SPEED_25;
+    } else if (shoot_control.shoot_cooling_rate_referee_set == SHOOT_HEAT_COOLING_35_MS) {
+        shoot_control.trigger_speed_set = TRIGGER_SPEED_35;
+    } else if (shoot_control.shoot_cooling_rate_referee_set == SHOOT_HEAT_COOLING_40_MS) {
+        shoot_control.trigger_speed_set = TRIGGER_SPEED_40;
+    } else if (shoot_control.shoot_cooling_rate_referee_set == SHOOT_HEAT_COOLING_60_MS) {
+        shoot_control.trigger_speed_set = TRIGGER_SPEED_60;
+    } else if (shoot_control.shoot_cooling_rate_referee_set == SHOOT_HEAT_COOLING_80_MS) {
+        shoot_control.trigger_speed_set = TRIGGER_SPEED_80;
+    }
+
+#endif
+
 
     //上拨判断， 一次开启，再次关闭
     if ((switch_is_down(shoot_control.shoot_rc->rc.s[RADIO_CONTROL_SWITCH_L]) &&
@@ -278,23 +324,40 @@ static void shoot_set_mode(void) {
 
     //处于左拨杆上档， 可以使用键盘开启/关闭摩擦轮
     if (switch_is_up(shoot_control.shoot_rc->rc.s[RADIO_CONTROL_SWITCH_L]) &&
-        (shoot_control.shoot_rc->key.v & SHOOT_ON_KEYBOARD) && shoot_control.shoot_mode == SHOOT_STOP) {
+        (shoot_control.shoot_rc->key.v & SHOOT_KEYBOARD) && shoot_control.shoot_fric_state == FRIC_OFF &&
+        key_count == 0) {
+        key_count = 250;
         shoot_control.shoot_mode = SHOOT_START;
+        shoot_control.shoot_fric_state = FRIC_ON;
     } else if (switch_is_up(shoot_control.shoot_rc->rc.s[RADIO_CONTROL_SWITCH_L]) &&
-               (shoot_control.shoot_rc->key.v & SHOOT_OFF_KEYBOARD) && shoot_control.shoot_mode != SHOOT_STOP) {
+               (shoot_control.shoot_rc->key.v & SHOOT_KEYBOARD) && shoot_control.shoot_fric_state != FRIC_OFF &&
+               key_count == 0) {
+        key_count = 250;
         shoot_control.shoot_mode = SHOOT_STOP;
+        shoot_control.shoot_fric_state = FRIC_OFF;
     }
-
+    if (key_count > 0) {
+        key_count--;
+    }
+    SEGGER_RTT_printf(0, "shoot_mode:%d,shoot_fric_state:%d\r\n", shoot_control.shoot_mode,
+                      shoot_control.shoot_fric_state);
+//状态检测
     if (shoot_control.shoot_mode == SHOOT_START &&
         (fabsf(100 * shoot_control.fric1_speed_set - 100 * shoot_control.fric1_speed) < 0.5f * 100) &&
         (fabsf(100 * shoot_control.fric2_speed_set - 100 * shoot_control.fric2_speed) < 0.5f * 100)) {
         shoot_control.shoot_mode = SHOOT_READY;
-    } else if (shoot_control.shoot_mode == SHOOT_READY) {
+        shoot_control.shoot_fric_state = FRIC_READY;
+    } else if (shoot_control.shoot_mode == SHOOT_START) {
+        shoot_control.shoot_fric_state = FRIC_ON;
+    } else if (shoot_control.shoot_mode == SHOOT_STOP) {
+        shoot_control.shoot_fric_state = FRIC_OFF;
+    }
+
+    if (shoot_control.shoot_mode == SHOOT_READY) {
         //下拨一次或者鼠标按下一次，进入射击状态
         if ((switch_is_down(shoot_control.shoot_rc->rc.s[RADIO_CONTROL_SWITCH_L]) &&
              switch_is_down(shoot_control.shoot_rc->rc.s[RADIO_CONTROL_SWITCH_R]) && !switch_is_down(last_s)) ||
-            (shoot_control.press_l && shoot_control.last_press_l == 0) ||
-            (shoot_control.press_r && shoot_control.last_press_r == 0)) {
+            (shoot_control.press_l && shoot_control.last_press_l == 0)) {
             shoot_control.shoot_mode = SHOOT_BULLET;
         }
     } else if (shoot_control.shoot_mode == SHOOT_DONE) {
@@ -316,7 +379,7 @@ static void shoot_set_mode(void) {
 
     if (shoot_control.shoot_mode > SHOOT_START) {
         //鼠标长按一直进入射击状态 保持连发
-        if ((shoot_control.press_l_time == PRESS_LONG_TIME) || (shoot_control.press_r_time == PRESS_LONG_TIME) ||
+        if ((shoot_control.press_l_time == PRESS_LONG_TIME) ||
             (shoot_control.rc_s_time == RC_S_LONG_TIME)) {
             shoot_control.shoot_mode = SHOOT_CONTINUE_BULLET;
         } else if (shoot_control.shoot_mode == SHOOT_CONTINUE_BULLET) {
@@ -384,9 +447,9 @@ static void shoot_feedback_update(void) {
 //    shoot_control.key = BUTTEN_TRIG_PIN;
     //鼠标按键
     shoot_control.last_press_l = shoot_control.press_l;
-    shoot_control.last_press_r = shoot_control.press_r;
+//    shoot_control.last_press_r = shoot_control.press_r;
     shoot_control.press_l = shoot_control.shoot_rc->mouse.press_l;
-    shoot_control.press_r = shoot_control.shoot_rc->mouse.press_r;
+//    shoot_control.press_r = shoot_control.shoot_rc->mouse.press_r;
     //长按计时
     if (shoot_control.press_l) {
         if (shoot_control.press_l_time < PRESS_LONG_TIME) {
@@ -396,13 +459,13 @@ static void shoot_feedback_update(void) {
         shoot_control.press_l_time = 0;
     }
 
-    if (shoot_control.press_r) {
-        if (shoot_control.press_r_time < PRESS_LONG_TIME) {
-            shoot_control.press_r_time++;
-        }
-    } else {
-        shoot_control.press_r_time = 0;
-    }
+//    if (shoot_control.press_r) {
+//        if (shoot_control.press_r_time < PRESS_LONG_TIME) {
+//            shoot_control.press_r_time++;
+//        }
+//    } else {
+//        shoot_control.press_r_time = 0;
+//    }
 
     //射击开关下档时间计时
     if (switch_is_down(shoot_control.shoot_rc->rc.s[RADIO_CONTROL_SWITCH_L]) &&
@@ -425,12 +488,12 @@ static void shoot_feedback_update(void) {
 //    }
 //
 //    if (up_time > 0) {
-//        shoot_control.fric1_ramp.max_value = FRIC_UP;
-//        shoot_control.fric2_ramp.max_value = FRIC_UP;
+//        shoot_control.fric1_ramp.max_value = FRIC_UP_PWM;
+//        shoot_control.fric2_ramp.max_value = FRIC_UP_PWM;
 //        up_time--;
 //    } else {
-//        shoot_control.fric1_ramp.max_value = FRIC_DOWN;
-//        shoot_control.fric2_ramp.max_value = FRIC_DOWN;
+//        shoot_control.fric1_ramp.max_value = FRIC_DOWN_PWM;
+//        shoot_control.fric2_ramp.max_value = FRIC_DOWN_PWM;
 //    }
 
     last_s = shoot_control.shoot_rc->rc.s[RADIO_CONTROL_SWITCH_R];

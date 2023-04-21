@@ -9,8 +9,8 @@
 extern volatile uint16_t bullet_box_pwm;
 typedef enum
 {
-    Bullet_Box_Min = 0,
-    Bullet_Box_Max,
+    Bullet_Box_CLOSE = 0,
+    Bullet_Box_OPEN,
 } servo_mode_e;
 
 

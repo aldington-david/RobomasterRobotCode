@@ -386,6 +386,6 @@ const motor_measure_t *get_trigger_motor2_measure_point(void) {
   * @param[in]      none
   * @retval         超级电容数据指针
   */
-const super_capacitance_measure_t *get_super_capacitance_measure_point(void) {
+const volatile super_capacitance_measure_t *get_super_capacitance_measure_point(void) {
     return &super_capacitance_data;
 }

@@ -24,6 +24,14 @@
 #include "chassis_task.h"
 #include "main.h"
 
+#define POWER_LIMIT         40.0f
+#define WARNING_POWER       5.0f
+#define WARNING_POWER_BUFF  60.0f
+
+#define NO_JUDGE_TOTAL_CURRENT_LIMIT    64000.0f    //16000 * 4,
+#define BUFFER_TOTAL_CURRENT_LIMIT      16000.0f
+#define POWER_TOTAL_CURRENT_LIMIT       20000.0f
+
 /**
   * @brief          limit the power, mainly limit motor current
   * @param[in]      chassis_power_control: chassis data 

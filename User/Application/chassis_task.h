@@ -60,9 +60,9 @@
 //#define CHASSIS_ACCEL_X_NUM 0.1666666667f
 //#define CHASSIS_ACCEL_Y_NUM 0.3333333333f
 //for_test
-#define CHASSIS_ACCEL_X_NUM 0.29005f
-#define CHASSIS_ACCEL_Y_NUM 0.29005f
-#define CHASSIS_ACCEL_WZ_NUM 0.29005f
+#define CHASSIS_ACCEL_X_NUM 0.49005f
+#define CHASSIS_ACCEL_Y_NUM 0.49005f
+#define CHASSIS_ACCEL_WZ_NUM 0.49005f
 #define CHASSIS_FOLLOW_NORMAL_NUM 0.0f
 #define CHASSIS_FOLLOW_SLOW_NUM 0.00005f
 //rocker value deadline
@@ -102,8 +102,8 @@
 #define CHASSIS_BACK_KEY KEY_PRESSED_OFFSET_S
 #define CHASSIS_LEFT_KEY KEY_PRESSED_OFFSET_A
 #define CHASSIS_RIGHT_KEY KEY_PRESSED_OFFSET_D
-#define CHASSIS_SPIN_LEFT_KEY KEY_PRESSED_OFFSET_Q
-#define CHASSIS_SPIN_RIGHT_KEY KEY_PRESSED_OFFSET_E
+//#define CHASSIS_SPIN_LEFT_KEY KEY_PRESSED_OFFSET_Q
+//#define CHASSIS_SPIN_RIGHT_KEY KEY_PRESSED_OFFSET_E
 //m3508 rmp change to chassis speed,
 //m3508转化成底盘速度(m/s)的比例，
 #define M3508_MOTOR_19_RPM_TO_VECTOR 0.000415809748903494517209f
@@ -171,6 +171,7 @@ typedef struct {
     const gimbal_motor_t *chassis_pitch_motor; //will use the relative angle of pitch gimbal motor to calculate the euler angle.底盘使用到pitch云台电机的相对角度来计算底盘的欧拉角
     const float32_t *chassis_INS_angle;             //the point to the euler angle of gyro sensor.获取陀螺仪解算出的欧拉角指针
     const volatile pid_auto_tune_t *pid_auto_tune_data_point;
+    const volatile super_capacitance_measure_t *super_capacitance_measure_point;
 
     bool_t chassis_follow_reverse_flag;
     chassis_mode_e chassis_mode;               //state machine. 底盘控制状态机
@@ -205,6 +206,11 @@ typedef struct {
     float32_t chassis_yaw;   //the yaw angle calculated by gyro sensor and gimbal motor.陀螺仪和云台电机叠加的yaw角度
     float32_t chassis_pitch; //the pitch angle calculated by gyro sensor and gimbal motor.陀螺仪和云台电机叠加的pitch角度
     float32_t chassis_roll;  //the roll angle calculated by gyro sensor and gimbal motor.陀螺仪和云台电机叠加的roll角度
+
+    uint16_t soft_power_limit;
+    uint16_t power_limit;
+
+
 
 } chassis_move_t;
 

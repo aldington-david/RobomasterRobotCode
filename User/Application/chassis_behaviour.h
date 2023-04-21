@@ -101,6 +101,8 @@ typedef enum
 extern chassis_behaviour_e chassis_behaviour_mode;
 extern chassis_behaviour_e last_chassis_behaviour_mode;
 extern bool_t chassis_mode_change_flag;
+extern bool_t chassis_follow_change_flag;
+extern bool_t spin_pid_change_flag;
 
 /**
   * @brief          logical judgement to assign "chassis_behaviour_mode" variable to which mode

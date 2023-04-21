@@ -93,6 +93,8 @@
 #include "gimbal_task.h"
 #include "chassis_behaviour.h"
 #include "pid_auto_tune_task.h"
+#include "print_task.h"
+#include "SEGGER_RTT.h"
 
 //when gimbal is in calibrating, set buzzer frequency and strenght
 //当云台在校准, 设置蜂鸣器频率和强度
@@ -323,6 +325,8 @@ static void gimbal_motionless_control(float32_t *yaw, float32_t *pitch, gimbal_c
 gimbal_behaviour_e gimbal_behaviour = GIMBAL_ZERO_FORCE;
 float32_t yaw_rc_Interpolation[14] = {0};
 float32_t pitch_rc_Interpolation[14] = {0};
+float32_t yaw_vision_Interpolation[200] = {0};
+float32_t pitch_vision_Interpolation[200] = {0};
 
 /**
   * @brief          the function is called by gimbal_set_mode function in gimbal_task.c
@@ -476,7 +480,24 @@ static void gimbal_behavour_set(gimbal_control_t *gimbal_mode_set) {
     }
     static gimbal_behaviour_e last_gimbal_behaviour = GIMBAL_ZERO_FORCE;
     static bool_t init_complete_flag = 0;
+/***************vision key control start*******************/
+//    if ((switch_is_up(gimbal_mode_set->gimbal_rc_ctrl->rc.s[RADIO_CONTROL_SWITCH_L])) &&
+//        (switch_is_up(gimbal_mode_set->gimbal_rc_ctrl->rc.s[RADIO_CONTROL_SWITCH_R]))) {
+//        if ((gimbal_mode_set->gimbal_rc_ctrl->key.v & KEY_PRESSED_OFFSET_R) &&
+//            (global_vision_info.state == VISION_OFF)) {
+//            global_vision_info.state = VISION_ON;
+//        } else if ((gimbal_mode_set->gimbal_rc_ctrl->key.v & KEY_PRESSED_OFFSET_R) &&
+//                   (global_vision_info.state == VISION_ON)) {
+//            global_vision_info.state = VISION_OFF;
+//        }
+//    }
+    if (gimbal_mode_set->gimbal_rc_ctrl->mouse.press_r) {
+        global_vision_info.state = VISION_ON;
+    } else {
+        global_vision_info.state = VISION_OFF;
+    }
 
+/***************vision key control end*******************/
     if (PID_AUTO_TUNE) {
         gimbal_behaviour = GIMBAL_PID_AUTO_TUNE;
         return;
@@ -528,8 +549,10 @@ static void gimbal_behavour_set(gimbal_control_t *gimbal_mode_set) {
         static uint16_t init_stop_time = 0;
         init_time++;
 
-        if ((jump_error(gimbal_mode_set->gimbal_yaw_motor.relative_angle - INIT_YAW_SET,2*PI) < GIMBAL_INIT_ANGLE_ERROR &&
-                jump_error(gimbal_mode_set->gimbal_yaw_motor.relative_angle - INIT_YAW_SET,2*PI) < GIMBAL_INIT_ANGLE_ERROR)) {
+        if (gimbal_mode_set->gimbal_yaw_motor.relative_angle - INIT_YAW_SET <
+            GIMBAL_INIT_ANGLE_ERROR &&
+            gimbal_mode_set->gimbal_yaw_motor.relative_angle - INIT_YAW_SET <
+            GIMBAL_INIT_ANGLE_ERROR) {
 
             if (init_stop_time < GIMBAL_INIT_STOP_TIME) {
                 init_stop_time++;
@@ -570,16 +593,28 @@ static void gimbal_behavour_set(gimbal_control_t *gimbal_mode_set) {
 
 
     //开关控制 云台状态
-    if (switch_is_mid(gimbal_mode_set->gimbal_rc_ctrl->rc.s[RADIO_CONTROL_SWITCH_L]) &&
-        switch_is_down(gimbal_mode_set->gimbal_rc_ctrl->rc.s[RADIO_CONTROL_SWITCH_R])) {
+    if ((switch_is_mid(gimbal_mode_set->gimbal_rc_ctrl->rc.s[RADIO_CONTROL_SWITCH_L]) &&
+         switch_is_down(gimbal_mode_set->gimbal_rc_ctrl->rc.s[RADIO_CONTROL_SWITCH_R])) ||
+        ((switch_is_up(gimbal_mode_set->gimbal_rc_ctrl->rc.s[RADIO_CONTROL_SWITCH_L])) &&
+         (switch_is_up(gimbal_mode_set->gimbal_rc_ctrl->rc.s[RADIO_CONTROL_SWITCH_R])) &&
+         (gimbal_mode_set->gimbal_rc_ctrl->key.v & KEY_PRESSED_OFFSET_G))) {
 //        gimbal_behaviour = GIMBAL_ZERO_FORCE;
         gimbal_behaviour = GIMBAL_RELATIVE_ANGLE;
-    } else if (switch_is_mid(gimbal_mode_set->gimbal_rc_ctrl->rc.s[RADIO_CONTROL_SWITCH_L]) &&
-               switch_is_mid(gimbal_mode_set->gimbal_rc_ctrl->rc.s[RADIO_CONTROL_SWITCH_R])) {
+    } else if ((switch_is_mid(gimbal_mode_set->gimbal_rc_ctrl->rc.s[RADIO_CONTROL_SWITCH_L]) &&
+                switch_is_mid(gimbal_mode_set->gimbal_rc_ctrl->rc.s[RADIO_CONTROL_SWITCH_R])) ||
+               ((switch_is_up(gimbal_mode_set->gimbal_rc_ctrl->rc.s[RADIO_CONTROL_SWITCH_L])) &&
+                (switch_is_up(gimbal_mode_set->gimbal_rc_ctrl->rc.s[RADIO_CONTROL_SWITCH_R])) &&
+                (gimbal_mode_set->gimbal_rc_ctrl->key.v & KEY_PRESSED_OFFSET_F))) {
         gimbal_behaviour = GIMBAL_ABSOLUTE_ANGLE;
-    } else if (switch_is_mid(gimbal_mode_set->gimbal_rc_ctrl->rc.s[RADIO_CONTROL_SWITCH_L]) &&
-               switch_is_up(gimbal_mode_set->gimbal_rc_ctrl->rc.s[RADIO_CONTROL_SWITCH_R])) {
+    } else if ((switch_is_mid(gimbal_mode_set->gimbal_rc_ctrl->rc.s[RADIO_CONTROL_SWITCH_L]) &&
+                switch_is_up(gimbal_mode_set->gimbal_rc_ctrl->rc.s[RADIO_CONTROL_SWITCH_R])) ||
+               ((switch_is_up(gimbal_mode_set->gimbal_rc_ctrl->rc.s[RADIO_CONTROL_SWITCH_L])) &&
+                (switch_is_up(gimbal_mode_set->gimbal_rc_ctrl->rc.s[RADIO_CONTROL_SWITCH_R])) &&
+                (gimbal_mode_set->gimbal_rc_ctrl->key.v & KEY_PRESSED_OFFSET_R))) {
 //        gimbal_behaviour = GIMBAL_ABSOLUTE_ANGLE;
+        gimbal_behaviour = GIMBAL_ABSOLUTE_ANGLE;
+    } else if ((switch_is_up(gimbal_mode_set->gimbal_rc_ctrl->rc.s[RADIO_CONTROL_SWITCH_L])) &&
+               (switch_is_up(gimbal_mode_set->gimbal_rc_ctrl->rc.s[RADIO_CONTROL_SWITCH_R]))) {
         gimbal_behaviour = GIMBAL_ABSOLUTE_ANGLE;
     }
 
@@ -825,10 +860,10 @@ static void gimbal_absolute_angle_control(float32_t *yaw, float32_t *pitch, gimb
 
 
 //    {
-//        static uint16_t last_turn_keyboard = 0;
-//        static uint8_t gimbal_turn_flag = 0;
-//        static float32_t gimbal_end_angle = 0.0f;
-//
+    static uint16_t last_turn_keyboard = 0;
+    static uint8_t gimbal_turn_flag = 0;
+    static float32_t gimbal_end_angle = 0.0f;
+
 //        if ((gimbal_control_set->gimbal_rc_ctrl->key.v & TURN_KEYBOARD) && !(last_turn_keyboard & TURN_KEYBOARD))
 //        {
 //            if (gimbal_turn_flag == 0)
@@ -936,152 +971,175 @@ void gimbal_rc_to_control_vector(float32_t *yaw, float32_t *pitch, gimbal_contro
     if (gimbal_move_rc_to_vector == NULL || yaw == NULL || pitch == NULL) {
         return;
     }
-    static uint8_t interpolation_num = 10;
+    static bool_t micro_pitch_lock = 0;
+    static uint8_t rc_interpolation_num = 10;
+    static uint8_t vision_yaw_interpolation_num = 1;
+    static uint8_t vision_pitch_interpolation_num = 1;
     static bool_t no_bias_flag = 0;
-    static uint16_t count;
-    static uint8_t move_point;
+    static uint8_t rc_move_point = 0;
+    static uint8_t vision_move_point = 0;
     static int16_t yaw_rc_last;
-    static float32_t vision_yaw;
-//    static float32_t yaw_vision_last;
     float32_t yaw_bias = 0;
     static float32_t last_yaw_bias = 0;
     float32_t pitch_bias = 0;
     int16_t err;
     int16_t yaw_channel, pitch_channel;
-    float32_t yaw_set_channel, pitch_set_channel, add_vision_yaw, add_vision_pitch, lim_vision_yaw, lim_vision_pitch;
-    yaw_set_channel = pitch_set_channel = add_vision_yaw = add_vision_pitch = yaw_channel = pitch_channel = 0;
-    if (!switch_is_up(gimbal_move_rc_to_vector->gimbal_rc_ctrl->rc.s[RADIO_CONTROL_SWITCH_L])) {
-
-        //deadline, because some remote control need be calibrated,  the value of rocker is not zero in middle place,
-        //死区限制，因为遥控器可能存在差异 摇杆在中间，其值不为0
-        rc_deadband_limit(gimbal_move_rc_to_vector->gimbal_rc_ctrl->rc.ch[YAW_CHANNEL], yaw_channel, RC_DEADBAND);
-        rc_deadband_limit(gimbal_move_rc_to_vector->gimbal_rc_ctrl->rc.ch[PITCH_CHANNEL], pitch_channel, RC_DEADBAND);
-        //for_test
-        if (gimbal_behaviour == GIMBAL_RELATIVE_ANGLE) {
-            interpolation_num = 30;
-        } else if (gimbal_behaviour == GIMBAL_ABSOLUTE_ANGLE) {
-            if (chassis_behaviour_mode == CHASSIS_FORWARD_FOLLOW_GIMBAL_YAW) {
-                interpolation_num = 80;
-            } else if (chassis_behaviour_mode == CHASSIS_SPIN) {
-                interpolation_num = 25;
-            }
+    float32_t yaw_set_channel, pitch_set_channel, add_vision_yaw, add_vision_pitch, lim_vision_yaw, lim_vision_pitch, micro_pitch_add;
+    yaw_set_channel = pitch_set_channel = add_vision_yaw = add_vision_pitch = yaw_channel = pitch_channel = micro_pitch_add = 0;
+    //视觉控制
+    if (gimbal_move_rc_to_vector->gimbal_vision_ctrl->update_flag) {
+        clear_vision_update_flag();
+        memset(yaw_vision_Interpolation, 0, sizeof(yaw_vision_Interpolation));
+        memset(yaw_vision_Interpolation, 0, sizeof(yaw_vision_Interpolation));
+        rc_move_point = 0;
+//        SEGGER_RTT_printf(0, "%d,%f,%f\r\n", gimbal_move_rc_to_vector->gimbal_vision_ctrl->fps,
+//                          gimbal_move_rc_to_vector->gimbal_vision_ctrl->yaw_angle,
+//                          gimbal_move_rc_to_vector->gimbal_vision_ctrl->pitch_angle);
+        if (gimbal_move_rc_to_vector->gimbal_vision_ctrl->fps <= 10) {
+            global_vision_info.vision_control.fps = 20;
+        } else if (gimbal_move_rc_to_vector->gimbal_vision_ctrl->fps > 60) {
+            global_vision_info.vision_control.fps = 60;
+        }
+//        SEGGER_RTT_WriteString(0,"IN\r\n");
+        if (fabsf(add_vision_yaw) > 2.0f) {
+            vision_yaw_interpolation_num = 3;
         } else {
-            interpolation_num = 20;
+            vision_yaw_interpolation_num = 2;
         }
-
-
-        //视觉控制
-        if (gimbal_move_rc_to_vector->gimbal_vision_ctrl->fps == 0) {
-            global_vision_info.vision_control.fps = 1;
+        if (fabsf(add_vision_pitch) > 2.0f) {
+            vision_pitch_interpolation_num = 3;
+        } else {
+            vision_pitch_interpolation_num = 2;
         }
-
-        if (gimbal_move_rc_to_vector->gimbal_vision_ctrl->update_flag) {
-            count = 0;
-            clear_vision_update_flag();
+        sigmoidInterpolation(0,
+                             (gimbal_move_rc_to_vector->gimbal_vision_ctrl->yaw_angle / vision_yaw_interpolation_num) *
+                             1000,
+                             (1000 / gimbal_move_rc_to_vector->gimbal_vision_ctrl->fps) * 2,
+                             yaw_vision_Interpolation);
+        sigmoidInterpolation(0, (gimbal_move_rc_to_vector->gimbal_vision_ctrl->pitch_angle /
+                                 vision_pitch_interpolation_num) * 1000,
+                             (1000 / gimbal_move_rc_to_vector->gimbal_vision_ctrl->fps) * 2,
+                             pitch_vision_Interpolation);
+    }
+    add_vision_yaw = yaw_vision_Interpolation[vision_move_point] / 1000;
+    add_vision_pitch = pitch_vision_Interpolation[vision_move_point] / 1000;
+    vision_move_point++;
+    if (vision_move_point > (1000 / gimbal_move_rc_to_vector->gimbal_vision_ctrl->fps) - 1) {
+        vision_move_point = 0;
+    }
+//    SEGGER_RTT_printf(0, "%d,%f,%f\r\n", gimbal_move_rc_to_vector->gimbal_vision_ctrl->fps,
+//                      add_vision_yaw,
+//                      add_vision_pitch);
+//limit
+    if (gimbal_behaviour == GIMBAL_RELATIVE_ANGLE) {
+        rc_interpolation_num = 50;
+    } else if (gimbal_behaviour == GIMBAL_ABSOLUTE_ANGLE) {
+        if (chassis_behaviour_mode == CHASSIS_FORWARD_FOLLOW_GIMBAL_YAW) {
+            rc_interpolation_num = 80;
+        } else if (chassis_behaviour_mode == CHASSIS_SPIN) {
+            rc_interpolation_num = 25;
         }
-//有延时系数
-        if (count <= ((0.054 * gimbal_move_rc_to_vector->gimbal_vision_ctrl->fps + 2.22) /
-                      gimbal_move_rc_to_vector->gimbal_vision_ctrl->fps * 1000)) {
-            add_vision_yaw = (gimbal_move_rc_to_vector->gimbal_vision_ctrl->yaw_angle /
-                              ((0.054 * gimbal_move_rc_to_vector->gimbal_vision_ctrl->fps + 2.22) /
-                               gimbal_move_rc_to_vector->gimbal_vision_ctrl->fps * 1000));
-            add_vision_pitch = (gimbal_move_rc_to_vector->gimbal_vision_ctrl->pitch_angle /
-                                ((0.054 * gimbal_move_rc_to_vector->gimbal_vision_ctrl->fps + 2.22) /
-                                 gimbal_move_rc_to_vector->gimbal_vision_ctrl->fps * 1000));
-            count++;
-        }
-        Filter_IIRLPF(add_vision_yaw, &vision_yaw, 0.8f);
-//for_test
-//        RTT_PrintWave_np(2,
-//                         add_vision_yaw,
-//                         add_vision_pitch);
-//        SEGGER_RTT_printf(0,"%d\r\n",count);//for_test
-        if (gimbal_behaviour == GIMBAL_RELATIVE_ANGLE) {
-            yaw_bias = jump_error(
-                    gimbal_move_rc_to_vector->gimbal_yaw_motor.relative_angle_set -
-                    gimbal_move_rc_to_vector->gimbal_yaw_motor.relative_angle, 2 * PI);
+    } else {
+        rc_interpolation_num = 20;
+    }
+    if (gimbal_behaviour == GIMBAL_RELATIVE_ANGLE) {
+        yaw_bias = jump_error(
+                gimbal_move_rc_to_vector->gimbal_yaw_motor.relative_angle_set -
+                gimbal_move_rc_to_vector->gimbal_yaw_motor.relative_angle, 2 * PI);
 //            yaw_bias = 0.0f
-            pitch_bias = jump_error(
-                    gimbal_move_rc_to_vector->gimbal_pitch_motor.relative_angle_set -
-                    gimbal_move_rc_to_vector->gimbal_pitch_motor.relative_angle, 2 * PI);
-        } else if (gimbal_behaviour == GIMBAL_ABSOLUTE_ANGLE) {
-            yaw_bias = jump_error(
-                    gimbal_move_rc_to_vector->gimbal_yaw_motor.absolute_angle_set -
-                    gimbal_move_rc_to_vector->gimbal_yaw_motor.absolute_angle, 2 * PI);
-            pitch_bias = jump_error(
-                    gimbal_move_rc_to_vector->gimbal_pitch_motor.absolute_angle_set -
-                    gimbal_move_rc_to_vector->gimbal_pitch_motor.absolute_angle, 2 * PI);
-        } else {
-            yaw_bias = 0;
-            pitch_bias = 0;
-        }
-        if ((fabs(yaw_bias) < 0.01f) || (fabs(yaw_bias)) > 1.5f) {
-            yaw_bias = 0;
-            no_bias_flag = 1;
-        }
-        if ((fabs(pitch_bias) < 0.1f) || (fabs(pitch_bias)) > 1.5f) {
-            pitch_bias = 0;
-            no_bias_flag = 1;
-        }
+        pitch_bias = jump_error(
+                gimbal_move_rc_to_vector->gimbal_pitch_motor.relative_angle_set -
+                gimbal_move_rc_to_vector->gimbal_pitch_motor.relative_angle, 2 * PI);
+    } else if (gimbal_behaviour == GIMBAL_ABSOLUTE_ANGLE) {
+        yaw_bias = jump_error(
+                gimbal_move_rc_to_vector->gimbal_yaw_motor.absolute_angle_set -
+                gimbal_move_rc_to_vector->gimbal_yaw_motor.absolute_angle, 2 * PI);
+        pitch_bias = jump_error(
+                gimbal_move_rc_to_vector->gimbal_pitch_motor.absolute_angle_set -
+                gimbal_move_rc_to_vector->gimbal_pitch_motor.absolute_angle, 2 * PI);
+    } else {
+        yaw_bias = 0;
+        pitch_bias = 0;
+    }
+    if ((fabs(yaw_bias) < 0.01f) || (fabs(yaw_bias)) > 1.5f || yaw_channel == 0) {
+        yaw_bias = 0;
+        no_bias_flag = 1;
+    }
+    if ((fabs(pitch_bias) < 0.1f) || (fabs(pitch_bias)) > 1.5f) {
+        pitch_bias = 0;
+        no_bias_flag = 1;
+    }
 //        if (chassis_mode_change_flag) {
 //            static uint16_t count = 0;
 //            if (count < GIMBAL_CONTROL_TIME * 2000) {
-//                interpolation_num = 1;
+//                rc_interpolation_num = 1;
 //                no_bias_flag = 1;
 //            } else {
 //                chassis_mode_change_flag = 0;
 //            }
 //            count++;
 //        }
+
+
+    if (!switch_is_up(gimbal_move_rc_to_vector->gimbal_rc_ctrl->rc.s[RADIO_CONTROL_SWITCH_L])) {
+
+        //deadline, because some remote control need be calibrated,  the value of rocker is not zero in middle place,
+        //死区限制，因为遥控器可能存在差异 摇杆在中间，其值不为0
+        rc_deadband_limit(gimbal_move_rc_to_vector->gimbal_rc_ctrl->rc.ch[YAW_CHANNEL], yaw_channel, RC_DEADBAND);
+        rc_deadband_limit(gimbal_move_rc_to_vector->gimbal_rc_ctrl->rc.ch[PITCH_CHANNEL], pitch_channel, RC_DEADBAND);
         if (gimbal_move_rc_to_vector->gimbal_rc_ctrl->gimbal_update_flag ||
             (gimbal_move_rc_to_vector->gimbal_rc_ctrl->gimbal_update_flag && no_bias_flag)) {
             clear_gimbal_rc_update_flag();
 //            sigmoidInterpolation(0, yaw_channel, 14, yaw_rc_Interpolation);
 //            sigmoidInterpolation(0, pitch_channel, 14, pitch_rc_Interpolation);
             if (chassis_behaviour_mode == CHASSIS_FORWARD_FOLLOW_GIMBAL_YAW) {
-                sigmoidInterpolation(0, (yaw_channel * YAW_RC_SEN - yaw_bias / interpolation_num) * 1000, 14,
+                sigmoidInterpolation(0, (yaw_channel * YAW_RC_SEN - yaw_bias / rc_interpolation_num) * 1000, 14,
                                      yaw_rc_Interpolation);
             } else if (chassis_behaviour_mode == CHASSIS_SPIN) {
-                if (last_yaw_bias != 0) {
-                    float32_t yaw_bias_err = yaw_bias - last_yaw_bias;
-                    if (yaw_bias_err > 0) {
-                        sigmoidInterpolation(0, (yaw_channel * YAW_RC_SEN + yaw_bias_err / interpolation_num) * 1000,
-                                             14,
-                                             yaw_rc_Interpolation);
+                static uint16_t count = 0;
+                if (spin_pid_change_flag) {
+                    sigmoidInterpolation(0, (yaw_channel * YAW_RC_SEN + yaw_bias) * 1000, 14,
+                                         yaw_rc_Interpolation);
+                    count++;
+                    if (count > 10) {
+                        spin_pid_change_flag = 0;
+                        count = 0;
+                        yaw_bias = 0;
+                    }
+                    last_yaw_bias = yaw_bias;
+                } else {
+                    if (last_yaw_bias != 0) {
+                        float32_t yaw_bias_err = yaw_bias - last_yaw_bias;
+                        if (yaw_bias_err > 0) {
+                            sigmoidInterpolation(0, (yaw_channel * YAW_RC_SEN + yaw_bias_err / rc_interpolation_num) *
+                                                    1000,
+                                                 14,
+                                                 yaw_rc_Interpolation);
+                        } else {
+                            sigmoidInterpolation(0, (yaw_channel * YAW_RC_SEN) * 1000, 14,
+                                                 yaw_rc_Interpolation);
+                        }
+//                    SEGGER_RTT_printf(0, "chanel=%f,bias=%f\r\n", yaw_channel * YAW_RC_SEN, yaw_bias_err);
                     } else {
                         sigmoidInterpolation(0, (yaw_channel * YAW_RC_SEN) * 1000, 14,
                                              yaw_rc_Interpolation);
                     }
-//                    SEGGER_RTT_printf(0, "chanel=%f,bias=%f\r\n", yaw_channel * YAW_RC_SEN, yaw_bias_err);
-                } else {
-                    sigmoidInterpolation(0, (yaw_channel * YAW_RC_SEN) * 1000, 14,
-                                         yaw_rc_Interpolation);
+                    last_yaw_bias = yaw_bias;
                 }
-                last_yaw_bias = yaw_bias;
             } else {
-                sigmoidInterpolation(0, (yaw_channel * YAW_RC_SEN + yaw_bias / interpolation_num) * 1000, 14,
+                sigmoidInterpolation(0, (yaw_channel * YAW_RC_SEN) * 1000, 14,
                                      yaw_rc_Interpolation);
             }
             sigmoidInterpolation(0, (pitch_channel * PITCH_RC_SEN) * 1000, 14,
                                  pitch_rc_Interpolation);
-//                SEGGER_RTT_printf(0,"in=%f,set=%f\r\n",yaw_rc_Interpolation[i]* YAW_RC_SEN,yaw_channel * YAW_RC_SEN);
-//                SEGGER_RTT_printf(0,"in=%f,set=%f\r\n",pitch_rc_Interpolation[i]* PITCH_RC_SEN,pitch_channel * YAW_RC_SEN);
-//            SEGGER_RTT_printf(0, "yaw=%d,pitch=%d,y-=%f,p-=%f\r\n", yaw_channel, pitch_channel, jump_error(
-//                                      gimbal_move_rc_to_vector->gimbal_yaw_motor.relative_angle_set -
-//                                      gimbal_move_rc_to_vector->gimbal_yaw_motor.relative_angle, 2 * PI),
-//                              jump_error(gimbal_move_rc_to_vector->gimbal_pitch_motor.relative_angle_set -
-//                                         gimbal_move_rc_to_vector->gimbal_pitch_motor.relative_angle, 2 * PI));
-            move_point = 0;
+            rc_move_point = 0;
             no_bias_flag = 0;
         }
-//        SEGGER_RTT_printf(0,"yaw=%f,pitch=%f\r\n",yaw_rc_Interpolation[3],pitch_rc_Interpolation[3]);
-//        yaw_set_channel = yaw_rc_Interpolation[move_point] * YAW_RC_SEN;
-//        pitch_set_channel = pitch_rc_Interpolation[move_point] * PITCH_RC_SEN;
-        yaw_set_channel = yaw_rc_Interpolation[move_point] / 1000;
-        pitch_set_channel = pitch_rc_Interpolation[move_point] / 1000;
-        move_point++;
-        if (move_point > 13) {
-            move_point = 0;
+        yaw_set_channel = yaw_rc_Interpolation[rc_move_point] / 1000;
+        pitch_set_channel = pitch_rc_Interpolation[rc_move_point] / 1000;
+        rc_move_point++;
+        if (rc_move_point > 13) {
+            rc_move_point = 0;
         }
 //        yaw_set_channel = yaw_channel * YAW_RC_SEN/14.0f +
 //                          (vision_yaw * (((660 - abs(yaw_channel)) * YAW_RC_SEN) / (660 * YAW_RC_SEN)));
@@ -1089,109 +1147,88 @@ void gimbal_rc_to_control_vector(float32_t *yaw, float32_t *pitch, gimbal_contro
 //        yaw_set_channel = yaw_channel * YAW_RC_SEN;
 //        pitch_set_channel = pitch_channel * PITCH_RC_SEN;
     } else {
+        static uint16_t key_count = 0;
         //keyboard set speed set-point
         //键盘控制
         rc_deadband_limit(gimbal_move_rc_to_vector->gimbal_rc_ctrl->mouse.x, yaw_channel, 3)
         rc_deadband_limit(gimbal_move_rc_to_vector->gimbal_rc_ctrl->mouse.y, pitch_channel, 2)
-        float temp_yaw = yaw_channel * YAW_MOUSE_SEN;
-        float temp_pitch = pitch_channel * PITCH_MOUSE_SEN;
-        Filter_IIRLPF(temp_yaw, &yaw_set_channel, 0.1f);
-        Filter_IIRLPF(temp_pitch, &pitch_set_channel, 0.1f);
-//        yaw_set_channel = gimbal_move_rc_to_vector->gimbal_rc_ctrl->mouse.x * YAW_MOUSE_SEN;
-//        pitch_set_channel = gimbal_move_rc_to_vector->gimbal_rc_ctrl->mouse.y * PITCH_MOUSE_SEN;
+        if (gimbal_move_rc_to_vector->gimbal_rc_ctrl->gimbal_update_flag ||
+            (gimbal_move_rc_to_vector->gimbal_rc_ctrl->gimbal_update_flag && no_bias_flag)) {
+            clear_gimbal_rc_update_flag();
+//            sigmoidInterpolation(0, yaw_channel, 14, yaw_rc_Interpolation);
+//            sigmoidInterpolation(0, pitch_channel, 14, pitch_rc_Interpolation);
+            if (chassis_behaviour_mode == CHASSIS_FORWARD_FOLLOW_GIMBAL_YAW) {
+                sigmoidInterpolation(0, (yaw_channel * YAW_MOUSE_SEN - yaw_bias / rc_interpolation_num) * 1000, 14,
+                                     yaw_rc_Interpolation);
+            } else if (chassis_behaviour_mode == CHASSIS_SPIN) {
+                if (last_yaw_bias != 0) {
+                    float32_t yaw_bias_err = yaw_bias - last_yaw_bias;
+                    if (yaw_bias_err > 0) {
+                        sigmoidInterpolation(0,
+                                             (yaw_channel * YAW_MOUSE_SEN + yaw_bias_err / rc_interpolation_num) * 1000,
+                                             14,
+                                             yaw_rc_Interpolation);
+                    } else {
+                        sigmoidInterpolation(0, (yaw_channel * YAW_MOUSE_SEN) * 1000, 14,
+                                             yaw_rc_Interpolation);
+                    }
+//                    SEGGER_RTT_printf(0, "chanel=%f,bias=%f\r\n", yaw_channel * YAW_RC_SEN, yaw_bias_err);
+                } else {
+                    sigmoidInterpolation(0, (yaw_channel * YAW_MOUSE_SEN) * 1000, 14,
+                                         yaw_rc_Interpolation);
+                }
+                last_yaw_bias = yaw_bias;
+            } else {
+                sigmoidInterpolation(0, (yaw_channel * YAW_MOUSE_SEN + yaw_bias / rc_interpolation_num) * 1000, 14,
+                                     yaw_rc_Interpolation);
+            }
+            sigmoidInterpolation(0, (pitch_channel * PITCH_MOUSE_SEN) * 1000, 14,
+                                 pitch_rc_Interpolation);
+            rc_move_point = 0;
+            no_bias_flag = 0;
+        }
+        yaw_set_channel = yaw_rc_Interpolation[rc_move_point] / 1000;
+        pitch_set_channel = pitch_rc_Interpolation[rc_move_point] / 1000;
+        rc_move_point++;
+        if (rc_move_point > 13) {
+            rc_move_point = 0;
+        }
+        if ((gimbal_move_rc_to_vector->gimbal_rc_ctrl->key.v & (KEY_PRESSED_OFFSET_Z)) && key_count == 0) {
+            key_count = 150;
+            micro_pitch_add = -MICRO_PITCH_ADD_ANGLE;
+        }
+        if ((gimbal_move_rc_to_vector->gimbal_rc_ctrl->key.v & (KEY_PRESSED_OFFSET_X)) && key_count == 0) {
+            key_count = 150;
+            micro_pitch_add = MICRO_PITCH_ADD_ANGLE;
+        }
+        if ((gimbal_move_rc_to_vector->gimbal_rc_ctrl->key.v & (KEY_PRESSED_OFFSET_V)) && (key_count == 0) &&
+            (micro_pitch_lock == 0)) {
+            key_count = 150;
+            micro_pitch_lock = 1;
+        } else if ((gimbal_move_rc_to_vector->gimbal_rc_ctrl->key.v & (KEY_PRESSED_OFFSET_V)) && (key_count == 0) &&
+                   (micro_pitch_lock == 1)) {
+            key_count = 150;
+            micro_pitch_lock = 0;
+        }
+        if (key_count > 0) {
+            key_count--;
+        }
     }
+
 //for_test
 //    RTT_PrintWave(2,
 //                  &gimbal_control.gimbal_yaw_motor.relative_angle_set,
 //                  &gimbal_control.gimbal_yaw_motor.relative_angle);
     yaw_rc_last = yaw_channel;
-    *yaw = yaw_set_channel;
-    *pitch = pitch_set_channel;
-}
-
-int16_t test_control(int16_t mode, float32_t re_angle_pr_up, float32_t re_angle_pr_down, int16_t time_ms,
-                     int16_t const_set, int16_t delay_ms, bool keep, int16_t keep_ms) {
-    static uint32_t count = 0;
-    static uint32_t delay_count = 0;
-    static uint32_t keep_count = 0;
-    static bool first_flag = 1;
-    static bool set_flag = 0;
-    static int16_t rc_control_variable = 0;
-    static int16_t rc_control_variable_ps = 0;
-//    SEGGER_RTT_printf(0,"c=%d，d=%d,k=%d\r\n",count,delay_count,keep_count);
-    if (!toe_is_error(DBUS_TOE)) {
-        if (!keep) {
-            rc_control_variable = 0;
+    if (global_vision_info.state == VISION_ON) {
+        *yaw = add_vision_yaw;
+        *pitch = add_vision_pitch;
+    } else {
+        *yaw = yaw_set_channel;
+        if (micro_pitch_lock) {
+            *pitch = micro_pitch_add;
         } else {
-            if ((keep_ms != 0) && (set_flag == 1)) {
-                if ((keep_count) % keep_ms == (keep_ms - 1)) {
-                    rc_control_variable = 0;
-                    set_flag = 0;
-                }
-                keep_count++;
-            }
+            *pitch = pitch_set_channel + micro_pitch_add;
         }
-        if ((delay_count) % delay_ms == (delay_ms - 1)) {
-            set_flag = 1;
-
-            if (mode == STEP_FUNC) {
-
-                time_ms = (int16_t) ((float) (DELAY_GAIN(const_set)) * (fabsf(re_angle_pr_up - re_angle_pr_down) /
-                                                                        ((float) const_set * YAW_RC_SEN) + 0.5f));
-                if (first_flag == 1) {
-                    rc_control_variable_ps = const_set;
-                }
-                if ((first_flag == 1) && (count > (time_ms / 2))) {
-                    rc_control_variable_ps = -rc_control_variable_ps;
-                    first_flag = 0;
-                    count = 0;
-                }
-                if (count == time_ms) {
-                    rc_control_variable_ps = -rc_control_variable_ps;
-                    count = 0;
-                }
-                rc_control_variable = rc_control_variable_ps;
-                count++;
-            }
-            if (mode == CONSTANT) {
-                rc_control_variable = const_set;
-                if (count >= time_ms) {
-                    rc_control_variable = 0;
-                }
-                count++;
-            }
-            if (mode == QUADRATIC_FUNC) {
-                rc_control_variable = (int16_t) (const_set * arm_sin_f32(((2 * PI) / time_ms) * count));
-                count++;
-            }
-            if (mode == UNARY_FUN) {
-                if (first_flag == 1) {
-                    rc_control_variable_ps = const_set;
-                    first_flag = 0;
-                }
-                if (count <= time_ms) {
-                    rc_control_variable = (int16_t) (count * ((float) rc_control_variable_ps / (float) time_ms));
-                }
-
-                if (count > time_ms) {
-                    rc_control_variable = rc_control_variable_ps;
-                }
-
-                if (count > (2 * time_ms)) {
-                    rc_control_variable =
-                            (int16_t) ((float) rc_control_variable_ps -
-                                       ((count - 2 * time_ms) *
-                                        ((float) rc_control_variable_ps / (float) time_ms)));
-                    if (rc_control_variable == 0) {
-                        rc_control_variable_ps = -rc_control_variable_ps;
-                        count = 0;
-                    }
-                }
-                count++;
-            }
-        }
-        delay_count++;
     }
-//    SEGGER_RTT_printf(0,"%d\r\n",rc_control_variable);//for_test
-    return rc_control_variable;
 }

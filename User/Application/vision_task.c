@@ -208,7 +208,8 @@ const volatile vision_control_t *get_vision_control_point(void) {
   */
 void init_vision_struct_data(void) {
     memset(&global_vision_info, 0, sizeof(vision_info_t));
-    global_vision_info.vision_control.fps = 1.0f;
+    global_vision_info.vision_control.fps = 30;
+    global_vision_info.state = VISION_ON;
 }
 
 void clear_vision_update_flag(void) {

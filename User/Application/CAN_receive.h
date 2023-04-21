@@ -154,5 +154,6 @@ extern const motor_measure_t *get_chassis_motor_measure_point(uint8_t i);
 const motor_measure_t *get_trigger_motor1_measure_point(void);
 
 const motor_measure_t *get_trigger_motor2_measure_point(void);
+extern const volatile super_capacitance_measure_t *get_super_capacitance_measure_point(void);
 
 #endif

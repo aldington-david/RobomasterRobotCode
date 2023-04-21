@@ -234,8 +234,21 @@ float ALL_PID(pid_type_def *pid, float32_t ref, float32_t set) {
 //        }
 //    }
 //探针
-//    if (pid == &gimbal_control.gimbal_pitch_motor.gimbal_motor_gyro_pid) {//for_test
-//        sp_err = pid->error[0];
+//    if (pid == &gimbal_control.gimbal_yaw_motor.gimbal_motor_absolute_angle_pid) {//for_test
+//        if (chassis_behaviour_mode == CHASSIS_SPIN) {
+//            static uint16_t count = 0;
+//            if (spin_pid_change_flag) {
+//                pid->Kp = 117.039f;
+//                if(count>500){
+//                    spin_pid_change_flag = 0;
+//                    count = 0;
+//                }
+//                count++;
+//            }
+//        } else {
+//            pid->Kp = 11.7039f;
+//        }
+//        SEGGER_RTT_printf(0,"e=%f,set=%f,get=%f\r\n",pid->error[0],pid->set,pid->get);
 //    }
 //    if (pid == &gimbal_control.gimbal_pitch_motor.gimbal_motor_gyro_pid) {//for_test
 //        re_err = pid->error[0];
@@ -305,7 +318,7 @@ float ALL_PID(pid_type_def *pid, float32_t ref, float32_t set) {
 
     if (pid->P_On_M) {
         pid->P_On_M_out -= pid->P_On_M_Ratio * pid->Kp * pid->Dbuf[0];
-        pid->Pout = (1-pid->P_On_M_Ratio)*pid->Kp * pid->error[0] + pid->P_On_M_out;
+        pid->Pout = (1 - pid->P_On_M_Ratio) * pid->Kp * pid->error[0] + pid->P_On_M_out;
     } else {
         pid->Pout = pid->Kp * pid->error[0];
     }

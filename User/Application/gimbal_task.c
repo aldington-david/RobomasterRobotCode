@@ -39,6 +39,7 @@
 #include "PID_AutoTune.h"
 #include "user_lib.h"
 #include "pid_auto_tune_task.h"
+#include "chassis_behaviour.h"
 
 //motor enconde value format, range[0-8191]
 //电机编码值规整 0—8191
@@ -984,6 +985,10 @@ static void gimbal_mode_change_control_transit(gimbal_control_t *gimbal_mode_cha
     } else if (gimbal_mode_change->gimbal_yaw_motor.last_gimbal_motor_mode != GIMBAL_MOTOR_ENCONDE &&
                gimbal_mode_change->gimbal_yaw_motor.gimbal_motor_mode == GIMBAL_MOTOR_ENCONDE) {
         gimbal_mode_change->gimbal_yaw_motor.relative_angle_set = gimbal_mode_change->gimbal_yaw_motor.relative_angle;
+    }
+    if(chassis_mode_change_flag){
+        gimbal_mode_change->gimbal_yaw_motor.absolute_angle_set = gimbal_mode_change->gimbal_yaw_motor.absolute_angle;
+        chassis_mode_change_flag = 0;
     }
     gimbal_mode_change->gimbal_yaw_motor.last_gimbal_motor_mode = gimbal_mode_change->gimbal_yaw_motor.gimbal_motor_mode;
 

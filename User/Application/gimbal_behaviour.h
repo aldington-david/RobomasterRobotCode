@@ -88,10 +88,7 @@
 #define RADIO_CONTROL_SWITCH_R       0
 #define RADIO_CONTROL_SWITCH_L       1
 
-#define STEP_FUNC 0
-#define QUADRATIC_FUNC 1
-#define UNARY_FUN 2
-#define CONSTANT 3
+#define MICRO_PITCH_ADD_ANGLE 0.02f
 
 #define DELAY_GAIN(x) (x) <= 400 ? (0.001714f * (x) + 2) : 2.7f
 //will_replace_to_accurate_value

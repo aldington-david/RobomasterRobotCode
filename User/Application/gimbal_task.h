@@ -86,6 +86,7 @@
 #define RADIO_CONTROL_SWITCH_R       0
 #define RADIO_CONTROL_SWITCH_L       1
 
+
 //turn 180°
 //掉头180 按键
 //#define TURN_KEYBOARD KEY_PRESSED_OFFSET_F
@@ -103,7 +104,7 @@
 #define PITCH_RC_SEN  0.000115f
 
 #define YAW_MOUSE_SEN   0.00084f
-#define PITCH_MOUSE_SEN 0.0021f
+#define PITCH_MOUSE_SEN 0.0004f
 
 //Original_vision_sen_define
 //#define YAW_VISION_SEN   0.35f
@@ -121,7 +122,7 @@
 #define GIMBAL_INIT_ANGLE_ERROR     0.0074532f
 #define GIMBAL_INIT_PITCH_ANGLE_LIMIT     0.8726646f
 #define GIMBAL_INIT_STOP_TIME       100
-#define GIMBAL_INIT_TIME            3000
+#define GIMBAL_INIT_TIME            5000
 #define GIMBAL_CALI_REDUNDANT_ANGLE 0.0523598f
 //云台初始化回中值的速度以及控制到的角度
 #define GIMBAL_INIT_PITCH_SPEED     0.002f

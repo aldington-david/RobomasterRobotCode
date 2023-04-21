@@ -24,14 +24,6 @@
 #include "arm_math.h"
 #include "detect_task.h"
 
-#define POWER_LIMIT         60.0f
-#define WARNING_POWER       50.0f
-#define WARNING_POWER_BUFF  60.0f
-
-#define NO_JUDGE_TOTAL_CURRENT_LIMIT    64000.0f    //16000 * 4, 
-#define BUFFER_TOTAL_CURRENT_LIMIT      16000.0f
-#define POWER_TOTAL_CURRENT_LIMIT       20000.0f
-
 /**
   * @brief          limit the power, mainly limit motor current
   * @param[in]      chassis_power_control: chassis data 
@@ -48,6 +40,13 @@ void chassis_power_control(chassis_move_t *chassis_power_control) {
     float32_t total_current_limit = 0.0f;
     float32_t total_current = 0.0f;
     uint8_t robot_id = get_robot_id();
+    if (toe_is_error(SUPER_CAPACITANCE_TOE)) {
+        chassis_power_control->soft_power_limit = chassis_power_control->power_limit;
+    } else{
+        if(!super_capacitance_enable_flag){
+            chassis_power_control->soft_power_limit = chassis_power_control->power_limit;
+        }
+    }
     if (toe_is_error(REFEREE_RX_TOE)) {
         total_current_limit = NO_JUDGE_TOTAL_CURRENT_LIMIT;
     } else if (robot_id == 2 || robot_id == 102 || robot_id == 0) {
@@ -72,14 +71,16 @@ void chassis_power_control(chassis_move_t *chassis_power_control) {
         } else {
             //power > WARNING_POWER
             //功率大于WARNING_POWER
-            if (chassis_power > WARNING_POWER) {
+            if (chassis_power > (chassis_power_control->soft_power_limit - WARNING_POWER)) {
                 float32_t power_scale;
                 //power < 60w
                 //功率小于60w
-                if (chassis_power < POWER_LIMIT) {
+                if (chassis_power < chassis_power_control->soft_power_limit) {
                     //scale down
                     //缩小
-                    power_scale = (POWER_LIMIT - chassis_power) / (POWER_LIMIT - WARNING_POWER);
+                    power_scale = (chassis_power_control->soft_power_limit - chassis_power) /
+                                  (chassis_power_control->soft_power_limit -
+                                   (chassis_power_control->soft_power_limit - WARNING_POWER));
 
                 } else {
                     //power > 80w

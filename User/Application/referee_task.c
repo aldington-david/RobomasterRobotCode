@@ -11,16 +11,23 @@
 #include "math.h"
 #include "task.h"
 #include "DWT.h"
+#include "shoot.h"
+#include "chassis_task.h"
 //#include "tim.h"//abundant
 
 
 #define printf(format, args...)  SEGGER_RTT_printf(0, format, ##args)
+#define SET_AUTO 0
+#define SET_MANUAL 1
+
 
 #if INCLUDE_uxTaskGetStackHighWaterMark
 uint32_t referee_rx_task_stack;
 uint32_t referee_tx_task_stack;
 uint32_t USART6TX_active_task_stack;
 #endif
+
+volatile bool_t referee_set_manual_flag = SET_AUTO;
 
 judge_info_t global_judge_info;
 uint8_t referee_fifo_rx_buf[REFEREE_FIFO_BUF_LENGTH];
@@ -49,6 +56,17 @@ uint8_t referee_transmit_pack[128] = {0};
 void init_referee_struct_data(void) {
     memset((void *) &global_judge_info, 0, sizeof(judge_info_t));
 }
+
+/***********客户端图形绘制***********/
+static uint8_t UI_ruler(uint8_t _layer, uint16_t start_x, uint16_t start_y, uint16_t scale_step, uint16_t scale_long,
+                        uint16_t scale_short, colorType_e _color, drawOperate_e _operate_type);
+
+static void UI_Collimator(uint8_t _layer, uint16_t start_x, uint16_t start_y, uint16_t line_length, colorType_e _color,
+                          drawOperate_e _operate_type);
+
+void Draw_Robot_Limit(uint16_t height, uint16_t distance, uint16_t center_x, uint16_t line_width, colorType_e _color,
+                      drawOperate_e _operate_type);
+
 /**
   * @brief          referee rx task
   * @param[in]      pvParameters: NULL
@@ -64,11 +82,58 @@ void referee_rx_task(void const *argument) {
     fifo_s_init(&referee_rx_fifo, referee_fifo_rx_buf, REFEREE_FIFO_BUF_LENGTH);
     usart6_init(usart6_rx_buf[0], usart6_rx_buf[1], USART6_RX_BUF_LENGHT, usart6_tx_buf[0], usart6_tx_buf[1],
                 USART6_TX_BUF_LENGHT);
+    static uint8_t armor_heart_flag = 0;
     TickType_t LoopStartTime;
+    static uint16_t key_count = 0;
     while (1) {
         DWT_get_time_interval_us(&global_task_time.tim_referee_rx_task);
         LoopStartTime = xTaskGetTickCount();
         referee_unpack_fifo_data();
+/*******value change on data start***********/
+//裁判系统限制
+        if ((switch_is_up(rc_ctrl.rc.s[RADIO_CONTROL_SWITCH_L])) &&
+            (switch_is_up(rc_ctrl.rc.s[RADIO_CONTROL_SWITCH_R]))) {
+            if ((rc_ctrl.key.v & (KEY_PRESSED_OFFSET_B | KEY_PRESSED_OFFSET_CTRL)) &&
+                (referee_set_manual_flag == SET_AUTO) && key_count == 0) {
+                key_count = 250;
+                referee_set_manual_flag = SET_MANUAL;
+            } else if ((rc_ctrl.key.v & (KEY_PRESSED_OFFSET_B | KEY_PRESSED_OFFSET_CTRL)) &&
+                       (referee_set_manual_flag == SET_MANUAL) && key_count == 0) {
+                key_count = 250;
+                referee_set_manual_flag = SET_AUTO;
+            }
+        }
+        if (key_count > 0) {
+            key_count--;
+        }
+        if (referee_set_manual_flag == SET_AUTO) {
+            if (!toe_is_error(REFEREE_RX_TOE)) {
+                if (global_judge_info.GameRobotStatus.robot_id) {
+                    shoot_control.shoot_speed_referee_set = global_judge_info.GameRobotStatus.shooter_id1_17mm_speed_limit;
+                    shoot_control.shoot_cooling_rate_referee_set = global_judge_info.GameRobotStatus.shooter_id1_17mm_speed_limit;
+                    chassis_move.power_limit = global_judge_info.GameRobotStatus.chassis_power_limit;
+                }
+            }
+        }
+        if (!toe_is_error(REFEREE_RX_TOE)) {
+            //受击变量控制
+            if (global_judge_info.RobotHurt.hurt_type == 0x0) {
+                if (global_judge_info.RobotHurt.armor_id == 0) {
+                    armor_heart_flag |= ARMOR_0;
+                }
+                if (global_judge_info.RobotHurt.armor_id == 1) {
+                    armor_heart_flag |= ARMOR_1;
+                }
+                if (global_judge_info.RobotHurt.armor_id == 2) {
+                    armor_heart_flag |= ARMOR_2;
+                }
+                if (global_judge_info.RobotHurt.armor_id == 3) {
+                    armor_heart_flag |= ARMOR_3;
+                }
+            }
+        }
+
+/*******value change on data end***********/
 #if INCLUDE_uxTaskGetStackHighWaterMark
         referee_rx_task_stack = uxTaskGetStackHighWaterMark(NULL);
 #endif
@@ -129,11 +194,13 @@ void judge_update(uint8_t *rxBuf) {
                         break;
 
                     case ID_DART_REMAINING_TIME://!< 0x0105 比赛机器人血量数据
-                        memcpy((void *) &judge_info->DartRemainingTime, (rxBuf + DATA_SEG), LEN_DART_REMAINING_TIME);
+                        memcpy((void *) &judge_info->DartRemainingTime, (rxBuf + DATA_SEG),
+                               LEN_DART_REMAINING_TIME);
                         break;
                         // 0x020x
                     case ID_GAME_ROBOT_STATUS://!< 0x0201 机器人状态数据
-                        memcpy((void *) &judge_info->GameRobotStatus, (rxBuf + DATA_SEG), LEN_GAME_ROBOT_STATUS);
+                        memcpy((void *) &judge_info->GameRobotStatus, (rxBuf + DATA_SEG),
+                               LEN_GAME_ROBOT_STATUS);
                         judge_info->self_client_id = judge_info->GameRobotStatus.robot_id + 0x0100;
 //                        printf("/r/n judge_client_id=%d", judge_info->self_client_id);
                         break;
@@ -152,7 +219,8 @@ void judge_update(uint8_t *rxBuf) {
                         break;
 
                     case ID_AERIAL_ROBOT_ENERGY://!< 0x0205 空中机器人能量状态数据
-                        memcpy((void *) &judge_info->AerialRobotEnergy, (rxBuf + DATA_SEG), LEN_AERIAL_ROBOT_ENERGY);
+                        memcpy((void *) &judge_info->AerialRobotEnergy, (rxBuf + DATA_SEG),
+                               LEN_AERIAL_ROBOT_ENERGY);
                         break;
 
                     case ID_ROBOT_HURT://!< 0x0206 伤害状态数据
@@ -174,7 +242,8 @@ void judge_update(uint8_t *rxBuf) {
                         break;
 
                     case ID_DART_CLIENT_COMMAND://!< 0x020A 飞镖机器人客户端指令数据
-                        memcpy((void *) &judge_info->DartClientCMD, (rxBuf + DATA_SEG), LEN_DART_CLIENT_COMMAND);
+                        memcpy((void *) &judge_info->DartClientCMD, (rxBuf + DATA_SEG),
+                               LEN_DART_CLIENT_COMMAND);
                         judge_info->dart_data_update = true;
                         break;
                     case ID_GROUND_ROBOT_POSITION://!< 0x020B 地面机器人位置数据
@@ -199,7 +268,8 @@ void judge_update(uint8_t *rxBuf) {
                         break;
 
                     case ID_MAP_INTERACTION_DATA://!< 0x0303 客户端小地图交互数据
-                        memcpy((void *) &judge_info->RobotCommand, (rxBuf + DATA_SEG), LEN_MAP_INTERACTION_DATA);
+                        memcpy((void *) &judge_info->RobotCommand, (rxBuf + DATA_SEG),
+                               LEN_MAP_INTERACTION_DATA);
                         judge_info->map_data_update = true;
                         break;
                     case ID_CONTROL_UART_DATA://!< 0x0304 图传串口发送键盘、鼠标信息
@@ -211,7 +281,8 @@ void judge_update(uint8_t *rxBuf) {
                         judge_info->client_map_data_update = true;
                         break;
                     case ID_CUSTOM_CLIENT_DATA://!< 0x0306 客户端小地图接收信息
-                        memcpy((void *) &judge_info->CustomClientData, (rxBuf + DATA_SEG), LEN_CUSTOM_CLIENT_DATA);
+                        memcpy((void *) &judge_info->CustomClientData, (rxBuf + DATA_SEG),
+                               LEN_CUSTOM_CLIENT_DATA);
                         judge_info->custom_client_data_update = true;
                         break;
                     case ID_MAP_SENTRY_DATA://!< 0x0307 选手端小地图接收哨兵数据
@@ -312,7 +383,8 @@ void referee_unpack_fifo_data(void) {
                     p_obj->unpack_step = STEP_HEADER_SOF;
                     p_obj->index = 0;
 
-                    if (verify_CRC16_check_sum(p_obj->protocol_packet, REF_HEADER_CRC_CMDID_LEN + p_obj->data_len)) {
+                    if (verify_CRC16_check_sum(p_obj->protocol_packet,
+                                               REF_HEADER_CRC_CMDID_LEN + p_obj->data_len)) {
                         judge_update(p_obj->protocol_packet);
                     }
                 }
@@ -402,32 +474,30 @@ void get_shoot_heat0_limit_and_heat0(uint16_t *heat0_limit, uint16_t *heat0) {
 void referee_tx_task(void const *argument) {
     fifo_s_init(&referee_tx_len_fifo, referee_fifo_tx_len_buf, REFEREE_FIFO_BUF_LENGTH);
     fifo_s_init(&referee_tx_fifo, referee_fifo_tx_buf, REFEREE_FIFO_BUF_LENGTH);
-    static int draw_cnt = 0;//辅助命名图形
-    static uint8_t name[3] = "13";
     //下坠UI标尺的水平刻度线长度、距离、颜色；垂直线总长度由为各水平刻度线距离之和
-    uint16_t line_distance[6] = {10, 30, 30, 35/*哨兵*/, 30, 50};
-    uint16_t line_length[6] = {120, 80, 70, 60, 20, 20};
-    graphic_color_enum_t ruler_color[7] = {graphic_color_white, graphic_color_white, graphic_color_white,
-                                           graphic_color_white, graphic_color_white, graphic_color_white,
-                                           graphic_color_white};
     vTaskDelay(pdMS_TO_TICKS(5000));
-    UI_clean_all();
+    while (toe_is_error(REFEREE_RX_TOE)) {
+        UI_clean_all();
+    }
     TickType_t LoopStartTime;
     while (1) {
         DWT_get_time_interval_us(&global_task_time.tim_referee_tx_task);
         LoopStartTime = xTaskGetTickCount();
+        Draw_Robot_Limit(180, 80, 961, 3, YELLOW, ADD_PICTURE);
+        UI_ruler(4, 961, 538, 30, 70, 40, YELLOW, ADD_PICTURE);
+//        SEGGER_RTT_printf(0,"robot_id=%d,client_id=%d\r\n",global_judge_info.GameRobotStatus.robot_id,global_judge_info.self_client_id);
 //        SEGGER_RTT_WriteString(0, "referee_task_loop_on");
 //        draw_cnt++;
 //        name[0] = draw_cnt / 255;
 //        name[1] = draw_cnt % 255;
 //        line_drawing(name,ADD_PICTURE,0,graphic_color_yellow, 5,200, 200, 400, 400  );
 //        printf("%d", fifo_s_used(&referee_tx_fifo));
-        UI_clean_all();
-        Hero_UI_ruler(5, 961, 538, line_distance, line_length, ruler_color, ADD_PICTURE);
+//        UI_clean_all();
+//        SEGGER_RTT_printf(0,"fifo_free=%d\r\n", fifo_s_used(&referee_tx_fifo));
 #if INCLUDE_uxTaskGetStackHighWaterMark
         referee_tx_task_stack = uxTaskGetStackHighWaterMark(NULL);
 #endif
-        vTaskDelayUntil(&LoopStartTime, pdMS_TO_TICKS(100));
+        vTaskDelayUntil(&LoopStartTime, pdMS_TO_TICKS(500));
     }
 }
 
@@ -461,12 +531,14 @@ void pack_send_robotData(uint16_t _data_cmd_id, uint8_t *_data, uint16_t _data_l
     ext_student_interactive_header_data_t data_header;                                                                //定义数据段段首并设置
     memset(&data_header, 0, sizeof(data_header));
     data_header.data_CMD_ID = _data_cmd_id;
-    data_header.sender_ID = 4;                                        //设置发送者ID
-    data_header.receiver_ID = 0x0104;
+    data_header.sender_ID = global_judge_info.GameRobotStatus.robot_id;                                        //设置发送者ID
+    data_header.receiver_ID = global_judge_info.self_client_id;
 //    printf("/r/nclient_id=%d", global_judge_info.self_client_id);
     uint8_t header_len = 6;
-    memcpy((void *) (referee_transmit_pack + 7), &data_header, header_len);                        //将数据帧的数据段进行封装（封装段首）
-    memcpy((void *) (referee_transmit_pack + 7 + header_len), _data, _data_len);                    //将数据帧的数据段进行封装（封装数据）
+    memcpy((void *) (referee_transmit_pack + 7), &data_header,
+           header_len);                        //将数据帧的数据段进行封装（封装段首）
+    memcpy((void *) (referee_transmit_pack + 7 + header_len), _data,
+           _data_len);                    //将数据帧的数据段进行封装（封装数据）
     send_toReferee(ID_COMMUNICATION, header_len + _data_len);
 }
 
@@ -578,9 +650,13 @@ void send_toReferee(uint16_t _cmd_id, uint16_t _data_len) {
   */
 void USART6TX_active_task(void const *pvParameters) {
     USART6TX_active_task_local_handler = xTaskGetCurrentTaskHandle();
+    TickType_t LoopStartTime;
     while (1) {
         while (ulTaskNotifyTake(pdFALSE, portMAX_DELAY) != pdPASS) {
         }
+        DWT_get_time_interval_us(&global_task_time.tim_USART6TX_active_task);
+//        SEGGER_RTT_printf(0,"%d\r\n",global_task_time.tim_USART6TX_active_task.time);
+        LoopStartTime = xTaskGetTickCount();
         vTaskSuspendAll();
         if (Referee_No_DMA_IRQHandler || Referee_IRQ_Return_Before) {
             if (fifo_s_used(&referee_tx_fifo)) {
@@ -606,7 +682,8 @@ void USART6TX_active_task(void const *pvParameters) {
                                 if (fifo_s_used(&referee_tx_len_fifo)) {
                                     referee_dma_send_data_len = fifo_s_get(&referee_tx_len_fifo);
                                     memset(&usart6_tx_buf[0], 0, USART6_TX_BUF_LENGHT);
-                                    fifo_s_gets(&referee_tx_fifo, (char *) usart6_tx_buf[0], referee_dma_send_data_len);
+                                    fifo_s_gets(&referee_tx_fifo, (char *) usart6_tx_buf[0],
+                                                referee_dma_send_data_len);
                                 }
                             } else {
                                 referee_dma_send_data_len = 0;
@@ -636,7 +713,8 @@ void USART6TX_active_task(void const *pvParameters) {
                                 if (fifo_s_used(&referee_tx_len_fifo)) {
                                     referee_dma_send_data_len = fifo_s_get(&referee_tx_len_fifo);
                                     memset(&usart6_tx_buf[1], 0, USART6_TX_BUF_LENGHT);
-                                    fifo_s_gets(&referee_tx_fifo, (char *) usart6_tx_buf[1], referee_dma_send_data_len);
+                                    fifo_s_gets(&referee_tx_fifo, (char *) usart6_tx_buf[1],
+                                                referee_dma_send_data_len);
                                 }
                             } else {
                                 referee_dma_send_data_len = 0;
@@ -650,6 +728,7 @@ void USART6TX_active_task(void const *pvParameters) {
             }
         }
         xTaskResumeAll();
+        vTaskDelayUntil(&LoopStartTime, pdMS_TO_TICKS(100));
 #if INCLUDE_uxTaskGetStackHighWaterMark
         USART6TX_active_task_stack = uxTaskGetStackHighWaterMark(NULL);
 #endif
@@ -743,50 +822,18 @@ uint32_t get_stack_of_USART6TX_active_task(void) {
     return USART6TX_active_task_stack;
 }
 
-/************裁判系统UI绘图功能函数******************/
+/************UI operation start*****************/
+
 /**
- * @brief 清除所有UI绘制图形
- * @note Referee.clean_all();
+ * @brief 空操作数据包
  * @param
  * @retval
  */
-void UI_clean_all(void)                                                                                    //清除所有自定义图案
-{
-    cleaning.operate_type = 2;
-    pack_send_robotData(0x0100, (uint8_t *) &cleaning, sizeof(cleaning));
-}
-
-void Hero_UI_ruler(uint8_t _layer, uint16_t start_x, uint16_t start_y, uint16_t *line_distance, uint16_t *line_length,
-                   graphic_color_enum_t *_color, drawOperate_e _operate_type) {
-    uint16_t total_distance = 0;
-    static uint8_t line_name[] = "he0";
-
-    //绘制初始准星横线
-    line_name[2] = '6';
-    memcpy(&data_pack[DRAWING_PACK * 6],
-           (uint8_t *) line_drawing(_layer, ADD_PICTURE, start_x - line_length[0] / 2, start_y,
-                                    start_x + line_length[0] / 2, start_y, 3, _color[0], line_name), DRAWING_PACK);
-    total_distance += line_distance[0];
-
-    //封装好榴弹准星小横线，第2到6条
-    for (uint8_t i = 1; i < 6; i++) {
-        line_name[2] = '0' + i;
-        memcpy(&data_pack[DRAWING_PACK * i],
-               (uint8_t *) line_drawing(_layer, ADD_PICTURE, start_x - line_length[i] / 2, start_y - total_distance,
-                                        start_x + line_length[i] / 2, start_y - total_distance, 3, _color[i],
-                                        line_name), DRAWING_PACK);
-
-        total_distance += line_distance[i];                //计算竖直线总长度
-    }
-
-    //封装好竖直线
-    line_name[2] = '0';
-    memcpy(data_pack,
-           (uint8_t *) line_drawing(_layer, ADD_PICTURE, start_x, start_y, start_x, start_y - total_distance, 3,
-                                    _color[6], line_name), DRAWING_PACK);
-
-    pack_send_robotData(0x0104, (uint8_t *) data_pack, DRAWING_PACK * 7);
-    static uint8_t data_pack[DRAWING_PACK * 7] = {0};
+static graphic_data_struct_t *null_drawing(uint8_t _layer, uint8_t name[]) {
+    static graphic_data_struct_t drawing;
+    memcpy(drawing.graphic_name, name, 3);
+    drawing.operate_type = NULL_OPERATION;
+    return &drawing;
 }
 
 /**
@@ -794,9 +841,9 @@ void Hero_UI_ruler(uint8_t _layer, uint16_t start_x, uint16_t start_y, uint16_t 
  * @param line_width 线宽
  * @retval
  */
-graphic_data_struct_t *
+static graphic_data_struct_t *
 line_drawing(uint8_t _layer, drawOperate_e _operate_type, uint16_t startx, uint16_t starty, uint16_t endx,
-             uint16_t endy, uint16_t line_width, graphic_color_enum_t vcolor, uint8_t *name) {
+             uint16_t endy, uint16_t line_width, colorType_e vcolor, uint8_t *name) {
     static graphic_data_struct_t drawing;
 //    SEGGER_RTT_WriteString(0,"line_drawing_on");
     memcpy(drawing.graphic_name, name, 3);    //图案名称，3位
@@ -812,6 +859,252 @@ line_drawing(uint8_t _layer, drawOperate_e _operate_type, uint16_t startx, uint1
     return &drawing;
 }
 
+/**
+ * @brief 矩形绘制
+ * @note
+ * @param line_width 线宽
+ * @retval
+ */
+static graphic_data_struct_t *
+rectangle_drawing(uint8_t _layer, drawOperate_e _operate_type, uint16_t startx, uint16_t starty,
+                  uint16_t length,
+                  uint16_t width, uint16_t line_width, colorType_e vcolor, uint8_t name[]) {
+    static graphic_data_struct_t drawing;
+
+    memcpy(drawing.graphic_name, name, 3);
+    drawing.layer = _layer;
+    drawing.operate_type = _operate_type;
+    drawing.graphic_type = RECTANGLE;
+    drawing.width = line_width;
+    drawing.color = vcolor;
+    drawing.start_x = startx;
+    drawing.start_y = starty;
+    drawing.end_x = startx + length;
+    drawing.end_y = starty + width;
+
+    return &drawing;
+}
+
+/**
+ * @brief 圆圈绘制
+ * @note
+ * @param
+ * @retval
+ */
+static graphic_data_struct_t *
+circle_drawing(uint8_t _layer, drawOperate_e _operate_type, uint16_t centrex, uint16_t centrey, uint16_t r,
+               uint16_t line_width, colorType_e vcolor, uint8_t name[]) {
+    static graphic_data_struct_t drawing;
+
+    memcpy(drawing.graphic_name, name, 3);
+    drawing.layer = _layer;
+    drawing.operate_type = _operate_type;
+    drawing.graphic_type = CIRCLE;
+    drawing.width = line_width;
+    drawing.color = vcolor;
+    drawing.start_x = centrex;
+    drawing.start_y = centrey;
+    drawing.radius = r;
+
+    return &drawing;
+}
+
+/**
+ * @brief 椭圆绘制
+ * @note
+ * @param minor_semi_axis x轴长
+ * @param major_semi_axis y轴长
+ * @retval
+ */
+static graphic_data_struct_t *
+oval_drawing(uint8_t _layer, drawOperate_e _operate_type, uint16_t centrex, uint16_t centrey,
+             uint16_t minor_semi_axis,
+             uint16_t major_semi_axis, uint16_t line_width, colorType_e vcolor, uint8_t name[]) {
+    static graphic_data_struct_t drawing;
+
+    memcpy(drawing.graphic_name, name, 3);
+    drawing.layer = _layer;
+    drawing.operate_type = _operate_type;
+    drawing.graphic_type = OVAL;
+    drawing.width = line_width;
+    drawing.color = vcolor;
+    drawing.start_x = centrex;
+    drawing.start_y = centrey;
+    drawing.end_x = major_semi_axis;
+    drawing.end_y = minor_semi_axis;
+
+    return &drawing;
+}
+
+/**
+ * @brief 椭圆弧绘制
+ * @note
+ * @param
+ * @retval
+ */
+static graphic_data_struct_t *
+rc_drawing(uint8_t _layer, drawOperate_e _operate_type, uint16_t centrex, uint16_t centrey,
+           uint16_t minor_semi_axis,
+           uint16_t major_semi_axis, int16_t start_angle, int16_t end_angle, uint16_t line_width,
+           colorType_e vcolor,
+           uint8_t name[]) {
+    static graphic_data_struct_t drawing;
+
+    memcpy(drawing.graphic_name, name, 3);
+    drawing.layer = _layer;
+    drawing.operate_type = _operate_type;
+    drawing.graphic_type = ARC;
+    drawing.width = line_width;
+    drawing.color = vcolor;
+    drawing.start_x = centrex;
+    drawing.start_y = centrey;
+    drawing.end_x = minor_semi_axis;
+    drawing.end_y = major_semi_axis;
+    drawing.start_angle = start_angle;
+    drawing.end_angle = end_angle;
+
+    return &drawing;
+}
+
+/**
+ * @brief 浮点数绘制【新版客户端暂时不能用，坐等官方更新】
+ * @note
+ * @param
+ * @retval
+ */
+static graphic_data_struct_t *
+float_drawing(uint8_t _layer, drawOperate_e _operate_type, uint16_t startx, uint16_t starty, uint16_t size,
+              uint16_t width, colorType_e vcolor, float data, uint8_t name[]) {
+    static graphic_data_struct_t drawing;
+    static uint8_t *drawing_ptr = (uint8_t *) &drawing;
+
+    memcpy(drawing.graphic_name, name, 3);
+    drawing.layer = _layer;
+    drawing.operate_type = _operate_type;
+    drawing.graphic_type = 5U;
+    drawing.start_angle = size;                                            //这里是设置字体大小，需要调试
+    drawing.end_angle = 3;                                                 //这里是设置有效小数位数，需要调试
+    drawing.width = width;
+    drawing.color = vcolor;
+    drawing.start_x = startx;
+    drawing.start_y = starty;
+
+    memcpy((void *) (drawing_ptr + 11), (uint8_t *) &data,
+           4);                                                            //将32位浮点数赋值到drawing结构体中
+    return &drawing;
+}
+
+/**
+ * @brief 整数绘制【新版客户端暂时不能用，坐等官方更新】
+ * @note
+ * @param
+ * @retval
+ */
+static graphic_data_struct_t *
+int_drawing(uint8_t _layer, drawOperate_e _operate_type, uint16_t startx, uint16_t starty, uint16_t size,
+            uint16_t width, colorType_e vcolor, int32_t data, uint8_t name[]) {
+    static graphic_data_struct_t drawing;
+    static uint8_t *drawing_ptr = (uint8_t *) &drawing;
+
+    memcpy(drawing.graphic_name, name, 3);
+    drawing.layer = _layer;
+    drawing.operate_type = _operate_type;
+    drawing.graphic_type = _INT;
+    drawing.start_angle = size;                                           //这里是设置字体大小，需要调试
+    drawing.width = width;
+    drawing.color = vcolor;
+    drawing.start_x = startx;
+    drawing.start_y = starty;
+
+    memcpy((void *) (drawing_ptr + 11), (uint8_t *) &data,
+           4);                                                            //将32位整数赋值到drawing结构体中
+    return &drawing;
+}
+
+/**
+ * @brief 字符串绘制
+ * @note
+ * @param
+ * @retval
+ */
+static graphic_data_struct_t *
+character_drawing(uint8_t _layer, drawOperate_e _operate_type, uint16_t startx, uint16_t starty, uint16_t size,
+                  uint8_t width, uint8_t *data, uint16_t str_len, colorType_e vcolor, uint8_t name[]) {
+    static graphic_data_struct_t drawing;
+    static uint8_t char_length;
+    //将字符串长度约束在30个之内
+    if (str_len < 0) {
+        char_length = 0;
+    } else if (str_len > 30) {
+        char_length = 30;
+    } else {
+        char_length = str_len;
+    }
+
+    memcpy(drawing.graphic_name, name, 3);
+    drawing.layer = _layer;
+    drawing.operate_type = _operate_type;
+    drawing.graphic_type = _CHAR;
+    drawing.width = width;
+    drawing.color = vcolor;
+    drawing.start_x = startx;
+    drawing.start_y = starty;
+    drawing.radius = 0;
+    drawing.start_angle = size;                                    //设置字符大小，推荐字体大小与线宽的比例为10:1
+    drawing.end_angle = char_length;                               //设置字符串长度
+
+    return &drawing;
+}
+
+/**
+ * @brief 清除某个图层下的一张图片
+ * @note Referee.clean_one_picture(2, test);
+ * @param
+ * @retval
+ */
+static void clean_one_picture(uint8_t vlayer, uint8_t name[]) {
+    //删除指定图层下的指定图形
+    static graphic_data_struct_t drawing;
+    memcpy(drawing.graphic_name, name, 3);
+    drawing.layer = vlayer;
+    drawing.operate_type = CLEAR_PICTURE;
+    pack_send_robotData(Drawing_1_ID, (uint8_t *) &drawing, sizeof(drawing));
+}
+
+/**
+ * @brief 清除某个图层下的两张图片
+ * @note Referee.clean_two_picture(2, test1, test2);
+ * @param
+ * @retval
+ */
+static void clean_two_picture(uint8_t vlayer, uint8_t name1[], uint8_t name2[]) {
+    //删除指定图层下的指定图形
+    static graphic_data_struct_t drawing[2];
+    memcpy(drawing[0].graphic_name, name1, 3);
+    drawing[0].layer = vlayer;
+    drawing[0].operate_type = CLEAR_PICTURE;
+
+    memcpy(drawing[1].graphic_name, name2, 3);
+    drawing[1].layer = vlayer;
+    drawing[1].operate_type = CLEAR_PICTURE;
+
+    pack_send_robotData(Drawing_2_ID, (uint8_t *) drawing, sizeof(drawing));
+}
+
+/**
+ * @brief 清除某一个图层
+ * @note Referee.clean_layer(2);
+ * @param
+ * @retval
+ */
+static void clean_layer(uint8_t _layer) {
+    //删除指定图层
+    cleaning.layer = _layer;
+    cleaning.operate_type = CLEAR_ONE_LAYER;
+
+    pack_send_robotData(Drawing_Clean_ID, (uint8_t *) &cleaning, sizeof(cleaning));
+}
+/************UI operation end*****************/
 /*************************************************/
 /*!
  * @brief 浮点数转字符串
@@ -820,7 +1113,7 @@ line_drawing(uint8_t _layer, drawOperate_e _operate_type, uint16_t startx, uint1
  * @param output_length 输出字符串的长度
  * @return
  */
-unsigned char *out_float(double value, unsigned char decimal_digit, unsigned char *output_length) {
+static unsigned char *out_float(double value, unsigned char decimal_digit, unsigned char *output_length) {
     unsigned char _output[20];
     unsigned long integer;
     unsigned long decimal;
@@ -897,3 +1190,181 @@ unsigned char *out_float(double value, unsigned char decimal_digit, unsigned cha
     }
     return return_pointer;
 }
+
+/************裁判系统UI绘图功能函数******************/
+/**
+ * @brief 清除所有UI绘制图形
+ * @note Referee.clean_all();
+ * @param
+ * @retval
+ */
+void UI_clean_all(
+        void)                                                                                    //清除所有自定义图案
+{
+    cleaning.operate_type = 2;
+    pack_send_robotData(0x0100, (uint8_t *) &cleaning, sizeof(cleaning));
+}
+
+/**
+ * @brief 【自定义图层】UI标尺绘制，一次性绘制一条标尺
+ * @note  准心圆半径为24
+ * @param _sys_time, sacle_num多少条刻度线(<9),ruler_tag第几条标尺, startpoint(标尺左上角起点), step(间距),scale_long(长刻度线的长度),scale_short
+ * @note 测试后的实例，对普通步兵：referee.UI_ruler(4,961,538,30,70,40,BLUE,ADD_PICTURE);
+ */
+uint8_t UI_ruler(uint8_t _layer, uint16_t start_x, uint16_t start_y, uint16_t scale_step, uint16_t scale_long,
+                 uint16_t scale_short, colorType_e _color, drawOperate_e _operate_type) {
+    static uint8_t ruler_name[] = "ru0";
+    static uint8_t if_short = 0;
+
+    ruler_name[2] = '0';
+    memcpy(data_pack,
+           (uint8_t *) circle_drawing(_layer, _operate_type, start_x, start_y, 24, 3, _color, ruler_name),
+           DRAWING_PACK);
+    ruler_name[2] = '1';
+    memcpy(&data_pack[DRAWING_PACK],
+           (uint8_t *) line_drawing(_layer, _operate_type, start_x, start_y, start_x, start_y - 200, 3, _color,
+                                    ruler_name), DRAWING_PACK);
+    ruler_name[2] = '2';
+    memcpy(&data_pack[DRAWING_PACK * 2],
+           (uint8_t *) line_drawing(_layer, _operate_type, start_x - 100, start_y - 10, start_x + 100,
+                                    start_y - 10, 3,
+                                    _color, ruler_name), DRAWING_PACK);
+
+    for (uint8_t i = 0; i < 4; i++) {
+        if (if_short == 0) {
+            if_short = 1;
+            ruler_name[2] = '3' + i;
+            memcpy(&data_pack[DRAWING_PACK * (i + 3)],
+                   (uint8_t *) line_drawing(_layer, _operate_type, start_x - scale_short / 2,
+                                            start_y - 24 - scale_step * (i + 1), start_x + scale_short / 2,
+                                            start_y - 24 - scale_step * (i + 1), 3, _color, ruler_name),
+                   DRAWING_PACK);
+        } else {
+            if_short = 0;
+            ruler_name[2] = '3' + i;
+            memcpy(&data_pack[DRAWING_PACK * (i + 3)],
+                   (uint8_t *) line_drawing(_layer, _operate_type, start_x - scale_long / 2,
+                                            start_y - 24 - scale_step * (i + 1), start_x + scale_long / 2,
+                                            start_y - 24 - scale_step * (i + 1), 3, _color, ruler_name),
+                   DRAWING_PACK);
+        }
+    }
+
+    pack_send_robotData(Drawing_7_ID, (uint8_t *) data_pack, DRAWING_PACK * 7);
+}
+
+/**
+ * @brief 【自定义图层】UI准星绘制，一次性绘制一个准星，且准星中点为红外激光中心点
+ * @note 测试后的实例，对普通步兵：referee.UI_Collimator(5, 961, 538, 25, YELLOW, ADD_PICTURE);
+ * @param
+ */
+void UI_Collimator(uint8_t _layer, uint16_t start_x, uint16_t start_y, uint16_t line_length, colorType_e _color,
+                   drawOperate_e _operate_type) {
+    static uint8_t point_name[] = "poi";
+    static uint8_t line_name[] = "cl0";
+
+    //中心点
+    line_name[2] = '0';
+    memcpy(data_pack,
+           (uint8_t *) circle_drawing(_layer, _operate_type, start_x, start_y, 1, 3, _color, point_name),
+           DRAWING_PACK);
+
+    //准星四方向横线
+    memcpy(&data_pack[DRAWING_PACK],
+           (uint8_t *) line_drawing(_layer, _operate_type, start_x - 5, start_y, start_x - 5 - line_length,
+                                    start_y, 3,
+                                    _color, line_name), DRAWING_PACK);
+    line_name[2] = '1';
+    memcpy(&data_pack[DRAWING_PACK * 2],
+           (uint8_t *) line_drawing(_layer, _operate_type, start_x + 5, start_y, start_x + 5 + line_length,
+                                    start_y, 3,
+                                    _color, line_name), DRAWING_PACK);
+    line_name[2] = '2';
+    memcpy(&data_pack[DRAWING_PACK * 3],
+           (uint8_t *) line_drawing(_layer, _operate_type, start_x, start_y - 5, start_x,
+                                    start_y - 5 - line_length, 3,
+                                    _color, line_name), DRAWING_PACK);
+    line_name[2] = '3';
+    memcpy(&data_pack[DRAWING_PACK * 4],
+           (uint8_t *) line_drawing(_layer, _operate_type, start_x, start_y + 5, start_x,
+                                    start_y + 5 + line_length, 3,
+                                    _color, line_name), DRAWING_PACK);
+
+    //空操作包
+    line_name[2] = '4';
+    memcpy(&data_pack[DRAWING_PACK * 5], (uint8_t *) null_drawing(_layer, line_name), DRAWING_PACK);
+    line_name[2] = '5';
+    memcpy(&data_pack[DRAWING_PACK * 6], (uint8_t *) null_drawing(_layer, line_name), DRAWING_PACK);
+
+    pack_send_robotData(Drawing_7_ID, (uint8_t *) data_pack, DRAWING_PACK * 7);
+}
+
+void
+Draw_Robot_Limit(uint16_t height, uint16_t distance, uint16_t center_x, uint16_t line_width, colorType_e _color,
+                 drawOperate_e _operate_type) {
+    static uint8_t limit_name[] = "li0";
+
+    //右侧车界线绘制
+    limit_name[2] = '0';
+    memcpy(data_pack,
+           (uint8_t *) line_drawing(0, _operate_type, center_x + distance, height, center_x + distance + 200,
+                                    height,
+                                    line_width, _color, limit_name), DRAWING_PACK);
+    limit_name[2] = '1';
+    memcpy(&data_pack[DRAWING_PACK],
+           (uint8_t *) line_drawing(0, _operate_type, center_x + distance + 200, height,
+                                    center_x + distance + 360,
+                                    height - 100, line_width, _color, limit_name), DRAWING_PACK);
+
+    //左侧车界线绘制
+    limit_name[2] = '2';
+    memcpy(&data_pack[DRAWING_PACK * 2],
+           (uint8_t *) line_drawing(0, _operate_type, center_x - distance, height, center_x - distance - 200,
+                                    height,
+                                    line_width, _color, limit_name), DRAWING_PACK);
+    limit_name[2] = '3';
+    memcpy(&data_pack[DRAWING_PACK * 3],
+           (uint8_t *) line_drawing(0, _operate_type, center_x - distance - 200, height,
+                                    center_x - distance - 360,
+                                    height - 100, line_width, _color, limit_name), DRAWING_PACK);
+
+    //空包
+    limit_name[2] = '4';
+    memcpy(&data_pack[DRAWING_PACK * 4], (uint8_t *) null_drawing(0, limit_name), DRAWING_PACK);
+
+    pack_send_robotData(Drawing_5_ID, (uint8_t *) data_pack, DRAWING_PACK * 5);
+}
+
+//void Draw_armer_and_heading(uint16_t height, uint16_t distance, uint16_t center_x,uint16_t center_y, uint16_t line_width,
+//                      drawOperate_e _operate_type) {
+//    static uint8_t limit_name[] = "li0";
+//    if(referee)
+//
+//    //前装甲板指示绘制
+//    limit_name[2] = '0';
+//    memcpy(data_pack,
+//           (uint8_t *) line_drawing(0, _operate_type, center_x - distance, center_y+height, center_x + distance, center_y+height,
+//                                    line_width, _color, limit_name), DRAWING_PACK);
+//    //左甲板指示绘制
+//    limit_name[2] = '1';
+//    memcpy(&data_pack[DRAWING_PACK],
+//           (uint8_t *) line_drawing(0, _operate_type, center_x + distance + 200, height, center_x + distance + 360,
+//                                    height - 100, line_width, _color, limit_name), DRAWING_PACK);
+//
+//    //后装甲板指示绘制
+//    limit_name[2] = '2';
+//    memcpy(&data_pack[DRAWING_PACK * 2],
+//           (uint8_t *) line_drawing(0, _operate_type, center_x - distance, height, center_x - distance - 200, height,
+//                                    line_width, _color, limit_name), DRAWING_PACK);
+//    //右装甲板指示绘制
+//    limit_name[2] = '3';
+//    memcpy(&data_pack[DRAWING_PACK * 3],
+//           (uint8_t *) line_drawing(0, _operate_type, center_x - distance - 200, height, center_x - distance - 360,
+//                                    height - 100, line_width, _color, limit_name), DRAWING_PACK);
+//
+//    //空包
+//    limit_name[2] = '4';
+//    memcpy(&data_pack[DRAWING_PACK * 4], (uint8_t *) null_drawing(0, limit_name), DRAWING_PACK);
+//
+//    pack_send_robotData(Drawing_5_ID, (uint8_t *) data_pack, DRAWING_PACK * 5);
+//}

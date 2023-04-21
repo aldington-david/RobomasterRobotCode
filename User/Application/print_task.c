@@ -692,12 +692,12 @@ referee usart:%s\r\n\
 //                  &chassis_move.motor_chassis[0].speed_set);
 //            RTT_PrintWave(1,
 //                  &chassis_move.chassis_vx_speed_pid.out);
-            RTT_PrintWave(5,
-                          &gimbal_control.gimbal_yaw_motor.relative_angle_set,
-                          &gimbal_control.gimbal_yaw_motor.relative_angle,
-                          &gimbal_control.gimbal_yaw_motor.motor_gyro_set,
-                          &gimbal_control.gimbal_yaw_motor.motor_gyro,
-                          &gimbal_control.gimbal_yaw_motor.motor_speed);
+//            RTT_PrintWave(5,
+//                          &gimbal_control.gimbal_yaw_motor.relative_angle_set,
+//                          &gimbal_control.gimbal_yaw_motor.relative_angle,
+//                          &gimbal_control.gimbal_yaw_motor.motor_gyro_set,
+//                          &gimbal_control.gimbal_yaw_motor.motor_gyro,
+//                          &gimbal_control.gimbal_yaw_motor.motor_speed);
 //            RTT_PrintWave(5,
 //                          &gimbal_control.gimbal_yaw_motor.absolute_angle_set,
 //                          &gimbal_control.gimbal_yaw_motor.absolute_angle,
@@ -737,7 +737,13 @@ referee usart:%s\r\n\
 ////            RTT_PrintWave(1,
 ////                          &tracer1);
 
-
+//裁判系统
+//            SEGGER_RTT_SetTerminal(1);
+//            sprintf(print_buf, "shoot_speed=%f,trigger_speed=%f,soft_power_limit=%d\r\n",
+//                    shoot_control.fric_all_speed,
+//                    shoot_control.trigger_speed_set,
+//                    chassis_move.soft_power_limit);
+//            SEGGER_RTT_WriteString(0, print_buf);
 
             //abosolute_mode
             //angle_data

@@ -225,12 +225,12 @@ static void chassis_init(chassis_move_t *chassis_move_init) {
     //chassis motor speed PID
     //底盘速度环pid值
     const static float32_t motor_speed_pid[3] = {1443.4315f, 1732.1176f, 0.0f};
-    const static float32_t chassis_vx_speed_pid[3] = {14.559f, 0.0f, 0.0f};
-    const static float32_t chassis_vy_speed_pid[3] = {14.1309f, 0.0f, 0.0f};
-    const static float32_t chassis_wz_speed_pid[3] = {6.8163f, 0.0f, 0.0f};
+    const static float32_t chassis_vx_speed_pid[3] = {14.559f, 0.0f, 1.0f};
+    const static float32_t chassis_vy_speed_pid[3] = {14.1309f, 0.0f, 1.0f};
+    const static float32_t chassis_wz_speed_pid[3] = {6.8163f, 0.0f, 1.0f};
     //chassis angle PID
     //底盘角度pid值
-    const static float32_t chassis_yaw_follow_pid[3] = {1.9f, 2.2896f, 600.0f};
+    const static float32_t chassis_yaw_follow_pid[3] = {1.9f, 4.5792f, 400.0f};
 
 //    const static float32_t chassis_x_order_filter[1] = {CHASSIS_ACCEL_X_NUM};
 //    const static float32_t chassis_y_order_filter[1] = {CHASSIS_ACCEL_Y_NUM};
@@ -251,7 +251,8 @@ static void chassis_init(chassis_move_t *chassis_move_init) {
     chassis_move_init->chassis_pitch_motor = get_pitch_motor_point();
     //pid调谐数据指针获取
     chassis_move_init->pid_auto_tune_data_point = get_pid_auto_tune_data_point();
-
+    //超级电容数据指针获取
+    chassis_move_init->super_capacitance_measure_point = get_super_capacitance_measure_point();
     //get chassis motor data point,  initialize motor speed PID
     //获取底盘电机数据指针，初始化PID 
     for (i = 0; i < 4; i++) {
@@ -288,6 +289,8 @@ static void chassis_init(chassis_move_t *chassis_move_init) {
 
     chassis_move_init->vy_max_speed = NORMAL_MAX_CHASSIS_SPEED_Y;
     chassis_move_init->vy_min_speed = -NORMAL_MAX_CHASSIS_SPEED_Y;
+
+    chassis_move_init->soft_power_limit = chassis_move_init->power_limit = POWER_LIMIT;
     //update data
     //更新一下数据
     chassis_feedback_update(chassis_move_init);
@@ -329,12 +332,22 @@ static void chassis_mode_change_control_transit(chassis_move_t *chassis_move_tra
     if ((last_chassis_behaviour_mode == CHASSIS_FORWARD_FOLLOW_GIMBAL_YAW) &&
         (chassis_behaviour_mode == CHASSIS_SPIN)) {
         first_order_filter_clear(&chassis_move_transit->chassis_cmd_slow_spin);
-//        chassis_mode_change_flag = 1;
+        chassis_mode_change_flag = 1;
+        spin_pid_change_flag = 1;
     }
 
     if ((last_chassis_behaviour_mode == CHASSIS_SPIN) &&
         (chassis_behaviour_mode == CHASSIS_FORWARD_FOLLOW_GIMBAL_YAW)) {
-        chassis_mode_change_flag = 1;
+        if ((chassis_move_transit->chassis_yaw_motor->relative_angle > HALF_PI &&
+             chassis_move_transit->chassis_yaw_motor->relative_angle < PI) ||
+            (chassis_move_transit->chassis_yaw_motor->relative_angle > THREE_HALF_PI &&
+             chassis_move_transit->chassis_yaw_motor->relative_angle < 2 * PI)) {
+            chassis_mode_change_flag = 1;
+            chassis_follow_change_flag = 1;
+        } else {
+            chassis_behaviour_mode = CHASSIS_SPIN;
+            chassis_move_transit->chassis_mode = CHASSIS_VECTOR_TO_GIMBAL_YAW;
+        }
     }
 
 
@@ -354,14 +367,15 @@ static void chassis_mode_change_control_transit(chassis_move_t *chassis_move_tra
                chassis_move_transit->chassis_mode == CHASSIS_VECTOR_FOLLOW_GIMBAL_YAW) {
         //change to follow chassis yaw angle
         //切入底盘跟随云台角度模式
-        if(chassis_mode_change_flag){
+        if (chassis_follow_change_flag) {
             if (chassis_move_transit->chassis_yaw_motor->relative_angle > 0 &&
                 chassis_move_transit->chassis_yaw_motor->relative_angle < PI) {
                 chassis_move_transit->chassis_follow_reverse_flag = 1;
             } else {
                 chassis_move_transit->chassis_follow_reverse_flag = 0;
             }
-        } else{
+            chassis_follow_change_flag = 0;
+        } else {
             if (chassis_move_transit->chassis_yaw_motor->relative_angle > HALF_PI &&
                 chassis_move_transit->chassis_yaw_motor->relative_angle < THREE_HALF_PI) {
                 chassis_move_transit->chassis_follow_reverse_flag = 1;
@@ -457,6 +471,7 @@ void chassis_rc_to_control_vector(float32_t *vx_set, float32_t *vy_set, float32_
     float32_t wz_bias = 0;
     int16_t vx_channel, vy_channel, wz_channel;
     float32_t vx_set_channel, vy_set_channel, wz_set_channel;
+    float32_t vx_raw, vy_raw;
     vx_set_channel = vy_set_channel = wz_set_channel = vx_channel = vy_channel = wz_channel = 0;
     if (!switch_is_up(chassis_move_rc_to_vector->chassis_RC->rc.s[RADIO_CONTROL_SWITCH_L])) {
 
@@ -473,15 +488,15 @@ void chassis_rc_to_control_vector(float32_t *vx_set, float32_t *vy_set, float32_
         vy_bias = chassis_move_rc_to_vector->vy_set - chassis_move_rc_to_vector->vy;
         wz_bias = chassis_move_rc_to_vector->wz_set - chassis_move_rc_to_vector->wz;
 
-        if ((fabs(vx_bias) < 0.1) || (fabs(vx_bias)) > 1.5 || vx_channel == 0) {
+        if ((fabs(vx_bias) < 1.0) || (fabs(vx_bias)) > 8.0 || vx_channel == 0) {
             vx_bias = 0;
             no_bias_flag = 1;
         }
-        if ((fabs(vy_bias) < 0.1) || (fabs(vy_bias)) > 1.5 || vy_channel == 0) {
+        if ((fabs(vy_bias) < 1.0) || (fabs(vy_bias)) > 8.0 || vy_channel == 0) {
             vy_bias = 0;
             no_bias_flag = 1;
         }
-        if ((fabs(wz_bias) < 0.1) || (fabs(wz_bias)) > 1.5 || wz_channel == 0) {
+        if ((fabs(wz_bias) < 1.0) || (fabs(wz_bias)) > 8.0 || wz_channel == 0) {
             wz_bias = 0;
             no_bias_flag = 1;
         }
@@ -496,71 +511,72 @@ void chassis_rc_to_control_vector(float32_t *vx_set, float32_t *vy_set, float32_
             sigmoidInterpolation(0, (wz_channel * CHASSIS_WZ_RC_SEN + wz_bias / interpolation_num) * 1000, 14,
                                  wz_rc_Interpolation);
 
-//            sigmoidInterpolation(0, vx_channel, 14, vx_rc_Interpolation);
-//            sigmoidInterpolation(0, vy_channel, 14, vy_rc_Interpolation);
-//            sigmoidInterpolation(0, wz_channel, 14, wz_rc_Interpolation);
-//            SEGGER_RTT_printf(0, "in=%f,set=%f\r\n", yaw_rc_Interpolation[i] * YAW_RC_SEN, yaw_channel * YAW_RC_SEN);
-//            SEGGER_RTT_printf(0, "in=%f,set=%f\r\n", pitch_rc_Interpolation[i] * PITCH_RC_SEN,
-//                              pitch_channel * YAW_RC_SEN);
             move_point = 0;
             no_bias_flag = 0;
         }
-//        SEGGER_RTT_printf(0, "x=%d,y=%d,z=%d,vx-=%f,vy-=%f,vz-=%f\r\n", vx_channel, vy_channel, wz_channel,
-//                          1000 * (chassis_move_rc_to_vector->vx_set - chassis_move_rc_to_vector->vx),
-//                          1000 * (chassis_move_rc_to_vector->vy_set - chassis_move_rc_to_vector->vy),
-//                          1000 * (chassis_move_rc_to_vector->wz_set - chassis_move_rc_to_vector->wz));
-//        vx_set_channel = vx_rc_Interpolation[move_point] * CHASSIS_VX_RC_SEN;
-//        vy_set_channel = vy_rc_Interpolation[move_point] * -CHASSIS_VY_RC_SEN;
-//        wz_set_channel = wz_rc_Interpolation[move_point] * CHASSIS_WZ_RC_SEN;
         vx_set_channel = vx_rc_Interpolation[move_point] / 1000;
         vy_set_channel = vy_rc_Interpolation[move_point] / 1000;
         wz_set_channel = wz_rc_Interpolation[move_point] / 1000;
-//        vx_set_channel = vx_channel * CHASSIS_VX_RC_SEN;
-//        vy_set_channel = vy_channel * -CHASSIS_VY_RC_SEN;
-//        wz_set_channel = wz_channel * CHASSIS_WZ_RC_SEN;
         move_point++;
         if (move_point > 13) {
             move_point = 0;
         }
-//        SEGGER_RTT_printf(0, "wz_set_channel:%f\r\n", wz_set_channel);
+//        SEGGER_RTT_printf(0,"vx=%f,vy=%f,wz=%f\r\n",vx_set_channel,vy_set_channel,wz_set_channel);
     } else {
         //keyboard set speed set-point
         //键盘控制
         if (chassis_move_rc_to_vector->chassis_RC->key.v & CHASSIS_FRONT_KEY) {
-            vx_set_channel = chassis_move_rc_to_vector->vx_max_speed;
+            vx_raw = 300.0f;
         } else if (chassis_move_rc_to_vector->chassis_RC->key.v & CHASSIS_BACK_KEY) {
-            vx_set_channel = chassis_move_rc_to_vector->vx_min_speed;
+            vx_raw = -300.0f;
         }
 
         if (chassis_move_rc_to_vector->chassis_RC->key.v & CHASSIS_LEFT_KEY) {
-            vy_set_channel = chassis_move_rc_to_vector->vy_max_speed;
+            vy_raw = 300.0f;
         } else if (chassis_move_rc_to_vector->chassis_RC->key.v & CHASSIS_RIGHT_KEY) {
-            vy_set_channel = chassis_move_rc_to_vector->vy_min_speed;
+            vy_raw = -300.0f;
         }
-//660
-        if (chassis_move_rc_to_vector->chassis_RC->key.v & CHASSIS_SPIN_LEFT_KEY) {
-            wz_set_channel = 6.0f;
-        } else if (chassis_move_rc_to_vector->chassis_RC->key.v & CHASSIS_SPIN_RIGHT_KEY) {
-            wz_set_channel = -6.0f;
-        }
-    }
-    //first order low-pass replace ramp function, calculate chassis speed set-point to improve control performance
-    //一阶低通滤波代替斜波作为底盘速度输入
-    //stop command, need not slow change, set zero derectly
-    //停止信号，不需要缓慢加速，直接减速到零
-//    if (vx_set_channel < CHASSIS_RC_DEADLINE * CHASSIS_VX_RC_SEN && vx_set_channel > -CHASSIS_RC_DEADLINE * CHASSIS_VX_RC_SEN)
-//    {
-//        chassis_move_rc_to_vector->chassis_cmd_slow_set_vx.out = 0.0f;
-//    }
-//
-//    if (vy_set_channel < CHASSIS_RC_DEADLINE * CHASSIS_VY_RC_SEN && vy_set_channel > -CHASSIS_RC_DEADLINE * CHASSIS_VY_RC_SEN)
-//    {
-//        chassis_move_rc_to_vector->chassis_cmd_slow_set_vy.out = 0.0f;
-//    }
 
-//    *vx_set = chassis_move_rc_to_vector->chassis_cmd_slow_set_vx.out;
-//    *vy_set = chassis_move_rc_to_vector->chassis_cmd_slow_set_vy.out;
-//    *wz_set = chassis_move_rc_to_vector->chassis_cmd_slow_set_wz.out;
+
+        vx_bias = chassis_move_rc_to_vector->vx_set - chassis_move_rc_to_vector->vx;
+        vy_bias = chassis_move_rc_to_vector->vy_set - chassis_move_rc_to_vector->vy;
+        wz_bias = chassis_move_rc_to_vector->wz_set - chassis_move_rc_to_vector->wz;
+
+        if ((fabs(vx_bias) < 0.5) || (fabs(vx_bias)) > 8.0 || vx_channel == 0) {
+            vx_bias = 0;
+            no_bias_flag = 1;
+        }
+        if ((fabs(vy_bias) < 0.5) || (fabs(vy_bias)) > 8.0 || vy_channel == 0) {
+            vy_bias = 0;
+            no_bias_flag = 1;
+        }
+        if ((fabs(wz_bias) < 0.5) || (fabs(wz_bias)) > 8.0) {
+            wz_bias = 0;
+            no_bias_flag = 1;
+        }
+
+        if (chassis_move_rc_to_vector->chassis_RC->chassis_update_flag ||
+            (chassis_move_rc_to_vector->chassis_RC->chassis_update_flag && no_bias_flag)) {
+            clear_chassis_rc_update_flag();
+            sigmoidInterpolation(0, (vx_raw + vx_bias / interpolation_num) * 1000, 14,
+                                 vx_rc_Interpolation);
+            sigmoidInterpolation(0, (vy_raw + vy_bias / interpolation_num) * 1000, 14,
+                                 vy_rc_Interpolation);
+            sigmoidInterpolation(0, (wz_bias / interpolation_num) * 1000, 14,
+                                 wz_rc_Interpolation);
+
+            move_point = 0;
+            no_bias_flag = 0;
+        }
+        vx_set_channel = vx_rc_Interpolation[move_point] / 1000;
+        vy_set_channel = vy_rc_Interpolation[move_point] / 1000;
+        wz_set_channel = wz_rc_Interpolation[move_point] / 1000;
+        move_point++;
+        if (move_point > 13) {
+            move_point = 0;
+        }
+//        SEGGER_RTT_printf(0,"vx=%f,vy=%f,wz=%f\r\n",vx_set_channel,vy_set_channel,wz_set_channel);
+    }
     *vx_set = vx_set_channel;
     *vy_set = vy_set_channel;
     *wz_set = wz_set_channel;

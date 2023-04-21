@@ -37,8 +37,7 @@
 #define SHOOT_FRIC_PWM_ADD_VALUE    20
 
 //射击摩擦轮激光打开 关闭
-#define SHOOT_ON_KEYBOARD           KEY_PRESSED_OFFSET_R
-#define SHOOT_OFF_KEYBOARD          KEY_PRESSED_OFFSET_F
+#define SHOOT_KEYBOARD           KEY_PRESSED_OFFSET_B
 
 //射击完成后 子弹弹出去后，判断时间，以防误触发
 #define SHOOT_DONE_KEY_OFF_TIME     15
@@ -56,9 +55,8 @@
 #define MOTOR_ECD_TO_ANGLE          0.000021305288720633905968306772076277f
 #define FULL_COUNT                  18
 //拨弹速度
-#define TRIGGER_SPEED               10.0f
-#define CONTINUE_TRIGGER_SPEED      12.0f
-#define READY_TRIGGER_SPEED         5.0f
+#define CONTINUE_TRIGGER_SPEED      6.0f
+#define CONTINUE_TRIGGER_SPEED_MAX      10.0f
 
 #define KEY_OFF_JUGUE_TIME          500
 #define SWITCH_TRIGGER_ON           0
@@ -88,6 +86,19 @@
 #define TRIGGER_READY_PID_MAX_OUT   16000.0f
 #define TRIGGER_READY_PID_MAX_IOUT  8000.0f
 
+#define SHOOT_SPEED_30_MS_TO_FRIC 780.0f
+#define SHOOT_SPEED_18_MS_TO_FRIC 550.0f //1.7m 无下坠
+#define SHOOT_SPEED_15_MS_TO_FRIC 500.0f //2.7m 无下坠
+
+#define TRIGGER_SPEED_10 2.0f
+#define TRIGGER_SPEED_15 2.5f
+#define TRIGGER_SPEED_25 3.5f
+#define TRIGGER_SPEED_35 4.5f
+#define TRIGGER_SPEED_40 5.0f
+#define TRIGGER_SPEED_60 7.0f
+#define TRIGGER_SPEED_80 9.0f
+
+
 
 #define SHOOT_HEAT_REMAIN_VALUE     80
 
@@ -103,6 +114,9 @@ typedef enum {
 
 
 typedef struct {
+    shoot_heat_cooling_rate_e shoot_cooling_rate_referee_set;
+    shoot_speed_e shoot_speed_referee_set;
+    shoot_state_e shoot_fric_state;
     shoot_mode_e shoot_mode;
     const volatile RC_ctrl_t *shoot_rc;
     const volatile pid_auto_tune_t *pid_auto_tune_data_point;
@@ -138,11 +152,11 @@ typedef struct {
     int8_t ecd_count;
 
     bool_t press_l;
-    bool_t press_r;
+//    bool_t press_r;
     bool_t last_press_l;
-    bool_t last_press_r;
+//    bool_t last_press_r;
     uint16_t press_l_time;
-    uint16_t press_r_time;
+//    uint16_t press_r_time;
     uint16_t rc_s_time;
 
     uint16_t block_time;

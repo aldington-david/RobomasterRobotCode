@@ -44,7 +44,7 @@
 #define PITCH_INIT  INIT
 #define YAW_INIT    INIT
 
-#define INIT_ONLY_FIRST_TIME 1
+#define INIT_ONLY_FIRST_TIME 0
 /************ Init To Offset End*******************/
 
 /************ Motor turn define Start*******************/

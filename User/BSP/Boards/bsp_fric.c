@@ -3,8 +3,8 @@
 extern TIM_HandleTypeDef htim1;
 void fric_off(void)
 {
-    __HAL_TIM_SetCompare(&htim1, TIM_CHANNEL_1, FRIC_OFF);
-    __HAL_TIM_SetCompare(&htim1, TIM_CHANNEL_2, FRIC_OFF);
+    __HAL_TIM_SetCompare(&htim1, TIM_CHANNEL_1, FRIC_OFF_PWM);
+    __HAL_TIM_SetCompare(&htim1, TIM_CHANNEL_2, FRIC_OFF_PWM);
 }
 void fric1_on(uint16_t cmd)
 {

@@ -10,6 +10,7 @@
 #include "struct_typedef.h"
 #include "fifo.h"
 #include "cmsis_os.h"
+#include "referee_task.h"
 
 #define USART1_RX_BUF_LENGHT     512
 #define USART1_VISION_TX_BUF_LENGHT     128
@@ -67,6 +68,7 @@ typedef volatile struct {
 typedef volatile struct {
     vision_control_t vision_control;
     vision_unpack_data_t *pack_info;
+    vision_state_e state;
 } vision_info_t;
 
 #pragma pack(pop)

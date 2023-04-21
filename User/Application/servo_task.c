@@ -34,7 +34,7 @@
 uint32_t servo_task_stack;
 #endif
 
-static servo_mode_e Bullet_Box_Mode = Bullet_Box_Min;
+static servo_mode_e Bullet_Box_Mode = Bullet_Box_CLOSE;
 const volatile RC_ctrl_t *servo_rc;
 //const static uint16_t servo_key[4] = {SERVO1_ADD_PWM_KEY, SERVO2_ADD_PWM_KEY, SERVO3_ADD_PWM_KEY, SERVO4_ADD_PWM_KEY};
 //uint16_t servo_pwm[4] = {SERVO_MIN_PWM, SERVO_MIN_PWM, SERVO_MIN_PWM, SERVO_MIN_PWM};
@@ -113,23 +113,23 @@ void bullet_box_control(void) {
     static char last_s_switch = RC_SW_DOWN;
     if ((switch_is_up(servo_rc->rc.s[RADIO_CONTROL_SWITCH_L])) &&
         (switch_is_up(servo_rc->rc.s[RADIO_CONTROL_SWITCH_R]))) {
-        if (servo_rc->key.v & KEY_PRESSED_OFFSET_V) {
-            Bullet_Box_Mode = Bullet_Box_Max;
-        } else if (servo_rc->key.v & KEY_PRESSED_OFFSET_B) {
-            Bullet_Box_Mode = Bullet_Box_Min;
+        if (servo_rc->key.v & KEY_PRESSED_OFFSET_Q) {
+            Bullet_Box_Mode = Bullet_Box_OPEN;
+        } else if (servo_rc->key.v & KEY_PRESSED_OFFSET_E) {
+            Bullet_Box_Mode = Bullet_Box_CLOSE;
         }
     } else if (switch_is_up(servo_rc->rc.s[RADIO_CONTROL_SWITCH_L]) &&
                switch_is_down(servo_rc->rc.s[RADIO_CONTROL_SWITCH_R]) && !switch_is_down(last_s) &&
-               !switch_is_down(last_s_switch) && Bullet_Box_Mode == Bullet_Box_Min) {
-        Bullet_Box_Mode = Bullet_Box_Max;
+               !switch_is_down(last_s_switch) && Bullet_Box_Mode == Bullet_Box_CLOSE) {
+        Bullet_Box_Mode = Bullet_Box_OPEN;
     } else if (switch_is_up(servo_rc->rc.s[RADIO_CONTROL_SWITCH_L]) &&
                switch_is_down(servo_rc->rc.s[RADIO_CONTROL_SWITCH_R]) && !switch_is_down(last_s) &&
-               !switch_is_down(last_s_switch) && Bullet_Box_Mode == Bullet_Box_Max) {
-        Bullet_Box_Mode = Bullet_Box_Min;
+               !switch_is_down(last_s_switch) && Bullet_Box_Mode == Bullet_Box_OPEN) {
+        Bullet_Box_Mode = Bullet_Box_CLOSE;
     }
-    if (Bullet_Box_Mode == Bullet_Box_Max) {
+    if (Bullet_Box_Mode == Bullet_Box_OPEN) {
         bullet_box_pwm = Bullet_Box_Open_PWM;
-    } else if (Bullet_Box_Mode == Bullet_Box_Min) {
+    } else if (Bullet_Box_Mode == Bullet_Box_CLOSE) {
         bullet_box_pwm = Bullet_Box_Close_PWM;
     }
 

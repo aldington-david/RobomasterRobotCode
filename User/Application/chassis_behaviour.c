@@ -224,6 +224,8 @@ static void chassis_open_set_control(float32_t *vx_set, float32_t *vy_set, float
 chassis_behaviour_e chassis_behaviour_mode = CHASSIS_ZERO_FORCE;
 chassis_behaviour_e last_chassis_behaviour_mode = CHASSIS_ZERO_FORCE;
 bool_t chassis_mode_change_flag = 0;
+bool_t chassis_follow_change_flag = 0;
+bool_t spin_pid_change_flag = 0;
 
 
 /**
@@ -265,18 +267,30 @@ void chassis_behaviour_mode_set(chassis_move_t *chassis_move_mode) {
     }
     //remote control  set chassis behaviour mode
     //遥控器设置模式
-    if (switch_is_mid(chassis_move_mode->chassis_RC->rc.s[RADIO_CONTROL_SWITCH_L]) &&
-        switch_is_up(chassis_move_mode->chassis_RC->rc.s[RADIO_CONTROL_SWITCH_R])) {
+    if ((switch_is_mid(chassis_move_mode->chassis_RC->rc.s[RADIO_CONTROL_SWITCH_L]) &&
+         switch_is_up(chassis_move_mode->chassis_RC->rc.s[RADIO_CONTROL_SWITCH_R])) ||
+        ((switch_is_up(chassis_move_mode->chassis_RC->rc.s[RADIO_CONTROL_SWITCH_L])) &&
+         (switch_is_up(chassis_move_mode->chassis_RC->rc.s[RADIO_CONTROL_SWITCH_R])) &&
+         (chassis_move_mode->chassis_RC->key.v & KEY_PRESSED_OFFSET_R))) {
         //can change to CHASSIS_ZERO_FORCE,CHASSIS_NO_MOVE,CHASSIS_FORWARD_TO_GIMBAL_YAW,
         //CHASSIS_ENGINEER_FOLLOW_CHASSIS_YAW,CHASSIS_NO_FOLLOW_YAW,CHASSIS_OPEN
 //          chassis_behaviour_mode = CHASSIS_FORWARD_TO_GIMBAL_YAW;
         chassis_behaviour_mode = CHASSIS_SPIN;
-    } else if (switch_is_mid(chassis_move_mode->chassis_RC->rc.s[RADIO_CONTROL_SWITCH_L]) &&
-               switch_is_mid(chassis_move_mode->chassis_RC->rc.s[RADIO_CONTROL_SWITCH_R])) {
+    } else if ((switch_is_mid(chassis_move_mode->chassis_RC->rc.s[RADIO_CONTROL_SWITCH_L]) &&
+                switch_is_mid(chassis_move_mode->chassis_RC->rc.s[RADIO_CONTROL_SWITCH_R])) ||
+               ((switch_is_up(chassis_move_mode->chassis_RC->rc.s[RADIO_CONTROL_SWITCH_L])) &&
+                (switch_is_up(chassis_move_mode->chassis_RC->rc.s[RADIO_CONTROL_SWITCH_R])) &&
+                (chassis_move_mode->chassis_RC->key.v & KEY_PRESSED_OFFSET_F))) {
         chassis_behaviour_mode = CHASSIS_FORWARD_FOLLOW_GIMBAL_YAW;
-    } else if (switch_is_mid(chassis_move_mode->chassis_RC->rc.s[RADIO_CONTROL_SWITCH_L]) &&
-               switch_is_down(chassis_move_mode->chassis_RC->rc.s[RADIO_CONTROL_SWITCH_R])) {
+    } else if ((switch_is_mid(chassis_move_mode->chassis_RC->rc.s[RADIO_CONTROL_SWITCH_L]) &&
+               switch_is_down(chassis_move_mode->chassis_RC->rc.s[RADIO_CONTROL_SWITCH_R])) ||
+               ((switch_is_up(chassis_move_mode->chassis_RC->rc.s[RADIO_CONTROL_SWITCH_L])) &&
+                (switch_is_up(chassis_move_mode->chassis_RC->rc.s[RADIO_CONTROL_SWITCH_R])) &&
+                (chassis_move_mode->chassis_RC->key.v & KEY_PRESSED_OFFSET_G))) {
         chassis_behaviour_mode = CHASSIS_FORWARD_TO_GIMBAL_YAW;
+    } else if((switch_is_up(chassis_move_mode->chassis_RC->rc.s[RADIO_CONTROL_SWITCH_L])) &&
+              (switch_is_up(chassis_move_mode->chassis_RC->rc.s[RADIO_CONTROL_SWITCH_R]))){
+        chassis_behaviour_mode = CHASSIS_FORWARD_FOLLOW_GIMBAL_YAW;
     }
 
     //when gimbal in some mode, such as init mode, chassis must's move
@@ -510,7 +524,7 @@ static void chassis_spin_control(float32_t *vx_set, float32_t *vy_set, float32_t
     //channel value and keyboard value change to speed set-point, in general
     //遥控器的通道值以及键盘按键 得出 一般情况下的速度设定值
     chassis_rc_to_control_vector(vx_set, vy_set, angle_set, chassis_move_rc_to_vector);
-    first_order_filter_cali(&chassis_move_rc_to_vector->chassis_cmd_slow_spin,CHASSIS_SPIN_SPEED);
+    first_order_filter_cali(&chassis_move_rc_to_vector->chassis_cmd_slow_spin, CHASSIS_SPIN_SPEED);
 //    SEGGER_RTT_printf(0,"out=%f\r\n",chassis_move_rc_to_vector->chassis_cmd_slow_spin.out);
     *angle_set = chassis_move_rc_to_vector->chassis_cmd_slow_spin.out;
 }
