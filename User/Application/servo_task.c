@@ -62,7 +62,7 @@ void servo_task(void const *argument) {
             }
         }
         if (!toe_is_error(DBUS_TOE)) {
-            bullet_box_control();
+//            bullet_box_control();
         }
 
         //abundant

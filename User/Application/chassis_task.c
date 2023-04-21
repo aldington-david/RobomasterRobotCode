@@ -224,13 +224,13 @@ static void chassis_init(chassis_move_t *chassis_move_init) {
 
     //chassis motor speed PID
     //底盘速度环pid值
-    const static float32_t motor_speed_pid[3] = {1443.4315f, 1732.1176f, 0.0f};
-    const static float32_t chassis_vx_speed_pid[3] = {14.559f, 0.0f, 1.0f};
-    const static float32_t chassis_vy_speed_pid[3] = {14.1309f, 0.0f, 1.0f};
-    const static float32_t chassis_wz_speed_pid[3] = {6.8163f, 0.0f, 1.0f};
+    const static float32_t motor_speed_pid[3] = {8000.0f, 0.0f, 0.0f};
+    const static float32_t chassis_vx_speed_pid[3] = {2.0f, 0.0f, 0.0f};
+    const static float32_t chassis_vy_speed_pid[3] = {2.0f, 0.0f, 0.0f};
+    const static float32_t chassis_wz_speed_pid[3] = {2.0f, 0.0f, 0.0f};
     //chassis angle PID
     //底盘角度pid值
-    const static float32_t chassis_yaw_follow_pid[3] = {1.9f, 4.5792f, 400.0f};
+    const static float32_t chassis_yaw_follow_pid[3] = {1.5f, 0.0f, 0.0f};
 
 //    const static float32_t chassis_x_order_filter[1] = {CHASSIS_ACCEL_X_NUM};
 //    const static float32_t chassis_y_order_filter[1] = {CHASSIS_ACCEL_Y_NUM};
