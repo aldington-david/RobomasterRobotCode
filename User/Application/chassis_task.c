@@ -526,15 +526,15 @@ void chassis_rc_to_control_vector(float32_t *vx_set, float32_t *vy_set, float32_
         //keyboard set speed set-point
         //键盘控制
         if (chassis_move_rc_to_vector->chassis_RC->key.v & CHASSIS_FRONT_KEY) {
-            vx_raw = 50.0f;
+            vx_raw = 80.0f;
         } else if (chassis_move_rc_to_vector->chassis_RC->key.v & CHASSIS_BACK_KEY) {
-            vx_raw = -50.0f;
+            vx_raw = -80.0f;
         }
 
         if (chassis_move_rc_to_vector->chassis_RC->key.v & CHASSIS_LEFT_KEY) {
-            vy_raw = 50.0f;
+            vy_raw = 80.0f;
         } else if (chassis_move_rc_to_vector->chassis_RC->key.v & CHASSIS_RIGHT_KEY) {
-            vy_raw = -50.0f;
+            vy_raw = -80.0f;
         }
 
 
