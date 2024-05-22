@@ -46,7 +46,7 @@
 //yaw speed close-loop PID params, max out and max iout
 //yaw 速度环 PID参数以及 PID最大输出，积分输出
 #define YAW_SPEED_PID_MAX_OUT   MAX_6020_MOTOR_CAN_CURRENT
-#define YAW_SPEED_PID_MAX_IOUT  15000.0f
+#define YAW_SPEED_PID_MAX_IOUT  20000.0f
 
 //pitch gyro angle close-loop PID params, max out and max iout
 //pitch 角度环 角度由陀螺仪解算 PID参数以及 PID最大输出，积分输出
@@ -205,6 +205,7 @@ typedef struct {
     pid_type_def gimbal_motor_absolute_angle_pid;
     pid_type_def gimbal_motor_relative_angle_pid;
     pid_type_def gimbal_motor_gyro_pid;
+    pid_type_def gimbal_motor_speed_pid;
 
     gimbal_motor_mode_e gimbal_motor_mode;
     gimbal_motor_mode_e last_gimbal_motor_mode;
@@ -227,6 +228,7 @@ typedef struct {
 
     extKalman_t MotorSpeed_Kalman;
     extKalman_t Cloud_Motor_Current_Kalman_Filter;
+    extKalman_t Cloud_Motor_Gyro_Kalman_Filter;
 
 } gimbal_motor_t;
 

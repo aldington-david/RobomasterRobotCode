@@ -74,8 +74,8 @@ typedef struct __attribute__((packed))
         {
                 uint16_t v;
         } key;
-        bool_t gimbal_update_flag;
-        bool_t chassis_update_flag
+        bool_t gimbal_rc_update_flag;
+        bool_t chassis_rc_update_flag
 
 } RC_ctrl_t;
 

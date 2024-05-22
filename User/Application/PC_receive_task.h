@@ -39,8 +39,9 @@ enum {
     param26,
     param27,
     param28,
-
-
+    param29,
+    param30,
+    paramNum,
 };
 
 typedef union {
@@ -53,7 +54,7 @@ typedef union {
     float *varFloat;
 } DebugVarTrans;
 
-extern void *PC_receive_data[29];
+extern void *PC_receive_data[paramNum];
 
 extern void PC_receive_task(void const *argument);
 

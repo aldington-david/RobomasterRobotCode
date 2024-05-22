@@ -218,7 +218,7 @@ float ALL_PID(pid_type_def *pid, float32_t ref, float32_t set) {
         (pid == &gimbal_control.gimbal_yaw_motor.gimbal_motor_absolute_angle_pid) ||
         (pid == &gimbal_control.gimbal_pitch_motor.gimbal_motor_relative_angle_pid) ||
         (pid == &gimbal_control.gimbal_pitch_motor.gimbal_motor_absolute_angle_pid) ||
-        (pid == &chassis_move.chassis_angle_pid)) {
+        (pid == &chassis_control.chassis_angle_pid)) {
 //        pid->error[0] = loop_fp32_constrain(set-ref,0,2*PI);
         pid->error[0] = jump_error(pid->set - pid->get, 2 * PI);
 //        SEGGER_RTT_printf(0,"set=%f,ref=%f,err_fun=%f,err=%f\r\n",set,ref,pid->error[0],set-ref);
@@ -226,7 +226,7 @@ float ALL_PID(pid_type_def *pid, float32_t ref, float32_t set) {
         pid->error[0] = pid->set - pid->get;
     }
 //    if(chassis_mode_change_flag){
-//        if(pid == &chassis_move.chassis_angle_pid){
+//        if(pid == &chassis_control.chassis_angle_pid){
 //            pid->Iout =;
 //            pid->Pout = 0;
 //            pid->Dout = 0;
@@ -278,7 +278,7 @@ float ALL_PID(pid_type_def *pid, float32_t ref, float32_t set) {
         (pid == &gimbal_control.gimbal_yaw_motor.gimbal_motor_absolute_angle_pid) ||
         (pid == &gimbal_control.gimbal_pitch_motor.gimbal_motor_relative_angle_pid) ||
         (pid == &gimbal_control.gimbal_pitch_motor.gimbal_motor_absolute_angle_pid) ||
-        (pid == &chassis_move.chassis_angle_pid)) {
+        (pid == &chassis_control.chassis_angle_pid)) {
 //        pid->error[0] = loop_fp32_constrain(set-ref,0,2*PI);
         pid->Dbuf[0] = jump_error(pid->get - pid->last_get, 2 * PI);
 //        SEGGER_RTT_printf(0,"set=%f,ref=%f,err_fun=%f,err=%f\r\n",set,ref,pid->error[0],set-ref);

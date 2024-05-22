@@ -40,6 +40,8 @@
 #include "user_lib.h"
 #include "pid_auto_tune_task.h"
 #include "chassis_behaviour.h"
+#include "print_task.h"
+#include "SEGGER_RTT.h"
 
 //motor enconde value format, range[0-8191]
 //电机编码值规整 0—8191
@@ -53,10 +55,13 @@
 
 #define gimbal_total_pid_clear(gimbal_clear)                                                   \
     {                                                                                          \
+        PID_clear(&(gimbal_clear)->gimbal_yaw_motor.gimbal_motor_speed_pid);                   \
         PID_clear(&(gimbal_clear)->gimbal_yaw_motor.gimbal_motor_gyro_pid);                    \
         PID_clear(&(gimbal_clear)->gimbal_yaw_motor.gimbal_motor_relative_angle_pid);          \
-                                                                                               \
+        PID_clear(&(gimbal_clear)->gimbal_yaw_motor.gimbal_motor_absolute_angle_pid);          \
+        PID_clear(&(gimbal_clear)->gimbal_pitch_motor.gimbal_motor_absolute_angle_pid);        \
         PID_clear(&(gimbal_clear)->gimbal_pitch_motor.gimbal_motor_relative_angle_pid);        \
+        PID_clear(&(gimbal_clear)->gimbal_pitch_motor.gimbal_motor_speed_pid);                 \
         PID_clear(&(gimbal_clear)->gimbal_pitch_motor.gimbal_motor_gyro_pid);                  \
     }
 
@@ -276,6 +281,8 @@ void gimbal_task(void const *pvParameters) {
         gimbal_mode_change_control_transit(&gimbal_control); //控制模式切换 控制数据过渡
         gimbal_feedback_update(&gimbal_control);             //云台数据反馈
         gimbal_set_control(&gimbal_control);                 //设置云台控制量
+//        RTT_PrintWave(2, &gimbal_control.gimbal_yaw_motor.motor_speed,
+//                      &gimbal_control.gimbal_yaw_motor.motor_gyro_set);
         gimbal_control_loop(&gimbal_control);                //云台控制PID计算
         shoot_can_set_current = shoot_control_loop();        //射击任务控制循环
 #if YAW_TURN
@@ -723,11 +730,13 @@ const gimbal_motor_t *get_pitch_motor_point(void) {
 static void gimbal_init(gimbal_control_t *init) {
 
 
-    static const float32_t Pitch_speed_pid[3] = {2000.0f, 3.5f, 0.0f};
-    static const float32_t Yaw_speed_pid[3] = {1107.7814f, 295.4083f, 0.0f};
+    static const float32_t Pitch_relative_speed_pid[3] = {2000.0f, 3.5f, 0.0f};
+    static const float32_t Pitch_absolute_speed_pid[3] = {2000.0f, 3.5f, 0.0f};
+    static const float32_t Yaw_absolute_speed_pid[3] = {3107.814f, 900.083f, 0.0f};
+    static const float32_t Yaw_relative_speed_pid[3] = {7407.814f, 190.083f, 0.0f};
 
-    static const float32_t Yaw_absolute_angle_pid[3] = {11.7039f, 5.5077f, 6.2177f};
-    static const float32_t Yaw_relative_angle_pid[3] = {10.61f, 3.1436f, 8.9522f};
+    static const float32_t Yaw_absolute_angle_pid[3] = {10.5039f, 320.0f, 5.0f};
+    static const float32_t Yaw_relative_angle_pid[3] = {10.7039f, 18.0f, 5.02f};
     static const float32_t Pitch_absolute_angle_pid[3] = {15.89f, 0.0f, 200.0f};
     static const float32_t Pitch_relative_angle_pid[3] = {29.2f, 0.0f, 500.0f};
     //电机数据指针获取
@@ -752,9 +761,10 @@ static void gimbal_init(gimbal_control_t *init) {
     PID_init(&init->gimbal_yaw_motor.gimbal_motor_absolute_angle_pid, PID_POSITION, Yaw_absolute_angle_pid,
              YAW_ENCODE_RELATIVE_PID_MAX_OUT,
              YAW_ENCODE_RELATIVE_PID_MAX_IOUT, 1000, 1, 0.01f, 2.0f, 0, 0.0f, 0, 0.0f, 0, 0, 0, 0, 0);
-    PID_init(&init->gimbal_yaw_motor.gimbal_motor_gyro_pid, PID_POSITION, Yaw_speed_pid, YAW_SPEED_PID_MAX_OUT,
-             YAW_SPEED_PID_MAX_IOUT, 1000, 1, 0.15f, 3.0f, 0, 0, 0, 0, 0, 0, 0, 0, 0);
-
+    PID_init(&init->gimbal_yaw_motor.gimbal_motor_speed_pid, PID_POSITION, Yaw_relative_speed_pid, YAW_SPEED_PID_MAX_OUT,
+             YAW_SPEED_PID_MAX_IOUT, 1000, 0, 0.15f, 3.0f, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+    PID_init(&init->gimbal_yaw_motor.gimbal_motor_gyro_pid, PID_POSITION, Yaw_absolute_speed_pid, YAW_SPEED_PID_MAX_OUT,
+             YAW_SPEED_PID_MAX_IOUT, 1000, 0, 0.15f, 3.0f, 0, 0, 0, 0, 0, 0, 0, 0, 0);
 
     //初始化pitch电机pid
     PID_init(&init->gimbal_pitch_motor.gimbal_motor_relative_angle_pid, PID_POSITION, Pitch_relative_angle_pid,
@@ -763,16 +773,21 @@ static void gimbal_init(gimbal_control_t *init) {
     PID_init(&init->gimbal_pitch_motor.gimbal_motor_absolute_angle_pid, PID_POSITION, Pitch_absolute_angle_pid,
              PITCH_ENCODE_RELATIVE_PID_MAX_OUT,
              PITCH_ENCODE_RELATIVE_PID_MAX_IOUT, 1000, 1, 0.01f, 2.0f, 0, 0, 0, 0, 0, 0, 0, 0, 0);
-    PID_init(&init->gimbal_pitch_motor.gimbal_motor_gyro_pid, PID_POSITION, Pitch_speed_pid, PITCH_SPEED_PID_MAX_OUT,
+    PID_init(&init->gimbal_pitch_motor.gimbal_motor_speed_pid, PID_POSITION, Pitch_relative_speed_pid, PITCH_SPEED_PID_MAX_OUT,
+             PITCH_SPEED_PID_MAX_IOUT, 0.8f, 1, 0.8f, 2.0f, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+    PID_init(&init->gimbal_pitch_motor.gimbal_motor_gyro_pid, PID_POSITION, Pitch_absolute_speed_pid, PITCH_SPEED_PID_MAX_OUT,
              PITCH_SPEED_PID_MAX_IOUT, 0.8f, 1, 0.8f, 2.0f, 0, 0, 0, 0, 0, 0, 0, 0, 0);
     KalmanCreate(&init->gimbal_pitch_motor.Cloud_Motor_Current_Kalman_Filter, 0.001f, 0.05f);
-    KalmanCreate(&init->gimbal_yaw_motor.Cloud_Motor_Current_Kalman_Filter, 0.001f, 1.0f);
+    KalmanCreate(&init->gimbal_yaw_motor.Cloud_Motor_Current_Kalman_Filter, 0.001f, 0.05f);
+    KalmanCreate(&init->gimbal_yaw_motor.Cloud_Motor_Gyro_Kalman_Filter, 0.01f, 5.0f);
     KalmanCreate(&init->gimbal_yaw_motor.gimbal_motor_relative_angle_pid.D_Kalman, 1.0f, 1.0f);
     KalmanCreate(&init->gimbal_yaw_motor.gimbal_motor_absolute_angle_pid.D_Kalman, 1.0f, 1.0f);
     KalmanCreate(&init->gimbal_yaw_motor.gimbal_motor_gyro_pid.D_Kalman, 1.0f, 1.0f);
+    KalmanCreate(&init->gimbal_yaw_motor.gimbal_motor_speed_pid.D_Kalman, 1.0f, 1.0f);
     KalmanCreate(&init->gimbal_pitch_motor.gimbal_motor_relative_angle_pid.D_Kalman, 1.0f, 1.0f);
     KalmanCreate(&init->gimbal_pitch_motor.gimbal_motor_absolute_angle_pid.D_Kalman, 1.0f, 1.0f);
     KalmanCreate(&init->gimbal_pitch_motor.gimbal_motor_gyro_pid.D_Kalman, 1.0f, 1.0f);
+    KalmanCreate(&init->gimbal_pitch_motor.gimbal_motor_speed_pid.D_Kalman, 1.0f, 1.0f);
     KalmanCreate(&init->gimbal_yaw_motor.MotorSpeed_Kalman, 0.001f, 0.4f);
     KalmanCreate(&init->gimbal_pitch_motor.MotorSpeed_Kalman, 0.001f, 0.4f);
 
@@ -895,8 +910,11 @@ static void gimbal_feedback_update(gimbal_control_t *feedback_update) {
 //    kalman_test = feedback_update->gimbal_yaw_motor.motor_speed;
 //    kalman_test = KalmanFilter(&MotorSpeed_Kalman,
 //                               kalman_test);
+//    float32_t speed_original = 0;
+//    float32_t speed_kf = 0;
     feedback_update->gimbal_yaw_motor.motor_speed = KalmanFilter(&feedback_update->gimbal_yaw_motor.MotorSpeed_Kalman,
                                                                  feedback_update->gimbal_yaw_motor.motor_speed);
+
     feedback_update->gimbal_pitch_motor.motor_speed = KalmanFilter(
             &feedback_update->gimbal_pitch_motor.MotorSpeed_Kalman,
             feedback_update->gimbal_pitch_motor.motor_speed);
@@ -906,6 +924,11 @@ static void gimbal_feedback_update(gimbal_control_t *feedback_update) {
                                                    - arm_sin_f32(feedback_update->gimbal_pitch_motor.relative_angle) *
                                                      (*(feedback_update->gimbal_INT_gyro_point +
                                                         INS_GYRO_X_ADDRESS_OFFSET));
+//    speed_original = feedback_update->gimbal_yaw_motor.motor_gyro;
+    feedback_update->gimbal_yaw_motor.motor_gyro = KalmanFilter(&feedback_update->gimbal_yaw_motor.Cloud_Motor_Gyro_Kalman_Filter,
+                                                                feedback_update->gimbal_yaw_motor.motor_gyro);
+//    speed_kf = feedback_update->gimbal_yaw_motor.motor_gyro;
+//    RTT_PrintWave(2,&speed_original,&speed_kf);
 }
 
 /**
@@ -986,7 +1009,7 @@ static void gimbal_mode_change_control_transit(gimbal_control_t *gimbal_mode_cha
                gimbal_mode_change->gimbal_yaw_motor.gimbal_motor_mode == GIMBAL_MOTOR_ENCONDE) {
         gimbal_mode_change->gimbal_yaw_motor.relative_angle_set = gimbal_mode_change->gimbal_yaw_motor.relative_angle;
     }
-    if(chassis_mode_change_flag){
+    if (chassis_mode_change_flag) {
         gimbal_mode_change->gimbal_yaw_motor.absolute_angle_set = gimbal_mode_change->gimbal_yaw_motor.absolute_angle;
         chassis_mode_change_flag = 0;
     }
@@ -1271,7 +1294,7 @@ static void gimbal_motor_absolute_angle_control(gimbal_motor_t *gimbal_motor) {
     gimbal_motor->motor_gyro_set = ALL_PID(&gimbal_motor->gimbal_motor_absolute_angle_pid,
                                            gimbal_motor->absolute_angle, gimbal_motor->absolute_angle_set);
 
-    gimbal_motor->current_set = ALL_PID(&gimbal_motor->gimbal_motor_gyro_pid, -gimbal_motor->motor_speed,
+    gimbal_motor->current_set = ALL_PID(&gimbal_motor->gimbal_motor_gyro_pid, -gimbal_motor->motor_gyro,
                                         gimbal_motor->motor_gyro_set);
 
     if (gimbal_motor == &gimbal_control.gimbal_pitch_motor) {
@@ -1321,7 +1344,7 @@ static void gimbal_motor_relative_angle_control(gimbal_motor_t *gimbal_motor) {
     gimbal_motor->motor_gyro_set = ALL_PID(&gimbal_motor->gimbal_motor_relative_angle_pid,
                                            gimbal_motor->relative_angle, gimbal_motor->relative_angle_set);
 
-    gimbal_motor->current_set = ALL_PID(&gimbal_motor->gimbal_motor_gyro_pid, -gimbal_motor->motor_speed,
+    gimbal_motor->current_set = ALL_PID(&gimbal_motor->gimbal_motor_speed_pid, -gimbal_motor->motor_speed,
                                         gimbal_motor->motor_gyro_set);
 
     if (gimbal_motor == &gimbal_control.gimbal_yaw_motor) {
@@ -1333,8 +1356,15 @@ static void gimbal_motor_relative_angle_control(gimbal_motor_t *gimbal_motor) {
 //    if (gimbal_motor == &gimbal_control.gimbal_pitch_motor) {
 //        kalman_test = gimbal_motor->current_set;
 //    }
+//for_test
+//    float32_t current_original = 0;
+//    float32_t current_kf = 0;
+//    current_original = gimbal_motor->current_set;
     gimbal_motor->current_set = KalmanFilter(&gimbal_motor->Cloud_Motor_Current_Kalman_Filter,
                                              gimbal_motor->current_set);
+//    current_kf = gimbal_motor->current_set;
+//    RTT_PrintWave(2, &current_original, &current_kf);
+
 //    for_test
 //    if (gimbal_motor == &gimbal_control.gimbal_pitch_motor) {
 //        RTT_PrintWave_np(2,

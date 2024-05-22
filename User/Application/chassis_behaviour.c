@@ -223,9 +223,8 @@ static void chassis_open_set_control(float32_t *vx_set, float32_t *vy_set, float
 //留意，这个底盘行为模式变量
 chassis_behaviour_e chassis_behaviour_mode = CHASSIS_ZERO_FORCE;
 chassis_behaviour_e last_chassis_behaviour_mode = CHASSIS_ZERO_FORCE;
-bool_t chassis_mode_change_flag = 0;
-bool_t chassis_follow_change_flag = 0;
-bool_t spin_pid_change_flag = 0;
+volatile bool_t chassis_mode_change_flag = 0;
+volatile bool_t chassis_follow_change_flag = 0;
 
 
 /**
@@ -556,7 +555,7 @@ static void chassis_follow_gimbal_yaw_control(float32_t *vx_set, float32_t *vy_s
 
     chassis_rc_to_control_vector(vx_set, vy_set, angle_set, chassis_move_rc_to_vector);
 
-    *angle_set = chassis_move.chassis_yaw;
+    *angle_set = chassis_control.chassis_yaw;
 }
 
 /**
