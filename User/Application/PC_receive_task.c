@@ -30,7 +30,7 @@ int param_num;
 char param_value[16];
 int32_t param_value_int;
 float param_value_float;
-void *PC_receive_data[29];
+void *PC_receive_data[paramNum];
 
 //$param0=12;$param1=13;$param2=12.32;$param3=11.21;
 void PC_receive_task(void const *argument) {
@@ -113,6 +113,8 @@ void PC_receive_task(void const *argument) {
     PC_receive_data[param27] = (void *) &gimbal_control.gimbal_yaw_motor.gimbal_motor_gyro_pid.D_Filter_Ratio;
 
     PC_receive_data[param28] = (void *) &gimbal_control.gimbal_yaw_motor.LpfFactor;
+    PC_receive_data[param29] = (void *) &yaw_add_test;
+    PC_receive_data[param30] = (void *) &pitch_add_test;
 
 //    PC_receive_data[param9] = (void *) &gimbal_control.gimbal_yaw_motor.max_relative_angle;
 //    PC_receive_data[param10] = (void *) &gimbal_control.gimbal_yaw_motor.min_relative_angle;

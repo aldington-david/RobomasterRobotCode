@@ -40,19 +40,19 @@ void pid_auto_tune_task(void const *pvParameters) {
     vTaskDelay(1000);
     pid_auto_tune_rc = get_remote_control_point();
     //底盘速度-电流
-//    pid_auto_tune_init(&pid_auto_tune_data, &chassis_move.motor_chassis[0].speed,
+//    pid_auto_tune_init(&pid_auto_tune_data, &chassis_control.motor_chassis[0].speed,
 //                       &pid_auto_tune_data.control_list.wheel_control_value, USE_PID, 0.35f, 2000.0f,
 //                       1, 0.0f, 0.0f, SPEED_TO_CURRENT, 0);
     //底盘速度vx
-//    pid_auto_tune_init(&pid_auto_tune_data, &chassis_move.vx,
+//    pid_auto_tune_init(&pid_auto_tune_data, &chassis_control.vx,
 //                       &pid_auto_tune_data.control_list.vx_control_value, USE_PID, 0.1f, 3.0f,
 //                       1, 0.0f, 0.0f, SPEED_TO_SPEED, 0);
     //底盘速度vy
-//    pid_auto_tune_init(&pid_auto_tune_data, &chassis_move.vy,
+//    pid_auto_tune_init(&pid_auto_tune_data, &chassis_control.vy,
 //                       &pid_auto_tune_data.control_list.vy_control_value, USE_PID, 0.1f, 3.0f,
 //                       1, 0.0f, 0.0f, SPEED_TO_SPEED, 0);
     //底盘速度wz
-//    pid_auto_tune_init(&pid_auto_tune_data, &chassis_move.wz,
+//    pid_auto_tune_init(&pid_auto_tune_data, &chassis_control.wz,
 //                       &pid_auto_tune_data.control_list.wz_control_value, USE_PID, 0.0f, 3.0f,
 //                       1, 0.0f, 0.0f, SPEED_TO_SPEED, 0);
     //yaw_speed
@@ -118,19 +118,19 @@ void pid_auto_tune_task(void const *pvParameters) {
                         if (!pid_auto_tune_runtime(&pid_auto_tune_data)) {
                             //底盘速度-电流
 //                            RTT_PrintWave(2,
-//                                          &chassis_move.motor_chassis[0].speed,
+//                                          &chassis_control.motor_chassis[0].speed,
 //                                          &pid_auto_tune_data.control_list.wheel_control_value);
 //                            //底盘速度vx
 //                            RTT_PrintWave(2,
-//                                          &chassis_move.vx,
+//                                          &chassis_control.vx,
 //                                          &pid_auto_tune_data.control_list.vx_control_value);
                             //底盘速度vy
 //                            RTT_PrintWave(2,
-//                                          &chassis_move.vy,
+//                                          &chassis_control.vy,
 //                                          &pid_auto_tune_data.control_list.vy_control_value);
                             //底盘速度vy
 //                            RTT_PrintWave(2,
-//                                          &chassis_move.wz,
+//                                          &chassis_control.wz,
 //                                          &pid_auto_tune_data.control_list.wz_control_value);
                             //yaw_speed
 //                            RTT_PrintWave(2,

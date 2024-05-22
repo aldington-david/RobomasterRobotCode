@@ -36,11 +36,11 @@ void super_capacitance_control_task(void const *pvParameters) {
                 if ((switch_is_up(rc_ctrl.rc.s[RADIO_CONTROL_SWITCH_L])) &&
                     (switch_is_up(rc_ctrl.rc.s[RADIO_CONTROL_SWITCH_R]))) {
                     if ((rc_ctrl.key.v & (KEY_PRESSED_OFFSET_C)) && key_count == 0) {
-                        if ((chassis_move.soft_power_limit - power_limit_preserve != SUPER_CAPACITANCE_ADD_W) &&
-                            (chassis_move.soft_power_limit != 0)) {
+                        if ((chassis_control.soft_power_limit - power_limit_preserve != SUPER_CAPACITANCE_ADD_W) &&
+                            (chassis_control.soft_power_limit != 0)) {
                             key_count = 250;
-                            power_limit_preserve = chassis_move.soft_power_limit;
-                            chassis_move.soft_power_limit += SUPER_CAPACITANCE_ADD_W;
+                            power_limit_preserve = chassis_control.soft_power_limit;
+                            chassis_control.soft_power_limit += SUPER_CAPACITANCE_ADD_W;
                             super_capacitance_enable_flag = 1;
                         }
                     }
@@ -48,8 +48,8 @@ void super_capacitance_control_task(void const *pvParameters) {
                 if (key_count > 0) {
                     key_count--;
                 }
-                if (chassis_move.power_limit >= 30) {
-                    CAN1_cmd_0x210(chassis_move.power_limit * 100);
+                if (chassis_control.power_limit >= 30) {
+                    CAN1_cmd_0x210(chassis_control.power_limit * 100);
                 } else {
                     CAN1_cmd_0x210(SUPER_CAPACITANCE_30W_MIN);
                 }

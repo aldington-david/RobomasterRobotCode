@@ -214,7 +214,7 @@ typedef struct {
 
 } chassis_move_t;
 
-extern chassis_move_t chassis_move;
+extern chassis_move_t chassis_control;
 
 /**
   * @brief          获取chassis_task栈大小
@@ -240,7 +240,7 @@ extern void chassis_task(void const *pvParameters);
   *                 
   * @param[out]     vx_set: vertical speed set-point
   * @param[out]     vy_set: horizontal speed set-point
-  * @param[out]     chassis_move_rc_to_vector: "chassis_move" valiable point
+  * @param[out]     chassis_move_rc_to_vector: "chassis_control" valiable point
   * @retval         none
   */
 /**
@@ -248,7 +248,7 @@ extern void chassis_task(void const *pvParameters);
   *                 
   * @param[out]     vx_set: 纵向速度指针
   * @param[out]     vy_set: 横向速度指针
-  * @param[out]     chassis_move_rc_to_vector: "chassis_move" 变量指针
+  * @param[out]     chassis_move_rc_to_vector: "chassis_control" 变量指针
   * @retval         none
   */
 extern void chassis_rc_to_control_vector(float32_t *vx_set, float32_t *vy_set, float32_t *wz_set,

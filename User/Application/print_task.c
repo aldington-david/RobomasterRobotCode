@@ -685,13 +685,13 @@ referee usart:%s\r\n\
 //                          &pid_iout_probe,
 //                          &pid_dout_probe);
 //            RTT_PrintWave(2,
-//                          &chassis_move.vx,
-//                          &chassis_move.vx_set);
+//                          &chassis_control.vx,
+//                          &chassis_control.vx_set);
 //            RTT_PrintWave(2,
-//                  &chassis_move.motor_chassis[0].speed,
-//                  &chassis_move.motor_chassis[0].speed_set);
+//                  &chassis_control.motor_chassis[0].speed,
+//                  &chassis_control.motor_chassis[0].speed_set);
 //            RTT_PrintWave(1,
-//                  &chassis_move.chassis_vx_speed_pid.out);
+//                  &chassis_control.chassis_vx_speed_pid.out);
 //            RTT_PrintWave(5,
 //                          &gimbal_control.gimbal_yaw_motor.relative_angle_set,
 //                          &gimbal_control.gimbal_yaw_motor.relative_angle,
@@ -742,7 +742,7 @@ referee usart:%s\r\n\
 //            sprintf(print_buf, "shoot_speed=%f,trigger_speed=%f,soft_power_limit=%d\r\n",
 //                    shoot_control.fric_all_speed,
 //                    shoot_control.trigger_speed_set,
-//                    chassis_move.soft_power_limit);
+//                    chassis_control.soft_power_limit);
 //            SEGGER_RTT_WriteString(0, print_buf);
 
             //abosolute_mode
@@ -910,7 +910,7 @@ static void usb_printf(const char *fmt, ...) {
 void RTT_PrintWave(int num_args, ...) {
     float32_t *param_point[num_args];
     int i;
-    char buf[256];
+    char buf[100] = {0};
     va_list arg;
     va_start(arg, num_args);
     int len = 0;
@@ -924,8 +924,10 @@ void RTT_PrintWave(int num_args, ...) {
         }
     }
     va_end(arg);
-    SEGGER_RTT_SetTerminal(0);
-    SEGGER_RTT_WriteString(0, buf);
+    if (SEGGER_RTT_GetAvailWriteSpace(0) > strlen(buf)) {
+        SEGGER_RTT_SetTerminal(0);
+        SEGGER_RTT_WriteString(0, buf);
+    }
 }
 
 /**
@@ -936,7 +938,7 @@ void RTT_PrintWave(int num_args, ...) {
 void RTT_PrintWave_np(int num_args, ...) {
     float32_t param_point[num_args];
     int i;
-    char buf[256];
+    char buf[100] = {0};
     va_list arg;
     va_start(arg, num_args);
     int len = 0;
