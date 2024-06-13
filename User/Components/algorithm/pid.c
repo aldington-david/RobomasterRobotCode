@@ -204,57 +204,31 @@ float ClassisFollow_PID(positionpid_t *pid_t, float target, float measured) {
 
 float ALL_PID(pid_type_def *pid, float32_t ref, float32_t set) {
     float32_t Dout_temp;
+    //防止函数错误调用
     if (pid == NULL) {
         return 0.0f;
     }
+    //计算各个PID对象自己本次执行与上次执行的间隔，用于PID切换和继承
     if ((HAL_GetTick() - pid->hal_tick) > 90 && (HAL_GetTick() - pid->hal_tick) < 294967295) {
         pid->last_get = ref;
         pid->Iout = pid->out;
         LimitMax(pid->Iout, pid->max_iout);
     }
+
     pid->set = set;
     pid->get = ref;
+    //处理非对称范围跳变误差，比如角度值范围为0-2pi
     if ((pid == &gimbal_control.gimbal_yaw_motor.gimbal_motor_relative_angle_pid) ||
         (pid == &gimbal_control.gimbal_yaw_motor.gimbal_motor_absolute_angle_pid) ||
         (pid == &gimbal_control.gimbal_pitch_motor.gimbal_motor_relative_angle_pid) ||
         (pid == &gimbal_control.gimbal_pitch_motor.gimbal_motor_absolute_angle_pid) ||
         (pid == &chassis_control.chassis_angle_pid)) {
-//        pid->error[0] = loop_fp32_constrain(set-ref,0,2*PI);
         pid->error[0] = jump_error(pid->set - pid->get, 2 * PI);
-//        SEGGER_RTT_printf(0,"set=%f,ref=%f,err_fun=%f,err=%f\r\n",set,ref,pid->error[0],set-ref);
     } else {
         pid->error[0] = pid->set - pid->get;
     }
-//    if(chassis_mode_change_flag){
-//        if(pid == &chassis_control.chassis_angle_pid){
-//            pid->Iout =;
-//            pid->Pout = 0;
-//            pid->Dout = 0;
-//            chassis_mode_change_flag = 0;
-//        }
-//    }
-//探针
-//    if (pid == &gimbal_control.gimbal_yaw_motor.gimbal_motor_absolute_angle_pid) {//for_test
-//        if (chassis_behaviour_mode == CHASSIS_SPIN) {
-//            static uint16_t count = 0;
-//            if (spin_pid_change_flag) {
-//                pid->Kp = 117.039f;
-//                if(count>500){
-//                    spin_pid_change_flag = 0;
-//                    count = 0;
-//                }
-//                count++;
-//            }
-//        } else {
-//            pid->Kp = 11.7039f;
-//        }
-//        SEGGER_RTT_printf(0,"e=%f,set=%f,get=%f\r\n",pid->error[0],pid->set,pid->get);
-//    }
-//    if (pid == &gimbal_control.gimbal_pitch_motor.gimbal_motor_gyro_pid) {//for_test
-//        re_err = pid->error[0];
-//        SEGGER_RTT_SetTerminal(1);
-//        SEGGER_RTT_printf(0,"err=%f\r\n",pid->error[0]);
-//    }
+
+    //变速积分PID，偏差越大，积分越快，偏差越小，积分越慢
     if (pid->Variable_I) {
         if ((pid->Variable_I_Down != 0.0 || pid->Variable_I_UP != 0.0) &&
             (pid->Variable_I_UP - pid->Variable_I_Down > 0)) {
@@ -273,23 +247,20 @@ float ALL_PID(pid_type_def *pid, float32_t ref, float32_t set) {
     } else {
         pid->Iout += pid->Ki * (pid->error[0] + pid->error[1]) / 2.0f; //pid->Iout += pid->Ki * pid->error[0];
     }
-
+    //处理非对称范围跳变微分累加值，比如角度值范围为0-2pi
     if ((pid == &gimbal_control.gimbal_yaw_motor.gimbal_motor_relative_angle_pid) ||
         (pid == &gimbal_control.gimbal_yaw_motor.gimbal_motor_absolute_angle_pid) ||
         (pid == &gimbal_control.gimbal_pitch_motor.gimbal_motor_relative_angle_pid) ||
         (pid == &gimbal_control.gimbal_pitch_motor.gimbal_motor_absolute_angle_pid) ||
         (pid == &chassis_control.chassis_angle_pid)) {
-//        pid->error[0] = loop_fp32_constrain(set-ref,0,2*PI);
         pid->Dbuf[0] = jump_error(pid->get - pid->last_get, 2 * PI);
-//        SEGGER_RTT_printf(0,"set=%f,ref=%f,err_fun=%f,err=%f\r\n",set,ref,pid->error[0],set-ref);
     } else {
         pid->Dbuf[0] = pid->get - pid->last_get;
     }
-//    pid->Dbuf[0] = (pid->error[0] - pid->error[1]);
     pid->Dbuf[2] = pid->Dbuf[1];
     pid->Dbuf[1] = pid->Dbuf[0];
 
-
+    //微分先行PID，适用于设定值频繁变化的PID，减少系统震荡
     if (pid->D_First && !pid->NF_D) {
         float32_t D_operator = pid->D_Filter_Ratio * pid->Kd + pid->Kp;
         pid->D3 = pid->Kd / D_operator;
@@ -302,12 +273,14 @@ float ALL_PID(pid_type_def *pid, float32_t ref, float32_t set) {
         Dout_temp = pid->Kd * pid->Dbuf[0];
     }
 
+    //对微分相输入进行滤波，减少高频噪声带来的不稳定性
+    //低通滤波
     if (pid->D_Low_Pass) {
         Filter_IIRLPF(Dout_temp, &pid->Dout, pid->D_Filter_Ratio);
     } else {
         Filter_IIRLPF(Dout_temp, &pid->Dout, 1.0f);
     }
-
+    //卡尔曼滤波
     float32_t KF_temp;
     if (pid->D_Kalman.A == 1) {
         KF_temp = KalmanFilter(&pid->D_Kalman, pid->Dout);
@@ -323,13 +296,6 @@ float ALL_PID(pid_type_def *pid, float32_t ref, float32_t set) {
         pid->Pout = pid->Kp * pid->error[0];
     }
 
-
-//for_test
-//    pid_out_probe += pid->out;
-//    pid_pout_probe += pid->Pout;
-//    pid_iout_probe += pid->Iout;
-//    pid_dout_probe += pid->Dout;
-
     //积分限幅
     LimitMax(pid->Iout, pid->max_iout); //积分输出的限幅。
 
@@ -342,20 +308,6 @@ float ALL_PID(pid_type_def *pid, float32_t ref, float32_t set) {
 
     //输出限幅
     LimitMax(pid->out, pid->max_out);
-
-    ////for_test
-//    if (pid == &gimbal_control.gimbal_yaw_motor.gimbal_motor_gyro_pid) {
-//        Dout1_test = pid->Dout;
-//        KF_Dout1_test = KalmanFilter(&pid->D_Kalman, pid->Dout);
-//    }
-//    if (pid == &gimbal_control.gimbal_yaw_motor.gimbal_motor_relative_angle_pid) {
-//        Dout2_test = pid->Dout;
-//        KF_Dout2_test = KalmanFilter(&pid->D_Kalman, pid->Dout);
-//        RTT_PrintWave_np(2,
-//                         Dout2_test,
-//                         KF_Dout2_test);
-//    }
-
 
     pid->last_get = pid->get;
 

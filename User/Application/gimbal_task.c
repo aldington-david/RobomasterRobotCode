@@ -739,6 +739,10 @@ static void gimbal_init(gimbal_control_t *init) {
     static const float32_t Yaw_relative_angle_pid[3] = {10.7039f, 18.0f, 5.02f};
     static const float32_t Pitch_absolute_angle_pid[3] = {15.89f, 0.0f, 200.0f};
     static const float32_t Pitch_relative_angle_pid[3] = {29.2f, 0.0f, 500.0f};
+
+    //human_follow_control
+    static const float32_t Yaw_follow_angle_pid[3] = {0.004908738f, 0.0f, 0.049f};
+    static const float32_t Pitch_follow_angle_pid[3] = {0.00654f, 0.0f, 0.065f};
     //电机数据指针获取
     init->gimbal_yaw_motor.gimbal_motor_measure = get_yaw_gimbal_motor_measure_point();
     init->gimbal_pitch_motor.gimbal_motor_measure = get_pitch_gimbal_motor_measure_point();
@@ -777,6 +781,13 @@ static void gimbal_init(gimbal_control_t *init) {
              PITCH_SPEED_PID_MAX_IOUT, 0.8f, 1, 0.8f, 2.0f, 0, 0, 0, 0, 0, 0, 0, 0, 0);
     PID_init(&init->gimbal_pitch_motor.gimbal_motor_gyro_pid, PID_POSITION, Pitch_absolute_speed_pid, PITCH_SPEED_PID_MAX_OUT,
              PITCH_SPEED_PID_MAX_IOUT, 0.8f, 1, 0.8f, 2.0f, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+    //初始化人跟随PID
+    PID_init(&init->vision_follow_yaw_pid, PID_POSITION, Yaw_follow_angle_pid,
+             FOLLOW_PID_MAX_OUT,
+             FOLLOW_PID_MAX_IOUT, 1000, 1, 0.01f, 2.0f, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+    PID_init(&init->vision_follow_pitch_pid, PID_POSITION, Pitch_follow_angle_pid,
+             FOLLOW_PID_MAX_OUT,
+             FOLLOW_PID_MAX_IOUT, 1000, 1, 0.01f, 2.0f, 0, 0, 0, 0, 0, 0, 0, 0, 0);
     KalmanCreate(&init->gimbal_pitch_motor.Cloud_Motor_Current_Kalman_Filter, 0.001f, 0.05f);
     KalmanCreate(&init->gimbal_yaw_motor.Cloud_Motor_Current_Kalman_Filter, 0.001f, 0.05f);
     KalmanCreate(&init->gimbal_yaw_motor.Cloud_Motor_Gyro_Kalman_Filter, 0.01f, 5.0f);

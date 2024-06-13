@@ -77,6 +77,9 @@
 #define YAW_ENCODE_RELATIVE_PID_MAX_OUT   30.0f
 #define YAW_ENCODE_RELATIVE_PID_MAX_IOUT  15.0f
 
+//follow角最大输出
+#define FOLLOW_PID_MAX_OUT   1.5f
+#define FOLLOW_PID_MAX_IOUT 0.7f
 
 //任务初始化 空闲一段时间
 #define GIMBAL_TASK_INIT_TIME 201
@@ -266,6 +269,9 @@ typedef struct {
     int16_t fric1_give_current;
     float32_t fric2_current_set;
     int16_t fric2_give_current;
+
+    pid_type_def vision_follow_yaw_pid;
+    pid_type_def vision_follow_pitch_pid;
 
 } gimbal_control_t;
 

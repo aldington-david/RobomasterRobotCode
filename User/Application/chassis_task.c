@@ -189,8 +189,10 @@ void chassis_task(void const *pvParameters) {
             } else {
                 //send control current
                 //发送控制电流
-                CAN1_cmd_0x200(chassis_control.motor_chassis[0].give_current, chassis_control.motor_chassis[1].give_current,
-                               chassis_control.motor_chassis[2].give_current, chassis_control.motor_chassis[3].give_current);
+                CAN1_cmd_0x200(chassis_control.motor_chassis[0].give_current,
+                               chassis_control.motor_chassis[1].give_current,
+                               chassis_control.motor_chassis[2].give_current,
+                               chassis_control.motor_chassis[3].give_current);
             }
         }
 #if INCLUDE_uxTaskGetStackHighWaterMark
@@ -254,6 +256,8 @@ static void chassis_init(chassis_move_t *chassis_move_init) {
     chassis_move_init->chassis_pitch_motor = get_pitch_motor_point();
     //pid调谐数据指针获取
     chassis_move_init->pid_auto_tune_data_point = get_pid_auto_tune_data_point();
+    //获取视觉控制数据指针
+    chassis_move_init->chassis_vision_ctrl = get_vision_control_point();
     //超级电容数据指针获取
     chassis_move_init->super_capacitance_measure_point = get_super_capacitance_measure_point();
     //get chassis motor data point,  initialize motor speed PID
@@ -472,6 +476,7 @@ void chassis_rc_to_control_vector(float32_t *vx_set, float32_t *vy_set, float32_
     int16_t vx_channel, vy_channel, wz_channel;
     float32_t vx_set_channel, vy_set_channel, wz_set_channel;
     float32_t vx_raw, vy_raw;
+    float32_t vx_add = 0;
     vx_set_channel = vy_set_channel = wz_set_channel = vx_channel = vy_channel = wz_channel = 0;
     if (!switch_is_up(chassis_move_rc_to_vector->chassis_RC->rc.s[RADIO_CONTROL_SWITCH_L])) {
 
@@ -583,7 +588,14 @@ void chassis_rc_to_control_vector(float32_t *vx_set, float32_t *vy_set, float32_
         }
 //        SEGGER_RTT_printf(0,"vx=%f,vy=%f,wz=%f\r\n",vx_set_channel,vy_set_channel,wz_set_channel);
     }
-    *vx_set = vx_set_channel;
+    if (chassis_move_rc_to_vector->chassis_vision_ctrl->torso_keypoints) {
+        if (chassis_move_rc_to_vector->chassis_vision_ctrl->head_keypoints > 0 ||
+            chassis_move_rc_to_vector->chassis_vision_ctrl->leg_keypoints > 2) {
+            vx_add = 1;
+        }
+
+    }
+    *vx_set = vx_set_channel + vx_add;
     *vy_set = vy_set_channel;
     *wz_set = wz_set_channel;
 }

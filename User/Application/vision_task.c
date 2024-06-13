@@ -126,7 +126,6 @@ void vision_unpack_fifo_data(void) {
         switch (p_obj->unpack_step) {
             case VISION_STEP_HEADER_SOF: {
                 if (byte == VISION_HEADER_SOF) {
-//                    SEGGER_RTT_printf(0,"head=%d,sep=%d,end=%d\r\n",p_obj->head_sof_cnt,p_obj->separate_sof_cnt,p_obj->end_sof_cnt);
                     p_obj->protocol_packet[p_obj->index++] = byte;
                     if (fifo_s_preread(&vision_rx_fifo, 0) != VISION_HEADER_SOF) {
                         p_obj->unpack_step = VISION_STEP_LEN;
@@ -140,14 +139,12 @@ void vision_unpack_fifo_data(void) {
                 break;
 
             case VISION_STEP_LEN: {
-//                SEGGER_RTT_WriteString(0, "have_date1\r\n");
                 p_obj->frame.header.data_len = byte;
                 p_obj->protocol_packet[p_obj->index++] = byte;
                 p_obj->unpack_step = VISION_STEP_FRAME_CRC16;
             }
                 break;
             case VISION_STEP_FRAME_CRC16: {
-//                SEGGER_RTT_WriteString(0, "have_date2\r\n");
                 if (p_obj->index < (sizeof(vision_sync_struct))) {
                     p_obj->protocol_packet[p_obj->index++] = byte;
                 }
@@ -208,7 +205,7 @@ const volatile vision_control_t *get_vision_control_point(void) {
   */
 void init_vision_struct_data(void) {
     memset(&global_vision_info, 0, sizeof(vision_info_t));
-    global_vision_info.vision_control.fps = 30;
+//    global_vision_info.vision_control.fps = 30;
     global_vision_info.state = VISION_ON;
 }
 

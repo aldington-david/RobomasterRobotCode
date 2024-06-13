@@ -173,6 +173,8 @@ typedef struct {
     const volatile pid_auto_tune_t *pid_auto_tune_data_point;
     const volatile super_capacitance_measure_t *super_capacitance_measure_point;
 
+    const volatile vision_control_t *chassis_vision_ctrl;
+
     bool_t chassis_follow_reverse_flag;
     chassis_mode_e chassis_mode;               //state machine. 底盘控制状态机
     chassis_mode_e last_chassis_mode;          //last state machine.底盘上次控制状态机

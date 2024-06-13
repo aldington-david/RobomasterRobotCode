@@ -96,7 +96,6 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan) {
             case CAN_3508_M3_ID:
             case CAN_3508_M4_ID:
             case CAN_YAW_MOTOR_ID: {
-
                 //get motor id
                 i = rx_header.StdId - CAN_3508_M1_ID;
                 get_motor_measure(&can1_motor_data[i], rx_data);
@@ -140,29 +139,6 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan) {
             }
         }
     }
-//    switch (rx_header.StdId)
-//    {
-//        case CAN_3508_M1_ID:
-//        case CAN_3508_M2_ID:
-//        case CAN_3508_M3_ID:
-//        case CAN_3508_M4_ID:
-//        case CAN_YAW_MOTOR_ID:
-//        case CAN_PITCH_MOTOR_ID:
-//        case CAN_TRIGGER_MOTOR_ID:
-//        {
-//            static uint8_t i = 0;
-//            //get motor id
-//            i = rx_header.StdId - CAN_3508_M1_ID;
-//            get_motor_measure(&can1_motor_data[i], rx_data);
-//            detect_hook(CHASSIS_MOTOR1_TOE + i);
-//            break;
-//        }
-//
-//        default:
-//        {
-//            break;
-//        }
-//    }
 }
 
 

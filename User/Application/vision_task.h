@@ -38,6 +38,8 @@ typedef struct {
     float data1;
     float data2;
     uint16_t data3;
+    uint16_t data4;
+    uint16_t data5;
 } vision_frame_data;
 
 typedef struct {
@@ -61,7 +63,9 @@ typedef struct {
 typedef volatile struct {
     float32_t yaw_angle;
     float32_t pitch_angle;
-    uint16_t fps;
+    uint16_t head_keypoints;
+    uint16_t torso_keypoints;
+    uint16_t leg_keypoints;
     volatile bool update_flag;
 } vision_control_t;
 

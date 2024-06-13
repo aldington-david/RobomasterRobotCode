@@ -993,42 +993,20 @@ void gimbal_rc_to_control_vector(float32_t *yaw, float32_t *pitch, gimbal_contro
         clear_vision_update_flag();
         memset(yaw_vision_Interpolation, 0, sizeof(yaw_vision_Interpolation));
         memset(yaw_vision_Interpolation, 0, sizeof(yaw_vision_Interpolation));
-//        rc_move_point = 0;
-//        SEGGER_RTT_printf(0, "%d,%f,%f\r\n", gimbal_move_rc_to_vector->gimbal_vision_ctrl->fps,
-//                          gimbal_move_rc_to_vector->gimbal_vision_ctrl->yaw_angle,
-//                          gimbal_move_rc_to_vector->gimbal_vision_ctrl->pitch_angle);
-        if (gimbal_move_rc_to_vector->gimbal_vision_ctrl->fps <= 10) {
-            global_vision_info.vision_control.fps = 20;
-        } else if (gimbal_move_rc_to_vector->gimbal_vision_ctrl->fps > 60) {
-            global_vision_info.vision_control.fps = 60;
-        }
-//        SEGGER_RTT_WriteString(0,"IN\r\n");
-        if (fabsf(add_vision_yaw) > 2.0f) {
-            vision_yaw_interpolation_num = 3;
-        } else {
-            vision_yaw_interpolation_num = 2;
-        }
-        if (fabsf(add_vision_pitch) > 2.0f) {
-            vision_pitch_interpolation_num = 3;
-        } else {
-            vision_pitch_interpolation_num = 2;
-        }
-        sigmoidInterpolation(0,
-                             (gimbal_move_rc_to_vector->gimbal_vision_ctrl->yaw_angle / vision_yaw_interpolation_num) *
-                             1000,
-                             (1000 / gimbal_move_rc_to_vector->gimbal_vision_ctrl->fps) * 2,
-                             yaw_vision_Interpolation);
-        sigmoidInterpolation(0, (gimbal_move_rc_to_vector->gimbal_vision_ctrl->pitch_angle /
-                                 vision_pitch_interpolation_num) * 1000,
-                             (1000 / gimbal_move_rc_to_vector->gimbal_vision_ctrl->fps) * 2,
-                             pitch_vision_Interpolation);
+        gimbal_move_rc_to_vector->gimbal_vision_ctrl->yaw_angle;
+        gimbal_move_rc_to_vector->gimbal_vision_ctrl->pitch_angle;
+
+        add_vision_yaw = ALL_PID(&gimbal_move_rc_to_vector->vision_follow_yaw_pid,
+                                 gimbal_move_rc_to_vector->gimbal_vision_ctrl->yaw_angle,
+                         0.0f);
+        add_vision_pitch = ALL_PID(&gimbal_move_rc_to_vector->vision_follow_pitch_pid,
+                                   gimbal_move_rc_to_vector->gimbal_vision_ctrl->pitch_angle,
+                                   0.0f);
     }
+
+
     add_vision_yaw = yaw_vision_Interpolation[vision_move_point] / 1000;
     add_vision_pitch = pitch_vision_Interpolation[vision_move_point] / 1000;
-    vision_move_point++;
-    if (vision_move_point > (1000 / gimbal_move_rc_to_vector->gimbal_vision_ctrl->fps) - 1) {
-        vision_move_point = 0;
-    }
 //    SEGGER_RTT_printf(0, "%d,%f,%f\r\n", gimbal_move_rc_to_vector->gimbal_vision_ctrl->fps,
 //                      add_vision_yaw,
 //                      add_vision_pitch);
